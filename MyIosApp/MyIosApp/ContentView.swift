@@ -6,8 +6,11 @@
 //
 
 import SwiftUI
+import AVFoundation
 
 struct ContentView: View {
+    var synthesizer = AVSpeechSynthesizer()
+    
     var body: some View {
         VStack {
            
@@ -19,6 +22,9 @@ struct ContentView: View {
             //bunlar modifierdi
             
             Button {
+                let utterance = AVSpeechUtterance(string: "salam men Vusalam")
+                utterance.voice = AVSpeechSynthesisVoice(language: "ru-RU")
+                synthesizer.speak(utterance)
                 //what it does
             } label: {
                 //how it  looks
