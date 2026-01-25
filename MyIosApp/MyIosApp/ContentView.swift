@@ -15,7 +15,7 @@ struct ContentView: View {
                 .fontWeight(.black)
                 .font(.largeTitle)
                 .font(.system(.largeTitle, design: .monospaced ))
-            
+                
             //bunlar modifierdi
             
             Button {
@@ -26,6 +26,10 @@ struct ContentView: View {
                     .fontWeight(.bold)
                     .font(.system(.title, design: .monospaced))
             }
+            .padding(10)
+            .foregroundColor(.white)
+            .background(Color.purple)
+            .cornerRadius(20)
         }
         
     }
