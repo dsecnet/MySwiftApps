@@ -68,7 +68,7 @@ struct MainTabView: View {
                 .navigationTitle("Ana")
             }
             .tabItem {
-                Label("Ana", systemImage: "house.fill")
+                Label("Əsas", systemImage: "house.fill")
             }
             .tag(0)
             
