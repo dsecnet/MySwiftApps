@@ -1,54 +1,118 @@
 //
 //  Colors.swift
-//  FitnessApp
+//  CoreVia
 //
-//  Qara + Qırmızı Theme üçün rəng sistemi
+//  Adaptiv rəng sistemi - Light və Dark mode dəstəyi
 //
 
 import SwiftUI
 
 extension Color {
 
-    // MARK: - Primary Colors (Əsas Rənglər)
-    // App-ın əsas rəng sxemidir (aksentlər, button, logo)
+    // MARK: - Adaptive Background Colors
+    // Bu rənglər sistem theme-ə görə avtomatik dəyişir
     
-    static let primaryRed = Color(red: 1.0, green: 0.0, blue: 0.0)       // Qırmızı aksent
-    static let primaryDark = Color(red: 0.0, green: 0.0, blue: 0.0)      // Tam qara, əsas fon
-    static let primaryGray = Color(red: 0.15, green: 0.15, blue: 0.15)   // Tünd boz, card arxa fon üçün
-    static let primaryLightGray = Color(red: 0.25, green: 0.25, blue: 0.25) // Yüngül tünd boz, hover / alt background
-
-    // MARK: - Background Colors (Arxa fon rənglər)
-
-    static let background = Color.primaryDark       // Əsas arxa fon
-    static let cardBackground = Color.primaryGray   // Kart / container arxa fon
-    static let darkBackground = Color.black         // Hard black lazım olduqda
+    /// Əsas arxa fon - sistem theme-ə uyğun (ağ/qara)
+    static let adaptiveBackground = Color(UIColor.systemBackground)
     
-    // MARK: - Text Colors (Mətn rənglər)
-
-    static let textPrimary = Color.white            // Əsas mətn (qara fon üzərində)
-    static let textSecondary = Color.gray           // İkinci dərəcəli mətn
-    static let textLight = Color.primaryRed         // Highlight / aksent mətni
+    /// İkinci dərəcəli arxa fon - card, container üçün
+    static let adaptiveSecondaryBackground = Color(UIColor.secondarySystemBackground)
     
-    // MARK: - Status Colors (Status rənglər)
-
-    static let success = Color.green                // Uğurlu
-    static let error = Color.red                    // Xəta
-    static let warning = Color.yellow              // Xəbərdarlıq
-    static let info = Color.primaryRed             // Məlumat / aksent üçün
+    /// Üçüncü dərəcəli arxa fon - grouped list, deeper cards
+    static let adaptiveTertiaryBackground = Color(UIColor.tertiarySystemBackground)
+    
+    // MARK: - Adaptive Text Colors
+    // Sistem theme-ə görə avtomatik dəyişən mətn rəngləri
+    
+    /// Əsas mətn - light-da qara, dark-da ağ
+    static let adaptiveText = Color(UIColor.label)
+    
+    /// İkinci dərəcəli mətn - az önəmli mətn üçün
+    static let adaptiveSecondaryText = Color(UIColor.secondaryLabel)
+    
+    /// Üçüncü dərəcəli mətn - placeholder, disabled mətn
+    static let adaptiveTertiaryText = Color(UIColor.tertiaryLabel)
+    
+    // MARK: - Accent Colors (Theme-dən asılı olmur)
+    // Bu rənglər həmişə eyni qalır
+    
+    static let primaryRed = Color(red: 1.0, green: 0.0, blue: 0.0)
+    static let accentOrange = Color.orange
+    static let accentGreen = Color.green
+    static let accentPurple = Color.purple
+    static let accentBlue = Color.blue
+    
+    // MARK: - Status Colors
+    
+    static let success = Color.green
+    static let error = Color.red
+    static let warning = Color.yellow
+    static let info = Color.blue
+    
+    // MARK: - Card Background with Opacity
+    // Adaptiv fonda opacity ilə card background
+    
+    static var cardBackground: Color {
+        Color(UIColor.secondarySystemBackground)
+    }
+    
+    static var subtleCardBackground: Color {
+        Color(UIColor.systemGray6)
+    }
 }
 
-// MARK: - İstifadə nümunəsi:
+// MARK: - Convenience Computed Properties
+
+extension Color {
+    
+    /// View background - sistem theme-ə uyğun
+    static var viewBackground: Color {
+        adaptiveBackground
+    }
+    
+    /// Primary text color
+    static var primaryText: Color {
+        adaptiveText
+    }
+    
+    /// Secondary text color
+    static var secondaryText: Color {
+        adaptiveSecondaryText
+    }
+    
+    /// Placeholder text
+    static var placeholderText: Color {
+        adaptiveTertiaryText
+    }
+}
+
+// MARK: - Usage Example
 /*
-Text("Salam")
-    .foregroundColor(.textPrimary)
-
-Rectangle()
-    .fill(Color.cardBackground)
-
-Button("Daxil ol") {
-    // Action
-}
-.background(Color.primaryRed)
-.foregroundColor(.textPrimary)
-.cornerRadius(12)
-*/
+ 
+ // View background (adaptiv)
+ ZStack {
+     Color.viewBackground.ignoresSafeArea()
+     
+     VStack {
+         // Card
+         VStack {
+             Text("Başlıq")
+                 .foregroundColor(.primaryText)
+             
+             Text("Alt başlıq")
+                 .foregroundColor(.secondaryText)
+         }
+         .padding()
+         .background(Color.cardBackground)
+         .cornerRadius(12)
+         
+         // Button (həmişə qırmızı)
+         Button("Əlavə et") { }
+             .foregroundColor(.white)
+             .padding()
+             .background(Color.primaryRed)
+             .cornerRadius(12)
+     }
+ }
+ 
+ */

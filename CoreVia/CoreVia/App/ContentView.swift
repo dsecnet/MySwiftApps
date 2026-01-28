@@ -4,11 +4,13 @@ struct ContentView: View {
 
     @State private var isLoggedIn: Bool = false
     @State private var showRegister: Bool = false
+    @StateObject private var workoutManager = WorkoutManager.shared
 
     var body: some View {
         Group {
             if isLoggedIn {
                 MainTabView(isLoggedIn: $isLoggedIn)
+                    .environmentObject(workoutManager)
             } else {
                 if showRegister {
                     RegisterView(showRegister: $showRegister)
@@ -28,18 +30,18 @@ struct MainTabView: View {
 
     @Binding var isLoggedIn: Bool
     @State private var selectedTab: Int = 0
+    @EnvironmentObject var workoutManager: WorkoutManager
 
     init(isLoggedIn: Binding<Bool>) {
         _isLoggedIn = isLoggedIn
 
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = .black
+        appearance.backgroundColor = UIColor.systemBackground // Adaptiv
 
-        appearance.stackedLayoutAppearance.normal.iconColor =
-            UIColor.white.withAlphaComponent(0.7)
+        appearance.stackedLayoutAppearance.normal.iconColor = UIColor.secondaryLabel // Adaptiv
         appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
-            .foregroundColor: UIColor.white.withAlphaComponent(0.7)
+            .foregroundColor: UIColor.secondaryLabel // Adaptiv
         ]
 
         appearance.stackedLayoutAppearance.selected.iconColor = .red
@@ -66,19 +68,15 @@ struct MainTabView: View {
 
             // MARK: - Workout
             NavigationStack {
-                PlaceholderView(
-                    title: "Məşq Tracking",
-                    icon: "figure.strengthtraining.traditional",
-                    color: .red
-                )
-                .navigationTitle("Məşq")
+                WorkoutView()
+                    .navigationTitle("Məşq")
             }
             .tabItem {
                 Label("Məşq", systemImage: "figure.strengthtraining.traditional")
             }
             .tag(1)
 
-            // MARK: - Food (UPDATED)
+            // MARK: - Food
             NavigationStack {
                 FoodView()
                     .navigationTitle("Qida")
@@ -88,14 +86,10 @@ struct MainTabView: View {
             }
             .tag(2)
 
-            // MARK: - Trainers
+            // MARK: - Teachers
             NavigationStack {
-                PlaceholderView(
-                    title: "Müəllimlər",
-                    icon: "person.2.fill",
-                    color: .purple
-                )
-                .navigationTitle("Müəllimlər")
+                TeachersView()
+                    .navigationTitle("Müəllimlər")
             }
             .tabItem {
                 Label("Müəllimlər", systemImage: "person.2.fill")
@@ -123,7 +117,7 @@ struct PlaceholderView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color(UIColor.systemBackground).ignoresSafeArea()
 
             VStack(spacing: 16) {
                 Image(systemName: icon)
@@ -133,10 +127,10 @@ struct PlaceholderView: View {
                 Text(title)
                     .font(.title2)
                     .bold()
-                    .foregroundColor(.white)
+                    .foregroundColor(Color(UIColor.label))
 
                 Text("Tezliklə...")
-                    .foregroundColor(.gray)
+                    .foregroundColor(Color(UIColor.secondaryLabel))
             }
         }
     }
