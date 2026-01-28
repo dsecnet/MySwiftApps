@@ -6,13 +6,8 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		790042962F2A1D1100AA158A /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 790042952F2A1CF700AA158A /* Localizable.strings */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXFileReference section */
 		790042372F29E56600AA158A /* CoreVia.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CoreVia.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		790042952F2A1CF700AA158A /* Localizable.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -37,7 +32,6 @@
 		7900422E2F29E56600AA158A = {
 			isa = PBXGroup;
 			children = (
-				790042952F2A1CF700AA158A /* Localizable.strings */,
 				790042392F29E56600AA158A /* CoreVia */,
 				790042382F29E56600AA158A /* Products */,
 			);
@@ -117,7 +111,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				790042962F2A1D1100AA158A /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
