@@ -11,7 +11,7 @@ struct TeachersView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            AppTheme.Colors.background.ignoresSafeArea()
 
             ScrollView {
                 VStack(spacing: 16) {
@@ -45,22 +45,22 @@ struct TeacherRow: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(teacher.name)
-                    .foregroundColor(.white)
+                    .foregroundColor(AppTheme.Colors.primaryText)
                     .bold()
 
                 Text(teacher.subject)
-                    .foregroundColor(.gray)
+                    .foregroundColor(AppTheme.Colors.secondaryText)
                     .font(.caption)
             }
 
             Spacer()
 
             Image(systemName: "chevron.right")
-                .foregroundColor(.gray)
+                .foregroundColor(AppTheme.Colors.secondaryText)
                 .font(.caption)
         }
         .padding()
-        .background(Color.white.opacity(0.05))
+        .background(AppTheme.Colors.secondaryBackground)
         .cornerRadius(14)
     }
 }

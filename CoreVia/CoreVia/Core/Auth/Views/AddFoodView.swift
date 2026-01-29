@@ -2,7 +2,7 @@
 //  AddFoodView.swift
 //  CoreVia
 //
-//  Qida əlavə etmək view (Placeholder - gələcək inkişaf üçün)
+//  Sadələşdirilmiş versiya - compiler error həlli
 //
 
 import SwiftUI
@@ -17,120 +17,154 @@ struct AddFoodView: View {
     
     var body: some View {
         NavigationStack {
-            ZStack {
-                Color.black.ignoresSafeArea()
-                
-                ScrollView {
-                    VStack(spacing: 24) {
-                        
-                        // MARK: - Coming Soon Banner
-                        VStack(spacing: 12) {
-                            Image(systemName: "fork.knife.circle.fill")
-                                .font(.system(size: 60))
-                                .foregroundColor(.green)
-                            
-                            Text("Tezliklə!")
-                                .font(.title2)
-                                .bold()
-                                .foregroundColor(.white)
-                            
-                            Text("Qida tracking funksiyası hal-hazırda hazırlanır. Məşq tracking-i test edin!")
-                                .foregroundColor(.gray)
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal)
+            contentView
+                .navigationTitle("Qida Əlavə Et")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Bağla") {
+                            dismiss()
                         }
-                        .padding(.vertical, 40)
-                        
-                        // MARK: - Preview UI (Demo)
-                        VStack(alignment: .leading, spacing: 16) {
-                            Text("Gələcək Funksiyalar:")
-                                .foregroundColor(.white)
-                                .font(.headline)
-                            
-                            FeaturePreviewRow(
-                                icon: "plus.circle.fill",
-                                title: "Qida əlavə et",
-                                description: "Kalori və makro hesablama"
-                            )
-                            
-                            FeaturePreviewRow(
-                                icon: "chart.bar.fill",
-                                title: "Günlük tracking",
-                                description: "Səhər, günorta, axşam"
-                            )
-                            
-                            FeaturePreviewRow(
-                                icon: "target",
-                                title: "Məqsəd təyini",
-                                description: "Kalori və makro hədəfləri"
-                            )
-                            
-                            FeaturePreviewRow(
-                                icon: "camera.fill",
-                                title: "Şəkil tanıma",
-                                description: "AI ilə qida tanıma (gələcək)"
-                            )
-                        }
-                        .padding()
-                        .background(Color.white.opacity(0.05))
-                        .cornerRadius(14)
-                        
-                        // MARK: - Placeholder Form
-                        VStack(alignment: .leading, spacing: 16) {
-                            Text("Önizləmə (işləmir)")
-                                .foregroundColor(.gray)
-                                .font(.caption)
-                            
-                            // Meal Type
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 12) {
-                                    ForEach(MealType.allCases, id: \.self) { type in
-                                        MealTypeButton(
-                                            type: type,
-                                            isSelected: selectedMealType == type
-                                        ) {
-                                            selectedMealType = type
-                                        }
-                                    }
-                                }
-                            }
-                            
-                            // Food Name
-                            TextField("Qida adı", text: $mealName)
-                                .foregroundColor(.white)
-                                .padding()
-                                .background(Color.white.opacity(0.05))
-                                .cornerRadius(12)
-                                .disabled(true)
-                            
-                            // Calories
-                            TextField("Kalori", text: $calories)
-                                .foregroundColor(.white)
-                                .keyboardType(.numberPad)
-                                .padding()
-                                .background(Color.white.opacity(0.05))
-                                .cornerRadius(12)
-                                .disabled(true)
-                        }
-                        .padding()
-                        .background(Color.white.opacity(0.03))
-                        .cornerRadius(14)
-                        .opacity(0.5)
+                        .foregroundColor(.red)
                     }
-                    .padding()
                 }
+        }
+    }
+    
+    // MARK: - Content View
+    private var contentView: some View {
+        ZStack {
+            AppTheme.Colors.background.ignoresSafeArea()
+            
+            ScrollView {
+                VStack(spacing: 24) {
+                    comingSoonBanner
+                    featuresList
+                    placeholderForm
+                }
+                .padding()
             }
-            .navigationTitle("Qida Əlavə Et")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Bağla") {
-                        dismiss()
-                    }
-                    .foregroundColor(.red)
+        }
+    }
+    
+    // MARK: - Coming Soon Banner
+    private var comingSoonBanner: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "fork.knife.circle.fill")
+                .font(.system(size: 60))
+                .foregroundColor(.green)
+            
+            Text("Tezliklə!")
+                .font(.title2)
+                .bold()
+                .foregroundColor(AppTheme.Colors.primaryText)
+            
+            Text("Qida tracking funksiyası hal-hazırda hazırlanır. Məşq tracking-i test edin!")
+                .foregroundColor(AppTheme.Colors.secondaryText)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+        }
+        .padding(.vertical, 40)
+    }
+    
+    // MARK: - Features List
+    private var featuresList: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Gələcək Funksiyalar:")
+                .foregroundColor(AppTheme.Colors.primaryText)
+                .font(.headline)
+            
+            FeaturePreviewRow(
+                icon: "plus.circle.fill",
+                title: "Qida əlavə et",
+                description: "Kalori və makro hesablama"
+            )
+            
+            FeaturePreviewRow(
+                icon: "chart.bar.fill",
+                title: "Günlük tracking",
+                description: "Səhər, günorta, axşam"
+            )
+            
+            FeaturePreviewRow(
+                icon: "target",
+                title: "Məqsəd təyini",
+                description: "Kalori və makro hədəfləri"
+            )
+            
+            FeaturePreviewRow(
+                icon: "camera.fill",
+                title: "Şəkil tanıma",
+                description: "AI ilə qida tanıma (gələcək)"
+            )
+        }
+        .padding()
+        .background(AppTheme.Colors.secondaryBackground)
+        .cornerRadius(14)
+    }
+    
+    // MARK: - Placeholder Form
+    private var placeholderForm: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Önizləmə (işləmir)")
+                .foregroundColor(AppTheme.Colors.secondaryText)
+                .font(.caption)
+            
+            mealTypeSelector
+            
+            TextField("Qida adı", text: $mealName)
+                .foregroundColor(AppTheme.Colors.primaryText)
+                .padding()
+                .background(AppTheme.Colors.secondaryBackground)
+                .cornerRadius(12)
+                .disabled(true)
+            
+            TextField("Kalori", text: $calories)
+                .foregroundColor(AppTheme.Colors.primaryText)
+                .keyboardType(.numberPad)
+                .padding()
+                .background(AppTheme.Colors.secondaryBackground)
+                .cornerRadius(12)
+                .disabled(true)
+        }
+        .padding()
+        .background(Color(UIColor.tertiarySystemBackground))
+        .cornerRadius(14)
+        .opacity(0.5)
+    }
+    
+    // MARK: - Meal Type Selector
+    private var mealTypeSelector: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(MealType.allCases, id: \.self) { type in
+                    mealTypeButton(for: type)
                 }
             }
         }
+    }
+    
+    private func mealTypeButton(for type: MealType) -> some View {
+        Button {
+            selectedMealType = type
+        } label: {
+            VStack(spacing: 6) {
+                Image(systemName: type.icon)
+                    .font(.title3)
+                
+                Text(type.rawValue)
+                    .font(.caption)
+            }
+            .foregroundColor(selectedMealType == type ? .white : AppTheme.Colors.secondaryText)
+            .frame(width: 70, height: 70)
+            .background(
+                selectedMealType == type ?
+                Color.green.opacity(0.3) :
+                AppTheme.Colors.secondaryBackground
+            )
+            .cornerRadius(12)
+        }
+        .disabled(true)
     }
 }
 
@@ -151,7 +185,7 @@ enum MealType: String, CaseIterable {
     }
 }
 
-// MARK: - Components
+// MARK: - Feature Preview Row
 struct FeaturePreviewRow: View {
     let icon: String
     let title: String
@@ -166,44 +200,17 @@ struct FeaturePreviewRow: View {
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .foregroundColor(.white)
+                    .foregroundColor(AppTheme.Colors.primaryText)
                     .font(.subheadline)
                     .bold()
                 
                 Text(description)
-                    .foregroundColor(.gray)
+                    .foregroundColor(AppTheme.Colors.secondaryText)
                     .font(.caption)
             }
             
             Spacer()
         }
-    }
-}
-
-struct MealTypeButton: View {
-    let type: MealType
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 6) {
-                Image(systemName: type.icon)
-                    .font(.title3)
-                
-                Text(type.rawValue)
-                    .font(.caption)
-            }
-            .foregroundColor(isSelected ? .white : .gray)
-            .frame(width: 70, height: 70)
-            .background(
-                isSelected ?
-                Color.green.opacity(0.3) :
-                Color.white.opacity(0.05)
-            )
-            .cornerRadius(12)
-        }
-        .disabled(true)
     }
 }
 

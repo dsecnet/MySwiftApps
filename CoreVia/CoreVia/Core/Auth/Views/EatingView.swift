@@ -4,7 +4,7 @@ struct FoodView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            AppTheme.Colors.background.ignoresSafeArea()
 
             ScrollView {
                 VStack(spacing: 20) {
@@ -14,28 +14,28 @@ struct FoodView: View {
                         Text("Qida Tracking")
                             .font(.title)
                             .bold()
-                            .foregroundColor(.white)
+                            .foregroundColor(AppTheme.Colors.primaryText)
 
                         Text("Kalori və makro izləyin")
-                            .foregroundColor(.gray)
+                            .foregroundColor(AppTheme.Colors.secondaryText)
                             .font(.caption)
                     }
 
                     // Daily calories
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Günlük Kalori")
-                            .foregroundColor(.white)
+                            .foregroundColor(AppTheme.Colors.primaryText)
                             .font(.headline)
 
                         ProgressView(value: 0.65)
                             .tint(.red)
 
                         Text("65% tamamlandı")
-                            .foregroundColor(.gray)
+                            .foregroundColor(AppTheme.Colors.secondaryText)
                             .font(.caption)
                     }
                     .padding()
-                    .background(Color.white.opacity(0.05))
+                    .background(AppTheme.Colors.secondaryBackground)
                     .cornerRadius(14)
 
                     // Meal Cards
@@ -82,17 +82,17 @@ struct MealCard: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .foregroundColor(.white)
+                    .foregroundColor(AppTheme.Colors.primaryText)
                     .bold()
                 Text("\(calories) kcal")
-                    .foregroundColor(.gray)
+                    .foregroundColor(AppTheme.Colors.secondaryText)
                     .font(.caption)
             }
 
             Spacer()
         }
         .padding()
-        .background(Color.white.opacity(0.05))
+        .background(AppTheme.Colors.secondaryBackground)
         .cornerRadius(14)
     }
 }

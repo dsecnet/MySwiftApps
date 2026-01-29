@@ -6,7 +6,7 @@ struct ProfileView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            AppTheme.Colors.background.ignoresSafeArea()
 
             ScrollView {
                 VStack(spacing: 24) {
@@ -20,10 +20,10 @@ struct ProfileView: View {
                         Text("Vusal")
                             .font(.title2)
                             .bold()
-                            .foregroundColor(.white)
+                            .foregroundColor(AppTheme.Colors.primaryText)
 
                         Text("Fitness Level: Beginner 💪")
-                            .foregroundColor(.gray)
+                            .foregroundColor(AppTheme.Colors.secondaryText)
                             .font(.caption)
                     }
 
@@ -55,7 +55,7 @@ struct ProfileView: View {
                         .foregroundColor(.red)
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background(Color.white.opacity(0.05))
+                        .background(AppTheme.Colors.secondaryBackground)
                         .cornerRadius(14)
                     }
                     .padding(.top, 10)
@@ -76,15 +76,15 @@ struct ProfileStatCard: View {
         VStack(spacing: 6) {
             Text(value)
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(AppTheme.Colors.primaryText)
 
             Text(title)
                 .font(.caption)
-                .foregroundColor(.gray)
+                .foregroundColor(AppTheme.Colors.secondaryText)
         }
         .frame(maxWidth: .infinity)
         .padding()
-        .background(Color.white.opacity(0.05))
+        .background(AppTheme.Colors.secondaryBackground)
         .cornerRadius(14)
     }
 }
@@ -100,16 +100,16 @@ struct ProfileRow: View {
                 .frame(width: 24)
 
             Text(title)
-                .foregroundColor(.white)
+                .foregroundColor(AppTheme.Colors.primaryText)
 
             Spacer()
 
             Image(systemName: "chevron.right")
-                .foregroundColor(.gray)
+                .foregroundColor(AppTheme.Colors.secondaryText)
                 .font(.caption)
         }
         .padding()
-        .background(Color.white.opacity(0.05))
+        .background(AppTheme.Colors.secondaryBackground)
         .cornerRadius(14)
     }
 }

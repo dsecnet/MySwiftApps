@@ -2,6 +2,7 @@
 //  LoginView.swift
 //  CoreVia
 //
+//  Adaptiv theme ilə
 //
 
 import SwiftUI
@@ -20,8 +21,8 @@ struct LoginView: View {
     
     var body: some View {
         ZStack {
-            // MARK: - Arxa Fon
-            Color.black
+            // MARK: - Arxa Fon (Adaptiv)
+            AppTheme.Colors.background
                 .ignoresSafeArea()
             
             ScrollView(showsIndicators: false) {
@@ -63,13 +64,7 @@ struct LoginView: View {
                         VStack(spacing: 6) {
                             Text("CoreVia")
                                 .font(.system(size: 38, weight: .black))
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [.white, .gray],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
+                                .foregroundColor(AppTheme.Colors.primaryText)
                             
                             Text("GÜCƏ GEDƏN YOL")
                                 .font(.system(size: 11, weight: .semibold))
@@ -85,28 +80,26 @@ struct LoginView: View {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Email")
                                 .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.gray)
+                                .foregroundColor(AppTheme.Colors.secondaryText)
                             
                             HStack(spacing: 10) {
                                 Image(systemName: "envelope.fill")
                                     .foregroundColor(.red)
                                     .frame(width: 20)
                                 
-                                TextField("", text: $email, prompt: Text("example@mail.com").foregroundColor(.gray.opacity(0.5)))
-                                    .foregroundColor(.white)
+                                TextField("", text: $email, prompt: Text("example@mail.com").foregroundColor(AppTheme.Colors.placeholderText))
+                                    .foregroundColor(AppTheme.Colors.primaryText)
                                     .autocapitalization(.none)
                                     .keyboardType(.emailAddress)
                                     .textContentType(.emailAddress)
                             }
                             .padding()
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.white.opacity(0.05))
-                            )
+                            .background(AppTheme.Colors.secondaryBackground)
+                            .cornerRadius(12)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
                                     .stroke(
-                                        email.isEmpty ? Color.gray.opacity(0.2) : Color.red.opacity(0.5),
+                                        email.isEmpty ? AppTheme.Colors.separator : Color.red.opacity(0.5),
                                         lineWidth: 1
                                     )
                             )
@@ -116,7 +109,7 @@ struct LoginView: View {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Şifrə")
                                 .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.gray)
+                                .foregroundColor(AppTheme.Colors.secondaryText)
                             
                             HStack(spacing: 10) {
                                 Image(systemName: "lock.fill")
@@ -125,12 +118,12 @@ struct LoginView: View {
                                 
                                 Group {
                                     if isPasswordVisible {
-                                        TextField("", text: $password, prompt: Text("••••••••").foregroundColor(.gray.opacity(0.5)))
+                                        TextField("", text: $password, prompt: Text("••••••••").foregroundColor(AppTheme.Colors.placeholderText))
                                     } else {
-                                        SecureField("", text: $password, prompt: Text("••••••••").foregroundColor(.gray.opacity(0.5)))
+                                        SecureField("", text: $password, prompt: Text("••••••••").foregroundColor(AppTheme.Colors.placeholderText))
                                     }
                                 }
-                                .foregroundColor(.white)
+                                .foregroundColor(AppTheme.Colors.primaryText)
                                 .textContentType(.password)
                                 
                                 Button {
@@ -139,19 +132,17 @@ struct LoginView: View {
                                     }
                                 } label: {
                                     Image(systemName: isPasswordVisible ? "eye.slash.fill" : "eye.fill")
-                                        .foregroundColor(.gray)
+                                        .foregroundColor(AppTheme.Colors.secondaryText)
                                         .font(.system(size: 14))
                                 }
                             }
                             .padding()
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.white.opacity(0.05))
-                            )
+                            .background(AppTheme.Colors.secondaryBackground)
+                            .cornerRadius(12)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
                                     .stroke(
-                                        password.isEmpty ? Color.gray.opacity(0.2) : Color.red.opacity(0.5),
+                                        password.isEmpty ? AppTheme.Colors.separator : Color.red.opacity(0.5),
                                         lineWidth: 1
                                     )
                             )
@@ -167,7 +158,7 @@ struct LoginView: View {
                         } label: {
                             Text("Şifrəni unutdunuz?")
                                 .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.gray)
+                                .foregroundColor(AppTheme.Colors.secondaryText)
                         }
                     }
                     .padding(.horizontal, 28)
@@ -179,7 +170,7 @@ struct LoginView: View {
                                 .foregroundColor(.red)
                             Text(errorMessage)
                                 .font(.system(size: 13))
-                                .foregroundColor(.white)
+                                .foregroundColor(AppTheme.Colors.primaryText)
                         }
                         .padding()
                         .frame(maxWidth: .infinity)
@@ -235,7 +226,7 @@ struct LoginView: View {
                             }
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 14)
-                            .background(Color.white.opacity(0.05))
+                            .background(AppTheme.Colors.secondaryBackground)
                             .foregroundColor(.red)
                             .cornerRadius(12)
                             .overlay(
@@ -250,15 +241,15 @@ struct LoginView: View {
                     HStack(spacing: 12) {
                         Rectangle()
                             .frame(height: 1)
-                            .foregroundColor(.gray.opacity(0.2))
+                            .foregroundColor(AppTheme.Colors.separator)
                         
                         Text("və ya")
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.gray)
+                            .foregroundColor(AppTheme.Colors.secondaryText)
                         
                         Rectangle()
                             .frame(height: 1)
-                            .foregroundColor(.gray.opacity(0.2))
+                            .foregroundColor(AppTheme.Colors.separator)
                     }
                     .padding(.horizontal, 28)
                     
@@ -266,7 +257,7 @@ struct LoginView: View {
                     HStack(spacing: 5) {
                         Text("Hesabınız yoxdur?")
                             .font(.system(size: 14))
-                            .foregroundColor(.gray)
+                            .foregroundColor(AppTheme.Colors.secondaryText)
                         
                         Button {
                             withAnimation(.spring(response: 0.4)) {
@@ -289,7 +280,6 @@ struct LoginView: View {
     
     // MARK: - Actions
     private func loginAction() {
-        // Validation
         guard !email.isEmpty else {
             showErrorMessage("Email daxil edin")
             return
@@ -313,7 +303,6 @@ struct LoginView: View {
         isLoading = true
         showError = false
         
-        // Simulate backend call
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             isLoading = false
             withAnimation {

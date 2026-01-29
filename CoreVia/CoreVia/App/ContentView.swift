@@ -59,7 +59,7 @@ struct MainTabView: View {
             // MARK: - Home
             NavigationStack {
                 HomeView()
-                    .navigationTitle("Ana")
+                    .navigationTitle("")
             }
             .tabItem {
                 Label("Əsas", systemImage: "house.fill")
@@ -69,7 +69,7 @@ struct MainTabView: View {
             // MARK: - Workout
             NavigationStack {
                 WorkoutView()
-                    .navigationTitle("Məşq")
+                    .navigationTitle("")
             }
             .tabItem {
                 Label("Məşq", systemImage: "figure.strengthtraining.traditional")
