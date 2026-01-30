@@ -1,9 +1,3 @@
-//
-//  RegisterView.swift
-//  CoreVia
-//
-//  ADAPTİV THEME - Dark/Light Mode
-//
 
 import SwiftUI
 

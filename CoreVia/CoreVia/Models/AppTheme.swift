@@ -1,10 +1,3 @@
-//
-//  AppTheme.swift
-//  CoreVia
-//
-//  Mərkəzləşdirilmiş Dizayn Sistemi
-//  BİR YERDƏ DƏYİŞ → HAMI YENİLƏN
-//
 
 import SwiftUI
 

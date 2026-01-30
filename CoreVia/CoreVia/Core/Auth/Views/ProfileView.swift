@@ -1,9 +1,3 @@
-//
-//  ProfileView.swift
-//  CoreVia
-//
-//  TAM FUNKSIONAL - Bütün komponentlərlə
-//
 
 import SwiftUI
 import PhotosUI

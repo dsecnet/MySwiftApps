@@ -1,9 +1,4 @@
-//
-//  FoodManager.swift
-//  CoreVia
-//
-//  Qida tracking sistemi - UserDefaults ilə
-//
+
 
 import Foundation
 import SwiftUI

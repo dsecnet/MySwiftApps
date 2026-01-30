@@ -1,10 +1,4 @@
-//
-//  CoreViaApp.swift
-//  CoreVia
-//
-//  Gücə gedən yol - Your Path to Strength
-//  Created on 27 Jan 2026
-//
+
 
 import SwiftUI
 

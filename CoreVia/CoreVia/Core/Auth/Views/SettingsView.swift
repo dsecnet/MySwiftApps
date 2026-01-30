@@ -1,9 +1,3 @@
-//
-//  SettingsViews.swift
-//  CoreVia
-//
-//  Bütün tənzimləmə səhifələri
-//
 
 import SwiftUI
 import LocalAuthentication

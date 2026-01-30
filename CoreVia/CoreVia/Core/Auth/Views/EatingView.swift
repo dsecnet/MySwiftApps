@@ -1,9 +1,3 @@
-//
-//  FoodView.swift
-//  CoreVia
-//
-//  TAM FUNKSIONAL - Qida tracking
-//
 
 import SwiftUI
 

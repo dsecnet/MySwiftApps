@@ -1,9 +1,3 @@
-//
-//  AddWorkoutView.swift
-//  CoreVia
-//
-//  Məşq əlavə etmək view - Adaptiv theme ilə
-//
 
 import SwiftUI
 

@@ -1,9 +1,4 @@
-//
-//  TeachersView.swift
-//  CoreVia
-//
-//  İNTERAKTİV VƏ RESPONSİV - Müəllimlər Səhifəsi
-//
+
 
 import SwiftUI
 

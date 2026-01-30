@@ -1,9 +1,3 @@
-//
-//  WorkoutView.swift
-//  CoreVia
-//
-//  Məşq tracking view - Adaptiv theme ilə
-//
 
 import SwiftUI
 

@@ -1,9 +1,3 @@
-//
-//  LoginView.swift
-//  CoreVia
-//
-//  Adaptiv theme ilə
-//
 
 import SwiftUI
 

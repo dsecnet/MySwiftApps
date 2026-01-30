@@ -1,9 +1,3 @@
-//
-//  EditProfileViews.swift
-//  CoreVia
-//
-//  Profil redaktə view-ləri - Müştəri və Müəllim
-//
 
 import SwiftUI
 

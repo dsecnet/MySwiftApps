@@ -1,9 +1,3 @@
-//
-//  HomeView.swift
-//  CoreVia
-//
-//  Ana səhifə - Adaptiv theme ilə
-//
 
 import SwiftUI
 

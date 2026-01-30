@@ -1,9 +1,4 @@
-//
-//  AddFoodView.swift
-//  CoreVia
-//
-//  TAM FUNKSIONAL - Qida əlavə etmək
-//
+
 
 import SwiftUI
 
