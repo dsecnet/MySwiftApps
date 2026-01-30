@@ -79,7 +79,7 @@ struct MainTabView: View {
             // MARK: - Food
             NavigationStack {
                 FoodView()
-                    .navigationTitle("Qida")
+                    .navigationTitle("")
             }
             .tabItem {
                 Label("Qida", systemImage: "fork.knife")
@@ -89,7 +89,7 @@ struct MainTabView: View {
             // MARK: - Teachers
             NavigationStack {
                 TeachersView()
-                    .navigationTitle("Müəllimlər")
+                    .navigationTitle("")
             }
             .tabItem {
                 Label("Müəllimlər", systemImage: "person.2.fill")
