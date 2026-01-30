@@ -1,13 +1,14 @@
-
 import SwiftUI
 
 struct LoginView: View {
     
     @Binding var isLoggedIn: Bool
     @Binding var showRegister: Bool
+    @StateObject private var profileManager = UserProfileManager.shared
     
     @State private var email: String = ""
     @State private var password: String = ""
+    @State private var selectedUserType: UserProfileType = .client
     @State private var isPasswordVisible: Bool = false
     @State private var isLoading: Bool = false
     @State private var showError: Bool = false
@@ -37,7 +38,7 @@ struct LoginView: View {
                                 .frame(width: 100, height: 100)
                                 .blur(radius: 15)
                             
-                            Image("corevia_icon")
+                             Image("corevia_icon")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 75, height: 75)
@@ -66,6 +67,62 @@ struct LoginView: View {
                                 .tracking(2.5)
                         }
                     }
+                    
+                    // MARK: - User Type Selection (YENİ!)
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Hesab növü")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(AppTheme.Colors.secondaryText)
+                        
+                        HStack(spacing: 12) {
+                            // Tələbə Button
+                            Button {
+                                withAnimation(.spring(response: 0.3)) {
+                                    selectedUserType = .client
+                                }
+                            } label: {
+                                HStack(spacing: 10) {
+                                    Image(systemName: "person.fill")
+                                        .font(.system(size: 16))
+                                    Text("Tələbə")
+                                        .font(.system(size: 15, weight: .semibold))
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(selectedUserType == .client ? Color.red : AppTheme.Colors.secondaryBackground)
+                                .foregroundColor(selectedUserType == .client ? .white : AppTheme.Colors.primaryText)
+                                .cornerRadius(10)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(selectedUserType == .client ? Color.red : AppTheme.Colors.separator, lineWidth: selectedUserType == .client ? 2 : 1)
+                                )
+                            }
+                            
+                            // Müəllim Button
+                            Button {
+                                withAnimation(.spring(response: 0.3)) {
+                                    selectedUserType = .trainer
+                                }
+                            } label: {
+                                HStack(spacing: 10) {
+                                    Image(systemName: "person.2.fill")
+                                        .font(.system(size: 16))
+                                    Text("Müəllim")
+                                        .font(.system(size: 15, weight: .semibold))
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(selectedUserType == .trainer ? Color.red : AppTheme.Colors.secondaryBackground)
+                                .foregroundColor(selectedUserType == .trainer ? .white : AppTheme.Colors.primaryText)
+                                .cornerRadius(10)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(selectedUserType == .trainer ? Color.red : AppTheme.Colors.separator, lineWidth: selectedUserType == .trainer ? 2 : 1)
+                                )
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 28)
                     
                     // MARK: - Input Fields
                     VStack(spacing: 16) {
@@ -177,7 +234,7 @@ struct LoginView: View {
                     // MARK: - Giriş Düymələri
                     VStack(spacing: 12) {
                         
-                        // Əsas Giriş
+                        // Əsas Giriş (DƏYİŞDİRİLDİ - user type göstərir)
                         Button {
                             loginAction()
                         } label: {
@@ -186,7 +243,10 @@ struct LoginView: View {
                                     ProgressView()
                                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
                                 } else {
-                                    Text("Daxil ol")
+                                    Image(systemName: selectedUserType == .client ? "person.fill" : "person.2.fill")
+                                        .font(.system(size: 14, weight: .bold))
+                                    
+                                    Text("\(selectedUserType.rawValue) olaraq daxil ol")
                                         .font(.system(size: 16, weight: .bold))
                                     
                                     Image(systemName: "arrow.right")
@@ -197,14 +257,21 @@ struct LoginView: View {
                             .padding(.vertical, 14)
                             .background(
                                 LinearGradient(
-                                    colors: [Color.red, Color.red.opacity(0.8)],
+                                    colors: selectedUserType == .client ?
+                                        [Color.red, Color.red.opacity(0.8)] :
+                                        [Color.red, Color.red.opacity(0.8)],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
                             )
                             .foregroundColor(.white)
                             .cornerRadius(12)
-                            .shadow(color: .red.opacity(0.4), radius: 8, x: 0, y: 4)
+                            .shadow(
+                                color: (selectedUserType == .client ? Color.red : Color.purple).opacity(0.4),
+                                radius: 8,
+                                x: 0,
+                                y: 4
+                            )
                         }
                         .disabled(isLoading)
                         
@@ -297,8 +364,12 @@ struct LoginView: View {
         isLoading = true
         showError = false
         
+        // Set selected user type
+        profileManager.updateUserType(selectedUserType)
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             isLoading = false
+            print("✅ \(selectedUserType.rawValue) olaraq daxil olundu")
             withAnimation {
                 isLoggedIn = true
             }
@@ -306,7 +377,8 @@ struct LoginView: View {
     }
     
     private func demoLogin() {
-        print("🎮 Demo Login aktivləşdi")
+        print("🎮 Demo Login aktivləşdi - \(selectedUserType.rawValue)")
+        profileManager.updateUserType(selectedUserType)
         withAnimation(.spring(response: 0.4)) {
             isLoggedIn = true
         }
