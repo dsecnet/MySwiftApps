@@ -112,7 +112,7 @@ class SettingsManager: ObservableObject {
             return
         }
         
-        let reason = "CoreVia tətbiqinə daxil olmaq üçün"
+        let reason = LocalizationManager.shared.localized("biometric_reason")
         
         context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) { success, error in
             DispatchQueue.main.async {
@@ -127,24 +127,25 @@ class SettingsManager: ObservableObject {
     }
     
     func getBiometricType() -> String {
+        let loc = LocalizationManager.shared
         let context = LAContext()
         var error: NSError?
-        
+
         guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) else {
-            return "Mövcud deyil"
+            return loc.localized("biometric_unavailable")
         }
-        
+
         switch context.biometryType {
         case .faceID:
-            return "Face ID"
+            return loc.localized("biometric_faceid")
         case .touchID:
-            return "Touch ID"
+            return loc.localized("biometric_touchid")
         case .opticID:
-            return "Optic ID"
+            return loc.localized("biometric_opticid")
         case .none:
-            return "Mövcud deyil"
+            return loc.localized("biometric_unavailable")
         @unknown default:
-            return "Biometrik"
+            return loc.localized("biometric_generic")
         }
     }
     

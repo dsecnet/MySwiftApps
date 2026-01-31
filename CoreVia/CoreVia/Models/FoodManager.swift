@@ -218,10 +218,11 @@ class FoodManager: ObservableObject {
     }
     
     private func loadMockData() {
+        let loc = LocalizationManager.shared
         foodEntries = [
-            FoodEntry(name: "Yumurta omlet", calories: 250, protein: 18, carbs: 5, fats: 18, mealType: .breakfast),
-            FoodEntry(name: "Toyuq filesi", calories: 350, protein: 45, carbs: 10, fats: 12, mealType: .lunch),
-            FoodEntry(name: "Alma", calories: 80, protein: 0, carbs: 20, fats: 0, mealType: .snack)
+            FoodEntry(name: loc.localized("food_mock_omelette"), calories: 250, protein: 18, carbs: 5, fats: 18, mealType: .breakfast),
+            FoodEntry(name: loc.localized("food_quick_chicken"), calories: 350, protein: 45, carbs: 10, fats: 12, mealType: .lunch),
+            FoodEntry(name: loc.localized("food_quick_apple"), calories: 80, protein: 0, carbs: 20, fats: 0, mealType: .snack)
         ]
     }
     

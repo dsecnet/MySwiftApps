@@ -113,13 +113,16 @@ struct MainTabView: View {
             }
             .tag(2)
 
-            // MARK: - Tab 3: Teachers (eyni hər iki rol üçün)
+            // MARK: - Tab 3: Teachers / Students
             NavigationStack {
                 TeachersView()
                     .navigationTitle("")
             }
             .tabItem {
-                Label(loc.localized("tab_teachers"), systemImage: "person.2.fill")
+                Label(
+                    isTrainer ? loc.localized("tab_students") : loc.localized("tab_teachers"),
+                    systemImage: "person.2.fill"
+                )
             }
             .tag(3)
 

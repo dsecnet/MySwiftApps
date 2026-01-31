@@ -27,28 +27,32 @@ struct AddFoodView: View {
     @ObservedObject private var loc = LocalizationManager.shared
 
     // Mock analiz nəticələri
-    private let mockFoodResults: [(name: String, calories: Int, protein: Double, carbs: Double, fats: Double)] = [
-        ("Toyuq plovu", 450, 28, 55, 12),
-        ("Dovğa", 180, 8, 22, 6),
-        ("Lavaş dürüm", 380, 18, 42, 14),
-        ("Salat (qarışıq)", 120, 4, 15, 5),
-        ("Şiş kabab", 320, 35, 5, 18),
-        ("Pendir omlet", 280, 18, 4, 22),
-        ("Mercimek şorbası", 220, 12, 30, 6),
-        ("Düyü pilavı", 350, 8, 65, 5),
-        ("Biftek", 400, 42, 0, 24),
-        ("Makaron", 380, 14, 58, 10)
-    ]
+    private var mockFoodResults: [(name: String, calories: Int, protein: Double, carbs: Double, fats: Double)] {
+        [
+            (loc.localized("food_mock_pilaf"), 450, 28, 55, 12),
+            (loc.localized("food_mock_dovga"), 180, 8, 22, 6),
+            (loc.localized("food_mock_wrap"), 380, 18, 42, 14),
+            (loc.localized("food_mock_salad"), 120, 4, 15, 5),
+            (loc.localized("food_mock_kebab"), 320, 35, 5, 18),
+            (loc.localized("food_mock_omelette"), 280, 18, 4, 22),
+            (loc.localized("food_mock_soup"), 220, 12, 30, 6),
+            (loc.localized("food_mock_rice"), 350, 8, 65, 5),
+            (loc.localized("food_mock_steak"), 400, 42, 0, 24),
+            (loc.localized("food_mock_pasta"), 380, 14, 58, 10)
+        ]
+    }
 
     // Quick add items
-    let quickAddItems: [QuickAddFood] = [
-        QuickAddFood(name: "Yumurta (1 ədəd)", calories: 78, protein: 6, carbs: 0.6, fats: 5, icon: "🥚"),
-        QuickAddFood(name: "Banan", calories: 105, protein: 1.3, carbs: 27, fats: 0.4, icon: "🍌"),
-        QuickAddFood(name: "Toyuq filesi (100q)", calories: 165, protein: 31, carbs: 0, fats: 3.6, icon: "🍗"),
-        QuickAddFood(name: "Alma", calories: 95, protein: 0.5, carbs: 25, fats: 0.3, icon: "🍎"),
-        QuickAddFood(name: "Oatmeal (100q)", calories: 389, protein: 17, carbs: 66, fats: 7, icon: "🥣"),
-        QuickAddFood(name: "Alma şirəsi (200ml)", calories: 117, protein: 0.3, carbs: 29, fats: 0.3, icon: "🧃")
-    ]
+    var quickAddItems: [QuickAddFood] {
+        [
+            QuickAddFood(name: loc.localized("food_quick_egg"), calories: 78, protein: 6, carbs: 0.6, fats: 5, icon: "🥚"),
+            QuickAddFood(name: loc.localized("food_quick_banana"), calories: 105, protein: 1.3, carbs: 27, fats: 0.4, icon: "🍌"),
+            QuickAddFood(name: loc.localized("food_quick_chicken"), calories: 165, protein: 31, carbs: 0, fats: 3.6, icon: "🍗"),
+            QuickAddFood(name: loc.localized("food_quick_apple"), calories: 95, protein: 0.5, carbs: 25, fats: 0.3, icon: "🍎"),
+            QuickAddFood(name: loc.localized("food_quick_oatmeal"), calories: 389, protein: 17, carbs: 66, fats: 7, icon: "🥣"),
+            QuickAddFood(name: loc.localized("food_quick_juice"), calories: 117, protein: 0.3, carbs: 29, fats: 0.3, icon: "🧃")
+        ]
+    }
 
     var body: some View {
         NavigationStack {

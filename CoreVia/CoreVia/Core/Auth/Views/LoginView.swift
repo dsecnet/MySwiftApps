@@ -24,32 +24,29 @@ struct LoginView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 28) {
 
-                    // MARK: - Dil Seçici
-                    HStack(spacing: 12) {
+                    // MARK: - Dil Seçici (Sol Yuxarıda)
+                    HStack(spacing: 8) {
                         ForEach(AppLanguage.allCases, id: \.self) { language in
                             Button {
                                 withAnimation(.spring(response: 0.3)) {
                                     loc.currentLanguage = language
                                 }
                             } label: {
-                                VStack(spacing: 4) {
-                                    Text(language.flag)
-                                        .font(.system(size: 28))
-                                    Text(language.displayName)
-                                        .font(.system(size: 10, weight: .bold))
-                                        .foregroundColor(loc.currentLanguage == language ? .white : AppTheme.Colors.secondaryText)
-                                }
-                                .frame(width: 56, height: 56)
-                                .background(loc.currentLanguage == language ? Color.red : AppTheme.Colors.secondaryBackground)
-                                .cornerRadius(12)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(loc.currentLanguage == language ? Color.red : AppTheme.Colors.separator, lineWidth: loc.currentLanguage == language ? 2 : 1)
-                                )
+                                Text(language.flag)
+                                    .font(.system(size: 22))
+                                    .frame(width: 40, height: 40)
+                                    .background(loc.currentLanguage == language ? Color.red.opacity(0.15) : AppTheme.Colors.secondaryBackground)
+                                    .cornerRadius(10)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(loc.currentLanguage == language ? Color.red : Color.clear, lineWidth: 2)
+                                    )
                             }
                         }
+                        Spacer()
                     }
-                    .padding(.top, 16)
+                    .padding(.horizontal, 28)
+                    .padding(.top, 12)
 
                     // MARK: - Logo Bölməsi
                     VStack(spacing: 16) {

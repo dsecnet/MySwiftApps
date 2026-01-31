@@ -305,7 +305,7 @@ struct TrainerProfileView: View {
                 SettingsRow(
                     icon: "bell.fill",
                     title: loc.localized("settings_notifications"),
-                    badge: settingsManager.notificationsEnabled ? "Aktiv" : nil,
+                    badge: settingsManager.notificationsEnabled ? loc.localized("common_active") : nil,
                     badgeColor: .green
                 ) {
                     showNotifications = true

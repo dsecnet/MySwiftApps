@@ -50,27 +50,30 @@ struct DemoStudent: Identifiable, Codable {
 
 // MARK: - Static Demo Data
 extension DemoStudent {
-    static let demoStudents: [DemoStudent] = [
-        DemoStudent(
-            name: "Nigar Əliyeva",
-            progress: 0.75,
-            avatarEmoji: "👩‍🦰",
-            age: 22,
-            goal: "Arıqlamaq"
-        ),
-        DemoStudent(
-            name: "Rəşad Məmmədov",
-            progress: 0.60,
-            avatarEmoji: "🧔",
-            age: 28,
-            goal: "Kökəlmək"
-        ),
-        DemoStudent(
-            name: "Leyla Həsənova",
-            progress: 0.90,
-            avatarEmoji: "👩",
-            age: 24,
-            goal: "Güc artırmaq"
-        )
-    ]
+    static var demoStudents: [DemoStudent] {
+        let loc = LocalizationManager.shared
+        return [
+            DemoStudent(
+                name: "Nigar Əliyeva",
+                progress: 0.75,
+                avatarEmoji: "👩‍🦰",
+                age: 22,
+                goal: loc.localized("edit_goal_lose")
+            ),
+            DemoStudent(
+                name: "Rəşad Məmmədov",
+                progress: 0.60,
+                avatarEmoji: "🧔",
+                age: 28,
+                goal: loc.localized("demo_goal_gain")
+            ),
+            DemoStudent(
+                name: "Leyla Həsənova",
+                progress: 0.90,
+                avatarEmoji: "👩",
+                age: 24,
+                goal: loc.localized("demo_goal_strength")
+            )
+        ]
+    }
 }

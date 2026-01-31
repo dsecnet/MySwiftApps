@@ -25,26 +25,32 @@ class UserProfileManager: ObservableObject {
     }
 
     // MARK: - Default Profillər
-    static let defaultClientProfile = UserProfile(
-        name: "Tələbə İstifadəçi",
-        email: "student@corevia.com",
-        userType: .client,
-        age: 25,
-        weight: 75,
-        height: 180,
-        goal: "Arıqlamaq"
-    )
+    static var defaultClientProfile: UserProfile {
+        let loc = LocalizationManager.shared
+        return UserProfile(
+            name: loc.localized("default_student_name"),
+            email: "student@corevia.com",
+            userType: .client,
+            age: 25,
+            weight: 75,
+            height: 180,
+            goal: loc.localized("edit_goal_lose")
+        )
+    }
 
-    static let defaultTrainerProfile = UserProfile(
-        name: "Müəllim İstifadəçi",
-        email: "teacher@corevia.com",
-        userType: .trainer,
-        specialty: "Fitness & Bodybuilding",
-        experience: 5,
-        bio: "Peşəkar fitness müəllimi",
-        rating: 4.8,
-        students: 12
-    )
+    static var defaultTrainerProfile: UserProfile {
+        let loc = LocalizationManager.shared
+        return UserProfile(
+            name: loc.localized("default_trainer_name"),
+            email: "teacher@corevia.com",
+            userType: .trainer,
+            specialty: "Fitness & Bodybuilding",
+            experience: 5,
+            bio: loc.localized("default_trainer_bio"),
+            rating: 4.8,
+            students: 12
+        )
+    }
 
     // MARK: - Profil saxlama (cari userType-a görə düzgün key-ə yazır)
     func saveProfile(_ profile: UserProfile) {

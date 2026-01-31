@@ -465,5 +465,43 @@ class LocalizationManager: ObservableObject {
         "register_medium_password": [.az: "Orta güclü", .en: "Medium strength", .ru: "Средний"],
         "register_strong_password": [.az: "Güclü şifrə", .en: "Strong password", .ru: "Надёжный пароль"],
         "home_no_workouts_today": [.az: "Bugün məşq yoxdur", .en: "No workouts today", .ru: "Нет тренировок сегодня"],
+
+        // ============================================================
+        // MARK: - Default Profile
+        // ============================================================
+        "default_student_name": [.az: "Tələbə İstifadəçi", .en: "Student User", .ru: "Пользователь-студент"],
+        "default_trainer_name": [.az: "Müəllim İstifadəçi", .en: "Trainer User", .ru: "Пользователь-тренер"],
+        "default_trainer_bio": [.az: "Peşəkar fitness müəllimi", .en: "Professional fitness trainer", .ru: "Профессиональный фитнес-тренер"],
+
+        // ============================================================
+        // MARK: - Tab (Additional)
+        // ============================================================
+        "tab_students": [.az: "Tələbələr", .en: "Students", .ru: "Студенты"],
+
+        // ============================================================
+        // MARK: - Demo Student Goals
+        // ============================================================
+        "demo_goal_gain": [.az: "Kökəlmək", .en: "Gain weight", .ru: "Набрать массу"],
+        "demo_goal_strength": [.az: "Güc artırmaq", .en: "Build strength", .ru: "Увеличить силу"],
+
+        // ============================================================
+        // MARK: - Food Names (Mock & Quick Add)
+        // ============================================================
+        "food_mock_pilaf": [.az: "Toyuq plovu", .en: "Chicken pilaf", .ru: "Плов с курицей"],
+        "food_mock_dovga": [.az: "Dovğa", .en: "Yogurt soup", .ru: "Довга"],
+        "food_mock_wrap": [.az: "Lavaş dürüm", .en: "Lavash wrap", .ru: "Лаваш ролл"],
+        "food_mock_salad": [.az: "Salat (qarışıq)", .en: "Mixed salad", .ru: "Салат (микс)"],
+        "food_mock_kebab": [.az: "Şiş kabab", .en: "Shish kebab", .ru: "Шашлык"],
+        "food_mock_omelette": [.az: "Pendir omlet", .en: "Cheese omelette", .ru: "Омлет с сыром"],
+        "food_mock_soup": [.az: "Mercimek şorbası", .en: "Lentil soup", .ru: "Чечевичный суп"],
+        "food_mock_rice": [.az: "Düyü pilavı", .en: "Rice pilaf", .ru: "Рисовый плов"],
+        "food_mock_steak": [.az: "Biftek", .en: "Steak", .ru: "Стейк"],
+        "food_mock_pasta": [.az: "Makaron", .en: "Pasta", .ru: "Паста"],
+        "food_quick_egg": [.az: "Yumurta (1 ədəd)", .en: "Egg (1 pc)", .ru: "Яйцо (1 шт)"],
+        "food_quick_banana": [.az: "Banan", .en: "Banana", .ru: "Банан"],
+        "food_quick_chicken": [.az: "Toyuq filesi (100q)", .en: "Chicken breast (100g)", .ru: "Куриная грудка (100г)"],
+        "food_quick_apple": [.az: "Alma", .en: "Apple", .ru: "Яблоко"],
+        "food_quick_oatmeal": [.az: "Oatmeal (100q)", .en: "Oatmeal (100g)", .ru: "Овсянка (100г)"],
+        "food_quick_juice": [.az: "Alma şirəsi (200ml)", .en: "Apple juice (200ml)", .ru: "Яблочный сок (200мл)"],
     ]
 }
