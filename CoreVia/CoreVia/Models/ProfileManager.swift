@@ -99,4 +99,12 @@ struct UserProfile: Codable {
 enum UserProfileType: String, Codable {
     case client = "Müştəri"
     case trainer = "Müəllim"
+
+    var localizedName: String {
+        let loc = LocalizationManager.shared
+        switch self {
+        case .client: return loc.localized("login_student")
+        case .trainer: return loc.localized("login_teacher")
+        }
+    }
 }

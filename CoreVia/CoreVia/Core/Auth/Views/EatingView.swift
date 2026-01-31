@@ -7,6 +7,7 @@ struct FoodView: View {
     @State private var showAddFood = false
     @State private var showEditGoal = false
     @State private var selectedEntry: FoodEntry? = nil
+    @ObservedObject private var loc = LocalizationManager.shared
     
     var body: some View {
         ZStack {
@@ -41,11 +42,11 @@ struct FoodView: View {
     // MARK: - Header Section
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Qida Tracking")
+            Text(loc.localized("food_tracking"))
                 .font(.system(size: 32, weight: .bold))
                 .foregroundColor(AppTheme.Colors.primaryText)
             
-            Text("Bugünkü qidalanmanızı izləyin")
+            Text(loc.localized("food_subtitle"))
                 .font(.system(size: 14))
                 .foregroundColor(AppTheme.Colors.secondaryText)
         }
@@ -96,21 +97,21 @@ struct FoodView: View {
                 CalorieStat(
                     icon: "flame.fill",
                     value: "\(foodManager.remainingCalories)",
-                    label: "Qalıb",
+                    label: loc.localized("food_remaining"),
                     color: .green
                 )
                 
                 CalorieStat(
                     icon: "target",
                     value: "\(Int(foodManager.todayProgress * 100))%",
-                    label: "Tamamlandı",
+                    label: loc.localized("food_completed"),
                     color: .blue
                 )
                 
                 CalorieStat(
                     icon: "fork.knife",
                     value: "\(foodManager.todayEntries.count)",
-                    label: "Öğün",
+                    label: loc.localized("food_meal"),
                     color: .orange
                 )
             }
@@ -121,7 +122,7 @@ struct FoodView: View {
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "pencil.circle.fill")
-                    Text("Hədəfi Dəyiş")
+                    Text(loc.localized("food_edit_goal"))
                 }
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundColor(.red)
@@ -139,28 +140,28 @@ struct FoodView: View {
     // MARK: - Macro Breakdown Section
     private var macroBreakdownSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Makro Qırılması")
+            Text(loc.localized("food_macro_breakdown"))
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
             
             HStack(spacing: 12) {
                 MacroCard(
                     icon: "💪",
-                    label: "Protein",
+                    label: loc.localized("food_protein"),
                     value: "\(Int(foodManager.todayTotalProtein))q",
                     color: .blue
                 )
-                
+
                 MacroCard(
                     icon: "🍞",
-                    label: "Karb",
+                    label: loc.localized("food_carbs"),
                     value: "\(Int(foodManager.todayTotalCarbs))q",
                     color: .orange
                 )
-                
+
                 MacroCard(
                     icon: "🥑",
-                    label: "Yağ",
+                    label: loc.localized("food_fats"),
                     value: "\(Int(foodManager.todayTotalFats))q",
                     color: .green
                 )
@@ -179,7 +180,7 @@ struct FoodView: View {
                 Image(systemName: mealType.icon)
                     .foregroundColor(mealType.color)
                 
-                Text(mealType.rawValue)
+                Text(mealType.localizedName)
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(AppTheme.Colors.primaryText)
                 
@@ -199,7 +200,7 @@ struct FoodView: View {
                         Image(systemName: "plus.circle.fill")
                             .foregroundColor(mealType.color)
                         
-                        Text("Qida əlavə et")
+                        Text(loc.localized("food_add"))
                             .foregroundColor(AppTheme.Colors.primaryText)
                         
                         Spacer()
@@ -236,7 +237,7 @@ struct FoodView: View {
                 Image(systemName: "plus.circle.fill")
                     .font(.system(size: 20))
                 
-                Text("Yeni Qida Əlavə Et")
+                Text(loc.localized("food_add_title"))
                     .font(.system(size: 16, weight: .bold))
             }
             .foregroundColor(.white)
@@ -387,7 +388,7 @@ struct FoodEntryRow: View {
             Button(role: .destructive) {
                 onDelete()
             } label: {
-                Label("Sil", systemImage: "trash")
+                Label(LocalizationManager.shared.localized("common_delete"), systemImage: "trash")
             }
         }
     }
@@ -409,7 +410,7 @@ struct EditGoalView: View {
                 AppTheme.Colors.background.ignoresSafeArea()
                 
                 VStack(spacing: 24) {
-                    Text("Günlük kalori hədəfinizi təyin edin")
+                    Text(LocalizationManager.shared.localized("food_daily_goal_set"))
                         .font(.system(size: 16))
                         .foregroundColor(AppTheme.Colors.secondaryText)
                         .multilineTextAlignment(.center)
@@ -429,7 +430,7 @@ struct EditGoalView: View {
                     
                     // Quick selections
                     VStack(spacing: 12) {
-                        Text("Sürətli seçim:")
+                        Text(LocalizationManager.shared.localized("food_quick_selection"))
                             .font(.system(size: 14))
                             .foregroundColor(AppTheme.Colors.secondaryText)
                         
@@ -454,18 +455,18 @@ struct EditGoalView: View {
                 }
                 .padding()
             }
-            .navigationTitle("Kalori Hədəfi")
+            .navigationTitle(LocalizationManager.shared.localized("food_calorie_goal"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Ləğv et") {
+                    Button(LocalizationManager.shared.localized("common_cancel")) {
                         dismiss()
                     }
                     .foregroundColor(.red)
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Saxla") {
+                    Button(LocalizationManager.shared.localized("common_save")) {
                         if let goal = Int(goalText), goal > 0 {
                             foodManager.updateDailyGoal(goal)
                             dismiss()
@@ -513,7 +514,7 @@ struct FoodDetailView: View {
                                 .font(.system(size: 48, weight: .bold))
                                 .foregroundColor(entry.mealType.color)
                             
-                            Text("kalori")
+                            Text(LocalizationManager.shared.localized("home_calories"))
                                 .font(.system(size: 16))
                                 .foregroundColor(AppTheme.Colors.secondaryText)
                         }
@@ -521,16 +522,16 @@ struct FoodDetailView: View {
                         // Macros
                         if let protein = entry.protein, let carbs = entry.carbs, let fats = entry.fats {
                             HStack(spacing: 12) {
-                                DetailMacroCard(icon: "💪", label: "Protein", value: "\(Int(protein))q", color: .blue)
-                                DetailMacroCard(icon: "🍞", label: "Karb", value: "\(Int(carbs))q", color: .orange)
-                                DetailMacroCard(icon: "🥑", label: "Yağ", value: "\(Int(fats))q", color: .green)
+                                DetailMacroCard(icon: "💪", label: LocalizationManager.shared.localized("food_protein"), value: "\(Int(protein))q", color: .blue)
+                                DetailMacroCard(icon: "🍞", label: LocalizationManager.shared.localized("food_carbs"), value: "\(Int(carbs))q", color: .orange)
+                                DetailMacroCard(icon: "🥑", label: LocalizationManager.shared.localized("food_fats"), value: "\(Int(fats))q", color: .green)
                             }
                         }
                         
                         // Notes
                         if let notes = entry.notes {
                             VStack(alignment: .leading, spacing: 12) {
-                                Text("Qeydlər")
+                                Text(LocalizationManager.shared.localized("food_notes_label"))
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(AppTheme.Colors.primaryText)
                                 
@@ -546,18 +547,18 @@ struct FoodDetailView: View {
                         
                         // Meta info
                         VStack(spacing: 8) {
-                            InfoRow(icon: "calendar", label: "Öğün", value: entry.mealType.rawValue)
-                            InfoRow(icon: "clock", label: "Vaxt", value: entry.formattedDate)
+                            InfoRow(icon: "calendar", label: LocalizationManager.shared.localized("food_meal_type"), value: entry.mealType.localizedName)
+                            InfoRow(icon: "clock", label: LocalizationManager.shared.localized("food_time"), value: entry.formattedDate)
                         }
                     }
                     .padding()
                 }
             }
-            .navigationTitle("Detallar")
+            .navigationTitle(LocalizationManager.shared.localized("food_details"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Bağla") {
+                    Button(LocalizationManager.shared.localized("common_close")) {
                         dismiss()
                     }
                     .foregroundColor(.red)

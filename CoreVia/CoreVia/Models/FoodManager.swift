@@ -27,6 +27,16 @@ enum MealType: String, Codable, CaseIterable {
         case .snack: return .green
         }
     }
+
+    var localizedName: String {
+        let loc = LocalizationManager.shared
+        switch self {
+        case .breakfast: return loc.localized("food_meal_breakfast")
+        case .lunch: return loc.localized("food_meal_lunch")
+        case .dinner: return loc.localized("food_meal_dinner")
+        case .snack: return loc.localized("food_meal_snack")
+        }
+    }
 }
 
 // MARK: - Food Entry Model

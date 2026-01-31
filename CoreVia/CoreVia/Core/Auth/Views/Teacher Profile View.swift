@@ -10,6 +10,7 @@ import SwiftUI
 struct TrainerProfileView: View {
     
     @Binding var isLoggedIn: Bool
+    @ObservedObject private var loc = LocalizationManager.shared
     @StateObject private var imageManager = ProfileImageManager.shared
     @StateObject private var profileManager = UserProfileManager.shared
     @StateObject private var settingsManager = SettingsManager.shared
@@ -63,15 +64,15 @@ struct TrainerProfileView: View {
         .sheet(isPresented: $showAbout) {
             AboutView()
         }
-        .alert("Çıxış", isPresented: $showLogoutAlert) {
-            Button("Ləğv et", role: .cancel) { }
-            Button("Çıxış", role: .destructive) {
+        .alert(loc.localized("profile_logout"), isPresented: $showLogoutAlert) {
+            Button(loc.localized("common_cancel"), role: .cancel) { }
+            Button(loc.localized("profile_logout"), role: .destructive) {
                 withAnimation {
                     isLoggedIn = false
                 }
             }
         } message: {
-            Text("Hesabdan çıxmaq istədiyinizə əminsiniz?")
+            Text(loc.localized("profile_logout_confirm"))
         }
     }
     
@@ -150,7 +151,7 @@ struct TrainerProfileView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "person.2.fill")
                         .font(.system(size: 12))
-                    Text("Müəllim")
+                    Text(loc.localized("profile_type_trainer"))
                         .font(.system(size: 13, weight: .semibold))
                 }
                 .foregroundColor(.purple)
@@ -164,7 +165,7 @@ struct TrainerProfileView: View {
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "pencil")
-                        Text("Profili Redaktə Et")
+                        Text(loc.localized("profile_edit"))
                     }
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.purple)
@@ -181,7 +182,7 @@ struct TrainerProfileView: View {
     // MARK: - Stats Section
     private var statsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Statistikalar")
+            Text(loc.localized("profile_statistics"))
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
             
@@ -189,21 +190,21 @@ struct TrainerProfileView: View {
                 TrainerStatCard(
                     icon: "star.fill",
                     value: String(format: "%.1f", profileManager.userProfile.rating ?? 4.8),
-                    label: "Reytinq",
+                    label: loc.localized("profile_rating"),
                     color: .yellow
                 )
-                
+
                 TrainerStatCard(
                     icon: "person.2.fill",
                     value: "\(profileManager.userProfile.students ?? 0)",
-                    label: "Tələbə",
+                    label: loc.localized("profile_students"),
                     color: .blue
                 )
-                
+
                 TrainerStatCard(
                     icon: "calendar",
-                    value: "\(profileManager.userProfile.experience ?? 0) il",
-                    label: "Təcrübə",
+                    value: "\(profileManager.userProfile.experience ?? 0) \(loc.localized("common_year"))",
+                    label: loc.localized("profile_experience"),
                     color: .green
                 )
             }
@@ -214,13 +215,13 @@ struct TrainerProfileView: View {
     private var studentsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Aktiv Tələbələr")
+                Text(loc.localized("profile_active_students"))
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(AppTheme.Colors.primaryText)
                 
                 Spacer()
                 
-                Text("\(profileManager.userProfile.students ?? 0) nəfər")
+                Text("\(profileManager.userProfile.students ?? 0) \(loc.localized("common_person"))")
                     .font(.system(size: 14))
                     .foregroundColor(AppTheme.Colors.secondaryText)
             }
@@ -235,7 +236,7 @@ struct TrainerProfileView: View {
                 } label: {
                     HStack {
                         Image(systemName: "person.3.fill")
-                        Text("Bütün Tələbələr")
+                        Text(loc.localized("profile_all_students"))
                         Spacer()
                         Image(systemName: "chevron.right")
                             .font(.caption)
@@ -252,7 +253,7 @@ struct TrainerProfileView: View {
     // MARK: - Specialty Section
     private var specialtySection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("İxtisas və Bio")
+            Text(loc.localized("profile_specialty_bio"))
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
             
@@ -261,7 +262,7 @@ struct TrainerProfileView: View {
                     HStack {
                         Image(systemName: "medal.fill")
                             .foregroundColor(.purple)
-                        Text("İxtisas:")
+                        Text(loc.localized("profile_specialty"))
                             .foregroundColor(AppTheme.Colors.secondaryText)
                         Text(specialty)
                             .foregroundColor(AppTheme.Colors.primaryText)
@@ -275,7 +276,7 @@ struct TrainerProfileView: View {
                 
                 if let bio = profileManager.userProfile.bio {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Bio:")
+                        Text(loc.localized("profile_bio"))
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(AppTheme.Colors.primaryText)
                         
@@ -296,14 +297,14 @@ struct TrainerProfileView: View {
     // MARK: - Settings Section
     private var settingsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Tənzimləmələr")
+            Text(loc.localized("profile_settings"))
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
             
             VStack(spacing: 12) {
                 SettingsRow(
                     icon: "bell.fill",
-                    title: "Bildirişlər",
+                    title: loc.localized("settings_notifications"),
                     badge: settingsManager.notificationsEnabled ? "Aktiv" : nil,
                     badgeColor: .green
                 ) {
@@ -312,7 +313,7 @@ struct TrainerProfileView: View {
                 
                 SettingsRow(
                     icon: "lock.fill",
-                    title: "Təhlükəsizlik",
+                    title: loc.localized("settings_security"),
                     badge: settingsManager.faceIDEnabled || settingsManager.hasAppPassword ? "🔒" : nil,
                     badgeColor: .blue
                 ) {
@@ -321,7 +322,7 @@ struct TrainerProfileView: View {
                 
                 SettingsRow(
                     icon: "star.fill",
-                    title: "Premium",
+                    title: loc.localized("settings_premium"),
                     badge: settingsManager.isPremium ? "👑" : nil,
                     badgeColor: .yellow
                 ) {
@@ -330,7 +331,7 @@ struct TrainerProfileView: View {
                 
                 SettingsRow(
                     icon: "info.circle.fill",
-                    title: "Haqqında"
+                    title: loc.localized("settings_about")
                 ) {
                     showAbout = true
                 }
@@ -345,7 +346,7 @@ struct TrainerProfileView: View {
         } label: {
             HStack {
                 Image(systemName: "rectangle.portrait.and.arrow.right")
-                Text("Çıxış")
+                Text(loc.localized("profile_logout"))
                     .font(.system(size: 16, weight: .semibold))
             }
             .foregroundColor(.red)

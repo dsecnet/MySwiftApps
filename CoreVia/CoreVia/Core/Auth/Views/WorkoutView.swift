@@ -5,6 +5,7 @@ struct WorkoutView: View {
     
     @StateObject private var manager = WorkoutManager.shared
     @State private var showAddWorkout: Bool = false
+    @ObservedObject private var loc = LocalizationManager.shared
     
     var body: some View {
         ZStack {
@@ -15,12 +16,12 @@ struct WorkoutView: View {
                     
                     // MARK: - Header
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Məşq Tracking")
+                        Text(loc.localized("workout_tracking"))
                             .font(.title)
                             .bold()
                             .foregroundColor(Color(UIColor.label))
                         
-                        Text("Bugünkü məşqlər və statistikalar")
+                        Text(loc.localized("workout_subtitle"))
                             .foregroundColor(Color(UIColor.secondaryLabel))
                             .font(.caption)
                     }
@@ -29,7 +30,7 @@ struct WorkoutView: View {
                     // MARK: - Daily Goal Progress
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            Text("Bugünkü Hədəf")
+                            Text(loc.localized("workout_today_goal"))
                                 .foregroundColor(Color(UIColor.label))
                                 .font(.headline)
                             
@@ -57,7 +58,7 @@ struct WorkoutView: View {
                             HStack(spacing: 4) {
                                 Image(systemName: "clock.fill")
                                     .foregroundColor(.blue)
-                                Text("\(manager.todayTotalMinutes) dəq")
+                                Text("\(manager.todayTotalMinutes) \(loc.localized("common_min"))")
                                     .foregroundColor(Color(UIColor.secondaryLabel))
                             }
                             .font(.caption)
@@ -70,7 +71,7 @@ struct WorkoutView: View {
                     // MARK: - Today's Workouts
                     if !manager.todayWorkouts.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Bugünkü Məşqlər")
+                            Text(loc.localized("workout_today"))
                                 .foregroundColor(Color(UIColor.label))
                                 .font(.headline)
                             
@@ -85,7 +86,7 @@ struct WorkoutView: View {
                     // MARK: - Upcoming/Past Workouts
                     if !manager.pendingWorkouts.filter({ !$0.isToday }).isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Gələcək Məşqlər")
+                            Text(loc.localized("workout_future"))
                                 .foregroundColor(Color(UIColor.label))
                                 .font(.headline)
                             
@@ -104,11 +105,11 @@ struct WorkoutView: View {
                                 .font(.system(size: 60))
                                 .foregroundColor(Color(UIColor.tertiaryLabel))
                             
-                            Text("Hələ məşq yoxdur")
+                            Text(loc.localized("workout_no_workouts"))
                                 .font(.headline)
                                 .foregroundColor(Color(UIColor.secondaryLabel))
                             
-                            Text("İlk məşqınızı əlavə edin")
+                            Text(loc.localized("workout_add_first"))
                                 .font(.caption)
                                 .foregroundColor(Color(UIColor.tertiaryLabel))
                         }
@@ -122,7 +123,7 @@ struct WorkoutView: View {
                     } label: {
                         HStack {
                             Image(systemName: "plus.circle.fill")
-                            Text("Yeni Məşq Əlavə et")
+                            Text(loc.localized("workout_new"))
                                 .bold()
                         }
                         .foregroundColor(.white)
@@ -178,7 +179,7 @@ struct WorkoutCard: View {
                     HStack(spacing: 4) {
                         Image(systemName: "clock.fill")
                             .font(.caption2)
-                        Text("\(workout.duration) dəq")
+                        Text("\(workout.duration) \(LocalizationManager.shared.localized("common_min"))")
                     }
                     .foregroundColor(Color(UIColor.secondaryLabel))
                     .font(.caption)

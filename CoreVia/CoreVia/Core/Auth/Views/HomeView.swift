@@ -4,6 +4,7 @@ import SwiftUI
 struct HomeView: View {
     
     @StateObject private var workoutManager = WorkoutManager.shared
+    @ObservedObject private var loc = LocalizationManager.shared
     @State private var showAddWorkout: Bool = false
     @State private var showAddFood: Bool = false
     
@@ -16,26 +17,26 @@ struct HomeView: View {
                     
                     // MARK: - Header
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Salam 👋")
+                        Text("\(loc.localized("home_hello")) 👋")
                             .font(.title)
                             .bold()
                             .foregroundColor(Color(UIColor.label))
                         
-                        Text("Bu gün hədəflərinə fokuslan!")
+                        Text(loc.localized("home_focus"))
                             .foregroundColor(Color(UIColor.secondaryLabel))
                     }
                     
                     // MARK: - Stats (Real Data)
                     HStack(spacing: 12) {
                         StatCard(
-                            title: "Məşq",
-                            value: "\(workoutManager.todayTotalMinutes) dəq",
+                            title: loc.localized("home_workout"),
+                            value: "\(workoutManager.todayTotalMinutes) \(loc.localized("common_min"))",
                             icon: "flame.fill",
                             color: .red
                         )
                         
                         StatCard(
-                            title: "Kalori",
+                            title: loc.localized("home_calories"),
                             value: "\(workoutManager.todayTotalCalories)",
                             icon: "bolt.fill",
                             color: .orange
@@ -45,7 +46,7 @@ struct HomeView: View {
                     // MARK: - Daily Goal (Real Progress)
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            Text("Günlük Hədəf")
+                            Text(loc.localized("home_daily_goal"))
                                 .foregroundColor(Color(UIColor.label))
                                 .font(.headline)
                             
@@ -60,7 +61,7 @@ struct HomeView: View {
                             .tint(.red)
                         
                         HStack {
-                            Text("\(workoutManager.todayWorkouts.filter { $0.isCompleted }.count)/\(workoutManager.todayWorkouts.count) məşq tamamlandı")
+                            Text("\(workoutManager.todayWorkouts.filter { $0.isCompleted }.count)/\(workoutManager.todayWorkouts.count) \(loc.localized("home_completed"))")
                                 .foregroundColor(Color(UIColor.secondaryLabel))
                                 .font(.caption)
                             
@@ -75,7 +76,7 @@ struct HomeView: View {
                     if !workoutManager.todayWorkouts.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
-                                Text("Bugünkü Məşqlər")
+                                Text(loc.localized("home_today_workouts"))
                                     .foregroundColor(Color(UIColor.label))
                                     .font(.headline)
                                 
@@ -84,7 +85,7 @@ struct HomeView: View {
                                 NavigationLink {
                                     WorkoutView()
                                 } label: {
-                                    Text("Hamısına bax")
+                                    Text(loc.localized("home_see_all"))
                                         .font(.caption)
                                         .foregroundColor(.red)
                                 }
@@ -99,20 +100,20 @@ struct HomeView: View {
                     }
                     
                     // MARK: - Quick Actions
-                    Text("Tez Əməliyyatlar")
+                    Text(loc.localized("home_quick_actions"))
                         .foregroundColor(Color(UIColor.label))
                         .font(.headline)
                     
                     HStack(spacing: 12) {
                         QuickActionButton(
-                            title: "Məşq Əlavə et",
+                            title: loc.localized("home_add_workout"),
                             icon: "plus.circle.fill"
                         ) {
                             showAddWorkout = true
                         }
                         
                         QuickActionButton(
-                            title: "Qida Əlavə et",
+                            title: loc.localized("home_add_food"),
                             icon: "fork.knife"
                         ) {
                             showAddFood = true
@@ -121,7 +122,7 @@ struct HomeView: View {
                     
                     // MARK: - Weekly Stats
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Bu Həftə")
+                        Text(loc.localized("home_this_week"))
                             .foregroundColor(Color(UIColor.label))
                             .font(.headline)
                         
@@ -129,19 +130,19 @@ struct HomeView: View {
                             WeekStatItem(
                                 icon: "figure.strengthtraining.traditional",
                                 value: "\(workoutManager.weekWorkoutCount)",
-                                label: "Məşq"
+                                label: loc.localized("home_workout")
                             )
                             
                             WeekStatItem(
                                 icon: "checkmark.circle.fill",
                                 value: "\(workoutManager.completedWorkouts.count)",
-                                label: "Tamamlandı"
+                                label: loc.localized("home_completed")
                             )
                             
                             WeekStatItem(
                                 icon: "clock.fill",
                                 value: "\(workoutManager.weekWorkouts.reduce(0) { $0 + $1.duration })",
-                                label: "Dəqiqə"
+                                label: loc.localized("home_minutes")
                             )
                         }
                         .frame(maxWidth: .infinity)
@@ -227,7 +228,7 @@ struct CompactWorkoutCard: View {
                     .font(.subheadline)
                     .bold()
                 
-                Text("\(workout.duration) dəq")
+                Text("\(workout.duration) \(LocalizationManager.shared.localized("common_min"))")
                     .foregroundColor(Color(UIColor.secondaryLabel))
                     .font(.caption)
             }

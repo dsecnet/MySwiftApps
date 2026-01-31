@@ -39,6 +39,16 @@ enum WorkoutCategory: String, Codable, CaseIterable {
             return "blue"
         }
     }
+
+    var localizedName: String {
+        let loc = LocalizationManager.shared
+        switch self {
+        case .strength: return loc.localized("workout_cat_strength")
+        case .cardio: return loc.localized("workout_cat_cardio")
+        case .flexibility: return loc.localized("workout_cat_flexibility")
+        case .endurance: return loc.localized("workout_cat_endurance")
+        }
+    }
 }
 
 // MARK: - Workout Model
@@ -123,11 +133,12 @@ extension Workout {
     
     // Qısa tarix (bugün, dünən)
     var relativeDate: String {
+        let loc = LocalizationManager.shared
         let calendar = Calendar.current
         if calendar.isDateInToday(date) {
-            return "Bugün"
+            return loc.localized("common_today")
         } else if calendar.isDateInYesterday(date) {
-            return "Dünən"
+            return loc.localized("common_yesterday")
         } else {
             return formattedDate
         }

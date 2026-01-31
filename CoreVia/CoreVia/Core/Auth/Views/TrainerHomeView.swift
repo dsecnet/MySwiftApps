@@ -42,32 +42,32 @@ struct TrainerHomeView: View {
                     // MARK: - Stats Cards
                     HStack(spacing: 12) {
                         TrainerStatCard(
-                            title: loc.localized("trainer_training_plans"),
-                            value: "\(trainingPlanManager.totalPlans)",
                             icon: "figure.strengthtraining.traditional",
+                            value: "\(trainingPlanManager.totalPlans)",
+                            label: loc.localized("trainer_training_plans"),
                             color: .red
                         )
 
                         TrainerStatCard(
-                            title: loc.localized("trainer_meal_plans"),
-                            value: "\(mealPlanManager.totalPlans)",
                             icon: "fork.knife",
+                            value: "\(mealPlanManager.totalPlans)",
+                            label: loc.localized("trainer_meal_plans"),
                             color: .orange
                         )
                     }
 
                     HStack(spacing: 12) {
                         TrainerStatCard(
-                            title: loc.localized("trainer_students"),
-                            value: "\(DemoStudent.demoStudents.count)",
                             icon: "person.2.fill",
+                            value: "\(DemoStudent.demoStudents.count)",
+                            label: loc.localized("trainer_students"),
                             color: .blue
                         )
 
                         TrainerStatCard(
-                            title: loc.localized("trainer_total_plans"),
-                            value: "\(trainingPlanManager.totalPlans + mealPlanManager.totalPlans)",
                             icon: "chart.bar.fill",
+                            value: "\(trainingPlanManager.totalPlans + mealPlanManager.totalPlans)",
+                            label: loc.localized("trainer_total_plans"),
                             color: .green
                         )
                     }
@@ -90,13 +90,13 @@ struct TrainerHomeView: View {
                             .font(.headline)
 
                         HStack(spacing: 12) {
-                            QuickActionButton(
+                            TrainerQuickAction(
                                 title: loc.localized("trainer_new_training"),
                                 icon: "plus.circle.fill",
                                 color: .red
                             )
 
-                            QuickActionButton(
+                            TrainerQuickAction(
                                 title: loc.localized("trainer_new_meal"),
                                 icon: "plus.circle.fill",
                                 color: .orange
@@ -139,36 +139,6 @@ struct TrainerHomeView: View {
     }
 }
 
-// MARK: - Trainer Stat Card
-struct TrainerStatCard: View {
-    let title: String
-    let value: String
-    let icon: String
-    let color: Color
-
-    var body: some View {
-        VStack(spacing: 10) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundColor(color)
-
-            Text(value)
-                .font(.title)
-                .bold()
-                .foregroundColor(Color(UIColor.label))
-
-            Text(title)
-                .font(.caption)
-                .foregroundColor(Color(UIColor.secondaryLabel))
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding()
-        .background(Color(UIColor.secondarySystemBackground))
-        .cornerRadius(14)
-    }
-}
-
 // MARK: - Student Card
 struct StudentCard: View {
     let student: DemoStudent
@@ -208,8 +178,8 @@ struct StudentCard: View {
     }
 }
 
-// MARK: - Quick Action Button
-struct QuickActionButton: View {
+// MARK: - Trainer Quick Action (fərqli adla - HomeView-dakı QuickActionButton ilə toqquşmasın)
+struct TrainerQuickAction: View {
     let title: String
     let icon: String
     let color: Color

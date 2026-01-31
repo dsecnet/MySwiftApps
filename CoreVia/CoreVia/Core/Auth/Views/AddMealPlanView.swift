@@ -246,7 +246,7 @@ struct AddMealPlanView: View {
                                     Button(action: { newMealType = type }) {
                                         HStack(spacing: 4) {
                                             Image(systemName: type.icon)
-                                            Text(type.rawValue)
+                                            Text(type.localizedName)
                                         }
                                         .font(.caption)
                                         .foregroundColor(newMealType == type ? .white : type.color)

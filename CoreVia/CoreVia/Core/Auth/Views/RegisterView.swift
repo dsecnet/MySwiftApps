@@ -16,22 +16,32 @@ struct RegisterView: View {
     @State private var showError: Bool = false
     @State private var errorMessage: String = ""
     @State private var acceptTerms: Bool = false
-    
+
+    @ObservedObject private var loc = LocalizationManager.shared
+
     enum UserType: String, CaseIterable {
         case client = "Müştəri"
         case trainer = "Müəllim"
-        
+
         var icon: String {
             switch self {
             case .client: return "person.fill"
             case .trainer: return "person.2.fill"
             }
         }
-        
+
         var description: String {
             switch self {
-            case .client: return "Məşq və qida proqramları"
-            case .trainer: return "Müştəri idarəsi və coaching"
+            case .client: return LocalizationManager.shared.localized("register_client_desc")
+            case .trainer: return LocalizationManager.shared.localized("register_trainer_desc")
+            }
+        }
+
+        var localizedName: String {
+            let loc = LocalizationManager.shared
+            switch self {
+            case .client: return loc.localized("login_student")
+            case .trainer: return loc.localized("login_teacher")
             }
         }
     }
@@ -96,11 +106,11 @@ struct RegisterView: View {
     // MARK: - Title Section
     private var titleSection: some View {
         VStack(spacing: 8) {
-            Text("Qeydiyyat")
+            Text(loc.localized("register_title"))
                 .font(.system(size: 32, weight: .black))
                 .foregroundColor(AppTheme.Colors.primaryText)
             
-            Text("CoreVia ailəsinə qoşulun")
+            Text(loc.localized("register_subtitle"))
                 .font(.system(size: 14))
                 .foregroundColor(AppTheme.Colors.secondaryText)
         }
@@ -110,7 +120,7 @@ struct RegisterView: View {
     // MARK: - User Type Selection
     private var userTypeSelection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Hesab növü seçin")
+            Text(loc.localized("register_select_type"))
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
             
@@ -141,7 +151,7 @@ struct RegisterView: View {
                 }
                 
                 VStack(spacing: 3) {
-                    Text(type.rawValue)
+                    Text(type.localizedName)
                         .font(.system(size: 14, weight: .bold))
                         .foregroundColor(userType == type ? AppTheme.Colors.primaryText : AppTheme.Colors.secondaryText)
                     
@@ -170,7 +180,7 @@ struct RegisterView: View {
         VStack(spacing: 14) {
             InputFieldCompact(
                 icon: "person.fill",
-                placeholder: "Ad və Soyad",
+                placeholder: loc.localized("register_name"),
                 text: $name
             )
             
@@ -183,7 +193,7 @@ struct RegisterView: View {
             
             SecureFieldCompact(
                 icon: "lock.fill",
-                placeholder: "Şifrə (ən az 6 simvol)",
+                placeholder: loc.localized("common_password"),
                 text: $password,
                 isVisible: $isPasswordVisible
             )
@@ -194,7 +204,7 @@ struct RegisterView: View {
             
             SecureFieldCompact(
                 icon: "lock.fill",
-                placeholder: "Şifrə təkrarı",
+                placeholder: loc.localized("register_password_repeat"),
                 text: $confirmPassword,
                 isVisible: $isConfirmPasswordVisible
             )
@@ -259,7 +269,7 @@ struct RegisterView: View {
                     }
                 }
                 
-                Text("Şərtlər və qaydalar ilə razıyam")
+                Text(loc.localized("register_terms"))
                     .font(.system(size: 13))
                     .foregroundColor(AppTheme.Colors.primaryText)
                 
@@ -296,7 +306,7 @@ struct RegisterView: View {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
                 } else {
-                    Text("Qeydiyyatdan keç")
+                    Text(loc.localized("register_button"))
                         .font(.system(size: 16, weight: .bold))
                     
                     Image(systemName: "arrow.right")

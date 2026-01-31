@@ -10,6 +10,7 @@ import SwiftUI
 struct ClientProfileView: View {
     
     @Binding var isLoggedIn: Bool
+    @ObservedObject private var loc = LocalizationManager.shared
     @StateObject private var imageManager = ProfileImageManager.shared
     @StateObject private var profileManager = UserProfileManager.shared
     @StateObject private var settingsManager = SettingsManager.shared
@@ -65,15 +66,15 @@ struct ClientProfileView: View {
         .sheet(isPresented: $showAbout) {
             AboutView()
         }
-        .alert("Çıxış", isPresented: $showLogoutAlert) {
-            Button("Ləğv et", role: .cancel) { }
-            Button("Çıxış", role: .destructive) {
+        .alert(loc.localized("profile_logout"), isPresented: $showLogoutAlert) {
+            Button(loc.localized("common_cancel"), role: .cancel) { }
+            Button(loc.localized("profile_logout"), role: .destructive) {
                 withAnimation {
                     isLoggedIn = false
                 }
             }
         } message: {
-            Text("Hesabdan çıxmaq istədiyinizə əminsiniz?")
+            Text(loc.localized("profile_logout_confirm"))
         }
     }
     
@@ -152,7 +153,7 @@ struct ClientProfileView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "person.fill")
                         .font(.system(size: 12))
-                    Text("Müştəri")
+                    Text(loc.localized("profile_type_client"))
                         .font(.system(size: 13, weight: .semibold))
                 }
                 .foregroundColor(.blue)
@@ -166,7 +167,7 @@ struct ClientProfileView: View {
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "pencil")
-                        Text("Profili Redaktə Et")
+                        Text(loc.localized("profile_edit"))
                     }
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.blue)
@@ -183,7 +184,7 @@ struct ClientProfileView: View {
     // MARK: - Weekly Progress
     private var weeklyProgressSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Həftəlik Tərəqqi")
+            Text(loc.localized("profile_weekly_progress"))
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
             
@@ -192,7 +193,7 @@ struct ClientProfileView: View {
                     icon: "figure.strengthtraining.traditional",
                     value: "\(workoutManager.weekWorkouts.count)",
                     total: "5",
-                    label: "Məşqlər",
+                    label: loc.localized("profile_workouts"),
                     color: .red
                 )
                 
@@ -200,7 +201,7 @@ struct ClientProfileView: View {
                     icon: "flame.fill",
                     value: "\(foodManager.todayTotalCalories)",
                     total: "\(foodManager.dailyCalorieGoal)",
-                    label: "Kalori",
+                    label: loc.localized("home_calories"),
                     color: .orange
                 )
             }
@@ -210,28 +211,28 @@ struct ClientProfileView: View {
     // MARK: - Today Stats
     private var todayStatsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Bu Gün")
+            Text(loc.localized("profile_today"))
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
             
             VStack(spacing: 12) {
                 StatRow(
                     icon: "figure.run",
-                    label: "Məşqlər",
-                    value: "\(workoutManager.todayWorkouts.count) ədəd",
+                    label: loc.localized("profile_workouts"),
+                    value: "\(workoutManager.todayWorkouts.count) \(loc.localized("common_piece"))",
                     color: .red
                 )
                 
                 StatRow(
                     icon: "fork.knife",
-                    label: "Öğünlər",
-                    value: "\(foodManager.todayEntries.count) ədəd",
+                    label: loc.localized("profile_meals"),
+                    value: "\(foodManager.todayEntries.count) \(loc.localized("common_piece"))",
                     color: .green
                 )
                 
                 StatRow(
                     icon: "flame.fill",
-                    label: "Kalori",
+                    label: loc.localized("home_calories"),
                     value: "\(foodManager.todayTotalCalories) kcal",
                     color: .orange
                 )
@@ -245,7 +246,7 @@ struct ClientProfileView: View {
     // MARK: - Goals Section
     private var goalsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Məqsədlərim")
+            Text(loc.localized("profile_goals"))
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
             
@@ -254,17 +255,17 @@ struct ClientProfileView: View {
                     ClientStatCard(
                         icon: "calendar",
                         value: "\(profileManager.userProfile.age ?? 0)",
-                        label: "Yaş"
+                        label: loc.localized("profile_age")
                     )
                     ClientStatCard(
                         icon: "scalemass",
                         value: "\(Int(profileManager.userProfile.weight ?? 0)) kg",
-                        label: "Çəki"
+                        label: loc.localized("profile_weight")
                     )
                     ClientStatCard(
                         icon: "ruler",
                         value: "\(Int(profileManager.userProfile.height ?? 0)) sm",
-                        label: "Boy"
+                        label: loc.localized("profile_height")
                     )
                 }
                 
@@ -272,7 +273,7 @@ struct ClientProfileView: View {
                     HStack {
                         Image(systemName: "target")
                             .foregroundColor(.blue)
-                        Text("Məqsəd:")
+                        Text(loc.localized("profile_goal_label"))
                             .foregroundColor(AppTheme.Colors.secondaryText)
                         Text(goal)
                             .foregroundColor(AppTheme.Colors.primaryText)
@@ -290,14 +291,14 @@ struct ClientProfileView: View {
     // MARK: - Settings Section
     private var settingsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Tənzimləmələr")
+            Text(loc.localized("profile_settings"))
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
             
             VStack(spacing: 12) {
                 SettingsRow(
                     icon: "bell.fill",
-                    title: "Bildirişlər",
+                    title: loc.localized("settings_notifications"),
                     badge: settingsManager.notificationsEnabled ? "Aktiv" : nil,
                     badgeColor: .green
                 ) {
@@ -306,7 +307,7 @@ struct ClientProfileView: View {
                 
                 SettingsRow(
                     icon: "lock.fill",
-                    title: "Təhlükəsizlik",
+                    title: loc.localized("settings_security"),
                     badge: settingsManager.faceIDEnabled || settingsManager.hasAppPassword ? "🔒" : nil,
                     badgeColor: .blue
                 ) {
@@ -315,7 +316,7 @@ struct ClientProfileView: View {
                 
                 SettingsRow(
                     icon: "star.fill",
-                    title: "Premium",
+                    title: loc.localized("settings_premium"),
                     badge: settingsManager.isPremium ? "👑" : nil,
                     badgeColor: .yellow
                 ) {
@@ -324,7 +325,7 @@ struct ClientProfileView: View {
                 
                 SettingsRow(
                     icon: "info.circle.fill",
-                    title: "Haqqında"
+                    title: loc.localized("settings_about")
                 ) {
                     showAbout = true
                 }
@@ -339,7 +340,7 @@ struct ClientProfileView: View {
         } label: {
             HStack {
                 Image(systemName: "rectangle.portrait.and.arrow.right")
-                Text("Çıxış")
+                Text(loc.localized("profile_logout"))
                     .font(.system(size: 16, weight: .semibold))
             }
             .foregroundColor(.red)

@@ -3,7 +3,8 @@ import SwiftUI
 
 // MARK: - Edit Client Profile
 struct EditClientProfileView: View {
-    
+
+    private let loc = LocalizationManager.shared
     @Environment(\.dismiss) var dismiss
     @StateObject private var profileManager = UserProfileManager.shared
     
@@ -34,51 +35,51 @@ struct EditClientProfileView: View {
                         
                         // Name
                         EditField(
-                            label: "Ad və Soyad",
+                            label: loc.localized("edit_name"),
                             icon: "person.fill",
                             text: $name
                         )
-                        
+
                         // Email
                         EditField(
-                            label: "Email",
+                            label: loc.localized("common_email"),
                             icon: "envelope.fill",
                             text: $email,
                             keyboardType: .emailAddress
                         )
-                        
+
                         // Age
                         EditField(
-                            label: "Yaş",
+                            label: loc.localized("edit_age"),
                             icon: "calendar",
                             text: $age,
                             keyboardType: .numberPad
                         )
-                        
+
                         // Weight
                         EditField(
-                            label: "Çəki (kg)",
+                            label: loc.localized("edit_weight"),
                             icon: "scalemass",
                             text: $weight,
                             keyboardType: .decimalPad
                         )
-                        
+
                         // Height
                         EditField(
-                            label: "Boy (sm)",
+                            label: loc.localized("edit_height"),
                             icon: "ruler",
                             text: $height,
                             keyboardType: .numberPad
                         )
-                        
+
                         // Goal
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Məqsəd")
+                            Text(loc.localized("edit_goal"))
                                 .font(.system(size: 14, weight: .semibold))
                                 .foregroundColor(AppTheme.Colors.primaryText)
-                            
+
                             HStack(spacing: 12) {
-                                ForEach(["Arıqlamaq", "Əzələ toplamaq", "Sağlam qalmaq"], id: \.self) { option in
+                                ForEach([loc.localized("edit_goal_lose"), loc.localized("edit_goal_muscle"), loc.localized("edit_goal_healthy")], id: \.self) { option in
                                     GoalChip(
                                         title: option,
                                         isSelected: goal == option
@@ -95,7 +96,7 @@ struct EditClientProfileView: View {
                         } label: {
                             HStack {
                                 Image(systemName: "checkmark.circle.fill")
-                                Text("Saxla")
+                                Text(loc.localized("common_save"))
                                     .font(.system(size: 16, weight: .bold))
                             }
                             .foregroundColor(.white)
@@ -109,11 +110,11 @@ struct EditClientProfileView: View {
                     .padding()
                 }
             }
-            .navigationTitle("Profili Redaktə Et")
+            .navigationTitle(loc.localized("edit_profile_title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Ləğv et") {
+                    Button(loc.localized("common_cancel")) {
                         dismiss()
                     }
                     .foregroundColor(.red)
@@ -121,7 +122,7 @@ struct EditClientProfileView: View {
             }
         }
     }
-    
+
     private func saveProfile() {
         var updatedProfile = profileManager.userProfile
         updatedProfile.name = name
@@ -138,7 +139,8 @@ struct EditClientProfileView: View {
 
 // MARK: - Edit Trainer Profile
 struct EditTrainerProfileView: View {
-    
+
+    private let loc = LocalizationManager.shared
     @Environment(\.dismiss) var dismiss
     @StateObject private var profileManager = UserProfileManager.shared
     
@@ -167,22 +169,22 @@ struct EditTrainerProfileView: View {
                         
                         // Name
                         EditField(
-                            label: "Ad və Soyad",
+                            label: loc.localized("edit_name"),
                             icon: "person.fill",
                             text: $name
                         )
-                        
+
                         // Email
                         EditField(
-                            label: "Email",
+                            label: loc.localized("common_email"),
                             icon: "envelope.fill",
                             text: $email,
                             keyboardType: .emailAddress
                         )
-                        
+
                         // Specialty
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("İxtisas")
+                            Text(loc.localized("edit_specialty"))
                                 .font(.system(size: 14, weight: .semibold))
                                 .foregroundColor(AppTheme.Colors.primaryText)
                             
@@ -200,21 +202,21 @@ struct EditTrainerProfileView: View {
                         
                         // Experience
                         EditField(
-                            label: "Təcrübə (il)",
+                            label: loc.localized("edit_experience"),
                             icon: "calendar",
                             text: $experience,
                             keyboardType: .numberPad
                         )
-                        
+
                         // Bio
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Haqqımda")
+                            Text(loc.localized("edit_bio"))
                                 .font(.system(size: 14, weight: .semibold))
                                 .foregroundColor(AppTheme.Colors.primaryText)
-                            
+
                             ZStack(alignment: .topLeading) {
                                 if bio.isEmpty {
-                                    Text("Özünüz haqqında qısa məlumat yazın...")
+                                    Text(loc.localized("edit_bio_placeholder"))
                                         .foregroundColor(AppTheme.Colors.tertiaryText)
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 16)
@@ -236,7 +238,7 @@ struct EditTrainerProfileView: View {
                         } label: {
                             HStack {
                                 Image(systemName: "checkmark.circle.fill")
-                                Text("Saxla")
+                                Text(loc.localized("common_save"))
                                     .font(.system(size: 16, weight: .bold))
                             }
                             .foregroundColor(.white)
@@ -250,11 +252,11 @@ struct EditTrainerProfileView: View {
                     .padding()
                 }
             }
-            .navigationTitle("Profili Redaktə Et")
+            .navigationTitle(loc.localized("edit_profile_title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Ləğv et") {
+                    Button(loc.localized("common_cancel")) {
                         dismiss()
                     }
                     .foregroundColor(.red)
@@ -262,7 +264,7 @@ struct EditTrainerProfileView: View {
             }
         }
     }
-    
+
     private func saveProfile() {
         var updatedProfile = profileManager.userProfile
         updatedProfile.name = name

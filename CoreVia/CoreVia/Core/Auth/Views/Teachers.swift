@@ -3,11 +3,12 @@
 import SwiftUI
 
 struct TeachersView: View {
-    
+
     @State private var searchText: String = ""
     @State private var selectedCategory: TeacherCategory = .all
     @State private var selectedTeacher: Teacher? = nil
     @State private var showTeacherDetail: Bool = false
+    @ObservedObject private var loc = LocalizationManager.shared
     
     // Demo data
     let teachers: [Teacher] = [
@@ -118,13 +119,13 @@ struct TeachersView: View {
     // MARK: - Header Section
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Müəllimlər")
+            Text(loc.localized("teacher_title"))
                 .font(.system(size: 32, weight: .bold))
                 .foregroundColor(AppTheme.Colors.primaryText)
-            
+
             HStack(spacing: 16) {
-                StatBadge(icon: "person.2.fill", value: "\(teachers.count)", label: "Müəllim")
-                StatBadge(icon: "star.fill", value: "4.8", label: "Orta Reytinq")
+                StatBadge(icon: "person.2.fill", value: "\(teachers.count)", label: loc.localized("login_teacher"))
+                StatBadge(icon: "star.fill", value: "4.8", label: loc.localized("teacher_avg_rating"))
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -137,7 +138,7 @@ struct TeachersView: View {
             Image(systemName: "magnifyingglass")
                 .foregroundColor(AppTheme.Colors.secondaryText)
             
-            TextField("Müəllim axtar...", text: $searchText)
+            TextField(loc.localized("teacher_search"), text: $searchText)
                 .foregroundColor(AppTheme.Colors.primaryText)
             
             if !searchText.isEmpty {
@@ -182,11 +183,11 @@ struct TeachersView: View {
                 .font(.system(size: 60))
                 .foregroundColor(AppTheme.Colors.tertiaryText)
             
-            Text("Müəllim tapılmadı")
+            Text(loc.localized("teacher_not_found"))
                 .font(.headline)
                 .foregroundColor(AppTheme.Colors.secondaryText)
-            
-            Text("Axtarış kriteriyalarını dəyişin")
+
+            Text(loc.localized("teacher_change_criteria"))
                 .font(.caption)
                 .foregroundColor(AppTheme.Colors.tertiaryText)
         }
@@ -235,6 +236,18 @@ enum TeacherCategory: String, CaseIterable {
         case .cardio: return .pink
         case .yoga: return .purple
         case .nutrition: return .green
+        }
+    }
+
+    var localizedName: String {
+        let loc = LocalizationManager.shared
+        switch self {
+        case .all: return loc.localized("common_all")
+        case .fitness: return loc.localized("teacher_cat_fitness")
+        case .strength: return loc.localized("teacher_cat_strength")
+        case .cardio: return loc.localized("teacher_cat_cardio")
+        case .yoga: return loc.localized("teacher_cat_yoga")
+        case .nutrition: return loc.localized("teacher_cat_nutrition")
         }
     }
 }
@@ -348,7 +361,7 @@ struct CategoryChip: View {
                 Image(systemName: category.icon)
                     .font(.system(size: 14))
                 
-                Text(category.rawValue)
+                Text(category.localizedName)
                     .font(.system(size: 14, weight: .semibold))
             }
             .foregroundColor(isSelected ? .white : AppTheme.Colors.secondaryText)
@@ -400,12 +413,13 @@ struct StatBadge: View {
 struct TeacherDetailView: View {
     let teacher: Teacher
     @Environment(\.dismiss) var dismiss
-    
+    @ObservedObject private var loc = LocalizationManager.shared
+
     var body: some View {
         NavigationStack {
             ZStack {
                 AppTheme.Colors.background.ignoresSafeArea()
-                
+
                 ScrollView {
                     VStack(spacing: 24) {
                         // Avatar
@@ -419,61 +433,61 @@ struct TeacherDetailView: View {
                                     )
                                 )
                                 .frame(width: 120, height: 120)
-                            
+
                             Text(teacher.imageIcon)
                                 .font(.system(size: 60))
                         }
                         .shadow(color: teacher.category.color.opacity(0.4), radius: 20, x: 0, y: 10)
-                        
+
                         // Name & Specialty
                         VStack(spacing: 8) {
                             Text(teacher.name)
                                 .font(.system(size: 28, weight: .bold))
                                 .foregroundColor(AppTheme.Colors.primaryText)
-                            
+
                             Text(teacher.specialty)
                                 .font(.system(size: 16))
                                 .foregroundColor(AppTheme.Colors.secondaryText)
-                            
+
                             HStack(spacing: 6) {
                                 Image(systemName: "star.fill")
                                     .foregroundColor(.yellow)
                                 Text(String(format: "%.1f", teacher.rating))
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(AppTheme.Colors.primaryText)
-                                Text("(\(teacher.students) tələbə)")
+                                Text("(\(teacher.students) \(loc.localized("teacher_students_count")))")
                                     .font(.system(size: 14))
                                     .foregroundColor(AppTheme.Colors.secondaryText)
                             }
                         }
-                        
+
                         // Stats
                         HStack(spacing: 12) {
                             DetailStatCard(
                                 icon: "graduationcap.fill",
                                 value: teacher.experience,
-                                label: "Təcrübə"
+                                label: loc.localized("teacher_experience")
                             )
-                            
+
                             DetailStatCard(
                                 icon: "person.2.fill",
                                 value: "\(teacher.students)",
-                                label: "Tələbə"
+                                label: loc.localized("teacher_student_label")
                             )
-                            
+
                             DetailStatCard(
                                 icon: "star.fill",
                                 value: String(format: "%.1f", teacher.rating),
-                                label: "Reytinq"
+                                label: loc.localized("teacher_rating")
                             )
                         }
-                        
+
                         // Bio
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Haqqında")
+                            Text(loc.localized("teacher_about"))
                                 .font(.system(size: 18, weight: .bold))
                                 .foregroundColor(AppTheme.Colors.primaryText)
-                            
+
                             Text(teacher.bio)
                                 .font(.system(size: 15))
                                 .foregroundColor(AppTheme.Colors.secondaryText)
@@ -483,7 +497,7 @@ struct TeacherDetailView: View {
                         .padding()
                         .background(AppTheme.Colors.secondaryBackground)
                         .cornerRadius(16)
-                        
+
                         // Action Buttons
                         VStack(spacing: 12) {
                             Button {
@@ -491,7 +505,7 @@ struct TeacherDetailView: View {
                             } label: {
                                 HStack {
                                     Image(systemName: "envelope.fill")
-                                    Text("Müəllimlə Əlaqə")
+                                    Text(loc.localized("teacher_contact"))
                                         .font(.system(size: 16, weight: .bold))
                                 }
                                 .foregroundColor(.white)
@@ -507,13 +521,13 @@ struct TeacherDetailView: View {
                                 .cornerRadius(12)
                                 .shadow(color: teacher.category.color.opacity(0.4), radius: 8)
                             }
-                            
+
                             Button {
                                 print("Proqrama bax")
                             } label: {
                                 HStack {
                                     Image(systemName: "calendar")
-                                    Text("Proqrama Bax")
+                                    Text(loc.localized("teacher_view_program"))
                                         .font(.system(size: 16, weight: .semibold))
                                 }
                                 .foregroundColor(teacher.category.color)
@@ -531,7 +545,7 @@ struct TeacherDetailView: View {
                     .padding()
                 }
             }
-            .navigationTitle("Müəllim Profili")
+            .navigationTitle(loc.localized("teacher_profile"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {

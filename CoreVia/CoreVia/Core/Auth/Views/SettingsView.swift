@@ -4,10 +4,11 @@ import LocalAuthentication
 
 // MARK: - Notifications Settings View
 struct NotificationsSettingsView: View {
-    
+
     @Environment(\.dismiss) var dismiss
     @StateObject private var settings = SettingsManager.shared
     @State private var showPermissionAlert = false
+    private let loc = LocalizationManager.shared
     
     var body: some View {
         NavigationStack {
@@ -20,7 +21,7 @@ struct NotificationsSettingsView: View {
                             HStack {
                                 Image(systemName: "bell.fill")
                                     .foregroundColor(.red)
-                                Text("Bildirişlər")
+                                Text(loc.localized("settings_notifications"))
                             }
                         }
                         .onChange(of: settings.notificationsEnabled) { _, newValue in
@@ -34,7 +35,7 @@ struct NotificationsSettingsView: View {
                             }
                         }
                     } header: {
-                        Text("Ümumi")
+                        Text(loc.localized("settings_general"))
                     }
                     
                     Section {
@@ -42,7 +43,7 @@ struct NotificationsSettingsView: View {
                             HStack {
                                 Image(systemName: "figure.strengthtraining.traditional")
                                     .foregroundColor(.orange)
-                                Text("Məşq xatırlatmaları")
+                                Text(loc.localized("settings_workout_reminders"))
                             }
                         }
                         .disabled(!settings.notificationsEnabled)
@@ -51,7 +52,7 @@ struct NotificationsSettingsView: View {
                             HStack {
                                 Image(systemName: "fork.knife")
                                     .foregroundColor(.green)
-                                Text("Qida xatırlatmaları")
+                                Text(loc.localized("settings_meal_reminders"))
                             }
                         }
                         .disabled(!settings.notificationsEnabled)
@@ -60,37 +61,37 @@ struct NotificationsSettingsView: View {
                             HStack {
                                 Image(systemName: "chart.bar.fill")
                                     .foregroundColor(.blue)
-                                Text("Həftəlik hesabat")
+                                Text(loc.localized("settings_weekly_report"))
                             }
                         }
                         .disabled(!settings.notificationsEnabled)
                     } header: {
-                        Text("Xatırlatmalar")
+                        Text(loc.localized("settings_reminders"))
                     } footer: {
-                        Text("Məşq və qida qeydləriniz üçün xatırlatmalar alın")
+                        Text(loc.localized("settings_reminder_desc"))
                     }
                 }
                 .scrollContentBackground(.hidden)
             }
-            .navigationTitle("Bildirişlər")
+            .navigationTitle(loc.localized("settings_notifications"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Bağla") {
+                    Button(loc.localized("common_close")) {
                         dismiss()
                     }
                     .foregroundColor(.red)
                 }
             }
-            .alert("İcazə Tələb Olunur", isPresented: $showPermissionAlert) {
-                Button("Tənzimləmələr") {
+            .alert(loc.localized("settings_permission_required"), isPresented: $showPermissionAlert) {
+                Button(loc.localized("settings_open_settings")) {
                     if let url = URL(string: UIApplication.openSettingsURLString) {
                         UIApplication.shared.open(url)
                     }
                 }
-                Button("Ləğv et", role: .cancel) { }
+                Button(loc.localized("common_cancel"), role: .cancel) { }
             } message: {
-                Text("Bildirişlər üçün icazə verin. Tənzimləmələrdən CoreVia tətbiqinə icazə verin.")
+                Text(loc.localized("settings_permission_desc"))
             }
         }
     }
@@ -98,11 +99,12 @@ struct NotificationsSettingsView: View {
 
 // MARK: - Security Settings View
 struct SecuritySettingsView: View {
-    
+
     @Environment(\.dismiss) var dismiss
     @StateObject private var settings = SettingsManager.shared
     @State private var showPasswordSheet = false
     @State private var showRemovePasswordAlert = false
+    private let loc = LocalizationManager.shared
     
     var body: some View {
         NavigationStack {
@@ -118,7 +120,7 @@ struct SecuritySettingsView: View {
                                 
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(settings.getBiometricType())
-                                    Text("Tez giriş üçün")
+                                    Text(loc.localized("settings_quick_login"))
                                         .font(.caption)
                                         .foregroundColor(AppTheme.Colors.secondaryText)
                                 }
@@ -130,9 +132,9 @@ struct SecuritySettingsView: View {
                             }
                         }
                     } header: {
-                        Text("Biometrik")
+                        Text(loc.localized("settings_biometric"))
                     } footer: {
-                        Text("Tətbiqə \(settings.getBiometricType()) ilə daxil olun")
+                        Text(loc.localized("settings_biometric_desc").replacingOccurrences(of: "%@", with: settings.getBiometricType()))
                     }
                     
                     Section {
@@ -143,7 +145,7 @@ struct SecuritySettingsView: View {
                                 HStack {
                                     Image(systemName: "key.fill")
                                         .foregroundColor(.orange)
-                                    Text("Şifrəni Dəyiş")
+                                    Text(loc.localized("settings_change_password"))
                                     Spacer()
                                     Image(systemName: "chevron.right")
                                         .foregroundColor(AppTheme.Colors.secondaryText)
@@ -156,7 +158,7 @@ struct SecuritySettingsView: View {
                             } label: {
                                 HStack {
                                     Image(systemName: "trash.fill")
-                                    Text("Şifrəni Sil")
+                                    Text(loc.localized("settings_remove_password"))
                                 }
                             }
                         } else {
@@ -166,7 +168,7 @@ struct SecuritySettingsView: View {
                                 HStack {
                                     Image(systemName: "lock.fill")
                                         .foregroundColor(.green)
-                                    Text("Şifrə Təyin Et")
+                                    Text(loc.localized("settings_set_password"))
                                     Spacer()
                                     Image(systemName: "chevron.right")
                                         .foregroundColor(AppTheme.Colors.secondaryText)
@@ -175,32 +177,32 @@ struct SecuritySettingsView: View {
                             }
                         }
                     } header: {
-                        Text("Şifrə")
+                        Text(loc.localized("settings_password_section"))
                     } footer: {
-                        Text("Tətbiq üçün 4 rəqəmli şifrə təyin edin")
+                        Text(loc.localized("settings_4digit_desc"))
                     }
                     
                     Section {
                         HStack {
                             Image(systemName: "lock.shield.fill")
                                 .foregroundColor(.purple)
-                            Text("İki faktorlu autentifikasiya")
+                            Text(loc.localized("settings_2fa"))
                             Spacer()
-                            Text("Tezliklə")
+                            Text(loc.localized("settings_coming_soon"))
                                 .font(.caption)
                                 .foregroundColor(AppTheme.Colors.secondaryText)
                         }
                     } header: {
-                        Text("Əlavə Təhlükəsizlik")
+                        Text(loc.localized("settings_extra_security"))
                     }
                 }
                 .scrollContentBackground(.hidden)
             }
-            .navigationTitle("Təhlükəsizlik")
+            .navigationTitle(loc.localized("settings_security"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Bağla") {
+                    Button(loc.localized("common_close")) {
                         dismiss()
                     }
                     .foregroundColor(.red)
@@ -209,13 +211,13 @@ struct SecuritySettingsView: View {
             .sheet(isPresented: $showPasswordSheet) {
                 SetPasswordView()
             }
-            .alert("Şifrəni Sil", isPresented: $showRemovePasswordAlert) {
-                Button("Sil", role: .destructive) {
+            .alert(loc.localized("settings_remove_password"), isPresented: $showRemovePasswordAlert) {
+                Button(loc.localized("common_delete"), role: .destructive) {
                     settings.removePassword()
                 }
-                Button("Ləğv et", role: .cancel) { }
+                Button(loc.localized("common_cancel"), role: .cancel) { }
             } message: {
-                Text("Tətbiq şifrəsini silmək istədiyinizə əminsiniz?")
+                Text(loc.localized("settings_remove_password_confirm"))
             }
         }
     }
@@ -232,13 +234,14 @@ struct SecuritySettingsView: View {
 
 // MARK: - Set Password View
 struct SetPasswordView: View {
-    
+
     @Environment(\.dismiss) var dismiss
     @StateObject private var settings = SettingsManager.shared
     @State private var password: String = ""
     @State private var confirmPassword: String = ""
     @State private var showError: Bool = false
     @State private var errorMessage: String = ""
+    private let loc = LocalizationManager.shared
     
     var body: some View {
         NavigationStack {
@@ -252,17 +255,17 @@ struct SetPasswordView: View {
                             .font(.system(size: 60))
                             .foregroundColor(.blue)
                         
-                        Text(settings.hasAppPassword ? "Şifrəni Dəyiş" : "Şifrə Təyin Et")
+                        Text(settings.hasAppPassword ? loc.localized("settings_change_password") : loc.localized("settings_set_password"))
                             .font(.system(size: 24, weight: .bold))
                             .foregroundColor(AppTheme.Colors.primaryText)
                         
-                        Text("4 rəqəmli şifrə daxil edin")
+                        Text(loc.localized("settings_4digit"))
                             .foregroundColor(AppTheme.Colors.secondaryText)
                     }
                     
                     VStack(spacing: 20) {
-                        PinCodeField(text: $password, title: "Şifrə")
-                        PinCodeField(text: $confirmPassword, title: "Şifrə təkrarı")
+                        PinCodeField(text: $password, title: loc.localized("common_password"))
+                        PinCodeField(text: $confirmPassword, title: loc.localized("settings_password_repeat"))
                     }
                     
                     if showError {
@@ -274,7 +277,7 @@ struct SetPasswordView: View {
                     Button {
                         savePassword()
                     } label: {
-                        Text("Saxla")
+                        Text(loc.localized("common_save"))
                             .font(.system(size: 16, weight: .bold))
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
@@ -293,7 +296,7 @@ struct SetPasswordView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Ləğv et") {
+                    Button(loc.localized("common_cancel")) {
                         dismiss()
                     }
                     .foregroundColor(.red)
@@ -301,15 +304,15 @@ struct SetPasswordView: View {
             }
         }
     }
-    
+
     private func savePassword() {
         guard password.count == 4 else {
-            showErrorMessage("Şifrə 4 rəqəm olmalıdır")
+            showErrorMessage(loc.localized("settings_password_4digits"))
             return
         }
-        
+
         guard password == confirmPassword else {
-            showErrorMessage("Şifrələr uyğun gəlmir")
+            showErrorMessage(loc.localized("settings_passwords_mismatch"))
             return
         }
         
@@ -369,8 +372,9 @@ struct PinCodeField: View {
 
 // MARK: - About View
 struct AboutView: View {
-    
+
     @Environment(\.dismiss) var dismiss
+    private let loc = LocalizationManager.shared
     
     var body: some View {
         NavigationStack {
@@ -404,11 +408,11 @@ struct AboutView: View {
                                     .font(.system(size: 32, weight: .bold))
                                     .foregroundColor(AppTheme.Colors.primaryText)
                                 
-                                Text("Gücə Gedən Yol")
+                                Text(loc.localized("about_slogan"))
                                     .font(.system(size: 16))
                                     .foregroundColor(AppTheme.Colors.secondaryText)
                                 
-                                Text("Versiya 1.0.0")
+                                Text(loc.localized("about_version"))
                                     .font(.system(size: 14))
                                     .foregroundColor(AppTheme.Colors.tertiaryText)
                             }
@@ -416,11 +420,11 @@ struct AboutView: View {
                         
                         // Description
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Haqqında")
+                            Text(loc.localized("about_title"))
                                 .font(.system(size: 20, weight: .bold))
                                 .foregroundColor(AppTheme.Colors.primaryText)
                             
-                            Text("CoreVia fitness və qidalanma tracking tətbiqidir. Məşq və qida qeydlərinizi asanlıqla izləyin, hədəflərinizə çatın və sağlam həyat tərzini dəstəkləyin.")
+                            Text(loc.localized("about_description"))
                                 .font(.system(size: 15))
                                 .foregroundColor(AppTheme.Colors.secondaryText)
                                 .lineSpacing(4)
@@ -432,15 +436,15 @@ struct AboutView: View {
                         
                         // Features
                         VStack(alignment: .leading, spacing: 16) {
-                            Text("Xüsusiyyətlər")
+                            Text(loc.localized("about_features"))
                                 .font(.system(size: 20, weight: .bold))
                                 .foregroundColor(AppTheme.Colors.primaryText)
                             
-                            FeatureRow(icon: "figure.strengthtraining.traditional", title: "Məşq Tracking", color: .red)
-                            FeatureRow(icon: "fork.knife", title: "Qida Tracking", color: .green)
-                            FeatureRow(icon: "person.2.fill", title: "Müəllim Sistemi", color: .purple)
-                            FeatureRow(icon: "chart.bar.fill", title: "Statistika", color: .blue)
-                            FeatureRow(icon: "bell.fill", title: "Xatırlatmalar", color: .orange)
+                            FeatureRow(icon: "figure.strengthtraining.traditional", title: loc.localized("about_workout_tracking"), color: .red)
+                            FeatureRow(icon: "fork.knife", title: loc.localized("about_food_tracking"), color: .green)
+                            FeatureRow(icon: "person.2.fill", title: loc.localized("about_teacher_system"), color: .purple)
+                            FeatureRow(icon: "chart.bar.fill", title: loc.localized("about_statistics"), color: .blue)
+                            FeatureRow(icon: "bell.fill", title: loc.localized("about_reminders"), color: .orange)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding()
@@ -449,10 +453,10 @@ struct AboutView: View {
                         
                         // Links
                         VStack(spacing: 12) {
-                            AboutLinkButton(icon: "globe", title: "Veb Sayt", url: "https://corevia.com")
-                            AboutLinkButton(icon: "envelope.fill", title: "Əlaqə", url: "mailto:support@corevia.com")
-                            AboutLinkButton(icon: "doc.text.fill", title: "İstifadə Şərtləri", url: "https://corevia.com/terms")
-                            AboutLinkButton(icon: "hand.raised.fill", title: "Məxfilik Siyasəti", url: "https://corevia.com/privacy")
+                            AboutLinkButton(icon: "globe", title: loc.localized("about_website"), url: "https://corevia.com")
+                            AboutLinkButton(icon: "envelope.fill", title: loc.localized("about_contact"), url: "mailto:support@corevia.com")
+                            AboutLinkButton(icon: "doc.text.fill", title: loc.localized("about_terms"), url: "https://corevia.com/terms")
+                            AboutLinkButton(icon: "hand.raised.fill", title: loc.localized("about_privacy"), url: "https://corevia.com/privacy")
                         }
                         
                         // Copyright
@@ -470,11 +474,11 @@ struct AboutView: View {
                     .padding()
                 }
             }
-            .navigationTitle("Haqqında")
+            .navigationTitle(loc.localized("about_title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Bağla") {
+                    Button(loc.localized("common_close")) {
                         dismiss()
                     }
                     .foregroundColor(.red)
@@ -550,6 +554,7 @@ struct PremiumView: View {
     @State private var selectedPlan: PremiumPlan = .yearly
     @State private var buttonPressed = false
     @State private var featuresAppeared = false
+    private let loc = LocalizationManager.shared
 
     enum PremiumPlan {
         case monthly, yearly
@@ -563,14 +568,16 @@ struct PremiumView: View {
         let color: Color
     }
 
-    let features: [PremiumFeature] = [
-        PremiumFeature(icon: "crown.fill", title: "Limitsiz Məşq", description: "Sınırsız məşq qeydləri yarat", color: .yellow),
-        PremiumFeature(icon: "chart.bar.fill", title: "Ətraflı Statistika", description: "Dərin analitika və tərəqqi", color: .blue),
-        PremiumFeature(icon: "bell.badge.fill", title: "Smart Bildirişlər", description: "Ağıllı xatırlatma sistemi", color: .orange),
-        PremiumFeature(icon: "person.2.fill", title: "Premium Müəllimlər", description: "Ən yaxşı müəllimlərlə əlaqə", color: .purple),
-        PremiumFeature(icon: "sparkles", title: "AI Tövsiyələri", description: "Süni intellekt əsaslı planlar", color: .pink),
-        PremiumFeature(icon: "cloud.fill", title: "Cloud Sync", description: "Bütün cihazlarda sinxronizasiya", color: .cyan)
-    ]
+    var features: [PremiumFeature] {
+        [
+            PremiumFeature(icon: "crown.fill", title: loc.localized("premium_unlimited"), description: loc.localized("premium_unlimited_desc"), color: .yellow),
+            PremiumFeature(icon: "chart.bar.fill", title: loc.localized("premium_stats"), description: loc.localized("premium_stats_desc"), color: .blue),
+            PremiumFeature(icon: "bell.badge.fill", title: loc.localized("premium_notifications"), description: loc.localized("premium_notifications_desc"), color: .orange),
+            PremiumFeature(icon: "person.2.fill", title: loc.localized("premium_teachers"), description: loc.localized("premium_teachers_desc"), color: .purple),
+            PremiumFeature(icon: "sparkles", title: loc.localized("premium_ai"), description: loc.localized("premium_ai_desc"), color: .pink),
+            PremiumFeature(icon: "cloud.fill", title: loc.localized("premium_cloud"), description: loc.localized("premium_cloud_desc"), color: .cyan)
+        ]
+    }
 
     var body: some View {
         ZStack {
@@ -656,7 +663,7 @@ struct PremiumView: View {
                                 )
                             )
 
-                        Text("Bütün funksiyalara tam giriş")
+                        Text(loc.localized("premium_subtitle"))
                             .font(.system(size: 15))
                             .foregroundColor(.white.opacity(0.6))
                     }
@@ -685,9 +692,9 @@ struct PremiumView: View {
                     HStack(spacing: 14) {
                         // Monthly
                         PremiumPricingCard(
-                            title: "Aylıq",
+                            title: loc.localized("premium_monthly"),
                             price: "9.99",
-                            period: "ay",
+                            period: loc.localized("premium_month"),
                             isSelected: selectedPlan == .monthly,
                             isPopular: false
                         )
@@ -699,12 +706,12 @@ struct PremiumView: View {
 
                         // Yearly
                         PremiumPricingCard(
-                            title: "İllik",
+                            title: loc.localized("premium_yearly"),
                             price: "79.99",
-                            period: "il",
+                            period: loc.localized("premium_year"),
                             isSelected: selectedPlan == .yearly,
                             isPopular: true,
-                            savings: "20% QƏNAƏT"
+                            savings: loc.localized("premium_save_20")
                         )
                         .onTapGesture {
                             withAnimation(.spring(response: 0.3)) {
@@ -728,7 +735,7 @@ struct PremiumView: View {
                         HStack(spacing: 10) {
                             Image(systemName: "crown.fill")
                                 .font(.system(size: 20))
-                            Text("Premium Aktivləşdir")
+                            Text(loc.localized("premium_activate"))
                                 .font(.system(size: 18, weight: .bold))
                         }
                         .foregroundColor(.black)
@@ -748,9 +755,9 @@ struct PremiumView: View {
 
                     // Terms
                     VStack(spacing: 4) {
-                        Text("Ödəniş Apple ID hesabınızdan çıxılacaq.")
+                        Text(loc.localized("premium_terms"))
                             .font(.system(size: 11))
-                        Text("İstifadə şərtləri və məxfilik siyasəti tətbiq olunur.")
+                        Text(loc.localized("premium_terms2"))
                             .font(.system(size: 11))
                     }
                     .foregroundColor(.white.opacity(0.4))
@@ -823,7 +830,7 @@ struct PremiumPricingCard: View {
     var body: some View {
         VStack(spacing: 12) {
             if isPopular {
-                Text("ƏN POPULYAR")
+                Text(LocalizationManager.shared.localized("premium_most_popular"))
                     .font(.system(size: 10, weight: .heavy))
                     .foregroundColor(.black)
                     .padding(.horizontal, 10)

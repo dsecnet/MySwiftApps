@@ -24,6 +24,8 @@ struct AddFoodView: View {
     @State private var isAnalyzing = false
     @State private var analysisComplete = false
 
+    @ObservedObject private var loc = LocalizationManager.shared
+
     // Mock analiz nəticələri
     private let mockFoodResults: [(name: String, calories: Int, protein: Double, carbs: Double, fats: Double)] = [
         ("Toyuq plovu", 450, 28, 55, 12),
@@ -51,18 +53,18 @@ struct AddFoodView: View {
     var body: some View {
         NavigationStack {
             contentView
-                .navigationTitle("Qida Əlavə Et")
+                .navigationTitle(loc.localized("food_add_title"))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarLeading) {
-                        Button("Bağla") {
+                        Button(loc.localized("common_close")) {
                             dismiss()
                         }
                         .foregroundColor(.red)
                     }
 
                     ToolbarItem(placement: .navigationBarTrailing) {
-                        Button("Saxla") {
+                        Button(loc.localized("common_save")) {
                             saveFood()
                         }
                         .foregroundColor(.red)
@@ -71,12 +73,12 @@ struct AddFoodView: View {
                         .opacity(isFormValid ? 1.0 : 0.5)
                     }
                 }
-                .alert("Uğurlu!", isPresented: $showSuccessAlert) {
+                .alert(loc.localized("common_success"), isPresented: $showSuccessAlert) {
                     Button("OK") {
                         dismiss()
                     }
                 } message: {
-                    Text("Qida uğurla əlavə olundu!")
+                    Text(loc.localized("food_added"))
                 }
                 .sheet(isPresented: $showCamera) {
                     CameraPicker(image: $capturedImage)
@@ -111,7 +113,7 @@ struct AddFoodView: View {
     // MARK: - Camera Section
     private var cameraSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Qidanı Çək")
+            Text(loc.localized("food_take_photo"))
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
@@ -131,7 +133,7 @@ struct AddFoodView: View {
                                 .progressViewStyle(CircularProgressViewStyle(tint: .red))
                                 .scaleEffect(1.2)
 
-                            Text("Analiz edilir...")
+                            Text(loc.localized("food_analyzing"))
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(AppTheme.Colors.secondaryText)
                         }
@@ -147,11 +149,11 @@ struct AddFoodView: View {
                                 .foregroundColor(.green)
 
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Analiz tamamlandı")
+                                Text(loc.localized("food_analysis_done"))
                                     .font(.system(size: 14, weight: .semibold))
                                     .foregroundColor(AppTheme.Colors.primaryText)
 
-                                Text("Nəticələr formada dolduruldu")
+                                Text(loc.localized("food_results_filled"))
                                     .font(.system(size: 12))
                                     .foregroundColor(AppTheme.Colors.secondaryText)
                             }
@@ -175,7 +177,7 @@ struct AddFoodView: View {
                         HStack(spacing: 8) {
                             Image(systemName: "camera.rotate")
                                 .font(.system(size: 14))
-                            Text("Yenidən Çək")
+                            Text(loc.localized("food_retake"))
                                 .font(.system(size: 14, weight: .semibold))
                         }
                         .foregroundColor(.red)
@@ -208,11 +210,11 @@ struct AddFoodView: View {
                         }
 
                         VStack(spacing: 4) {
-                            Text("Qidanızın Şəklini Çəkin")
+                            Text(loc.localized("food_take_photo_desc"))
                                 .font(.system(size: 15, weight: .semibold))
                                 .foregroundColor(AppTheme.Colors.primaryText)
 
-                            Text("AI kalori hesablaması")
+                            Text(loc.localized("food_ai_calc"))
                                 .font(.system(size: 12))
                                 .foregroundColor(AppTheme.Colors.secondaryText)
                         }
@@ -233,7 +235,7 @@ struct AddFoodView: View {
     // MARK: - Quick Add Section
     private var quickAddSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Tez Əlavə Et")
+            Text(loc.localized("food_quick_add"))
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
@@ -252,7 +254,7 @@ struct AddFoodView: View {
     // MARK: - Meal Type Selector
     private var mealTypeSelector: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Öğün Növü")
+            Text(loc.localized("food_meal_type"))
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
@@ -275,16 +277,16 @@ struct AddFoodView: View {
     private var mainForm: some View {
         VStack(spacing: 16) {
             FoodInputField(
-                label: "Qida Adı",
+                label: loc.localized("food_name"),
                 icon: "fork.knife",
-                placeholder: "məs: Yumurta omlet",
+                placeholder: loc.localized("food_name_placeholder"),
                 text: $foodName
             )
 
             FoodInputField(
-                label: "Kalori (kcal)",
+                label: loc.localized("food_calories"),
                 icon: "flame.fill",
-                placeholder: "məs: 250",
+                placeholder: loc.localized("food_calories_placeholder"),
                 text: $calories,
                 keyboardType: .numberPad
             )
@@ -295,34 +297,34 @@ struct AddFoodView: View {
     private var macrosSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Makrolar (opsional)")
+                Text(loc.localized("food_macros"))
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(AppTheme.Colors.primaryText)
 
                 Spacer()
 
-                Text("qram")
+                Text(loc.localized("common_gram"))
                     .font(.system(size: 12))
                     .foregroundColor(AppTheme.Colors.secondaryText)
             }
 
             HStack(spacing: 12) {
                 MacroInputField(
-                    label: "Protein",
+                    label: loc.localized("food_protein"),
                     icon: "💪",
                     color: .blue,
                     text: $protein
                 )
 
                 MacroInputField(
-                    label: "Karbohidrat",
+                    label: loc.localized("food_carbs"),
                     icon: "🍞",
                     color: .orange,
                     text: $carbs
                 )
 
                 MacroInputField(
-                    label: "Yağ",
+                    label: loc.localized("food_fats"),
                     icon: "🥑",
                     color: .green,
                     text: $fats
@@ -334,13 +336,13 @@ struct AddFoodView: View {
     // MARK: - Notes Section
     private var notesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Qeydlər (opsional)")
+            Text(loc.localized("workout_notes"))
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
             ZStack(alignment: .topLeading) {
                 if notes.isEmpty {
-                    Text("Əlavə məlumat yazın...")
+                    Text(loc.localized("food_notes_placeholder"))
                         .foregroundColor(AppTheme.Colors.tertiaryText)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 16)
@@ -479,7 +481,7 @@ struct MealTypeButton: View {
                 Image(systemName: type.icon)
                     .font(.system(size: 20))
 
-                Text(type.rawValue)
+                Text(type.localizedName)
                     .font(.system(size: 12, weight: .semibold))
             }
             .foregroundColor(isSelected ? .white : AppTheme.Colors.secondaryText)

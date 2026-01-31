@@ -15,7 +15,8 @@ struct AddWorkoutView: View {
     @State private var selectedDate: Date = Date()
     
     @State private var showSuccessAlert: Bool = false
-    
+    @ObservedObject private var loc = LocalizationManager.shared
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -26,7 +27,7 @@ struct AddWorkoutView: View {
                         
                         // MARK: - Title Input
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Məşqın Adı")
+                            Text(loc.localized("workout_name"))
                                 .foregroundColor(Color(UIColor.secondaryLabel))
                                 .font(.subheadline)
                             
@@ -43,7 +44,7 @@ struct AddWorkoutView: View {
                         
                         // MARK: - Category Picker
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Kateqoriya")
+                            Text(loc.localized("workout_category"))
                                 .foregroundColor(Color(UIColor.secondaryLabel))
                                 .font(.subheadline)
                             
@@ -65,7 +66,7 @@ struct AddWorkoutView: View {
                         
                         // MARK: - Duration Stepper
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Müddət (dəqiqə)")
+                            Text(loc.localized("workout_duration"))
                                 .foregroundColor(Color(UIColor.secondaryLabel))
                                 .font(.subheadline)
                             
@@ -82,7 +83,7 @@ struct AddWorkoutView: View {
                                 
                                 Spacer()
                                 
-                                Text("\(duration) dəq")
+                                Text("\(duration) \(loc.localized("common_min"))")
                                     .font(.title2)
                                     .bold()
                                     .foregroundColor(Color(UIColor.label))
@@ -104,7 +105,7 @@ struct AddWorkoutView: View {
                         
                         // MARK: - Calories (Optional)
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Kalori (opsional)")
+                            Text(loc.localized("workout_calories_optional"))
                                 .foregroundColor(Color(UIColor.secondaryLabel))
                                 .font(.subheadline)
                             
@@ -118,7 +119,7 @@ struct AddWorkoutView: View {
                         
                         // MARK: - Date Picker
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Tarix")
+                            Text(loc.localized("workout_date"))
                                 .foregroundColor(Color(UIColor.secondaryLabel))
                                 .font(.subheadline)
                             
@@ -132,14 +133,14 @@ struct AddWorkoutView: View {
                         
                         // MARK: - Notes (Optional)
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Qeydlər (opsional)")
+                            Text(loc.localized("workout_notes"))
                                 .foregroundColor(Color(UIColor.secondaryLabel))
                                 .font(.subheadline)
                             
                             ZStack(alignment: .topLeading) {
                                 // Placeholder text
                                 if notes.isEmpty {
-                                    Text("Məşq haqqında qeydlər yazın...")
+                                    Text(loc.localized("workout_notes_placeholder"))
                                         .foregroundColor(Color(UIColor.tertiaryLabel))
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 16)
@@ -166,7 +167,7 @@ struct AddWorkoutView: View {
                         } label: {
                             HStack {
                                 Image(systemName: "checkmark.circle.fill")
-                                Text("Məşqı Saxla")
+                                Text(loc.localized("workout_save"))
                                     .bold()
                             }
                             .foregroundColor(.white)
@@ -189,22 +190,22 @@ struct AddWorkoutView: View {
                     .padding()
                 }
             }
-            .navigationTitle("Yeni Məşq")
+            .navigationTitle(loc.localized("workout_new"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Ləğv et") {
+                    Button(loc.localized("common_cancel")) {
                         dismiss()
                     }
                     .foregroundColor(.red)
                 }
             }
-            .alert("Uğurlu! ✅", isPresented: $showSuccessAlert) {
+            .alert("\(loc.localized("common_success")) ✅", isPresented: $showSuccessAlert) {
                 Button("OK") {
                     dismiss()
                 }
             } message: {
-                Text("Məşq uğurla əlavə olundu!")
+                Text(loc.localized("workout_added"))
             }
         }
     }
@@ -242,7 +243,7 @@ struct CategoryButton: View {
                     .font(.title2)
                     .foregroundColor(isSelected ? .white : Color(UIColor.secondaryLabel))
                 
-                Text(category.rawValue)
+                Text(category.localizedName)
                     .font(.caption)
                     .foregroundColor(isSelected ? .white : Color(UIColor.secondaryLabel))
             }

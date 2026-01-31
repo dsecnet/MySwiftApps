@@ -83,7 +83,9 @@ class LocalizationManager: ObservableObject {
         "common_person": [.az: "n\u{0259}f\u{0259}r", .en: "people", .ru: "\u{0447}\u{0435}\u{043B}."],
         "common_piece": [.az: "\u{0259}d\u{0259}d", .en: "pcs", .ru: "\u{0448}\u{0442}."],
         "common_optional": [.az: "opsional", .en: "optional", .ru: "\u{043D}\u{0435}\u{043E}\u{0431}\u{044F}\u{0437}."],
-        "common_change": [.az: "D\u{0259}yi\u{015F}", .en: "Change", .ru: "\u{0418}\u{0437}\u{043C}\u{0435}\u{043D}\u{0438}\u{0442}\u{044C}"],
+        "common_change": [.az: "Dəyiş", .en: "Change", .ru: "Изменить"],
+        "common_today": [.az: "Bugün", .en: "Today", .ru: "Сегодня"],
+        "common_yesterday": [.az: "Dünən", .en: "Yesterday", .ru: "Вчера"],
 
         // ============================================================
         // MARK: - Login
@@ -206,7 +208,11 @@ class LocalizationManager: ObservableObject {
         "food_results_filled": [.az: "N\u{0259}tic\u{0259}l\u{0259}r formada dolduruldu", .en: "Results filled in the form", .ru: "\u{0420}\u{0435}\u{0437}\u{0443}\u{043B}\u{044C}\u{0442}\u{0430}\u{0442}\u{044B} \u{0437}\u{0430}\u{043F}\u{043E}\u{043B}\u{043D}\u{0435}\u{043D}\u{044B}"],
         "food_retake": [.az: "Yenid\u{0259}n \u{00C7}\u{0259}k", .en: "Retake", .ru: "\u{041F}\u{0435}\u{0440}\u{0435}\u{0441}\u{043D}\u{044F}\u{0442}\u{044C}"],
         "food_quick_add": [.az: "Tez \u{018F}lav\u{0259} Et", .en: "Quick Add", .ru: "\u{0411}\u{044B}\u{0441}\u{0442}\u{0440}\u{043E}\u{0435} \u{0434}\u{043E}\u{0431}\u{0430}\u{0432}\u{043B}\u{0435}\u{043D}\u{0438}\u{0435}"],
-        "food_meal_type": [.az: "\u{00D6}\u{011F}\u{00FC}n N\u{00F6}v\u{00FC}", .en: "Meal Type", .ru: "\u{0422}\u{0438}\u{043F} \u{043F}\u{0440}\u{0438}\u{0451}\u{043C}\u{0430}"],
+        "food_meal_type": [.az: "Öğün Növü", .en: "Meal Type", .ru: "Тип приёма"],
+        "food_meal_breakfast": [.az: "Səhər", .en: "Breakfast", .ru: "Завтрак"],
+        "food_meal_lunch": [.az: "Günorta", .en: "Lunch", .ru: "Обед"],
+        "food_meal_dinner": [.az: "Axşam", .en: "Dinner", .ru: "Ужин"],
+        "food_meal_snack": [.az: "Snack", .en: "Snack", .ru: "Перекус"],
         "food_name": [.az: "Qida Ad\u{0131}", .en: "Food Name", .ru: "\u{041D}\u{0430}\u{0437}\u{0432}\u{0430}\u{043D}\u{0438}\u{0435} \u{0435}\u{0434}\u{044B}"],
         "food_name_placeholder": [.az: "m\u{0259}s: Yumurta omlet", .en: "e.g: Egg omelette", .ru: "\u{043D}\u{0430}\u{043F}\u{0440}.: \u{041E}\u{043C}\u{043B}\u{0435}\u{0442}"],
         "food_calories": [.az: "Kalori (kcal)", .en: "Calories (kcal)", .ru: "\u{041A}\u{0430}\u{043B}\u{043E}\u{0440}\u{0438}\u{0438} (kcal)"],
@@ -287,7 +293,11 @@ class LocalizationManager: ObservableObject {
         "teacher_cat_strength": [.az: "G\u{00FC}c", .en: "Strength", .ru: "\u{0421}\u{0438}\u{043B}\u{0430}"],
         "teacher_cat_cardio": [.az: "Kardio", .en: "Cardio", .ru: "\u{041A}\u{0430}\u{0440}\u{0434}\u{0438}\u{043E}"],
         "teacher_cat_yoga": [.az: "Yoga", .en: "Yoga", .ru: "\u{0419}\u{043E}\u{0433}\u{0430}"],
-        "teacher_cat_nutrition": [.az: "Qidalanma", .en: "Nutrition", .ru: "\u{041F}\u{0438}\u{0442}\u{0430}\u{043D}\u{0438}\u{0435}"],
+        "teacher_cat_nutrition": [.az: "Qidalanma", .en: "Nutrition", .ru: "Питание"],
+        "teacher_experience": [.az: "Təcrübə", .en: "Experience", .ru: "Опыт"],
+        "teacher_student_label": [.az: "Tələbə", .en: "Student", .ru: "Студент"],
+        "teacher_rating": [.az: "Reytinq", .en: "Rating", .ru: "Рейтинг"],
+        "teacher_students_count": [.az: "tələbə", .en: "students", .ru: "студентов"],
 
         // ============================================================
         // MARK: - Settings
@@ -439,5 +449,21 @@ class LocalizationManager: ObservableObject {
         "biometric_unavailable": [.az: "M\u{00F6}vcud deyil", .en: "Unavailable", .ru: "\u{041D}\u{0435}\u{0434}\u{043E}\u{0441}\u{0442}\u{0443}\u{043F}\u{043D}\u{043E}"],
         "biometric_generic": [.az: "Biometrik", .en: "Biometric", .ru: "\u{0411}\u{0438}\u{043E}\u{043C}\u{0435}\u{0442}\u{0440}\u{0438}\u{044F}"],
         "biometric_reason": [.az: "CoreVia t\u{0259}tbiqin\u{0259} daxil olmaq \u{00FC}\u{00E7}\u{00FC}n", .en: "To access CoreVia app", .ru: "\u{0414}\u{043B}\u{044F} \u{0434}\u{043E}\u{0441}\u{0442}\u{0443}\u{043F}\u{0430} \u{0432} CoreVia"],
+
+        // ============================================================
+        // MARK: - Additional Missing Keys
+        // ============================================================
+        "common_back": [.az: "Geri", .en: "Back", .ru: "Назад"],
+        "common_active": [.az: "Aktiv", .en: "Active", .ru: "Активно"],
+        "food_time": [.az: "Vaxt", .en: "Time", .ru: "Время"],
+        "home_workout_completed": [.az: "məşq tamamlandı", .en: "workout completed", .ru: "тренировка завершена"],
+        "register_password_hint": [.az: "Şifrə (ən az 6 simvol)", .en: "Password (min 6 characters)", .ru: "Пароль (мин. 6 символов)"],
+        "register_passwords_match": [.az: "Şifrələr uyğundur", .en: "Passwords match", .ru: "Пароли совпадают"],
+        "register_passwords_mismatch": [.az: "Şifrələr uyğun deyil", .en: "Passwords don't match", .ru: "Пароли не совпадают"],
+        "register_fill_all": [.az: "Bütün sahələri düzgün doldurun", .en: "Fill in all fields correctly", .ru: "Заполните все поля правильно"],
+        "register_weak_password": [.az: "Zəif şifrə", .en: "Weak password", .ru: "Слабый пароль"],
+        "register_medium_password": [.az: "Orta güclü", .en: "Medium strength", .ru: "Средний"],
+        "register_strong_password": [.az: "Güclü şifrə", .en: "Strong password", .ru: "Надёжный пароль"],
+        "home_no_workouts_today": [.az: "Bugün məşq yoxdur", .en: "No workouts today", .ru: "Нет тренировок сегодня"],
     ]
 }
