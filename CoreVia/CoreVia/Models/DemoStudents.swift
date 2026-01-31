@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 // MARK: - Demo Student Model
-struct DemoStudent: Identifiable, Codable {
+struct DemoStudent: Identifiable, Codable, Hashable {
     let id: String
     var name: String
     var progress: Double // 0.0 - 1.0

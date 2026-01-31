@@ -115,8 +115,13 @@ struct MainTabView: View {
 
             // MARK: - Tab 3: Teachers / Students
             NavigationStack {
-                TeachersView()
-                    .navigationTitle("")
+                if isTrainer {
+                    MyStudentsView()
+                        .navigationTitle("")
+                } else {
+                    TeachersView()
+                        .navigationTitle("")
+                }
             }
             .tabItem {
                 Label(

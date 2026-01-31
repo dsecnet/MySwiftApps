@@ -503,5 +503,32 @@ class LocalizationManager: ObservableObject {
         "food_quick_apple": [.az: "Alma", .en: "Apple", .ru: "Яблоко"],
         "food_quick_oatmeal": [.az: "Oatmeal (100q)", .en: "Oatmeal (100g)", .ru: "Овсянка (100г)"],
         "food_quick_juice": [.az: "Alma şirəsi (200ml)", .en: "Apple juice (200ml)", .ru: "Яблочный сок (200мл)"],
+
+        // ============================================================
+        // MARK: - My Students View
+        // ============================================================
+        "my_students_title": [.az: "Tələbələrim", .en: "My Students", .ru: "Мои студенты"],
+        "my_students_total": [.az: "Ümumi tələbə", .en: "Total students", .ru: "Всего студентов"],
+        "my_students_avg_progress": [.az: "Orta irəliləyiş", .en: "Avg. progress", .ru: "Ср. прогресс"],
+        "my_students_search": [.az: "Tələbə axtar...", .en: "Search students...", .ru: "Поиск студентов..."],
+        "my_students_no_results": [.az: "Tələbə tapılmadı", .en: "No students found", .ru: "Студенты не найдены"],
+        "my_students_change_search": [.az: "Axtarış meyarlarını dəyişin", .en: "Try a different search", .ru: "Измените критерии поиска"],
+        "my_students_age": [.az: "Yaş", .en: "Age", .ru: "Возраст"],
+        "my_students_goal": [.az: "Hədəf", .en: "Goal", .ru: "Цель"],
+        "my_students_progress": [.az: "İrəliləyiş", .en: "Progress", .ru: "Прогресс"],
+
+        // ============================================================
+        // MARK: - Student Detail View
+        // ============================================================
+        "student_detail_title": [.az: "Tələbə Profili", .en: "Student Profile", .ru: "Профиль студента"],
+        "student_detail_progress_overview": [.az: "İrəliləyiş İcmalı", .en: "Progress Overview", .ru: "Обзор прогресса"],
+        "student_detail_training_stats": [.az: "Məşq Statistikası", .en: "Training Statistics", .ru: "Статистика тренировок"],
+        "student_detail_workouts_week": [.az: "Bu həftə məşqlər", .en: "Workouts this week", .ru: "Тренировки на этой неделе"],
+        "student_detail_total_workouts": [.az: "Ümumi məşqlər", .en: "Total workouts", .ru: "Всего тренировок"],
+        "student_detail_calories_burned": [.az: "Yandırılmış kalori", .en: "Calories burned", .ru: "Сожжённые калории"],
+        "student_detail_assigned_plans": [.az: "Təyin Edilmiş Planlar", .en: "Assigned Plans", .ru: "Назначенные планы"],
+        "student_detail_no_plans": [.az: "Hələ plan təyin edilməyib", .en: "No plans assigned yet", .ru: "Планы пока не назначены"],
+        "student_detail_create_training": [.az: "İdman Planı Yarat", .en: "Create Training Plan", .ru: "Создать план тренировок"],
+        "student_detail_create_meal": [.az: "Qida Planı Yarat", .en: "Create Meal Plan", .ru: "Создать план питания"],
     ]
 }
