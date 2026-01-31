@@ -31,6 +31,12 @@ struct MainTabView: View {
     @Binding var isLoggedIn: Bool
     @State private var selectedTab: Int = 0
     @EnvironmentObject var workoutManager: WorkoutManager
+    @ObservedObject private var profileManager = UserProfileManager.shared
+    @ObservedObject private var loc = LocalizationManager.shared
+
+    var isTrainer: Bool {
+        profileManager.userProfile.userType == .trainer
+    }
 
     init(isLoggedIn: Binding<Bool>) {
         _isLoggedIn = isLoggedIn
@@ -56,53 +62,74 @@ struct MainTabView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
 
-            // MARK: - Home
+            // MARK: - Tab 0: Home / Trainer Dashboard
             NavigationStack {
-                HomeView()
-                    .navigationTitle("")
+                if isTrainer {
+                    TrainerHomeView()
+                        .navigationTitle("")
+                } else {
+                    HomeView()
+                        .navigationTitle("")
+                }
             }
             .tabItem {
-                Label("Əsas", systemImage: "house.fill")
+                Label(loc.localized("tab_home"), systemImage: "house.fill")
             }
             .tag(0)
 
-            // MARK: - Workout
+            // MARK: - Tab 1: Workout / Training Plans
             NavigationStack {
-                WorkoutView()
-                    .navigationTitle("")
+                if isTrainer {
+                    TrainingPlanView()
+                        .navigationTitle("")
+                } else {
+                    WorkoutView()
+                        .navigationTitle("")
+                }
             }
             .tabItem {
-                Label("Məşq", systemImage: "figure.strengthtraining.traditional")
+                Label(
+                    isTrainer ? loc.localized("tab_plans") : loc.localized("tab_workout"),
+                    systemImage: "figure.strengthtraining.traditional"
+                )
             }
             .tag(1)
 
-            // MARK: - Food
+            // MARK: - Tab 2: Food / Meal Plans
             NavigationStack {
-                FoodView()
-                    .navigationTitle("")
+                if isTrainer {
+                    MealPlanView()
+                        .navigationTitle("")
+                } else {
+                    FoodView()
+                        .navigationTitle("")
+                }
             }
             .tabItem {
-                Label("Qida", systemImage: "fork.knife")
+                Label(
+                    isTrainer ? loc.localized("tab_meal_plans") : loc.localized("tab_food"),
+                    systemImage: "fork.knife"
+                )
             }
             .tag(2)
 
-            // MARK: - Teachers
+            // MARK: - Tab 3: Teachers (eyni hər iki rol üçün)
             NavigationStack {
                 TeachersView()
                     .navigationTitle("")
             }
             .tabItem {
-                Label("Müəllimlər", systemImage: "person.2.fill")
+                Label(loc.localized("tab_teachers"), systemImage: "person.2.fill")
             }
             .tag(3)
 
-            // MARK: - Profile
+            // MARK: - Tab 4: Profile
             NavigationStack {
                 ProfileView(isLoggedIn: $isLoggedIn)
-                    .navigationTitle("Profil")
+                    .navigationTitle(loc.localized("tab_profile"))
             }
             .tabItem {
-                Label("Profil", systemImage: "person.fill")
+                Label(loc.localized("tab_profile"), systemImage: "person.fill")
             }
             .tag(4)
         }
@@ -114,6 +141,7 @@ struct PlaceholderView: View {
     let title: String
     let icon: String
     let color: Color
+    @ObservedObject private var loc = LocalizationManager.shared
 
     var body: some View {
         ZStack {
@@ -129,7 +157,7 @@ struct PlaceholderView: View {
                     .bold()
                     .foregroundColor(Color(UIColor.label))
 
-                Text("Tezliklə...")
+                Text(loc.localized("common_loading"))
                     .foregroundColor(Color(UIColor.secondaryLabel))
             }
         }

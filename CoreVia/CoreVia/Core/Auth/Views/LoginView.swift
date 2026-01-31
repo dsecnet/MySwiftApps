@@ -1,11 +1,12 @@
 import SwiftUI
 
 struct LoginView: View {
-    
+
     @Binding var isLoggedIn: Bool
     @Binding var showRegister: Bool
     @StateObject private var profileManager = UserProfileManager.shared
-    
+    @ObservedObject private var loc = LocalizationManager.shared
+
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var selectedUserType: UserProfileType = .client
@@ -13,16 +14,43 @@ struct LoginView: View {
     @State private var isLoading: Bool = false
     @State private var showError: Bool = false
     @State private var errorMessage: String = ""
-    
+
     var body: some View {
         ZStack {
             // MARK: - Arxa Fon (Adaptiv)
             AppTheme.Colors.background
                 .ignoresSafeArea()
-            
+
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 28) {
-                    
+
+                    // MARK: - Dil Seçici
+                    HStack(spacing: 12) {
+                        ForEach(AppLanguage.allCases, id: \.self) { language in
+                            Button {
+                                withAnimation(.spring(response: 0.3)) {
+                                    loc.currentLanguage = language
+                                }
+                            } label: {
+                                VStack(spacing: 4) {
+                                    Text(language.flag)
+                                        .font(.system(size: 28))
+                                    Text(language.displayName)
+                                        .font(.system(size: 10, weight: .bold))
+                                        .foregroundColor(loc.currentLanguage == language ? .white : AppTheme.Colors.secondaryText)
+                                }
+                                .frame(width: 56, height: 56)
+                                .background(loc.currentLanguage == language ? Color.red : AppTheme.Colors.secondaryBackground)
+                                .cornerRadius(12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(loc.currentLanguage == language ? Color.red : AppTheme.Colors.separator, lineWidth: loc.currentLanguage == language ? 2 : 1)
+                                )
+                            }
+                        }
+                    }
+                    .padding(.top, 16)
+
                     // MARK: - Logo Bölməsi
                     VStack(spacing: 16) {
                         // Icon
@@ -37,7 +65,7 @@ struct LoginView: View {
                                 )
                                 .frame(width: 100, height: 100)
                                 .blur(radius: 15)
-                            
+
                              Image("corevia_icon")
                                 .resizable()
                                 .scaledToFit()
@@ -53,27 +81,26 @@ struct LoginView: View {
                                 .cornerRadius(20)
                                 .shadow(color: .red.opacity(0.5), radius: 15, x: 0, y: 8)
                         }
-                        .padding(.top, 50)
-                        
+
                         // App Adı
                         VStack(spacing: 6) {
                             Text("CoreVia")
                                 .font(.system(size: 38, weight: .black))
                                 .foregroundColor(AppTheme.Colors.primaryText)
-                            
-                            Text("GÜCƏ GEDƏN YOL")
+
+                            Text(loc.localized("login_slogan"))
                                 .font(.system(size: 11, weight: .semibold))
                                 .foregroundColor(.red)
                                 .tracking(2.5)
                         }
                     }
-                    
-                    // MARK: - User Type Selection (YENİ!)
+
+                    // MARK: - User Type Selection
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Hesab növü")
+                        Text(loc.localized("login_account_type"))
                             .font(.system(size: 13, weight: .medium))
                             .foregroundColor(AppTheme.Colors.secondaryText)
-                        
+
                         HStack(spacing: 12) {
                             // Tələbə Button
                             Button {
@@ -84,7 +111,7 @@ struct LoginView: View {
                                 HStack(spacing: 10) {
                                     Image(systemName: "person.fill")
                                         .font(.system(size: 16))
-                                    Text("Tələbə")
+                                    Text(loc.localized("login_student"))
                                         .font(.system(size: 15, weight: .semibold))
                                 }
                                 .frame(maxWidth: .infinity)
@@ -97,7 +124,7 @@ struct LoginView: View {
                                         .stroke(selectedUserType == .client ? Color.red : AppTheme.Colors.separator, lineWidth: selectedUserType == .client ? 2 : 1)
                                 )
                             }
-                            
+
                             // Müəllim Button
                             Button {
                                 withAnimation(.spring(response: 0.3)) {
@@ -107,7 +134,7 @@ struct LoginView: View {
                                 HStack(spacing: 10) {
                                     Image(systemName: "person.2.fill")
                                         .font(.system(size: 16))
-                                    Text("Müəllim")
+                                    Text(loc.localized("login_teacher"))
                                         .font(.system(size: 15, weight: .semibold))
                                 }
                                 .frame(maxWidth: .infinity)
@@ -123,22 +150,22 @@ struct LoginView: View {
                         }
                     }
                     .padding(.horizontal, 28)
-                    
+
                     // MARK: - Input Fields
                     VStack(spacing: 16) {
-                        
+
                         // Email Input
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Email")
+                            Text(loc.localized("common_email"))
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundColor(AppTheme.Colors.secondaryText)
-                            
+
                             HStack(spacing: 10) {
                                 Image(systemName: "envelope.fill")
                                     .foregroundColor(.red)
                                     .frame(width: 20)
-                                
-                                TextField("", text: $email, prompt: Text("example@mail.com").foregroundColor(AppTheme.Colors.placeholderText))
+
+                                TextField("", text: $email, prompt: Text(loc.localized("login_email_placeholder")).foregroundColor(AppTheme.Colors.placeholderText))
                                     .foregroundColor(AppTheme.Colors.primaryText)
                                     .autocapitalization(.none)
                                     .keyboardType(.emailAddress)
@@ -155,28 +182,28 @@ struct LoginView: View {
                                     )
                             )
                         }
-                        
+
                         // Şifrə Input
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Şifrə")
+                            Text(loc.localized("common_password"))
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundColor(AppTheme.Colors.secondaryText)
-                            
+
                             HStack(spacing: 10) {
                                 Image(systemName: "lock.fill")
                                     .foregroundColor(.red)
                                     .frame(width: 20)
-                                
+
                                 Group {
                                     if isPasswordVisible {
-                                        TextField("", text: $password, prompt: Text("••••••••").foregroundColor(AppTheme.Colors.placeholderText))
+                                        TextField("", text: $password, prompt: Text(loc.localized("login_password_placeholder")).foregroundColor(AppTheme.Colors.placeholderText))
                                     } else {
-                                        SecureField("", text: $password, prompt: Text("••••••••").foregroundColor(AppTheme.Colors.placeholderText))
+                                        SecureField("", text: $password, prompt: Text(loc.localized("login_password_placeholder")).foregroundColor(AppTheme.Colors.placeholderText))
                                     }
                                 }
                                 .foregroundColor(AppTheme.Colors.primaryText)
                                 .textContentType(.password)
-                                
+
                                 Button {
                                     withAnimation(.spring(response: 0.3)) {
                                         isPasswordVisible.toggle()
@@ -200,20 +227,20 @@ struct LoginView: View {
                         }
                     }
                     .padding(.horizontal, 28)
-                    
+
                     // MARK: - Şifrəni Unutdum
                     HStack {
                         Spacer()
                         Button {
                             print("Şifrəni unutdum")
                         } label: {
-                            Text("Şifrəni unutdunuz?")
+                            Text(loc.localized("login_forgot_password"))
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundColor(AppTheme.Colors.secondaryText)
                         }
                     }
                     .padding(.horizontal, 28)
-                    
+
                     // MARK: - Error Message
                     if showError {
                         HStack(spacing: 8) {
@@ -230,11 +257,11 @@ struct LoginView: View {
                         .padding(.horizontal, 28)
                         .transition(.move(edge: .top).combined(with: .opacity))
                     }
-                    
+
                     // MARK: - Giriş Düymələri
                     VStack(spacing: 12) {
-                        
-                        // Əsas Giriş (DƏYİŞDİRİLDİ - user type göstərir)
+
+                        // Əsas Giriş
                         Button {
                             loginAction()
                         } label: {
@@ -245,10 +272,10 @@ struct LoginView: View {
                                 } else {
                                     Image(systemName: selectedUserType == .client ? "person.fill" : "person.2.fill")
                                         .font(.system(size: 14, weight: .bold))
-                                    
-                                    Text("\(selectedUserType.rawValue) olaraq daxil ol")
+
+                                    Text(selectedUserType == .client ? loc.localized("login_as_student") : loc.localized("login_as_teacher"))
                                         .font(.system(size: 16, weight: .bold))
-                                    
+
                                     Image(systemName: "arrow.right")
                                         .font(.system(size: 14, weight: .bold))
                                 }
@@ -257,9 +284,7 @@ struct LoginView: View {
                             .padding(.vertical, 14)
                             .background(
                                 LinearGradient(
-                                    colors: selectedUserType == .client ?
-                                        [Color.red, Color.red.opacity(0.8)] :
-                                        [Color.red, Color.red.opacity(0.8)],
+                                    colors: [Color.red, Color.red.opacity(0.8)],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
@@ -267,45 +292,45 @@ struct LoginView: View {
                             .foregroundColor(.white)
                             .cornerRadius(12)
                             .shadow(
-                                color: (selectedUserType == .client ? Color.red : Color.purple).opacity(0.4),
+                                color: Color.red.opacity(0.4),
                                 radius: 8,
                                 x: 0,
                                 y: 4
                             )
                         }
                         .disabled(isLoading)
-                        
+
                     }
                     .padding(.horizontal, 28)
-                    
+
                     // MARK: - Ayırıcı
                     HStack(spacing: 12) {
                         Rectangle()
                             .frame(height: 1)
                             .foregroundColor(AppTheme.Colors.separator)
-                        
-                        Text("və ya")
+
+                        Text(loc.localized("common_or"))
                             .font(.system(size: 12, weight: .medium))
                             .foregroundColor(AppTheme.Colors.secondaryText)
-                        
+
                         Rectangle()
                             .frame(height: 1)
                             .foregroundColor(AppTheme.Colors.separator)
                     }
                     .padding(.horizontal, 28)
-                    
+
                     // MARK: - Qeydiyyat Linki
                     HStack(spacing: 5) {
-                        Text("Hesabınız yoxdur?")
+                        Text(loc.localized("login_no_account"))
                             .font(.system(size: 14))
                             .foregroundColor(AppTheme.Colors.secondaryText)
-                        
+
                         Button {
                             withAnimation(.spring(response: 0.4)) {
                                 showRegister = true
                             }
                         } label: {
-                            Text("Qeydiyyatdan keçin")
+                            Text(loc.localized("login_register"))
                                 .font(.system(size: 14, weight: .bold))
                                 .foregroundColor(.red)
                         }
@@ -318,7 +343,7 @@ struct LoginView: View {
             hideKeyboard()
         }
     }
-    
+
     // MARK: - Default Credentials
     private let defaultCredentials: [(email: String, password: String, userType: UserProfileType)] = [
         ("student@corevia.com", "student123", .client),
@@ -328,22 +353,22 @@ struct LoginView: View {
     // MARK: - Actions
     private func loginAction() {
         guard !email.trimmingCharacters(in: .whitespaces).isEmpty else {
-            showErrorMessage("Email daxil edin")
+            showErrorMessage(loc.localized("login_error_email_empty"))
             return
         }
 
         guard !password.isEmpty else {
-            showErrorMessage("Şifrə daxil edin")
+            showErrorMessage(loc.localized("login_error_password_empty"))
             return
         }
 
         guard email.contains("@") else {
-            showErrorMessage("Düzgün email daxil edin")
+            showErrorMessage(loc.localized("login_error_email_invalid"))
             return
         }
 
         guard password.count >= 6 else {
-            showErrorMessage("Şifrə ən az 6 simvol olmalıdır")
+            showErrorMessage(loc.localized("login_error_password_short"))
             return
         }
 
@@ -351,14 +376,13 @@ struct LoginView: View {
 
         // Credential yoxlaması
         guard let matchedCredential = defaultCredentials.first(where: { $0.email == trimmedEmail && $0.password == password }) else {
-            showErrorMessage("Email və ya şifrə yanlışdır")
+            showErrorMessage(loc.localized("login_error_wrong_credentials"))
             return
         }
 
         // Hesab tipi uyğunluğu yoxlaması
         guard matchedCredential.userType == selectedUserType else {
-            let correctType = matchedCredential.userType.rawValue
-            showErrorMessage("Bu giriş məlumatları \(correctType) hesabına aiddir. Zəhmət olmasa düzgün hesab növünü seçin.")
+            showErrorMessage(loc.localized("login_error_wrong_type"))
             return
         }
 
@@ -374,20 +398,20 @@ struct LoginView: View {
             }
         }
     }
-    
+
     private func showErrorMessage(_ message: String) {
         errorMessage = message
         withAnimation {
             showError = true
         }
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
             withAnimation {
                 showError = false
             }
         }
     }
-    
+
     private func hideKeyboard() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
