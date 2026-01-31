@@ -40,7 +40,8 @@ struct FoodEntry: Identifiable, Codable {
     var mealType: MealType
     var date: Date
     var notes: String?
-    
+    var hasImage: Bool
+
     init(
         id: String = UUID().uuidString,
         name: String,
@@ -50,7 +51,8 @@ struct FoodEntry: Identifiable, Codable {
         fats: Double? = nil,
         mealType: MealType,
         date: Date = Date(),
-        notes: String? = nil
+        notes: String? = nil,
+        hasImage: Bool = false
     ) {
         self.id = id
         self.name = name
@@ -61,6 +63,26 @@ struct FoodEntry: Identifiable, Codable {
         self.mealType = mealType
         self.date = date
         self.notes = notes
+        self.hasImage = hasImage
+    }
+
+    // Köhnə data ilə uyğunluq üçün custom decoder
+    enum CodingKeys: String, CodingKey {
+        case id, name, calories, protein, carbs, fats, mealType, date, notes, hasImage
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        calories = try container.decode(Int.self, forKey: .calories)
+        protein = try container.decodeIfPresent(Double.self, forKey: .protein)
+        carbs = try container.decodeIfPresent(Double.self, forKey: .carbs)
+        fats = try container.decodeIfPresent(Double.self, forKey: .fats)
+        mealType = try container.decode(MealType.self, forKey: .mealType)
+        date = try container.decode(Date.self, forKey: .date)
+        notes = try container.decodeIfPresent(String.self, forKey: .notes)
+        hasImage = try container.decodeIfPresent(Bool.self, forKey: .hasImage) ?? false
     }
 }
 
@@ -95,6 +117,9 @@ class FoodManager: ObservableObject {
     }
     
     func deleteEntry(_ entry: FoodEntry) {
+        if entry.hasImage {
+            FoodImageManager.shared.deleteImage(forEntryId: entry.id)
+        }
         foodEntries.removeAll { $0.id == entry.id }
         saveEntries()
     }

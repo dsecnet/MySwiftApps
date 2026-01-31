@@ -21,7 +21,6 @@ struct TrainerProfileView: View {
     @State private var showSecurity = false
     @State private var showPremium = false
     @State private var showAbout = false
-    @State private var showSwitchToClient = false
     
     var body: some View {
         ZStack {
@@ -34,7 +33,6 @@ struct TrainerProfileView: View {
                     studentsSection
                     specialtySection
                     settingsSection
-                    switchAccountButton
                     logoutButton
                 }
                 .padding()
@@ -64,16 +62,6 @@ struct TrainerProfileView: View {
         }
         .sheet(isPresented: $showAbout) {
             AboutView()
-        }
-        .alert("Müştəri Hesabına Keç", isPresented: $showSwitchToClient) {
-            Button("Ləğv et", role: .cancel) { }
-            Button("Dəyiş") {
-                withAnimation {
-                    profileManager.updateUserType(.client)
-                }
-            }
-        } message: {
-            Text("Müştəri hesabına keçmək istədiyinizə əminsiniz?")
         }
         .alert("Çıxış", isPresented: $showLogoutAlert) {
             Button("Ləğv et", role: .cancel) { }
@@ -347,28 +335,6 @@ struct TrainerProfileView: View {
                     showAbout = true
                 }
             }
-        }
-    }
-    
-    // MARK: - Switch Account Button
-    private var switchAccountButton: some View {
-        Button {
-            showSwitchToClient = true
-        } label: {
-            HStack {
-                Image(systemName: "arrow.left.arrow.right")
-                Text("Müştəri Hesabına Keç")
-                    .font(.system(size: 16, weight: .semibold))
-            }
-            .foregroundColor(.blue)
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(AppTheme.Colors.secondaryBackground)
-            .cornerRadius(12)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.blue, lineWidth: 1)
-            )
         }
     }
     

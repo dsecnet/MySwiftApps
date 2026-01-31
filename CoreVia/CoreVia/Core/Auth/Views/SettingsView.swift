@@ -539,216 +539,342 @@ struct AboutLinkButton: View {
     }
 }
 
-// MARK: - Premium View
+// MARK: - Premium View (Spotify-style Paywall)
 struct PremiumView: View {
-    
+
     @Environment(\.dismiss) var dismiss
     @StateObject private var settings = SettingsManager.shared
-    
-    let features = [
-        ("crown.fill", "Limitsiz məşq qeydləri", "yellow"),
-        ("chart.bar.fill", "Ətraflı statistika", "blue"),
-        ("bell.badge.fill", "Premium bildirişlər", "orange"),
-        ("person.2.fill", "Premium müəllimlərlə əlaqə", "purple"),
-        ("sparkles", "AI tövsiyələri", "pink"),
-        ("cloud.fill", "Cloud sync", "cyan")
+    @State private var animateGradient = false
+    @State private var crownScale: CGFloat = 0.5
+    @State private var crownRotation: Double = -30
+    @State private var selectedPlan: PremiumPlan = .yearly
+    @State private var buttonPressed = false
+    @State private var featuresAppeared = false
+
+    enum PremiumPlan {
+        case monthly, yearly
+    }
+
+    struct PremiumFeature: Identifiable {
+        let id = UUID()
+        let icon: String
+        let title: String
+        let description: String
+        let color: Color
+    }
+
+    let features: [PremiumFeature] = [
+        PremiumFeature(icon: "crown.fill", title: "Limitsiz Məşq", description: "Sınırsız məşq qeydləri yarat", color: .yellow),
+        PremiumFeature(icon: "chart.bar.fill", title: "Ətraflı Statistika", description: "Dərin analitika və tərəqqi", color: .blue),
+        PremiumFeature(icon: "bell.badge.fill", title: "Smart Bildirişlər", description: "Ağıllı xatırlatma sistemi", color: .orange),
+        PremiumFeature(icon: "person.2.fill", title: "Premium Müəllimlər", description: "Ən yaxşı müəllimlərlə əlaqə", color: .purple),
+        PremiumFeature(icon: "sparkles", title: "AI Tövsiyələri", description: "Süni intellekt əsaslı planlar", color: .pink),
+        PremiumFeature(icon: "cloud.fill", title: "Cloud Sync", description: "Bütün cihazlarda sinxronizasiya", color: .cyan)
     ]
-    
+
     var body: some View {
-        NavigationStack {
-            ZStack {
-                AppTheme.Colors.background.ignoresSafeArea()
-                
-                ScrollView {
-                    VStack(spacing: 32) {
-                        
-                        // Header
-                        VStack(spacing: 16) {
-                            Image(systemName: "crown.fill")
-                                .font(.system(size: 60))
-                                .foregroundColor(.yellow)
-                            
-                            Text("CoreVia Premium")
-                                .font(.system(size: 32, weight: .bold))
-                                .foregroundColor(AppTheme.Colors.primaryText)
-                            
-                            Text("Bütün funksiyalara giriş")
-                                .foregroundColor(AppTheme.Colors.secondaryText)
-                        }
-                        .padding(.top, 20)
-                        
-                        // Features
-                        VStack(spacing: 16) {
-                            ForEach(features, id: \.0) { icon, title, colorName in
-                                PremiumFeatureRow(icon: icon, title: title, color: getColor(colorName))
-                            }
-                        }
-                        
-                        // Pricing
-                        VStack(spacing: 16) {
-                            PricingCard(
-                                title: "Aylıq",
-                                price: "9.99",
-                                period: "ay",
-                                isPopular: false
-                            )
-                            
-                            PricingCard(
-                                title: "İllik",
-                                price: "79.99",
-                                period: "il",
-                                isPopular: true,
-                                savings: "20% qənaət"
-                            )
-                        }
-                        
-                        // Subscribe Button
+        ZStack {
+            // Animated gradient background
+            LinearGradient(
+                colors: animateGradient
+                    ? [Color.black, Color.purple.opacity(0.4), Color.black]
+                    : [Color.black, Color.orange.opacity(0.3), Color.black],
+                startPoint: animateGradient ? .topLeading : .bottomLeading,
+                endPoint: animateGradient ? .bottomTrailing : .topTrailing
+            )
+            .ignoresSafeArea()
+            .onAppear {
+                withAnimation(.easeInOut(duration: 4).repeatForever(autoreverses: true)) {
+                    animateGradient.toggle()
+                }
+            }
+
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 28) {
+
+                    // Close button
+                    HStack {
+                        Spacer()
                         Button {
-                            activatePremium()
+                            dismiss()
                         } label: {
-                            HStack {
-                                Image(systemName: "crown.fill")
-                                Text("Premium Aktivləşdir")
-                                    .font(.system(size: 18, weight: .bold))
-                            }
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 30))
+                                .foregroundStyle(.white.opacity(0.7))
+                        }
+                    }
+                    .padding(.top, 12)
+
+                    // Crown animation
+                    ZStack {
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [Color.yellow.opacity(0.4), Color.clear],
+                                    center: .center,
+                                    startRadius: 20,
+                                    endRadius: 80
+                                )
+                            )
+                            .frame(width: 160, height: 160)
+                            .blur(radius: 20)
+
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 70))
+                            .foregroundStyle(
                                 LinearGradient(
                                     colors: [.yellow, .orange],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                            .scaleEffect(crownScale)
+                            .rotationEffect(.degrees(crownRotation))
+                            .shadow(color: .yellow.opacity(0.6), radius: 20, x: 0, y: 10)
+                    }
+                    .onAppear {
+                        withAnimation(.spring(response: 0.8, dampingFraction: 0.5)) {
+                            crownScale = 1.0
+                            crownRotation = 0
+                        }
+                    }
+
+                    // Title
+                    VStack(spacing: 8) {
+                        Text("CoreVia")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(.white.opacity(0.7))
+                            .tracking(4)
+
+                        Text("PREMIUM")
+                            .font(.system(size: 40, weight: .black))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [.yellow, .orange, .yellow],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
                             )
-                            .cornerRadius(12)
-                            .shadow(color: .yellow.opacity(0.4), radius: 10)
+
+                        Text("Bütün funksiyalara tam giriş")
+                            .font(.system(size: 15))
+                            .foregroundColor(.white.opacity(0.6))
+                    }
+
+                    // Feature cards - horizontal scroll
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 14) {
+                            ForEach(Array(features.enumerated()), id: \.element.id) { index, feature in
+                                PremiumFeatureCard(feature: feature)
+                                    .opacity(featuresAppeared ? 1 : 0)
+                                    .offset(y: featuresAppeared ? 0 : 20)
+                                    .animation(
+                                        .spring(response: 0.5, dampingFraction: 0.7)
+                                            .delay(Double(index) * 0.1),
+                                        value: featuresAppeared
+                                    )
+                            }
                         }
-                        
-                        // Terms
-                        Text("Ödəniş Apple ID hesabınızdan çıxılacaq. İstifadə şərtləri və məxfilik siyasəti tətbiq olunur.")
-                            .font(.caption)
-                            .foregroundColor(AppTheme.Colors.tertiaryText)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
+                        .padding(.horizontal, 4)
                     }
-                    .padding()
-                }
-            }
-            .navigationTitle("Premium")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Bağla") {
-                        dismiss()
+                    .onAppear {
+                        featuresAppeared = true
                     }
-                    .foregroundColor(.red)
+
+                    // Pricing plans
+                    HStack(spacing: 14) {
+                        // Monthly
+                        PremiumPricingCard(
+                            title: "Aylıq",
+                            price: "9.99",
+                            period: "ay",
+                            isSelected: selectedPlan == .monthly,
+                            isPopular: false
+                        )
+                        .onTapGesture {
+                            withAnimation(.spring(response: 0.3)) {
+                                selectedPlan = .monthly
+                            }
+                        }
+
+                        // Yearly
+                        PremiumPricingCard(
+                            title: "İllik",
+                            price: "79.99",
+                            period: "il",
+                            isSelected: selectedPlan == .yearly,
+                            isPopular: true,
+                            savings: "20% QƏNAƏT"
+                        )
+                        .onTapGesture {
+                            withAnimation(.spring(response: 0.3)) {
+                                selectedPlan = .yearly
+                            }
+                        }
+                    }
+
+                    // Subscribe button
+                    Button {
+                        withAnimation(.spring(response: 0.2)) {
+                            buttonPressed = true
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                            withAnimation(.spring(response: 0.2)) {
+                                buttonPressed = false
+                            }
+                        }
+                        activatePremium()
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "crown.fill")
+                                .font(.system(size: 20))
+                            Text("Premium Aktivləşdir")
+                                .font(.system(size: 18, weight: .bold))
+                        }
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 18)
+                        .background(
+                            LinearGradient(
+                                colors: [.yellow, .orange],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(16)
+                        .shadow(color: .yellow.opacity(0.5), radius: 15, x: 0, y: 8)
+                    }
+                    .scaleEffect(buttonPressed ? 0.95 : 1.0)
+
+                    // Terms
+                    VStack(spacing: 4) {
+                        Text("Ödəniş Apple ID hesabınızdan çıxılacaq.")
+                            .font(.system(size: 11))
+                        Text("İstifadə şərtləri və məxfilik siyasəti tətbiq olunur.")
+                            .font(.system(size: 11))
+                    }
+                    .foregroundColor(.white.opacity(0.4))
+                    .multilineTextAlignment(.center)
+                    .padding(.bottom, 20)
                 }
+                .padding(.horizontal, 20)
             }
         }
     }
-    
+
     private func activatePremium() {
-        // Demo: Activate premium
         settings.isPremium = true
-        dismiss()
-    }
-    
-    private func getColor(_ name: String) -> Color {
-        switch name {
-        case "yellow": return .yellow
-        case "blue": return .blue
-        case "orange": return .orange
-        case "purple": return .purple
-        case "pink": return .pink
-        case "cyan": return .cyan
-        default: return .red
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            dismiss()
         }
     }
 }
 
-struct PremiumFeatureRow: View {
-    let icon: String
-    let title: String
-    let color: Color
-    
+// MARK: - Premium Feature Card
+struct PremiumFeatureCard: View {
+    let feature: PremiumView.PremiumFeature
+
     var body: some View {
-        HStack(spacing: 16) {
+        VStack(spacing: 14) {
             ZStack {
                 Circle()
-                    .fill(color.opacity(0.2))
-                    .frame(width: 50, height: 50)
-                
-                Image(systemName: icon)
-                    .font(.system(size: 22))
-                    .foregroundColor(color)
+                    .fill(feature.color.opacity(0.2))
+                    .frame(width: 56, height: 56)
+
+                Image(systemName: feature.icon)
+                    .font(.system(size: 24))
+                    .foregroundColor(feature.color)
             }
-            
-            Text(title)
-                .foregroundColor(AppTheme.Colors.primaryText)
-                .font(.system(size: 16))
-            
-            Spacer()
-            
-            Image(systemName: "checkmark")
-                .foregroundColor(.green)
-                .font(.system(size: 16, weight: .bold))
+
+            Text(feature.title)
+                .font(.system(size: 14, weight: .bold))
+                .foregroundColor(.white)
+
+            Text(feature.description)
+                .font(.system(size: 11))
+                .foregroundColor(.white.opacity(0.6))
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
         }
-        .padding()
-        .background(AppTheme.Colors.secondaryBackground)
-        .cornerRadius(12)
+        .frame(width: 140, height: 160)
+        .padding(.vertical, 16)
+        .padding(.horizontal, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.ultraThinMaterial)
+                .environment(\.colorScheme, .dark)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(feature.color.opacity(0.3), lineWidth: 1)
+        )
     }
 }
 
-struct PricingCard: View {
+// MARK: - Premium Pricing Card
+struct PremiumPricingCard: View {
     let title: String
     let price: String
     let period: String
+    let isSelected: Bool
     let isPopular: Bool
     var savings: String? = nil
-    
+
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 12) {
             if isPopular {
                 Text("ƏN POPULYAR")
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 12)
+                    .font(.system(size: 10, weight: .heavy))
+                    .foregroundColor(.black)
+                    .padding(.horizontal, 10)
                     .padding(.vertical, 4)
-                    .background(Color.orange)
-                    .cornerRadius(4)
+                    .background(
+                        LinearGradient(
+                            colors: [.yellow, .orange],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(6)
             }
-            
+
             Text(title)
-                .font(.system(size: 20, weight: .bold))
-                .foregroundColor(AppTheme.Colors.primaryText)
-            
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                .font(.system(size: 16, weight: .bold))
+                .foregroundColor(.white)
+
+            HStack(alignment: .firstTextBaseline, spacing: 2) {
                 Text("₼")
-                    .font(.system(size: 20, weight: .semibold))
+                    .font(.system(size: 16, weight: .semibold))
                 Text(price)
-                    .font(.system(size: 36, weight: .bold))
-                Text("/ \(period)")
-                    .foregroundColor(AppTheme.Colors.secondaryText)
+                    .font(.system(size: 32, weight: .black))
+                Text("/\(period)")
+                    .font(.system(size: 13))
+                    .foregroundColor(.white.opacity(0.5))
             }
-            .foregroundColor(AppTheme.Colors.primaryText)
-            
+            .foregroundColor(.white)
+
             if let savings = savings {
                 Text(savings)
-                    .font(.caption)
+                    .font(.system(size: 11, weight: .bold))
                     .foregroundColor(.green)
-                    .fontWeight(.semibold)
             }
         }
         .frame(maxWidth: .infinity)
-        .padding()
-        .background(AppTheme.Colors.secondaryBackground)
-        .cornerRadius(16)
+        .padding(.vertical, 20)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(isSelected ? Color.white.opacity(0.12) : Color.white.opacity(0.05))
+        )
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(isPopular ? Color.orange : Color.clear, lineWidth: 2)
+                .stroke(
+                    isSelected
+                        ? LinearGradient(colors: [.yellow, .orange], startPoint: .topLeading, endPoint: .bottomTrailing)
+                        : LinearGradient(colors: [.white.opacity(0.2), .white.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing),
+                    lineWidth: isSelected ? 2 : 1
+                )
         )
+        .scaleEffect(isSelected ? 1.02 : 1.0)
     }
 }
 

@@ -3,10 +3,11 @@
 import SwiftUI
 
 struct AddFoodView: View {
-    
+
     @Environment(\.dismiss) var dismiss
     @StateObject private var foodManager = FoodManager.shared
-    
+    @StateObject private var foodImageManager = FoodImageManager.shared
+
     // Form state
     @State private var foodName: String = ""
     @State private var calories: String = ""
@@ -16,7 +17,27 @@ struct AddFoodView: View {
     @State private var selectedMealType: MealType = .breakfast
     @State private var notes: String = ""
     @State private var showSuccessAlert: Bool = false
-    
+
+    // Camera state
+    @State private var showCamera = false
+    @State private var capturedImage: UIImage? = nil
+    @State private var isAnalyzing = false
+    @State private var analysisComplete = false
+
+    // Mock analiz nəticələri
+    private let mockFoodResults: [(name: String, calories: Int, protein: Double, carbs: Double, fats: Double)] = [
+        ("Toyuq plovu", 450, 28, 55, 12),
+        ("Dovğa", 180, 8, 22, 6),
+        ("Lavaş dürüm", 380, 18, 42, 14),
+        ("Salat (qarışıq)", 120, 4, 15, 5),
+        ("Şiş kabab", 320, 35, 5, 18),
+        ("Pendir omlet", 280, 18, 4, 22),
+        ("Mercimek şorbası", 220, 12, 30, 6),
+        ("Düyü pilavı", 350, 8, 65, 5),
+        ("Biftek", 400, 42, 0, 24),
+        ("Makaron", 380, 14, 58, 10)
+    ]
+
     // Quick add items
     let quickAddItems: [QuickAddFood] = [
         QuickAddFood(name: "Yumurta (1 ədəd)", calories: 78, protein: 6, carbs: 0.6, fats: 5, icon: "🥚"),
@@ -26,7 +47,7 @@ struct AddFoodView: View {
         QuickAddFood(name: "Oatmeal (100q)", calories: 389, protein: 17, carbs: 66, fats: 7, icon: "🥣"),
         QuickAddFood(name: "Alma şirəsi (200ml)", calories: 117, protein: 0.3, carbs: 29, fats: 0.3, icon: "🧃")
     ]
-    
+
     var body: some View {
         NavigationStack {
             contentView
@@ -39,7 +60,7 @@ struct AddFoodView: View {
                         }
                         .foregroundColor(.red)
                     }
-                    
+
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("Saxla") {
                             saveFood()
@@ -50,23 +71,32 @@ struct AddFoodView: View {
                         .opacity(isFormValid ? 1.0 : 0.5)
                     }
                 }
-                .alert("Uğurlu! ✅", isPresented: $showSuccessAlert) {
+                .alert("Uğurlu!", isPresented: $showSuccessAlert) {
                     Button("OK") {
                         dismiss()
                     }
                 } message: {
                     Text("Qida uğurla əlavə olundu!")
                 }
+                .sheet(isPresented: $showCamera) {
+                    CameraPicker(image: $capturedImage)
+                }
+                .onChange(of: capturedImage) { _, newImage in
+                    if newImage != nil {
+                        startMockAnalysis()
+                    }
+                }
         }
     }
-    
+
     // MARK: - Content View
     private var contentView: some View {
         ZStack {
             AppTheme.Colors.background.ignoresSafeArea()
-            
+
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 24) {
+                    cameraSection
                     quickAddSection
                     mealTypeSelector
                     mainForm
@@ -77,14 +107,136 @@ struct AddFoodView: View {
             }
         }
     }
-    
+
+    // MARK: - Camera Section
+    private var cameraSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Qidanı Çək")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(AppTheme.Colors.primaryText)
+
+            if let image = capturedImage {
+                // Şəkil çəkilib - preview göstər
+                VStack(spacing: 16) {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(height: 200)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+
+                    if isAnalyzing {
+                        // Analiz prosesi
+                        VStack(spacing: 12) {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .red))
+                                .scaleEffect(1.2)
+
+                            Text("Analiz edilir...")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(AppTheme.Colors.secondaryText)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(AppTheme.Colors.secondaryBackground)
+                        .cornerRadius(12)
+                    } else if analysisComplete {
+                        // Analiz nəticəsi
+                        HStack(spacing: 12) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 24))
+                                .foregroundColor(.green)
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Analiz tamamlandı")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(AppTheme.Colors.primaryText)
+
+                                Text("Nəticələr formada dolduruldu")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(AppTheme.Colors.secondaryText)
+                            }
+
+                            Spacer()
+                        }
+                        .padding()
+                        .background(Color.green.opacity(0.1))
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.green.opacity(0.3), lineWidth: 1)
+                        )
+                    }
+
+                    // Yenidən çək düyməsi
+                    Button {
+                        capturedImage = nil
+                        analysisComplete = false
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "camera.rotate")
+                                .font(.system(size: 14))
+                            Text("Yenidən Çək")
+                                .font(.system(size: 14, weight: .semibold))
+                        }
+                        .foregroundColor(.red)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(Color.red.opacity(0.1))
+                        .cornerRadius(10)
+                    }
+                }
+            } else {
+                // Kamera düyməsi
+                Button {
+                    showCamera = true
+                } label: {
+                    VStack(spacing: 14) {
+                        ZStack {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color.red.opacity(0.2), Color.red.opacity(0.1)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 70, height: 70)
+
+                            Image(systemName: "camera.fill")
+                                .font(.system(size: 28))
+                                .foregroundColor(.red)
+                        }
+
+                        VStack(spacing: 4) {
+                            Text("Qidanızın Şəklini Çəkin")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundColor(AppTheme.Colors.primaryText)
+
+                            Text("AI kalori hesablaması")
+                                .font(.system(size: 12))
+                                .foregroundColor(AppTheme.Colors.secondaryText)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 24)
+                    .background(AppTheme.Colors.secondaryBackground)
+                    .cornerRadius(16)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.red.opacity(0.3), style: StrokeStyle(lineWidth: 1.5, dash: [8, 6]))
+                    )
+                }
+            }
+        }
+    }
+
     // MARK: - Quick Add Section
     private var quickAddSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Tez Əlavə Et")
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
-            
+
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     ForEach(quickAddItems) { item in
@@ -96,14 +248,14 @@ struct AddFoodView: View {
             }
         }
     }
-    
+
     // MARK: - Meal Type Selector
     private var mealTypeSelector: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Öğün Növü")
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
-            
+
             HStack(spacing: 12) {
                 ForEach(MealType.allCases, id: \.self) { type in
                     MealTypeButton(
@@ -118,19 +270,17 @@ struct AddFoodView: View {
             }
         }
     }
-    
+
     // MARK: - Main Form
     private var mainForm: some View {
         VStack(spacing: 16) {
-            // Food Name
             FoodInputField(
                 label: "Qida Adı",
                 icon: "fork.knife",
                 placeholder: "məs: Yumurta omlet",
                 text: $foodName
             )
-            
-            // Calories
+
             FoodInputField(
                 label: "Kalori (kcal)",
                 icon: "flame.fill",
@@ -140,7 +290,7 @@ struct AddFoodView: View {
             )
         }
     }
-    
+
     // MARK: - Macros Section
     private var macrosSection: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -148,14 +298,14 @@ struct AddFoodView: View {
                 Text("Makrolar (opsional)")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(AppTheme.Colors.primaryText)
-                
+
                 Spacer()
-                
+
                 Text("qram")
                     .font(.system(size: 12))
                     .foregroundColor(AppTheme.Colors.secondaryText)
             }
-            
+
             HStack(spacing: 12) {
                 MacroInputField(
                     label: "Protein",
@@ -163,14 +313,14 @@ struct AddFoodView: View {
                     color: .blue,
                     text: $protein
                 )
-                
+
                 MacroInputField(
                     label: "Karbohidrat",
                     icon: "🍞",
                     color: .orange,
                     text: $carbs
                 )
-                
+
                 MacroInputField(
                     label: "Yağ",
                     icon: "🥑",
@@ -180,14 +330,14 @@ struct AddFoodView: View {
             }
         }
     }
-    
+
     // MARK: - Notes Section
     private var notesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Qeydlər (opsional)")
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
-            
+
             ZStack(alignment: .topLeading) {
                 if notes.isEmpty {
                     Text("Əlavə məlumat yazın...")
@@ -195,7 +345,7 @@ struct AddFoodView: View {
                         .padding(.horizontal, 12)
                         .padding(.vertical, 16)
                 }
-                
+
                 TextEditor(text: $notes)
                     .foregroundColor(AppTheme.Colors.primaryText)
                     .scrollContentBackground(.hidden)
@@ -206,39 +356,69 @@ struct AddFoodView: View {
             .cornerRadius(12)
         }
     }
-    
+
     // MARK: - Computed Properties
     private var isFormValid: Bool {
         !foodName.isEmpty && !calories.isEmpty && Int(calories) != nil
     }
-    
+
     // MARK: - Actions
     private func saveFood() {
         guard isFormValid else { return }
-        
+
+        let entryId = UUID().uuidString
+        let hasPhoto = capturedImage != nil
+
         let entry = FoodEntry(
+            id: entryId,
             name: foodName,
             calories: Int(calories) ?? 0,
             protein: Double(protein),
             carbs: Double(carbs),
             fats: Double(fats),
             mealType: selectedMealType,
-            notes: notes.isEmpty ? nil : notes
+            notes: notes.isEmpty ? nil : notes,
+            hasImage: hasPhoto
         )
-        
+
+        // Şəkli saxla
+        if let image = capturedImage {
+            foodImageManager.saveImage(image, forEntryId: entryId)
+        }
+
         foodManager.addEntry(entry)
-        
+
         withAnimation {
             showSuccessAlert = true
         }
     }
-    
+
     private func fillForm(with item: QuickAddFood) {
         foodName = item.name
         calories = "\(item.calories)"
         protein = "\(Int(item.protein))"
         carbs = "\(Int(item.carbs))"
         fats = "\(Int(item.fats))"
+    }
+
+    // MARK: - Mock Analiz
+    private func startMockAnalysis() {
+        isAnalyzing = true
+        analysisComplete = false
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            let randomResult = mockFoodResults.randomElement()!
+            foodName = randomResult.name
+            calories = "\(randomResult.calories)"
+            protein = "\(Int(randomResult.protein))"
+            carbs = "\(Int(randomResult.carbs))"
+            fats = "\(Int(randomResult.fats))"
+
+            withAnimation {
+                isAnalyzing = false
+                analysisComplete = true
+            }
+        }
     }
 }
 
@@ -258,20 +438,20 @@ struct QuickAddFood: Identifiable {
 struct QuickAddButton: View {
     let item: QuickAddFood
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             VStack(spacing: 8) {
                 Text(item.icon)
                     .font(.system(size: 30))
-                
+
                 Text(item.name)
                     .font(.system(size: 11, weight: .medium))
                     .foregroundColor(AppTheme.Colors.primaryText)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
                     .frame(height: 30)
-                
+
                 Text("\(item.calories) kcal")
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundColor(.green)
@@ -292,13 +472,13 @@ struct MealTypeButton: View {
     let type: MealType
     let isSelected: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             VStack(spacing: 6) {
                 Image(systemName: type.icon)
                     .font(.system(size: 20))
-                
+
                 Text(type.rawValue)
                     .font(.system(size: 12, weight: .semibold))
             }
@@ -321,18 +501,18 @@ struct FoodInputField: View {
     let placeholder: String
     @Binding var text: String
     var keyboardType: UIKeyboardType = .default
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(label)
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
-            
+
             HStack(spacing: 12) {
                 Image(systemName: icon)
                     .foregroundColor(.red)
                     .frame(width: 20)
-                
+
                 TextField("", text: $text, prompt: Text(placeholder).foregroundColor(AppTheme.Colors.tertiaryText))
                     .foregroundColor(AppTheme.Colors.primaryText)
                     .keyboardType(keyboardType)
@@ -356,16 +536,16 @@ struct MacroInputField: View {
     let icon: String
     let color: Color
     @Binding var text: String
-    
+
     var body: some View {
         VStack(spacing: 8) {
             Text(icon)
                 .font(.system(size: 24))
-            
+
             Text(label)
                 .font(.system(size: 11, weight: .medium))
                 .foregroundColor(AppTheme.Colors.secondaryText)
-            
+
             TextField("0", text: $text)
                 .foregroundColor(AppTheme.Colors.primaryText)
                 .keyboardType(.decimalPad)

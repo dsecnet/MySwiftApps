@@ -275,26 +275,6 @@ struct LoginView: View {
                         }
                         .disabled(isLoading)
                         
-                        // Demo Giriş
-                        Button {
-                            demoLogin()
-                        } label: {
-                            HStack(spacing: 8) {
-                                Image(systemName: "play.circle.fill")
-                                    .font(.system(size: 16))
-                                Text("Demo Versiya")
-                                    .font(.system(size: 15, weight: .semibold))
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(AppTheme.Colors.secondaryBackground)
-                            .foregroundColor(.red)
-                            .cornerRadius(12)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.red.opacity(0.5), lineWidth: 2)
-                            )
-                        }
                     }
                     .padding(.horizontal, 28)
                     
@@ -339,48 +319,59 @@ struct LoginView: View {
         }
     }
     
+    // MARK: - Default Credentials
+    private let defaultCredentials: [(email: String, password: String, userType: UserProfileType)] = [
+        ("student@corevia.com", "student123", .client),
+        ("teacher@corevia.com", "teacher123", .trainer)
+    ]
+
     // MARK: - Actions
     private func loginAction() {
-        guard !email.isEmpty else {
+        guard !email.trimmingCharacters(in: .whitespaces).isEmpty else {
             showErrorMessage("Email daxil edin")
             return
         }
-        
+
         guard !password.isEmpty else {
             showErrorMessage("Şifrə daxil edin")
             return
         }
-        
+
         guard email.contains("@") else {
             showErrorMessage("Düzgün email daxil edin")
             return
         }
-        
+
         guard password.count >= 6 else {
             showErrorMessage("Şifrə ən az 6 simvol olmalıdır")
             return
         }
-        
+
+        let trimmedEmail = email.trimmingCharacters(in: .whitespaces).lowercased()
+
+        // Credential yoxlaması
+        guard let matchedCredential = defaultCredentials.first(where: { $0.email == trimmedEmail && $0.password == password }) else {
+            showErrorMessage("Email və ya şifrə yanlışdır")
+            return
+        }
+
+        // Hesab tipi uyğunluğu yoxlaması
+        guard matchedCredential.userType == selectedUserType else {
+            let correctType = matchedCredential.userType.rawValue
+            showErrorMessage("Bu giriş məlumatları \(correctType) hesabına aiddir. Zəhmət olmasa düzgün hesab növünü seçin.")
+            return
+        }
+
         isLoading = true
         showError = false
-        
-        // Set selected user type
+
         profileManager.updateUserType(selectedUserType)
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             isLoading = false
-            print("✅ \(selectedUserType.rawValue) olaraq daxil olundu")
             withAnimation {
                 isLoggedIn = true
             }
-        }
-    }
-    
-    private func demoLogin() {
-        print("🎮 Demo Login aktivləşdi - \(selectedUserType.rawValue)")
-        profileManager.updateUserType(selectedUserType)
-        withAnimation(.spring(response: 0.4)) {
-            isLoggedIn = true
         }
     }
     

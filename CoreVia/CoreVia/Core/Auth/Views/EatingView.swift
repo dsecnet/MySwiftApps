@@ -326,19 +326,27 @@ struct FoodEntryRow: View {
     let entry: FoodEntry
     let onTap: () -> Void
     let onDelete: () -> Void
-    
+
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: 12) {
-                // Icon
-                ZStack {
-                    Circle()
-                        .fill(entry.mealType.color.opacity(0.2))
-                        .frame(width: 40, height: 40)
-                    
-                    Image(systemName: entry.mealType.icon)
-                        .font(.system(size: 16))
-                        .foregroundColor(entry.mealType.color)
+                // Icon / Thumbnail
+                if entry.hasImage, let foodImage = FoodImageManager.shared.loadImage(forEntryId: entry.id) {
+                    Image(uiImage: foodImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 44, height: 44)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                } else {
+                    ZStack {
+                        Circle()
+                            .fill(entry.mealType.color.opacity(0.2))
+                            .frame(width: 40, height: 40)
+
+                        Image(systemName: entry.mealType.icon)
+                            .font(.system(size: 16))
+                            .foregroundColor(entry.mealType.color)
+                    }
                 }
                 
                 // Info
