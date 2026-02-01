@@ -377,19 +377,29 @@ struct RegisterView: View {
             showErrorMessage("Bütün sahələri düzgün doldurun")
             return
         }
-        
+
         isLoading = true
         showError = false
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            isLoading = false
-            print("✅ Qeydiyyat uğurlu!")
-            print("Ad: \(name)")
-            print("Email: \(email)")
-            print("Tip: \(userType.rawValue)")
-            
-            withAnimation(.spring(response: 0.4)) {
-                showRegister = false
+
+        let backendUserType = userType == .client ? "client" : "trainer"
+
+        Task {
+            let success = await AuthManager.shared.register(
+                name: name,
+                email: email.trimmingCharacters(in: .whitespaces).lowercased(),
+                password: password,
+                userType: backendUserType
+            )
+
+            await MainActor.run {
+                isLoading = false
+                if success {
+                    withAnimation(.spring(response: 0.4)) {
+                        showRegister = false
+                    }
+                } else {
+                    showErrorMessage(AuthManager.shared.errorMessage ?? "Qeydiyyat uğursuz oldu")
+                }
             }
         }
     }

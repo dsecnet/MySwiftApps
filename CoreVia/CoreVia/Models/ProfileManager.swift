@@ -2,8 +2,28 @@
 //  UserProfile.swift
 //  CoreVia
 //
+//  Profil data management - Backend API ilə
+//
 
 import Foundation
+
+// MARK: - Profile Update Request
+private struct ProfileUpdateRequest: Encodable {
+    var name: String?
+    var age: Int?
+    var weight: Double?
+    var height: Double?
+    var goal: String?
+    var specialization: String?
+    var experience: Int?
+    var bio: String?
+    var pricePerSession: Double?
+
+    enum CodingKeys: String, CodingKey {
+        case name, age, weight, height, goal, specialization, experience, bio
+        case pricePerSession = "price_per_session"
+    }
+}
 
 class UserProfileManager: ObservableObject {
 
@@ -11,17 +31,10 @@ class UserProfileManager: ObservableObject {
 
     @Published var userProfile: UserProfile
 
-    private let clientProfileKey = "client_profile_data"
-    private let trainerProfileKey = "trainer_profile_data"
+    private let api = APIService.shared
 
     init() {
-        // Default olaraq client profili yüklə
-        if let data = UserDefaults.standard.data(forKey: "client_profile_data"),
-           let profile = try? JSONDecoder().decode(UserProfile.self, from: data) {
-            self.userProfile = profile
-        } else {
-            self.userProfile = UserProfileManager.defaultClientProfile
-        }
+        self.userProfile = UserProfileManager.defaultClientProfile
     }
 
     // MARK: - Default Profillər
@@ -52,14 +65,33 @@ class UserProfileManager: ObservableObject {
         )
     }
 
-    // MARK: - Profil saxlama (cari userType-a görə düzgün key-ə yazır)
+    // MARK: - Backend-ə profil yenilə
     func saveProfile(_ profile: UserProfile) {
         self.userProfile = profile
 
-        let key = profile.userType == .client ? clientProfileKey : trainerProfileKey
+        guard KeychainManager.shared.isLoggedIn else { return }
 
-        if let encoded = try? JSONEncoder().encode(profile) {
-            UserDefaults.standard.set(encoded, forKey: key)
+        Task {
+            do {
+                let request = ProfileUpdateRequest(
+                    name: profile.name,
+                    age: profile.age,
+                    weight: profile.weight,
+                    height: profile.height,
+                    goal: profile.goal,
+                    specialization: profile.specialty,
+                    experience: profile.experience,
+                    bio: profile.bio,
+                    pricePerSession: profile.pricePerSession
+                )
+                let _: UserResponse = try await api.request(
+                    endpoint: "/api/v1/users/profile",
+                    method: "PUT",
+                    body: request
+                )
+            } catch {
+                print("Profile update xətası: \(error)")
+            }
         }
     }
 
@@ -69,15 +101,15 @@ class UserProfileManager: ObservableObject {
     }
 
     func loadProfileForType(_ type: UserProfileType) {
-        let key = type == .client ? clientProfileKey : trainerProfileKey
-
-        if let data = UserDefaults.standard.data(forKey: key),
-           let profile = try? JSONDecoder().decode(UserProfile.self, from: data) {
-            self.userProfile = profile
-        } else {
-            // İlk dəfə giriş - default profil yarat və saxla
+        guard KeychainManager.shared.isLoggedIn else {
             let defaultProfile = type == .client ? UserProfileManager.defaultClientProfile : UserProfileManager.defaultTrainerProfile
-            saveProfile(defaultProfile)
+            self.userProfile = defaultProfile
+            return
+        }
+
+        // Backend-dən profili yenidən yüklə
+        Task {
+            await AuthManager.shared.fetchCurrentUser()
         }
     }
 }
@@ -100,11 +132,12 @@ struct UserProfile: Codable {
     var bio: String?
     var rating: Double?
     var students: Int?
+    var pricePerSession: Double?
 }
 
 enum UserProfileType: String, Codable {
-    case client = "Müştəri"
-    case trainer = "Müəllim"
+    case client = "client"
+    case trainer = "trainer"
 
     var localizedName: String {
         let loc = LocalizationManager.shared

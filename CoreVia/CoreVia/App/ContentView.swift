@@ -2,21 +2,21 @@ import SwiftUI
 
 struct ContentView: View {
 
-    @State private var isLoggedIn: Bool = false
+    @StateObject private var authManager = AuthManager.shared
     @State private var showRegister: Bool = false
     @StateObject private var workoutManager = WorkoutManager.shared
 
     var body: some View {
         Group {
-            if isLoggedIn {
-                MainTabView(isLoggedIn: $isLoggedIn)
+            if authManager.isLoggedIn {
+                MainTabView(isLoggedIn: $authManager.isLoggedIn)
                     .environmentObject(workoutManager)
             } else {
                 if showRegister {
                     RegisterView(showRegister: $showRegister)
                 } else {
                     LoginView(
-                        isLoggedIn: $isLoggedIn,
+                        isLoggedIn: $authManager.isLoggedIn,
                         showRegister: $showRegister
                     )
                 }
@@ -113,7 +113,19 @@ struct MainTabView: View {
             }
             .tag(2)
 
-            // MARK: - Tab 3: Teachers / Students
+            // MARK: - Tab 3: Activities (yalnız client üçün)
+            if !isTrainer {
+                NavigationStack {
+                    ActivitiesView()
+                        .navigationTitle("")
+                }
+                .tabItem {
+                    Label("Hereketler", systemImage: "figure.run")
+                }
+                .tag(3)
+            }
+
+            // MARK: - Tab 4: Teachers / Students
             NavigationStack {
                 if isTrainer {
                     MyStudentsView()
@@ -129,9 +141,9 @@ struct MainTabView: View {
                     systemImage: "person.2.fill"
                 )
             }
-            .tag(3)
+            .tag(isTrainer ? 3 : 4)
 
-            // MARK: - Tab 4: Profile
+            // MARK: - Tab 5: Profile
             NavigationStack {
                 ProfileView(isLoggedIn: $isLoggedIn)
                     .navigationTitle(loc.localized("tab_profile"))
@@ -139,7 +151,7 @@ struct MainTabView: View {
             .tabItem {
                 Label(loc.localized("tab_profile"), systemImage: "person.fill")
             }
-            .tag(4)
+            .tag(isTrainer ? 4 : 5)
         }
     }
 }

@@ -2,7 +2,7 @@
 //  FoodImageManager.swift
 //  CoreVia
 //
-//  Qida şəkillərini local storage-də saxlama
+//  Qida şəkillərini backend-ə upload etmə
 //
 
 import SwiftUI
@@ -12,38 +12,69 @@ class FoodImageManager: ObservableObject {
 
     static let shared = FoodImageManager()
 
-    private let imageKeyPrefix = "food_image_"
+    private let api = APIService.shared
+    private var imageCache: [String: UIImage] = [:]
 
-    // MARK: - Save Image
+    // MARK: - Save (Upload) Image to Backend
     func saveImage(_ image: UIImage, forEntryId entryId: String) {
-        guard let resizedImage = resizeImage(image, targetSize: CGSize(width: 500, height: 500)) else {
+        guard let resizedImage = resizeImage(image, targetSize: CGSize(width: 500, height: 500)),
+              let imageData = resizedImage.jpegData(compressionQuality: 0.7) else {
             return
         }
 
-        guard let imageData = resizedImage.jpegData(compressionQuality: 0.7) else {
-            return
-        }
+        // Cache locally
+        imageCache[entryId] = resizedImage
 
-        let base64String = imageData.base64EncodedString()
-        UserDefaults.standard.set(base64String, forKey: imageKeyPrefix + entryId)
+        Task {
+            do {
+                let _ = try await api.uploadImage(
+                    endpoint: "/api/v1/food/\(entryId)/image",
+                    imageData: imageData,
+                    fieldName: "file",
+                    fileName: "food_\(entryId).jpg"
+                )
+            } catch {
+                print("Food image upload xətası: \(error)")
+            }
+        }
     }
 
     // MARK: - Load Image
     func loadImage(forEntryId entryId: String) -> UIImage? {
-        guard let base64String = UserDefaults.standard.string(forKey: imageKeyPrefix + entryId) else {
-            return nil
+        return imageCache[entryId]
+    }
+
+    // MARK: - Load Image from URL
+    func loadImage(from urlString: String, forEntryId entryId: String) {
+        if imageCache[entryId] != nil { return }
+
+        let baseURL = APIService.shared.baseURL
+        let fullURL: String
+        if urlString.hasPrefix("http") {
+            fullURL = urlString
+        } else {
+            fullURL = baseURL + urlString
         }
 
-        guard let imageData = Data(base64Encoded: base64String) else {
-            return nil
-        }
+        guard let url = URL(string: fullURL) else { return }
 
-        return UIImage(data: imageData)
+        Task {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                if let image = UIImage(data: data) {
+                    await MainActor.run {
+                        self.imageCache[entryId] = image
+                    }
+                }
+            } catch {
+                print("Image download xətası: \(error)")
+            }
+        }
     }
 
     // MARK: - Delete Image
     func deleteImage(forEntryId entryId: String) {
-        UserDefaults.standard.removeObject(forKey: imageKeyPrefix + entryId)
+        imageCache.removeValue(forKey: entryId)
     }
 
     // MARK: - Helper: Resize Image
@@ -54,7 +85,6 @@ class FoodImageManager: ObservableObject {
         let heightRatio = targetSize.height / size.height
         let scaleFactor = min(widthRatio, heightRatio)
 
-        // Əgər artıq kiçikdirsə, resize lazım deyil
         if scaleFactor >= 1.0 { return image }
 
         let scaledImageSize = CGSize(

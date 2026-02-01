@@ -25,6 +25,8 @@ struct AddFoodView: View {
     @State private var analysisComplete = false
 
     @ObservedObject private var loc = LocalizationManager.shared
+    @ObservedObject private var settingsManager = SettingsManager.shared
+    @State private var showPremium = false
 
     // Mock analiz nəticələri
     private var mockFoodResults: [(name: String, calories: Int, protein: Double, carbs: Double, fats: Double)] {
@@ -87,6 +89,9 @@ struct AddFoodView: View {
                 .sheet(isPresented: $showCamera) {
                     CameraPicker(image: $capturedImage)
                 }
+                .sheet(isPresented: $showPremium) {
+                    PremiumView()
+                }
                 .onChange(of: capturedImage) { _, newImage in
                     if newImage != nil {
                         startMockAnalysis()
@@ -117,12 +122,44 @@ struct AddFoodView: View {
     // MARK: - Camera Section
     private var cameraSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(loc.localized("food_take_photo"))
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(AppTheme.Colors.primaryText)
+            HStack {
+                Text(loc.localized("food_take_photo"))
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(AppTheme.Colors.primaryText)
 
+                if !settingsManager.isPremium {
+                    HStack(spacing: 4) {
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 10))
+                        Text("Premium")
+                            .font(.system(size: 11, weight: .bold))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        LinearGradient(
+                            colors: [.indigo, .purple],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(8)
+                }
+            }
+
+            if settingsManager.isPremium {
+                premiumCameraContent
+            } else {
+                lockedCameraContent
+            }
+        }
+    }
+
+    // MARK: - Premium Camera Content (aciq)
+    private var premiumCameraContent: some View {
+        Group {
             if let image = capturedImage {
-                // Şəkil çəkilib - preview göstər
                 VStack(spacing: 16) {
                     Image(uiImage: image)
                         .resizable()
@@ -131,7 +168,6 @@ struct AddFoodView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 16))
 
                     if isAnalyzing {
-                        // Analiz prosesi
                         VStack(spacing: 12) {
                             ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle(tint: .red))
@@ -146,7 +182,6 @@ struct AddFoodView: View {
                         .background(AppTheme.Colors.secondaryBackground)
                         .cornerRadius(12)
                     } else if analysisComplete {
-                        // Analiz nəticəsi
                         HStack(spacing: 12) {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.system(size: 24))
@@ -173,7 +208,6 @@ struct AddFoodView: View {
                         )
                     }
 
-                    // Yenidən çək düyməsi
                     Button {
                         capturedImage = nil
                         analysisComplete = false
@@ -192,7 +226,6 @@ struct AddFoodView: View {
                     }
                 }
             } else {
-                // Kamera düyməsi
                 Button {
                     showCamera = true
                 } label: {
@@ -233,6 +266,94 @@ struct AddFoodView: View {
                     )
                 }
             }
+        }
+    }
+
+    // MARK: - Locked Camera Content (premium lazimdir)
+    private var lockedCameraContent: some View {
+        Button {
+            showPremium = true
+        } label: {
+            ZStack {
+                // Blur olunmus arxa plan
+                VStack(spacing: 14) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.gray.opacity(0.15))
+                            .frame(width: 70, height: 70)
+
+                        Image(systemName: "camera.fill")
+                            .font(.system(size: 28))
+                            .foregroundColor(.gray.opacity(0.4))
+                    }
+
+                    VStack(spacing: 4) {
+                        Text(loc.localized("food_take_photo_desc"))
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(AppTheme.Colors.tertiaryText)
+
+                        Text(loc.localized("food_ai_calc"))
+                            .font(.system(size: 12))
+                            .foregroundColor(AppTheme.Colors.tertiaryText)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 24)
+                .blur(radius: 1)
+
+                // Kilid overlay
+                VStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [.indigo, .purple],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 50, height: 50)
+
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 22))
+                            .foregroundColor(.white)
+                    }
+
+                    Text("AI Kalori Analizi")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(AppTheme.Colors.primaryText)
+
+                    Text("Premium ile acin")
+                        .font(.system(size: 13))
+                        .foregroundColor(AppTheme.Colors.secondaryText)
+
+                    HStack(spacing: 6) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 13))
+                        Text("Premium-a kec")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+                    .background(
+                        LinearGradient(
+                            colors: [.indigo, .purple],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(12)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 16)
+            .background(AppTheme.Colors.secondaryBackground)
+            .cornerRadius(16)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.indigo.opacity(0.3), lineWidth: 1)
+            )
         }
     }
 

@@ -5,6 +5,8 @@ from app.models.meal_plan import MealPlan, MealPlanItem, PlanType
 from app.models.training_plan import TrainingPlan, PlanWorkout
 from app.models.settings import UserSettings
 from app.models.route import Route
+from app.models.notification import DeviceToken, Notification
+from app.models.subscription import Subscription
 
 __all__ = [
     "User", "UserType", "VerificationStatus",
@@ -14,4 +16,6 @@ __all__ = [
     "TrainingPlan", "PlanWorkout",
     "UserSettings",
     "Route",
+    "DeviceToken", "Notification",
+    "Subscription",
 ]

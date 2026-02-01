@@ -2,7 +2,7 @@
 //  TrainingPlanManager.swift
 //  CoreVia
 //
-//  İdman planı modeli və idarəsi
+//  İdman planı modeli və idarəsi - Backend API ilə
 //
 
 import Foundation
@@ -10,9 +10,9 @@ import SwiftUI
 
 // MARK: - Plan Type
 enum PlanType: String, Codable, CaseIterable {
-    case weightLoss = "WeightLoss"
-    case weightGain = "WeightGain"
-    case strengthTraining = "StrengthTraining"
+    case weightLoss = "weight_loss"
+    case weightGain = "weight_gain"
+    case strengthTraining = "strength_training"
 
     var icon: String {
         switch self {
@@ -46,7 +46,11 @@ struct PlanWorkout: Identifiable, Codable {
     var name: String
     var sets: Int
     var reps: Int
-    var duration: Int? // dəqiqə
+    var duration: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, sets, reps, duration
+    }
 
     init(
         id: String = UUID().uuidString,
@@ -66,35 +70,93 @@ struct PlanWorkout: Identifiable, Codable {
 // MARK: - Training Plan Model
 struct TrainingPlan: Identifiable, Codable {
     let id: String
+    var trainerId: String?
+    var assignedStudentId: String?
     var title: String
     var planType: PlanType
     var workouts: [PlanWorkout]
     var assignedStudentName: String?
-    var createdDate: Date
+    var createdAt: Date?
+    var updatedAt: Date?
     var notes: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id, title, workouts, notes
+        case trainerId = "trainer_id"
+        case assignedStudentId = "assigned_student_id"
+        case planType = "plan_type"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
 
     init(
         id: String = UUID().uuidString,
+        trainerId: String? = nil,
+        assignedStudentId: String? = nil,
         title: String,
         planType: PlanType,
         workouts: [PlanWorkout] = [],
         assignedStudentName: String? = nil,
-        createdDate: Date = Date(),
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil,
         notes: String? = nil
     ) {
         self.id = id
+        self.trainerId = trainerId
+        self.assignedStudentId = assignedStudentId
         self.title = title
         self.planType = planType
         self.workouts = workouts
         self.assignedStudentName = assignedStudentName
-        self.createdDate = createdDate
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
         self.notes = notes
     }
 
     var formattedDate: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "dd MMM yyyy"
-        return formatter.string(from: createdDate)
+        return formatter.string(from: createdAt ?? Date())
+    }
+
+    // Backward compat - createdDate alias
+    var createdDate: Date {
+        createdAt ?? Date()
+    }
+}
+
+// MARK: - Backend request models
+private struct TrainingPlanCreateRequest: Encodable {
+    let title: String
+    let planType: String
+    let notes: String?
+    let assignedStudentId: String?
+    let workouts: [PlanWorkoutCreateRequest]
+
+    enum CodingKeys: String, CodingKey {
+        case title, notes, workouts
+        case planType = "plan_type"
+        case assignedStudentId = "assigned_student_id"
+    }
+}
+
+private struct PlanWorkoutCreateRequest: Encodable {
+    let name: String
+    let sets: Int
+    let reps: Int
+    let duration: Int?
+}
+
+private struct TrainingPlanUpdateRequest: Encodable {
+    var title: String?
+    var planType: String?
+    var notes: String?
+    var assignedStudentId: String?
+
+    enum CodingKeys: String, CodingKey {
+        case title, notes
+        case planType = "plan_type"
+        case assignedStudentId = "assigned_student_id"
     }
 }
 
@@ -104,8 +166,9 @@ class TrainingPlanManager: ObservableObject {
     static let shared = TrainingPlanManager()
 
     @Published var plans: [TrainingPlan] = []
+    @Published var isLoading: Bool = false
 
-    private let storageKey = "saved_training_plans"
+    private let api = APIService.shared
 
     init() {
         loadPlans()
@@ -115,24 +178,82 @@ class TrainingPlanManager: ObservableObject {
 
     func addPlan(_ plan: TrainingPlan) {
         plans.insert(plan, at: 0)
-        savePlans()
+
+        Task {
+            do {
+                let workoutRequests = plan.workouts.map {
+                    PlanWorkoutCreateRequest(name: $0.name, sets: $0.sets, reps: $0.reps, duration: $0.duration)
+                }
+                let created: TrainingPlan = try await api.request(
+                    endpoint: "/api/v1/plans/training",
+                    method: "POST",
+                    body: TrainingPlanCreateRequest(
+                        title: plan.title,
+                        planType: plan.planType.rawValue,
+                        notes: plan.notes,
+                        assignedStudentId: plan.assignedStudentId,
+                        workouts: workoutRequests
+                    )
+                )
+                await MainActor.run {
+                    if let index = self.plans.firstIndex(where: { $0.id == plan.id }) {
+                        self.plans[index] = created
+                    }
+                }
+            } catch {
+                print("Training plan create xətası: \(error)")
+            }
+        }
     }
 
     func updatePlan(_ plan: TrainingPlan) {
         if let index = plans.firstIndex(where: { $0.id == plan.id }) {
             plans[index] = plan
-            savePlans()
+
+            Task {
+                do {
+                    let _: TrainingPlan = try await api.request(
+                        endpoint: "/api/v1/plans/training/\(plan.id)",
+                        method: "PUT",
+                        body: TrainingPlanUpdateRequest(
+                            title: plan.title,
+                            planType: plan.planType.rawValue,
+                            notes: plan.notes,
+                            assignedStudentId: plan.assignedStudentId
+                        )
+                    )
+                } catch {
+                    print("Training plan update xətası: \(error)")
+                }
+            }
         }
     }
 
     func deletePlan(_ plan: TrainingPlan) {
         plans.removeAll { $0.id == plan.id }
-        savePlans()
+
+        Task {
+            do {
+                try await api.requestVoid(endpoint: "/api/v1/plans/training/\(plan.id)")
+            } catch {
+                print("Training plan delete xətası: \(error)")
+            }
+        }
     }
 
     func deletePlan(at offsets: IndexSet) {
+        let plansToDelete = offsets.map { plans[$0] }
         plans.remove(atOffsets: offsets)
-        savePlans()
+
+        for plan in plansToDelete {
+            Task {
+                do {
+                    try await api.requestVoid(endpoint: "/api/v1/plans/training/\(plan.id)")
+                } catch {
+                    print("Training plan delete xətası: \(error)")
+                }
+            }
+        }
     }
 
     // MARK: - Filters
@@ -147,36 +268,29 @@ class TrainingPlanManager: ObservableObject {
 
     var totalPlans: Int { plans.count }
 
-    // MARK: - Persistence
+    // MARK: - Backend Sync
 
-    private func savePlans() {
-        do {
-            let encoded = try JSONEncoder().encode(plans)
-            UserDefaults.standard.set(encoded, forKey: storageKey)
-            print("✅ İdman planları saxlanıldı: \(plans.count) ədəd")
-        } catch {
-            print("❌ İdman planlarını saxlaya bilmədi: \(error)")
-        }
-    }
+    func loadPlans() {
+        guard KeychainManager.shared.isLoggedIn else { return }
 
-    private func loadPlans() {
-        guard let data = UserDefaults.standard.data(forKey: storageKey) else {
-            print("ℹ️ Heç bir saxlanılmış idman planı yoxdur")
-            return
-        }
-
-        do {
-            plans = try JSONDecoder().decode([TrainingPlan].self, from: data)
-            print("✅ İdman planları yükləndi: \(plans.count) ədəd")
-        } catch {
-            print("❌ İdman planlarını yükləyə bilmədi: \(error)")
-            plans = []
+        isLoading = true
+        Task {
+            do {
+                let fetched: [TrainingPlan] = try await api.request(endpoint: "/api/v1/plans/training")
+                await MainActor.run {
+                    self.plans = fetched
+                    self.isLoading = false
+                }
+            } catch {
+                await MainActor.run {
+                    self.isLoading = false
+                }
+                print("Training plans yükləmə xətası: \(error)")
+            }
         }
     }
 
     func clearAllPlans() {
         plans = []
-        UserDefaults.standard.removeObject(forKey: storageKey)
-        print("🗑️ Bütün idman planları silindi")
     }
 }

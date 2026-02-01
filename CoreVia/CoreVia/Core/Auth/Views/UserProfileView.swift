@@ -32,6 +32,7 @@ struct ClientProfileView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 24) {
                     profileHeader
+                    if !settingsManager.isPremium { premiumBanner }
                     weeklyProgressSection
                     todayStatsSection
                     goalsSection
@@ -70,7 +71,7 @@ struct ClientProfileView: View {
             Button(loc.localized("common_cancel"), role: .cancel) { }
             Button(loc.localized("profile_logout"), role: .destructive) {
                 withAnimation {
-                    isLoggedIn = false
+                    AuthManager.shared.logout()
                 }
             }
         } message: {
@@ -110,9 +111,15 @@ struct ClientProfileView: View {
                 if settingsManager.isPremium {
                     ZStack {
                         Circle()
-                            .fill(Color.yellow)
+                            .fill(
+                                LinearGradient(
+                                    colors: [.indigo, .purple],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
                             .frame(width: 32, height: 32)
-                        Image(systemName: "crown.fill")
+                        Image(systemName: "sparkles")
                             .font(.system(size: 14))
                             .foregroundColor(.white)
                     }
@@ -142,7 +149,7 @@ struct ClientProfileView: View {
                     
                     if settingsManager.isPremium {
                         Image(systemName: "checkmark.seal.fill")
-                            .foregroundColor(.blue)
+                            .foregroundColor(.indigo)
                     }
                 }
                 
@@ -181,6 +188,51 @@ struct ClientProfileView: View {
         }
     }
     
+    // MARK: - Premium Banner
+    private var premiumBanner: some View {
+        Button {
+            showPremium = true
+        } label: {
+            HStack(spacing: 14) {
+                ZStack {
+                    Circle()
+                        .fill(Color.white.opacity(0.2))
+                        .frame(width: 44, height: 44)
+
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 20))
+                        .foregroundColor(.white)
+                }
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Premium-a kecin")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.white)
+
+                    Text("AI analiz, detalli statistika ve daha cox")
+                        .font(.system(size: 12))
+                        .foregroundColor(.white.opacity(0.8))
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.7))
+            }
+            .padding(16)
+            .background(
+                LinearGradient(
+                    colors: [.indigo, .purple.opacity(0.8)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+            .cornerRadius(16)
+            .shadow(color: .indigo.opacity(0.4), radius: 12, x: 0, y: 6)
+        }
+    }
+
     // MARK: - Weekly Progress
     private var weeklyProgressSection: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -315,10 +367,10 @@ struct ClientProfileView: View {
                 }
                 
                 SettingsRow(
-                    icon: "star.fill",
+                    icon: "sparkles",
                     title: loc.localized("settings_premium"),
-                    badge: settingsManager.isPremium ? "👑" : nil,
-                    badgeColor: .yellow
+                    badge: settingsManager.isPremium ? "Aktiv" : nil,
+                    badgeColor: .indigo
                 ) {
                     showPremium = true
                 }

@@ -9,10 +9,10 @@ import Foundation
 
 // MARK: - Workout Category (Məşq kateqoriyası)
 enum WorkoutCategory: String, Codable, CaseIterable {
-    case strength = "Güc"
-    case cardio = "Kardio"
-    case flexibility = "Çeviklik"
-    case endurance = "Dözümlülük"
+    case strength = "strength"
+    case cardio = "cardio"
+    case flexibility = "flexibility"
+    case endurance = "endurance"
     
     var icon: String {
         switch self {
@@ -54,6 +54,7 @@ enum WorkoutCategory: String, Codable, CaseIterable {
 // MARK: - Workout Model
 struct Workout: Identifiable, Codable {
     let id: String
+    var userId: String?
     var title: String                   // Məşqın adı
     var category: WorkoutCategory       // Kateqoriya
     var duration: Int                   // Dəqiqə
@@ -61,10 +62,18 @@ struct Workout: Identifiable, Codable {
     var notes: String?                  // Qeydlər
     var date: Date                      // Məşq tarixi
     var isCompleted: Bool               // Tamamlandı?
-    
+
+    enum CodingKeys: String, CodingKey {
+        case id, title, category, duration, notes, date
+        case userId = "user_id"
+        case caloriesBurned = "calories_burned"
+        case isCompleted = "is_completed"
+    }
+
     // MARK: - Init
     init(
         id: String = UUID().uuidString,
+        userId: String? = nil,
         title: String,
         category: WorkoutCategory,
         duration: Int,
@@ -74,6 +83,7 @@ struct Workout: Identifiable, Codable {
         isCompleted: Bool = false
     ) {
         self.id = id
+        self.userId = userId
         self.title = title
         self.category = category
         self.duration = duration

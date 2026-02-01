@@ -2,7 +2,7 @@
 //  MealPlanManager.swift
 //  CoreVia
 //
-//  Qida planı modeli və idarəsi
+//  Qida planı modeli və idarəsi - Backend API ilə
 //
 
 import Foundation
@@ -17,6 +17,11 @@ struct MealPlanItem: Identifiable, Codable {
     var carbs: Double?
     var fats: Double?
     var mealType: MealType
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, calories, protein, carbs, fats
+        case mealType = "meal_type"
+    }
 
     init(
         id: String = UUID().uuidString,
@@ -40,30 +45,50 @@ struct MealPlanItem: Identifiable, Codable {
 // MARK: - Meal Plan Model
 struct MealPlan: Identifiable, Codable {
     let id: String
+    var trainerId: String?
+    var assignedStudentId: String?
     var title: String
     var planType: PlanType
     var meals: [MealPlanItem]
     var assignedStudentName: String?
-    var createdDate: Date
+    var createdAt: Date?
+    var updatedAt: Date?
     var dailyCalorieTarget: Int
     var notes: String?
 
+    enum CodingKeys: String, CodingKey {
+        case id, title, notes
+        case trainerId = "trainer_id"
+        case assignedStudentId = "assigned_student_id"
+        case planType = "plan_type"
+        case meals = "items"
+        case dailyCalorieTarget = "daily_calorie_target"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
+
     init(
         id: String = UUID().uuidString,
+        trainerId: String? = nil,
+        assignedStudentId: String? = nil,
         title: String,
         planType: PlanType,
         meals: [MealPlanItem] = [],
         assignedStudentName: String? = nil,
-        createdDate: Date = Date(),
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil,
         dailyCalorieTarget: Int = 2000,
         notes: String? = nil
     ) {
         self.id = id
+        self.trainerId = trainerId
+        self.assignedStudentId = assignedStudentId
         self.title = title
         self.planType = planType
         self.meals = meals
         self.assignedStudentName = assignedStudentName
-        self.createdDate = createdDate
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
         self.dailyCalorieTarget = dailyCalorieTarget
         self.notes = notes
     }
@@ -71,7 +96,12 @@ struct MealPlan: Identifiable, Codable {
     var formattedDate: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "dd MMM yyyy"
-        return formatter.string(from: createdDate)
+        return formatter.string(from: createdAt ?? Date())
+    }
+
+    // Backward compat
+    var createdDate: Date {
+        createdAt ?? Date()
     }
 
     var totalCalories: Int {
@@ -91,14 +121,61 @@ struct MealPlan: Identifiable, Codable {
     }
 }
 
+// MARK: - Backend request models
+private struct MealPlanItemCreateRequest: Encodable {
+    let name: String
+    let calories: Int
+    let protein: Double?
+    let carbs: Double?
+    let fats: Double?
+    let mealType: String
+
+    enum CodingKeys: String, CodingKey {
+        case name, calories, protein, carbs, fats
+        case mealType = "meal_type"
+    }
+}
+
+private struct MealPlanCreateRequest: Encodable {
+    let title: String
+    let planType: String
+    let dailyCalorieTarget: Int
+    let notes: String?
+    let assignedStudentId: String?
+    let items: [MealPlanItemCreateRequest]
+
+    enum CodingKeys: String, CodingKey {
+        case title, notes, items
+        case planType = "plan_type"
+        case dailyCalorieTarget = "daily_calorie_target"
+        case assignedStudentId = "assigned_student_id"
+    }
+}
+
+private struct MealPlanUpdateRequest: Encodable {
+    var title: String?
+    var planType: String?
+    var dailyCalorieTarget: Int?
+    var notes: String?
+    var assignedStudentId: String?
+
+    enum CodingKeys: String, CodingKey {
+        case title, notes
+        case planType = "plan_type"
+        case dailyCalorieTarget = "daily_calorie_target"
+        case assignedStudentId = "assigned_student_id"
+    }
+}
+
 // MARK: - Meal Plan Manager
 class MealPlanManager: ObservableObject {
 
     static let shared = MealPlanManager()
 
     @Published var plans: [MealPlan] = []
+    @Published var isLoading: Bool = false
 
-    private let storageKey = "saved_meal_plans"
+    private let api = APIService.shared
 
     init() {
         loadPlans()
@@ -108,24 +185,91 @@ class MealPlanManager: ObservableObject {
 
     func addPlan(_ plan: MealPlan) {
         plans.insert(plan, at: 0)
-        savePlans()
+
+        Task {
+            do {
+                let itemRequests = plan.meals.map {
+                    MealPlanItemCreateRequest(
+                        name: $0.name,
+                        calories: $0.calories,
+                        protein: $0.protein,
+                        carbs: $0.carbs,
+                        fats: $0.fats,
+                        mealType: $0.mealType.rawValue
+                    )
+                }
+                let created: MealPlan = try await api.request(
+                    endpoint: "/api/v1/plans/meal",
+                    method: "POST",
+                    body: MealPlanCreateRequest(
+                        title: plan.title,
+                        planType: plan.planType.rawValue,
+                        dailyCalorieTarget: plan.dailyCalorieTarget,
+                        notes: plan.notes,
+                        assignedStudentId: plan.assignedStudentId,
+                        items: itemRequests
+                    )
+                )
+                await MainActor.run {
+                    if let index = self.plans.firstIndex(where: { $0.id == plan.id }) {
+                        self.plans[index] = created
+                    }
+                }
+            } catch {
+                print("Meal plan create xətası: \(error)")
+            }
+        }
     }
 
     func updatePlan(_ plan: MealPlan) {
         if let index = plans.firstIndex(where: { $0.id == plan.id }) {
             plans[index] = plan
-            savePlans()
+
+            Task {
+                do {
+                    let _: MealPlan = try await api.request(
+                        endpoint: "/api/v1/plans/meal/\(plan.id)",
+                        method: "PUT",
+                        body: MealPlanUpdateRequest(
+                            title: plan.title,
+                            planType: plan.planType.rawValue,
+                            dailyCalorieTarget: plan.dailyCalorieTarget,
+                            notes: plan.notes,
+                            assignedStudentId: plan.assignedStudentId
+                        )
+                    )
+                } catch {
+                    print("Meal plan update xətası: \(error)")
+                }
+            }
         }
     }
 
     func deletePlan(_ plan: MealPlan) {
         plans.removeAll { $0.id == plan.id }
-        savePlans()
+
+        Task {
+            do {
+                try await api.requestVoid(endpoint: "/api/v1/plans/meal/\(plan.id)")
+            } catch {
+                print("Meal plan delete xətası: \(error)")
+            }
+        }
     }
 
     func deletePlan(at offsets: IndexSet) {
+        let plansToDelete = offsets.map { plans[$0] }
         plans.remove(atOffsets: offsets)
-        savePlans()
+
+        for plan in plansToDelete {
+            Task {
+                do {
+                    try await api.requestVoid(endpoint: "/api/v1/plans/meal/\(plan.id)")
+                } catch {
+                    print("Meal plan delete xətası: \(error)")
+                }
+            }
+        }
     }
 
     // MARK: - Filters
@@ -140,36 +284,29 @@ class MealPlanManager: ObservableObject {
 
     var totalPlans: Int { plans.count }
 
-    // MARK: - Persistence
+    // MARK: - Backend Sync
 
-    private func savePlans() {
-        do {
-            let encoded = try JSONEncoder().encode(plans)
-            UserDefaults.standard.set(encoded, forKey: storageKey)
-            print("✅ Qida planları saxlanıldı: \(plans.count) ədəd")
-        } catch {
-            print("❌ Qida planlarını saxlaya bilmədi: \(error)")
-        }
-    }
+    func loadPlans() {
+        guard KeychainManager.shared.isLoggedIn else { return }
 
-    private func loadPlans() {
-        guard let data = UserDefaults.standard.data(forKey: storageKey) else {
-            print("ℹ️ Heç bir saxlanılmış qida planı yoxdur")
-            return
-        }
-
-        do {
-            plans = try JSONDecoder().decode([MealPlan].self, from: data)
-            print("✅ Qida planları yükləndi: \(plans.count) ədəd")
-        } catch {
-            print("❌ Qida planlarını yükləyə bilmədi: \(error)")
-            plans = []
+        isLoading = true
+        Task {
+            do {
+                let fetched: [MealPlan] = try await api.request(endpoint: "/api/v1/plans/meal")
+                await MainActor.run {
+                    self.plans = fetched
+                    self.isLoading = false
+                }
+            } catch {
+                await MainActor.run {
+                    self.isLoading = false
+                }
+                print("Meal plans yükləmə xətası: \(error)")
+            }
         }
     }
 
     func clearAllPlans() {
         plans = []
-        UserDefaults.standard.removeObject(forKey: storageKey)
-        print("🗑️ Bütün qida planları silindi")
     }
 }

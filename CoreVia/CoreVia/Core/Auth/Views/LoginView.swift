@@ -5,6 +5,7 @@ struct LoginView: View {
     @Binding var isLoggedIn: Bool
     @Binding var showRegister: Bool
     @StateObject private var profileManager = UserProfileManager.shared
+    @StateObject private var authManager = AuthManager.shared
     @ObservedObject private var loc = LocalizationManager.shared
 
     @State private var email: String = ""
@@ -341,12 +342,6 @@ struct LoginView: View {
         }
     }
 
-    // MARK: - Default Credentials
-    private let defaultCredentials: [(email: String, password: String, userType: UserProfileType)] = [
-        ("student@corevia.com", "student123", .client),
-        ("teacher@corevia.com", "teacher123", .trainer)
-    ]
-
     // MARK: - Actions
     private func loginAction() {
         guard !email.trimmingCharacters(in: .whitespaces).isEmpty else {
@@ -369,29 +364,24 @@ struct LoginView: View {
             return
         }
 
-        let trimmedEmail = email.trimmingCharacters(in: .whitespaces).lowercased()
-
-        // Credential yoxlaması
-        guard let matchedCredential = defaultCredentials.first(where: { $0.email == trimmedEmail && $0.password == password }) else {
-            showErrorMessage(loc.localized("login_error_wrong_credentials"))
-            return
-        }
-
-        // Hesab tipi uyğunluğu yoxlaması
-        guard matchedCredential.userType == selectedUserType else {
-            showErrorMessage(loc.localized("login_error_wrong_type"))
-            return
-        }
-
         isLoading = true
         showError = false
 
-        profileManager.updateUserType(selectedUserType)
+        Task {
+            let success = await authManager.login(
+                email: email.trimmingCharacters(in: .whitespaces).lowercased(),
+                password: password
+            )
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            isLoading = false
-            withAnimation {
-                isLoggedIn = true
+            await MainActor.run {
+                isLoading = false
+                if success {
+                    withAnimation {
+                        isLoggedIn = true
+                    }
+                } else {
+                    showErrorMessage(authManager.errorMessage ?? loc.localized("login_error_wrong_credentials"))
+                }
             }
         }
     }

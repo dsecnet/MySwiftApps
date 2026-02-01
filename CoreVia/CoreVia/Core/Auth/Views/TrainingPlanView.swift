@@ -223,20 +223,27 @@ struct TrainingPlanCard: View {
 // MARK: - Filter Chip
 struct FilterChip: View {
     let title: String
+    var icon: String? = nil
     let isSelected: Bool
     let color: Color
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Text(title)
-                .font(.caption)
-                .bold()
-                .foregroundColor(isSelected ? .white : color)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(isSelected ? color : color.opacity(0.15))
-                .cornerRadius(20)
+            HStack(spacing: 5) {
+                if let icon = icon {
+                    Image(systemName: icon)
+                        .font(.system(size: 12))
+                }
+                Text(title)
+                    .font(.caption)
+                    .bold()
+            }
+            .foregroundColor(isSelected ? .white : color)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .background(isSelected ? color : color.opacity(0.15))
+            .cornerRadius(20)
         }
     }
 }

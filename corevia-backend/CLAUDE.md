@@ -129,11 +129,58 @@ corevia-backend/
   - Mapbox key olmayanda mock/null qaytarir (math hesablamalar isleyir)
   - Butun endpoints test olundu ve isleyir
 
-### Hazirki Merhele:
-- [ ] Merhele 9: Notification + Premium
+- [x] Merhele 9: Notification + Premium
+  - **Notification sistemi:**
+    - DeviceToken model: FCM token saxlama (user basina bir nece cihaz)
+    - Notification model: bildiris tarixi (type, is_read, is_sent)
+    - notification_service.py: Firebase Admin SDK ile push notification (mock fallback)
+    - Notification template-leri: workout_reminder, meal_reminder, weekly_report, trainer_message, premium_promo, route_assigned
+    - notifications.py router:
+      - POST /api/v1/notifications/device-token - FCM token qeydiyyati
+      - DELETE /api/v1/notifications/device-token - token deaktiv etme (logout)
+      - GET /api/v1/notifications/ - bildirisler (filter: unread_only + pagination)
+      - GET /api/v1/notifications/unread-count - oxunmamis say
+      - POST /api/v1/notifications/mark-read - secilmisleri oxunmus et
+      - POST /api/v1/notifications/mark-all-read - hamisini oxunmus et
+      - DELETE /api/v1/notifications/{id} - bildirisi sil
+      - POST /api/v1/notifications/send - trainer -> student mesaj
+  - **Premium/Subscription sistemi:**
+    - Subscription model: Apple IAP (product_id, transaction_id, receipt_data, plan_type, expires_at)
+    - premium_service.py: Plan melumatlari, Apple receipt validation (mock), expiry hesablama
+    - Planlar: Ayliq (₼9.99), Illik (₼79.99, 20% endirim)
+    - Features: unlimited_workouts, detailed_statistics, smart_notifications, premium_trainers, ai_recommendations, cloud_sync
+    - premium.py router:
+      - GET /api/v1/premium/status - premium statusu yoxla
+      - POST /api/v1/premium/subscribe - abunəlik al (Apple IAP receipt ile)
+      - POST /api/v1/premium/cancel - abunəlik legv et
+      - POST /api/v1/premium/restore - abunəlik berpa et (cihaz deyisdikde)
+      - GET /api/v1/premium/history - abunəlik tarixcesi
+      - GET /api/v1/premium/plans - movcud planlar (auth lazim deyil)
+  - **APScheduler (avtomatik tapsiriglar):**
+    - scheduler_service.py: AsyncIOScheduler ile scheduled jobs
+    - workout_reminders: her gun 18:00 UTC - mesq etmeyen user-lere
+    - meal_reminders: her gun 12:00 ve 19:00 UTC - yemek qeyd etmeyen user-lere
+    - weekly_reports: her bazar gunu 10:00 UTC - hesabat gondermek
+    - check_expired_subscriptions: her gun 00:30 UTC - bitmis abunelikleri sondur
+    - Scheduler main.py startup/shutdown event-lerinde isleyir
+  - Alembic migration: device_tokens, notifications, subscriptions table-leri
+  - Firebase credentials yoxdursa mock isleyir (DB-ye yazir, push gondermir)
+  - Butun endpoints test olundu ve isleyir
 
-### Gelecek Merheleler:
-- (Butun esas merheleler tamamlanib)
+### Butun merheleler tamamlanib! ✅
+
+## Umumi API Endpoint Siyahisi
+- **Auth:** /api/v1/auth/ (register, login, refresh, me)
+- **Users:** /api/v1/users/ (profile, trainers, assign-trainer)
+- **Workouts:** /api/v1/workouts/ (CRUD, today, stats, toggle)
+- **Food:** /api/v1/food/ (CRUD, today, daily-summary)
+- **Plans:** /api/v1/plans/ (meal + training plans CRUD)
+- **Uploads:** /api/v1/uploads/ (profile-image, food-image, certificate)
+- **Admin:** /api/v1/admin/ (pending-trainers, verify, reject, stats)
+- **AI:** /api/v1/ai/ (analyze-food, analyze-and-save, recommendations)
+- **Routes:** /api/v1/routes/ (CRUD, stats, assign, directions)
+- **Notifications:** /api/v1/notifications/ (device-token, list, read, send)
+- **Premium:** /api/v1/premium/ (status, subscribe, cancel, restore, plans)
 
 ## iOS App Model-leri (Backend modeller buna uygun yazilir)
 - **User:** id, name, email, userType (client/trainer), profileImageURL, age, weight, height, goal, trainerId, specialization, experience, rating, pricePerSession, bio

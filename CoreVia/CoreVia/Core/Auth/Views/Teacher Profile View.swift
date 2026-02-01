@@ -8,29 +8,31 @@
 import SwiftUI
 
 struct TrainerProfileView: View {
-    
+
     @Binding var isLoggedIn: Bool
     @ObservedObject private var loc = LocalizationManager.shared
     @StateObject private var imageManager = ProfileImageManager.shared
     @StateObject private var profileManager = UserProfileManager.shared
     @StateObject private var settingsManager = SettingsManager.shared
-    
+    @StateObject private var trainingPlanManager = TrainingPlanManager.shared
+    @StateObject private var mealPlanManager = MealPlanManager.shared
+
     @State private var showImagePicker = false
     @State private var showEditProfile = false
     @State private var showLogoutAlert = false
     @State private var showNotifications = false
     @State private var showSecurity = false
-    @State private var showPremium = false
     @State private var showAbout = false
-    
+
     var body: some View {
         ZStack {
             AppTheme.Colors.background.ignoresSafeArea()
-            
+
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 24) {
                     profileHeader
                     statsSection
+                    myPlansSection
                     studentsSection
                     specialtySection
                     settingsSection
@@ -58,9 +60,6 @@ struct TrainerProfileView: View {
         .sheet(isPresented: $showSecurity) {
             SecuritySettingsView()
         }
-        .sheet(isPresented: $showPremium) {
-            PremiumView()
-        }
         .sheet(isPresented: $showAbout) {
             AboutView()
         }
@@ -68,14 +67,14 @@ struct TrainerProfileView: View {
             Button(loc.localized("common_cancel"), role: .cancel) { }
             Button(loc.localized("profile_logout"), role: .destructive) {
                 withAnimation {
-                    isLoggedIn = false
+                    AuthManager.shared.logout()
                 }
             }
         } message: {
             Text(loc.localized("profile_logout_confirm"))
         }
     }
-    
+
     // MARK: - Profile Header
     private var profileHeader: some View {
         VStack(spacing: 16) {
@@ -90,7 +89,7 @@ struct TrainerProfileView: View {
                             )
                         )
                         .frame(width: 120, height: 120)
-                    
+
                     if let image = imageManager.profileImage {
                         Image(uiImage: image)
                             .resizable()
@@ -104,19 +103,7 @@ struct TrainerProfileView: View {
                     }
                 }
                 .shadow(color: Color.purple.opacity(0.3), radius: 20, x: 0, y: 10)
-                
-                if settingsManager.isPremium {
-                    ZStack {
-                        Circle()
-                            .fill(Color.yellow)
-                            .frame(width: 32, height: 32)
-                        Image(systemName: "crown.fill")
-                            .font(.system(size: 14))
-                            .foregroundColor(.white)
-                    }
-                    .offset(x: -5, y: -5)
-                }
-                
+
                 Button {
                     showImagePicker = true
                 } label: {
@@ -131,23 +118,16 @@ struct TrainerProfileView: View {
                     .shadow(color: Color.purple.opacity(0.5), radius: 8)
                 }
             }
-            
+
             VStack(spacing: 6) {
-                HStack(spacing: 8) {
-                    Text(profileManager.userProfile.name)
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(AppTheme.Colors.primaryText)
-                    
-                    if settingsManager.isPremium {
-                        Image(systemName: "checkmark.seal.fill")
-                            .foregroundColor(.blue)
-                    }
-                }
-                
+                Text(profileManager.userProfile.name)
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(AppTheme.Colors.primaryText)
+
                 Text(profileManager.userProfile.email)
                     .font(.system(size: 14))
                     .foregroundColor(AppTheme.Colors.secondaryText)
-                
+
                 HStack(spacing: 8) {
                     Image(systemName: "person.2.fill")
                         .font(.system(size: 12))
@@ -159,7 +139,13 @@ struct TrainerProfileView: View {
                 .padding(.vertical, 4)
                 .background(Color.purple.opacity(0.1))
                 .cornerRadius(12)
-                
+
+                if let price = profileManager.userProfile.pricePerSession, price > 0 {
+                    Text("\(String(format: "%.0f", price)) AZN / seans")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.green)
+                }
+
                 Button {
                     showEditProfile = true
                 } label: {
@@ -178,18 +164,18 @@ struct TrainerProfileView: View {
             }
         }
     }
-    
+
     // MARK: - Stats Section
     private var statsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(loc.localized("profile_statistics"))
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
-            
+
             HStack(spacing: 12) {
                 TrainerStatCard(
                     icon: "star.fill",
-                    value: String(format: "%.1f", profileManager.userProfile.rating ?? 4.8),
+                    value: String(format: "%.1f", profileManager.userProfile.rating ?? 0.0),
                     label: loc.localized("profile_rating"),
                     color: .yellow
                 )
@@ -210,7 +196,74 @@ struct TrainerProfileView: View {
             }
         }
     }
-    
+
+    // MARK: - My Plans Section (Plan Satisi)
+    private var myPlansSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Planlarim")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(AppTheme.Colors.primaryText)
+
+                Spacer()
+
+                Text("\(trainingPlanManager.totalPlans + mealPlanManager.totalPlans) plan")
+                    .font(.system(size: 14))
+                    .foregroundColor(AppTheme.Colors.secondaryText)
+            }
+
+            HStack(spacing: 12) {
+                // Training Plans
+                VStack(spacing: 10) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.red.opacity(0.15))
+                            .frame(width: 50, height: 50)
+                        Image(systemName: "figure.strengthtraining.traditional")
+                            .font(.system(size: 22))
+                            .foregroundColor(.red)
+                    }
+
+                    Text("\(trainingPlanManager.totalPlans)")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundColor(AppTheme.Colors.primaryText)
+
+                    Text("Idman Plani")
+                        .font(.system(size: 12))
+                        .foregroundColor(AppTheme.Colors.secondaryText)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(AppTheme.Colors.secondaryBackground)
+                .cornerRadius(14)
+
+                // Meal Plans
+                VStack(spacing: 10) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.orange.opacity(0.15))
+                            .frame(width: 50, height: 50)
+                        Image(systemName: "fork.knife")
+                            .font(.system(size: 22))
+                            .foregroundColor(.orange)
+                    }
+
+                    Text("\(mealPlanManager.totalPlans)")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundColor(AppTheme.Colors.primaryText)
+
+                    Text("Yemek Plani")
+                        .font(.system(size: 12))
+                        .foregroundColor(AppTheme.Colors.secondaryText)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(AppTheme.Colors.secondaryBackground)
+                .cornerRadius(14)
+            }
+        }
+    }
+
     // MARK: - Students Section
     private var studentsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -218,21 +271,21 @@ struct TrainerProfileView: View {
                 Text(loc.localized("profile_active_students"))
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(AppTheme.Colors.primaryText)
-                
+
                 Spacer()
-                
+
                 Text("\(profileManager.userProfile.students ?? 0) \(loc.localized("common_person"))")
                     .font(.system(size: 14))
                     .foregroundColor(AppTheme.Colors.secondaryText)
             }
-            
+
             VStack(spacing: 12) {
-                StudentRow(name: "Nigar Əliyeva", progress: 75, avatar: "💪")
-                StudentRow(name: "Rəşad Məmmədov", progress: 60, avatar: "🏃")
-                StudentRow(name: "Leyla Həsənova", progress: 90, avatar: "🧘")
-                
+                StudentRow(name: "Nigar Aliyeva", progress: 75, avatar: "A")
+                StudentRow(name: "Resad Mammadov", progress: 60, avatar: "R")
+                StudentRow(name: "Leyla Hasanova", progress: 90, avatar: "L")
+
                 Button {
-                    print("Hamısını gör")
+                    print("Hamisini gor")
                 } label: {
                     HStack {
                         Image(systemName: "person.3.fill")
@@ -249,14 +302,14 @@ struct TrainerProfileView: View {
             }
         }
     }
-    
+
     // MARK: - Specialty Section
     private var specialtySection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(loc.localized("profile_specialty_bio"))
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
-            
+
             VStack(spacing: 12) {
                 if let specialty = profileManager.userProfile.specialty {
                     HStack {
@@ -273,13 +326,13 @@ struct TrainerProfileView: View {
                     .background(AppTheme.Colors.secondaryBackground)
                     .cornerRadius(12)
                 }
-                
+
                 if let bio = profileManager.userProfile.bio {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(loc.localized("profile_bio"))
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(AppTheme.Colors.primaryText)
-                        
+
                         Text(bio)
                             .font(.system(size: 14))
                             .foregroundColor(AppTheme.Colors.secondaryText)
@@ -293,14 +346,14 @@ struct TrainerProfileView: View {
             }
         }
     }
-    
+
     // MARK: - Settings Section
     private var settingsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(loc.localized("profile_settings"))
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
-            
+
             VStack(spacing: 12) {
                 SettingsRow(
                     icon: "bell.fill",
@@ -310,25 +363,16 @@ struct TrainerProfileView: View {
                 ) {
                     showNotifications = true
                 }
-                
+
                 SettingsRow(
                     icon: "lock.fill",
                     title: loc.localized("settings_security"),
-                    badge: settingsManager.faceIDEnabled || settingsManager.hasAppPassword ? "🔒" : nil,
+                    badge: settingsManager.faceIDEnabled || settingsManager.hasAppPassword ? "ON" : nil,
                     badgeColor: .blue
                 ) {
                     showSecurity = true
                 }
-                
-                SettingsRow(
-                    icon: "star.fill",
-                    title: loc.localized("settings_premium"),
-                    badge: settingsManager.isPremium ? "👑" : nil,
-                    badgeColor: .yellow
-                ) {
-                    showPremium = true
-                }
-                
+
                 SettingsRow(
                     icon: "info.circle.fill",
                     title: loc.localized("settings_about")
@@ -338,7 +382,7 @@ struct TrainerProfileView: View {
             }
         }
     }
-    
+
     // MARK: - Logout Button
     private var logoutButton: some View {
         Button {
@@ -368,32 +412,35 @@ struct StudentRow: View {
     let name: String
     let progress: Int
     let avatar: String
-    
+
     var body: some View {
         HStack(spacing: 12) {
-            Text(avatar)
-                .font(.system(size: 30))
-                .frame(width: 50, height: 50)
-                .background(AppTheme.Colors.background)
-                .clipShape(Circle())
-            
+            ZStack {
+                Circle()
+                    .fill(Color.purple.opacity(0.15))
+                    .frame(width: 50, height: 50)
+                Text(avatar)
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.purple)
+            }
+
             VStack(alignment: .leading, spacing: 4) {
                 Text(name)
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(AppTheme.Colors.primaryText)
-                
+
                 HStack(spacing: 8) {
                     ProgressView(value: Double(progress) / 100.0)
                         .tint(.green)
-                    
+
                     Text("\(progress)%")
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundColor(.green)
                 }
             }
-            
+
             Spacer()
-            
+
             Image(systemName: "chevron.right")
                 .foregroundColor(AppTheme.Colors.secondaryText)
                 .font(.caption)

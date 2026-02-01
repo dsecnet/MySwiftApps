@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.config import get_settings
-from app.routers import auth, users, workouts, food, plans, uploads, admin, ai, location
+from app.routers import auth, users, workouts, food, plans, uploads, admin, ai, location, notifications, premium
 
 settings = get_settings()
 
@@ -34,11 +34,27 @@ app.include_router(uploads.router)
 app.include_router(admin.router)
 app.include_router(ai.router)
 app.include_router(location.router)
+app.include_router(notifications.router)
+app.include_router(premium.router)
 
 # Static files - sekilleri serve etmek ucun
 uploads_dir = Path(__file__).parent.parent / "uploads"
 uploads_dir.mkdir(exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Server basladiqda scheduler-i ise sal"""
+    from app.services.scheduler_service import init_scheduler
+    init_scheduler()
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Server baglandiqda scheduler-i durdur"""
+    from app.services.scheduler_service import scheduler
+    scheduler.shutdown(wait=False)
 
 
 @app.get("/")
