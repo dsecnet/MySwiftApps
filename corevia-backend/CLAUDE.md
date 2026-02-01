@@ -48,19 +48,71 @@ corevia-backend/
 
 ### Tamamlanmis Merheleler:
 - [x] Merhele 0: Muhit hazirligi (Python, PostgreSQL, Redis, venv)
-- [x] Paket install: Butun 22 paket install olunub (requirements.txt-de 86 paket)
+- [x] Paket install: Butun 22 paket install olunub (requirements.txt-de 88 paket)
+- [x] Merhele 1: Layihe strukturu + Database setup + Esas modeller
+  - Layihe qovluq strukturu yaradildi
+  - config.py + .env konfiqurasiya olundu
+  - database.py (async PostgreSQL connection) yazildi
+  - SQLAlchemy modeller yazildi: User, Workout, FoodEntry, MealPlan, MealPlanItem, TrainingPlan, PlanWorkout, UserSettings
+  - Pydantic schemas yazildi: user.py, workout.py, food.py, plan.py
+  - utils/security.py (JWT + bcrypt) yazildi
+  - main.py (FastAPI entry point) yazildi
+  - Alembic migration yaradildi ve run olundu (8 table)
+  - PostgreSQL-de corevia_db database-i yaradildi
+  - Server test olundu: http://localhost:8000 isleyir
+
+- [x] Merhele 2: Authentication sistemi (JWT + bcrypt)
+  - Auth router yazildi: POST /api/v1/auth/register, /login, /refresh, GET /me
+  - Users router yazildi: GET/PUT /profile, GET /trainers, /trainer/{id}, /my-students, POST /assign-trainer/{id}
+  - JWT access + refresh token sistemi isleyir
+  - bcrypt ile password hashing (passlib evezine birbaşa bcrypt 5.x istifade olunur)
+  - get_current_user dependency ile protected endpoints
+  - Butun endpoints test olundu ve isleyir
+
+- [x] Merhele 3: CRUD API endpoints (Workout, Food, Plans)
+  - Workouts router: POST/GET/PUT/DELETE /api/v1/workouts/, GET /today, /stats, PATCH /toggle
+  - Food router: POST/GET/PUT/DELETE /api/v1/food/, GET /today, /daily-summary
+  - Plans router: Meal plans (POST/GET/PUT/DELETE /api/v1/plans/meal), Training plans (POST/GET/PUT/DELETE /api/v1/plans/training)
+  - Workout stats (bugunki + heftelik): workout_count, total_minutes, total_calories
+  - Daily nutrition summary: total_calories, protein, carbs, fats, remaining_calories
+  - Trainer-only plan creation + student assignment
+  - Butun endpoints test olundu ve isleyir
+
+- [x] Merhele 4: Fayl/Sekil upload sistemi
+  - file_service.py: Sekil upload, resize (max 1024px), optimize (JPEG 85%), EXIF fix
+  - uploads router: POST /api/v1/uploads/profile-image, /food-image/{id}, /certificate, DELETE /profile-image
+  - Hazirda lokal fayl sisteminde saxlanilir (uploads/ qovluqu)
+  - Static files /uploads/ URL-den serve olunur
+  - S3-e kecid ucun yalniz file_service.py deyisdirilmelidir (router-ler eyni qalir)
+  - Max fayl olcusu: 10MB, icaze verilen formatlar: jpg, jpeg, png, webp
+  - Butun upload-lar test olundu ve isleyir
+
+- [x] Merhele 5: Trainer verifikasiya sistemi
+  - Admin router: GET /api/v1/admin/pending-trainers, /all-trainers, /stats
+  - POST /api/v1/admin/verify-trainer/{id}, /reject-trainer/{id}
+  - Verification flow: register (pending) -> sertifikat upload -> admin verify/reject
+  - Admin stats: total_users, total_clients, total_trainers, pending_verifications
+  - Helelik her verified trainer admin rolu dasiyir (gelecekde is_admin field elave olunacaq)
+
+- [x] Merhele 6: AI - Sekilden kalori hesablama (OpenAI Vision)
+  - ai_service.py: OpenAI GPT-4o Vision ile sekil analizi + mock fallback (API key olmayanda)
+  - ai.py router: POST /api/v1/ai/analyze-food, /analyze-and-save, GET /recommendations
+  - analyze-food: Sekil upload → AI analiz → kalori/makro netice qaytarir
+  - analyze-and-save: Sekil upload → AI analiz → FoodEntry olaraq DB-ye saxlayir
+  - OpenAI key yoxdursa mock data qaytarir (test ucun)
+  - Butun endpoints test olundu ve isleyir
+
+- [x] Merhele 7: AI - User data analiz + tovsiyeler
+  - recommendations endpoint Stage 6-da yazildi (ai.py router-de)
+  - GET /api/v1/ai/recommendations: Son 7 gunluk workout + food stats → AI tovsiyeler
+  - User-in heftelik mesq ve qidalanma datalarini aggregasiya edir
+  - OpenAI GPT-4o ile sexsi tovsiyeler verir (mock fallback var)
+  - weekly_score, nutrition_tips, workout_tips, warnings qaytarir
 
 ### Hazirki Merhele:
-- [ ] Merhele 1: Layihe strukturu + Database setup + Esas modeller
+- [ ] Merhele 8: Location + Route sistemi (PostGIS + Mapbox)
 
 ### Gelecek Merheleler:
-- [ ] Merhele 2: Authentication sistemi (JWT + bcrypt)
-- [ ] Merhele 3: CRUD API endpoints (User, Workout, Food, Plans)
-- [ ] Merhele 4: Fayl/Sekil upload sistemi (S3)
-- [ ] Merhele 5: Trainer verifikasiya sistemi
-- [ ] Merhele 6: AI - Sekilden kalori hesablama (OpenAI Vision)
-- [ ] Merhele 7: AI - User data analiz + tovsiyeler
-- [ ] Merhele 8: Location + Route sistemi (PostGIS + Mapbox)
 - [ ] Merhele 9: Notification + Premium
 
 ## iOS App Model-leri (Backend modeller buna uygun yazilir)
@@ -77,3 +129,6 @@ corevia-backend/
 - Virtual environment: venv/ qovlugunda
 - Her defe isleyende evvelce `source venv/bin/activate` lazimdir
 - PostgreSQL ve Redis service-leri isleyir olmalidir
+
+## GOZLENEN TAPSIRIGLAR
+- **Domen:** Hele alinmayib. Bu ay erzinde alinacaq. Domen alindiqda user deyecek ki "domeni deyis" - o zaman .env, CORS, config ve deploy ayarlarinda localhost-u domen ile evez etmek lazimdir. Hazirda her sey localhost:8000 uzerinde isleyir.
