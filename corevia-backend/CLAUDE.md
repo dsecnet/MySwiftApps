@@ -109,11 +109,31 @@ corevia-backend/
   - OpenAI GPT-4o ile sexsi tovsiyeler verir (mock fallback var)
   - weekly_score, nutrition_tips, workout_tips, warnings qaytarir
 
+- [x] Merhele 8: Location + Route sistemi (Mapbox)
+  - Route model yaradildi: GPS marsrut izleme (running, cycling, walking)
+  - route.py model: start/end koordinatlari, polyline, coordinates_json, mesafe, muddət, pace, speed, elevation, kalori
+  - Trainer route assignment: trainer oz student-lerine marsrut teyin ede biler
+  - location_service.py: Haversine mesafe hesablama, pace/speed, elevation, kalori (MET formula), Mapbox Static Maps + Directions API
+  - location.py router endpointleri:
+    - POST /api/v1/routes/ - yeni marsrut yarat (auto-stats hesablama)
+    - GET /api/v1/routes/ - marsrutlari getir (filter: activity_type, is_completed, date range + pagination)
+    - GET /api/v1/routes/stats - marsrut statistikasi (son N gun)
+    - GET /api/v1/routes/assigned - student-in teyin olunmus marsrutlari
+    - GET /api/v1/routes/{id} - tek marsrut
+    - PUT /api/v1/routes/{id} - marsrutu yenile
+    - DELETE /api/v1/routes/{id} - marsrutu sil
+    - POST /api/v1/routes/assign - trainer -> student marsrut teyin etme
+    - GET /api/v1/routes/trainer/assigned - trainer-in teyin etdiyi marsrutlar
+    - GET /api/v1/routes/directions/preview - Mapbox Directions ile marsrut preview
+  - Alembic migration: routes table yaradildi (user_id, workout_id index)
+  - Mapbox key olmayanda mock/null qaytarir (math hesablamalar isleyir)
+  - Butun endpoints test olundu ve isleyir
+
 ### Hazirki Merhele:
-- [ ] Merhele 8: Location + Route sistemi (PostGIS + Mapbox)
+- [ ] Merhele 9: Notification + Premium
 
 ### Gelecek Merheleler:
-- [ ] Merhele 9: Notification + Premium
+- (Butun esas merheleler tamamlanib)
 
 ## iOS App Model-leri (Backend modeller buna uygun yazilir)
 - **User:** id, name, email, userType (client/trainer), profileImageURL, age, weight, height, goal, trainerId, specialization, experience, rating, pricePerSession, bio
