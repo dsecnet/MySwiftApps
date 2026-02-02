@@ -8,7 +8,7 @@ from app.models.user import User
 from app.models.workout import Workout
 from app.models.food_entry import FoodEntry, MealType
 from app.schemas.food import FoodEntryResponse
-from app.utils.security import get_current_user
+from app.utils.security import get_current_user, get_premium_user
 from app.services.ai_service import analyze_food_image, get_user_recommendations
 from app.services.file_service import save_upload
 
@@ -18,10 +18,10 @@ router = APIRouter(prefix="/api/v1/ai", tags=["AI"])
 @router.post("/analyze-food")
 async def analyze_food(
     file: UploadFile = File(...),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_premium_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Sekili upload et, AI ile analiz et, netice qaytar"""
+    """Sekili upload et, AI ile analiz et — Premium lazimdir"""
     content = await file.read()
 
     # AI analiz
@@ -40,10 +40,10 @@ async def analyze_food(
 @router.post("/analyze-and-save", response_model=FoodEntryResponse)
 async def analyze_and_save(
     file: UploadFile = File(...),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_premium_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Sekili upload et, AI ile analiz et, qida qeydi olaraq saxla"""
+    """Sekili upload et, AI analiz et, saxla — Premium lazimdir"""
     content = await file.read()
 
     # AI analiz
@@ -89,10 +89,10 @@ async def analyze_and_save(
 
 @router.get("/recommendations")
 async def get_recommendations(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_premium_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Istifadecinin son 7 gunluk datalarini analiz edib tovsiyeler ver"""
+    """AI tovsiyeler — Premium lazimdir"""
     week_ago = datetime.utcnow() - timedelta(days=7)
 
     # Heftelik workout stats

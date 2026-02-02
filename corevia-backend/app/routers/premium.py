@@ -125,32 +125,73 @@ async def subscribe(
     return subscription
 
 
+@router.post("/activate")
+async def activate_premium(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Premium-u birbaşa aktivləşdir (development/test üçün).
+
+    Production-da Apple IAP /subscribe endpoint istifadə olunacaq.
+    Bu endpoint test məqsədli olaraq useri birbaşa premium edir.
+    """
+    if current_user.is_premium:
+        return {
+            "message": "Artıq premium istifadəçisiniz",
+            "is_premium": True,
+        }
+
+    # Useri premium et
+    current_user.is_premium = True
+
+    # Subscription record yarat (30 günlük default)
+    expires_at = calculate_expiry("com.corevia.monthly")
+    subscription = Subscription(
+        user_id=current_user.id,
+        product_id="com.corevia.monthly",
+        transaction_id=f"dev_{current_user.id}_{datetime.utcnow().timestamp()}",
+        original_transaction_id=f"dev_orig_{current_user.id}",
+        plan_type="monthly",
+        price=9.99,
+        currency="AZN",
+        expires_at=expires_at,
+    )
+    db.add(subscription)
+
+    return {
+        "message": "Premium uğurla aktivləşdirildi!",
+        "is_premium": True,
+        "plan_type": "monthly",
+        "expires_at": expires_at.isoformat(),
+    }
+
+
 @router.post("/cancel")
 async def cancel_subscription(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Abunəliyi legv et (auto-renew sondurulur, mddət bitene kimi isleyir)"""
+    """Abunəliyi ləğv et — premium dərhal söndürülür"""
+    # Aktiv abunəlikləri söndür
     result = await db.execute(
         select(Subscription).where(
             Subscription.user_id == current_user.id,
             Subscription.is_active == True,
         )
     )
-    subscription = result.scalar_one_or_none()
+    subscriptions = result.scalars().all()
 
-    if not subscription:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Aktiv abunəlik tapilmadi",
-        )
+    for sub in subscriptions:
+        sub.is_active = False
+        sub.auto_renew = False
+        sub.cancelled_at = datetime.utcnow()
 
-    subscription.auto_renew = False
-    subscription.cancelled_at = datetime.utcnow()
+    # Userin premium statusunu söndür
+    current_user.is_premium = False
 
     return {
-        "message": "Abunəlik legv olundu. Premium muddət bitene kimi davam edecek.",
-        "expires_at": subscription.expires_at.isoformat(),
+        "message": "Premium abunəlik ləğv olundu.",
+        "is_premium": False,
     }
 
 

@@ -135,6 +135,87 @@ async def get_user_recommendations(user_data: dict) -> dict:
         return {"error": str(e)}
 
 
+TRAINER_VERIFICATION_PROMPT = """Sen bir fitness ekspertisen. Bu sekildeki insanin beden formasini ve fiziki hazirligini qiymetlendir.
+
+Bu insan fitness muellimi (trainer) olmaq ucun muraciet edir. Onun beden formasi ve fiziki gorunusu esasinda qiymetlendir.
+
+Cavabini YALNIZ JSON formatinda ver, baska hec ne yazma:
+{
+    "is_fitness_person": true,
+    "confidence_score": 0.85,
+    "analysis": "Qisa izahat (1-2 cumle)",
+    "body_composition": "athletic",
+    "visible_muscle_definition": true,
+    "fitness_indicators": ["indicator1", "indicator2"]
+}
+
+Qaydalar:
+- is_fitness_person: bu insanin fitness muellimi ola bileceyine inanirsan?
+- confidence_score: 0.0-1.0 arasi (ne qeder eminsen)
+- body_composition: "athletic", "fit", "average", "below_average" birini sec
+- visible_muscle_definition: ezele qurulusu gorunurmu?
+- fitness_indicators: gozle gorunen fitness gostericileri (meselen: "guclu qol ezelesi", "duz qarin", "idmanci beden qurulusu")
+- Eger sekilde insan yoxdursa ve ya aydın deyilse, confidence_score 0 olsun
+- Hemise AZ dilinde cavab ver"""
+
+
+async def analyze_trainer_photo(image_data: bytes) -> dict:
+    """OpenAI Vision API ile trainer-in fitness formasini analiz et"""
+    if not client:
+        return _mock_trainer_verification()
+
+    base64_image = base64.b64encode(image_data).decode("utf-8")
+
+    try:
+        response = await client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": TRAINER_VERIFICATION_PROMPT},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{base64_image}",
+                                "detail": "low",
+                            },
+                        },
+                    ],
+                }
+            ],
+            max_tokens=800,
+            temperature=0.3,
+        )
+
+        content = response.choices[0].message.content.strip()
+
+        # JSON parse et
+        if content.startswith("```"):
+            content = content.split("\n", 1)[1]
+            content = content.rsplit("```", 1)[0]
+
+        return json.loads(content)
+
+    except json.JSONDecodeError:
+        return {"error": "AI cavabi parse oluna bilmedi", "raw": content}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def _mock_trainer_verification() -> dict:
+    """OpenAI key olmayanda test ucun mock trainer verification cavabi"""
+    return {
+        "is_fitness_person": True,
+        "confidence_score": 0.65,
+        "analysis": "Mock cavab: AI key yoxdur. Test ucun orta skor qaytarilir.",
+        "body_composition": "fit",
+        "visible_muscle_definition": False,
+        "fitness_indicators": ["normal beden qurulusu"],
+        "is_mock": True,
+    }
+
+
 def _mock_analysis() -> dict:
     """OpenAI key olmayanda test ucun mock cavab"""
     return {

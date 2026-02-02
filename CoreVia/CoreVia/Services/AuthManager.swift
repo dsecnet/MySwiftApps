@@ -40,6 +40,9 @@ struct UserResponse: Codable {
     let pricePerSession: Double?
     let bio: String?
     let verificationStatus: String?
+    let instagramHandle: String?
+    let verificationPhotoUrl: String?
+    let verificationScore: Double?
 
     enum CodingKeys: String, CodingKey {
         case id, name, email
@@ -54,6 +57,9 @@ struct UserResponse: Codable {
         case pricePerSession = "price_per_session"
         case bio
         case verificationStatus = "verification_status"
+        case instagramHandle = "instagram_handle"
+        case verificationPhotoUrl = "verification_photo_url"
+        case verificationScore = "verification_score"
     }
 }
 
@@ -173,6 +179,43 @@ class AuthManager: ObservableObject {
                 logout()
             }
         }
+    }
+
+    // MARK: - Refresh Token Claims (premium deyisdikden sonra)
+
+    @MainActor
+    func refreshTokenClaims() async {
+        do {
+            let response: AuthResponse = try await api.request(
+                endpoint: "/api/v1/auth/refresh-claims",
+                method: "POST"
+            )
+            keychain.accessToken = response.accessToken
+            keychain.refreshToken = response.refreshToken
+
+            // User melumatlarini yenile (isPremium sync)
+            await fetchCurrentUser()
+        } catch {
+            print("Token claims refresh ugursuz: \(error)")
+        }
+    }
+
+    // MARK: - JWT Premium Check (optimistik)
+
+    var isPremiumFromToken: Bool {
+        guard let token = keychain.accessToken else { return false }
+        let segments = token.split(separator: ".")
+        guard segments.count == 3 else { return false }
+
+        var base64 = String(segments[1])
+        while base64.count % 4 != 0 { base64.append("=") }
+
+        guard let data = Data(base64Encoded: base64),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let isPremium = json["is_premium"] as? Bool else {
+            return false
+        }
+        return isPremium
     }
 
     // MARK: - Logout

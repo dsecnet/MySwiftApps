@@ -543,7 +543,7 @@ struct AboutLinkButton: View {
     }
 }
 
-// MARK: - Premium View (Modern Paywall)
+// MARK: - Premium View (2 Section Design)
 struct PremiumView: View {
 
     @Environment(\.dismiss) var dismiss
@@ -551,10 +551,14 @@ struct PremiumView: View {
     @State private var animateGradient = false
     @State private var heroScale: CGFloat = 0.5
     @State private var heroOpacity: Double = 0
-    @State private var selectedPlan: PremiumPlan = .yearly
+    @State private var selectedPlan: PremiumPlan = .monthly
     @State private var buttonPressed = false
     @State private var featuresAppeared = false
-    private let loc = LocalizationManager.shared
+    @State private var isActivating = false
+    @State private var showError = false
+    @State private var errorMessage = ""
+    @State private var showCancelAlert = false
+    @State private var isCancelling = false
 
     enum PremiumPlan {
         case monthly, yearly
@@ -572,16 +576,16 @@ struct PremiumView: View {
         [
             PremiumFeature(icon: "sparkles", title: "AI Kalori Analizi", description: "Sekil cekin, kalori avtomatik hesablansin", color: .pink),
             PremiumFeature(icon: "camera.fill", title: "Sekil ile qida analizi", description: "AI ile qida tanimasi ve besin deyerleri", color: .red),
-            PremiumFeature(icon: "chart.bar.fill", title: "Detalli statistika", description: "Heftelik ve ayliq inkisaf hesabatlari", color: .blue),
-            PremiumFeature(icon: "cloud.fill", title: "Bulud yedekleme", description: "Butun melumatlar avtomatik saxlanilir", color: .cyan),
+            PremiumFeature(icon: "location.fill", title: "GPS Hereket Izleme", description: "Qacis, gezinti ve velosiped izleme", color: .blue),
             PremiumFeature(icon: "person.2.fill", title: "Muellim sistemi", description: "Professional muellimlere qosulun", color: .purple),
+            PremiumFeature(icon: "chart.bar.fill", title: "Detalli statistika", description: "Heftelik ve ayliq inkisaf hesabatlari", color: .cyan),
             PremiumFeature(icon: "bell.badge.fill", title: "Agilli bildirisler", description: "Yemek ve idman xatirlatmalari", color: .orange)
         ]
     }
 
     var body: some View {
         ZStack {
-            // Animated gradient background - indigo/teal
+            // Animated gradient background
             LinearGradient(
                 colors: animateGradient
                     ? [Color(red: 0.05, green: 0.02, blue: 0.15), Color.indigo.opacity(0.4), Color(red: 0.02, green: 0.05, blue: 0.12)]
@@ -614,7 +618,6 @@ struct PremiumView: View {
 
                     // Hero icon
                     ZStack {
-                        // Glow
                         Circle()
                             .fill(
                                 RadialGradient(
@@ -627,26 +630,27 @@ struct PremiumView: View {
                             .frame(width: 180, height: 180)
                             .blur(radius: 25)
 
-                        // Shield + sparkles
                         ZStack {
-                            Image(systemName: "shield.fill")
+                            Image(systemName: settings.isPremium ? "crown.fill" : "shield.fill")
                                 .font(.system(size: 65))
                                 .foregroundStyle(
                                     LinearGradient(
-                                        colors: [.indigo, .purple],
+                                        colors: settings.isPremium ? [.yellow, .orange] : [.indigo, .purple],
                                         startPoint: .top,
                                         endPoint: .bottom
                                     )
                                 )
 
-                            Image(systemName: "sparkles")
-                                .font(.system(size: 28))
-                                .foregroundColor(.white)
-                                .offset(y: -2)
+                            if !settings.isPremium {
+                                Image(systemName: "sparkles")
+                                    .font(.system(size: 28))
+                                    .foregroundColor(.white)
+                                    .offset(y: -2)
+                            }
                         }
                         .scaleEffect(heroScale)
                         .opacity(heroOpacity)
-                        .shadow(color: .indigo.opacity(0.6), radius: 25, x: 0, y: 10)
+                        .shadow(color: settings.isPremium ? .yellow.opacity(0.6) : .indigo.opacity(0.6), radius: 25, x: 0, y: 10)
                     }
                     .onAppear {
                         withAnimation(.spring(response: 0.8, dampingFraction: 0.6)) {
@@ -666,28 +670,57 @@ struct PremiumView: View {
                             .font(.system(size: 38, weight: .black))
                             .foregroundStyle(
                                 LinearGradient(
-                                    colors: [.white, .indigo.opacity(0.8), .white],
+                                    colors: settings.isPremium ? [.yellow, .orange, .yellow] : [.white, .indigo.opacity(0.8), .white],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
                             )
 
-                        Text("Butun imkanlari acin, limitler olmadan")
-                            .font(.system(size: 14))
-                            .foregroundColor(.white.opacity(0.5))
+                        if settings.isPremium {
+                            HStack(spacing: 6) {
+                                Image(systemName: "checkmark.seal.fill")
+                                    .foregroundColor(.green)
+                                Text("Premium Aktiv")
+                                    .font(.system(size: 15, weight: .bold))
+                                    .foregroundColor(.green)
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(Color.green.opacity(0.15))
+                            .cornerRadius(20)
+                        } else {
+                            Text("Butun imkanlari acin, limitler olmadan")
+                                .font(.system(size: 14))
+                                .foregroundColor(.white.opacity(0.5))
+                        }
                     }
 
-                    // Feature list - vertical
-                    VStack(spacing: 2) {
-                        ForEach(Array(features.enumerated()), id: \.element.id) { index, feature in
-                            PremiumFeatureRow(feature: feature)
-                                .opacity(featuresAppeared ? 1 : 0)
-                                .offset(x: featuresAppeared ? 0 : -30)
-                                .animation(
-                                    .spring(response: 0.5, dampingFraction: 0.8)
-                                        .delay(Double(index) * 0.08),
-                                    value: featuresAppeared
-                                )
+                    // ═══════════════════════════════
+                    // SECTION 1: Premium Xususiyyetler
+                    // ═══════════════════════════════
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "star.fill")
+                                .font(.system(size: 14))
+                                .foregroundColor(.yellow)
+                            Text("Premium Xususiyyetler")
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundColor(.white)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.top, 4)
+
+                        VStack(spacing: 2) {
+                            ForEach(Array(features.enumerated()), id: \.element.id) { index, feature in
+                                PremiumFeatureRow(feature: feature, isActive: settings.isPremium)
+                                    .opacity(featuresAppeared ? 1 : 0)
+                                    .offset(x: featuresAppeared ? 0 : -30)
+                                    .animation(
+                                        .spring(response: 0.5, dampingFraction: 0.8)
+                                            .delay(Double(index) * 0.08),
+                                        value: featuresAppeared
+                                    )
+                            }
                         }
                     }
                     .padding(.vertical, 8)
@@ -699,113 +732,280 @@ struct PremiumView: View {
                         featuresAppeared = true
                     }
 
-                    // Free trial badge
-                    HStack(spacing: 8) {
-                        Image(systemName: "gift.fill")
-                            .font(.system(size: 14))
-                            .foregroundColor(.teal)
-                        Text("7 gun pulsuz sinaq")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(.teal)
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .background(Color.teal.opacity(0.15))
-                    .cornerRadius(20)
-
-                    // Pricing plans
-                    HStack(spacing: 12) {
-                        // Monthly
-                        PremiumPricingCard(
-                            title: "Ayliq",
-                            price: "9.99",
-                            period: "ay",
-                            isSelected: selectedPlan == .monthly,
-                            isPopular: false
-                        )
-                        .onTapGesture {
-                            withAnimation(.spring(response: 0.3)) {
-                                selectedPlan = .monthly
-                            }
-                        }
-
-                        // Yearly
-                        PremiumPricingCard(
-                            title: "Illik",
-                            price: "79.99",
-                            period: "il",
-                            isSelected: selectedPlan == .yearly,
-                            isPopular: true,
-                            savings: "33% qenaet"
-                        )
-                        .onTapGesture {
-                            withAnimation(.spring(response: 0.3)) {
-                                selectedPlan = .yearly
-                            }
-                        }
+                    // ═══════════════════════════════════
+                    // SECTION 2: Abunəlik / Premium Status
+                    // ═══════════════════════════════════
+                    if settings.isPremium {
+                        // Premium aktiv — status + ləğv et
+                        premiumActiveSection
+                    } else {
+                        // Premium deyil — qiymətlər + aktivləşdir
+                        premiumSubscribeSection
                     }
 
-                    // Subscribe button
-                    Button {
-                        withAnimation(.spring(response: 0.2)) {
-                            buttonPressed = true
+                    // Error mesaji
+                    if showError {
+                        HStack(spacing: 8) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(.red)
+                            Text(errorMessage)
+                                .font(.system(size: 13))
+                                .foregroundColor(.red)
                         }
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                            withAnimation(.spring(response: 0.2)) {
-                                buttonPressed = false
-                            }
-                        }
-                        activatePremium()
-                    } label: {
-                        VStack(spacing: 4) {
-                            HStack(spacing: 10) {
-                                Image(systemName: "sparkles")
-                                    .font(.system(size: 18))
-                                Text("Pulsuz sinaga basla")
-                                    .font(.system(size: 18, weight: .bold))
-                            }
-                            .foregroundColor(.white)
-
-                            Text("7 gun pulsuz, sonra \(selectedPlan == .yearly ? "₼79.99/il" : "₼9.99/ay")")
-                                .font(.system(size: 12))
-                                .foregroundColor(.white.opacity(0.7))
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(
-                            LinearGradient(
-                                colors: [.indigo, .purple],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .cornerRadius(16)
-                        .shadow(color: .indigo.opacity(0.6), radius: 15, x: 0, y: 8)
+                        .padding()
+                        .background(Color.red.opacity(0.15))
+                        .cornerRadius(12)
                     }
-                    .scaleEffect(buttonPressed ? 0.95 : 1.0)
-
-                    // Terms
-                    VStack(spacing: 6) {
-                        Text("Istediyiniz vaxt legv edin")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.white.opacity(0.5))
-
-                        Text("Odenis App Store hesabiniz uzerinden alinir")
-                            .font(.system(size: 11))
-                            .foregroundColor(.white.opacity(0.3))
-                    }
-                    .multilineTextAlignment(.center)
-                    .padding(.bottom, 24)
                 }
                 .padding(.horizontal, 20)
+                .padding(.bottom, 30)
+            }
+        }
+        .alert("Premium-i legv et", isPresented: $showCancelAlert) {
+            Button("Xeyr", role: .cancel) { }
+            Button("Beli, legv et", role: .destructive) {
+                cancelPremium()
+            }
+        } message: {
+            Text("Premium abuneliyinizi legv etmek isteyirsiniz? Butun premium xususiyyetlere girisiniz bitecek.")
+        }
+    }
+
+    // MARK: - Premium Active Section
+    private var premiumActiveSection: some View {
+        VStack(spacing: 16) {
+            // Status kartı
+            VStack(spacing: 14) {
+                HStack(spacing: 10) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.green.opacity(0.2))
+                            .frame(width: 44, height: 44)
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(.yellow)
+                    }
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Premium Istifadeci")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.white)
+                        Text("Butun xususiyyetler aktivdir")
+                            .font(.system(size: 13))
+                            .foregroundColor(.green)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundColor(.green)
+                }
+
+                Divider()
+                    .background(Color.white.opacity(0.1))
+
+                // Aktiv xususiyyetler
+                VStack(spacing: 8) {
+                    premiumStatusRow(icon: "sparkles", title: "AI Kalori Analizi", active: true)
+                    premiumStatusRow(icon: "location.fill", title: "GPS Izleme", active: true)
+                    premiumStatusRow(icon: "person.2.fill", title: "Muellim Sistemi", active: true)
+                    premiumStatusRow(icon: "chart.bar.fill", title: "Detalli Statistika", active: true)
+                }
+            }
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.white.opacity(0.08))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.green.opacity(0.3), lineWidth: 1)
+            )
+
+            // Ləğv et düyməsi
+            Button {
+                showCancelAlert = true
+            } label: {
+                HStack(spacing: 8) {
+                    if isCancelling {
+                        ProgressView()
+                            .tint(.red)
+                    } else {
+                        Image(systemName: "xmark.circle")
+                            .font(.system(size: 16))
+                    }
+                    Text("Premium-i legv et")
+                        .font(.system(size: 15, weight: .semibold))
+                }
+                .foregroundColor(.red.opacity(0.8))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(Color.red.opacity(0.1))
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.red.opacity(0.2), lineWidth: 1)
+                )
+            }
+            .disabled(isCancelling)
+        }
+    }
+
+    private func premiumStatusRow(icon: String, title: String, active: Bool) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundColor(.white.opacity(0.7))
+                .frame(width: 20)
+            Text(title)
+                .font(.system(size: 14))
+                .foregroundColor(.white.opacity(0.8))
+            Spacer()
+            Image(systemName: "checkmark")
+                .font(.system(size: 12, weight: .bold))
+                .foregroundColor(.green)
+        }
+    }
+
+    // MARK: - Premium Subscribe Section
+    private var premiumSubscribeSection: some View {
+        VStack(spacing: 16) {
+            // Qiymət kartları
+            HStack(spacing: 12) {
+                PremiumPricingCard(
+                    title: "Ayliq",
+                    price: "9.99",
+                    period: "ay",
+                    isSelected: selectedPlan == .monthly,
+                    isPopular: false
+                )
+                .onTapGesture {
+                    withAnimation(.spring(response: 0.3)) {
+                        selectedPlan = .monthly
+                    }
+                }
+
+                PremiumPricingCard(
+                    title: "Illik",
+                    price: "79.99",
+                    period: "il",
+                    isSelected: selectedPlan == .yearly,
+                    isPopular: true,
+                    savings: "33% qenaet"
+                )
+                .onTapGesture {
+                    withAnimation(.spring(response: 0.3)) {
+                        selectedPlan = .yearly
+                    }
+                }
+            }
+
+            // Aktivləşdir düyməsi
+            Button {
+                withAnimation(.spring(response: 0.2)) {
+                    buttonPressed = true
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    withAnimation(.spring(response: 0.2)) {
+                        buttonPressed = false
+                    }
+                }
+                activatePremium()
+            } label: {
+                HStack(spacing: 10) {
+                    if isActivating {
+                        ProgressView()
+                            .tint(.white)
+                    } else {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 18))
+                    }
+                    Text("Premium-a kec")
+                        .font(.system(size: 18, weight: .bold))
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                    LinearGradient(
+                        colors: [.indigo, .purple],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .cornerRadius(16)
+                .shadow(color: .indigo.opacity(0.6), radius: 15, x: 0, y: 8)
+            }
+            .scaleEffect(buttonPressed ? 0.95 : 1.0)
+            .disabled(isActivating)
+
+            // Şərtlər
+            VStack(spacing: 6) {
+                Text("Istediyiniz vaxt legv ede bilersiniz")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.white.opacity(0.5))
+
+                Text("Odenis App Store hesabiniz uzerinden alinir")
+                    .font(.system(size: 11))
+                    .foregroundColor(.white.opacity(0.3))
+            }
+            .multilineTextAlignment(.center)
+        }
+    }
+
+    // MARK: - Actions
+
+    private func activatePremium() {
+        isActivating = true
+        showError = false
+
+        Task {
+            do {
+                // Backend-e premium aktivləşdir sorgusu
+                try await APIService.shared.requestVoid(
+                    endpoint: "/api/v1/premium/activate",
+                    method: "POST"
+                )
+            } catch {
+                await MainActor.run {
+                    isActivating = false
+                    showError = true
+                    errorMessage = (error as? APIError)?.errorDescription ?? "Xeta bas verdi"
+                }
+                return
+            }
+
+            // Token-ləri yenilə (is_premium claim)
+            await AuthManager.shared.refreshTokenClaims()
+
+            await MainActor.run {
+                settings.isPremium = true
+                isActivating = false
             }
         }
     }
 
-    private func activatePremium() {
-        settings.isPremium = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            dismiss()
+    private func cancelPremium() {
+        isCancelling = true
+
+        Task {
+            do {
+                try await APIService.shared.requestVoid(
+                    endpoint: "/api/v1/premium/cancel",
+                    method: "POST"
+                )
+            } catch {
+                print("Premium cancel xetasi: \(error)")
+            }
+
+            // Token-ləri yenilə
+            await AuthManager.shared.refreshTokenClaims()
+
+            await MainActor.run {
+                settings.isPremium = false
+                isCancelling = false
+            }
         }
     }
 }
@@ -813,6 +1013,7 @@ struct PremiumView: View {
 // MARK: - Premium Feature Row (vertical list)
 struct PremiumFeatureRow: View {
     let feature: PremiumView.PremiumFeature
+    var isActive: Bool = false
 
     var body: some View {
         HStack(spacing: 14) {
@@ -839,15 +1040,21 @@ struct PremiumFeatureRow: View {
 
             Spacer()
 
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 20))
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [.indigo, .teal],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
+            if isActive {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 20))
+                    .foregroundColor(.green)
+            } else {
+                Image(systemName: "lock.circle.fill")
+                    .font(.system(size: 20))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.indigo, .teal],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
                     )
-                )
+            }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)

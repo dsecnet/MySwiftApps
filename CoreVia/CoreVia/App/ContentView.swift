@@ -6,11 +6,21 @@ struct ContentView: View {
     @State private var showRegister: Bool = false
     @StateObject private var workoutManager = WorkoutManager.shared
 
+    /// Trainer login olub amma hele verified deyilse → verifikasiya sehifesini goster
+    private var needsTrainerVerification: Bool {
+        guard let user = authManager.currentUser else { return false }
+        return user.userType == "trainer" && user.verificationStatus != "verified"
+    }
+
     var body: some View {
         Group {
             if authManager.isLoggedIn {
-                MainTabView(isLoggedIn: $authManager.isLoggedIn)
-                    .environmentObject(workoutManager)
+                if needsTrainerVerification {
+                    TrainerVerificationView()
+                } else {
+                    MainTabView(isLoggedIn: $authManager.isLoggedIn)
+                        .environmentObject(workoutManager)
+                }
             } else {
                 if showRegister {
                     RegisterView(showRegister: $showRegister)
@@ -125,25 +135,19 @@ struct MainTabView: View {
                 .tag(3)
             }
 
-            // MARK: - Tab 4: Teachers / Students
-            NavigationStack {
-                if isTrainer {
+            // MARK: - Tab 3 (Trainer only): Students
+            if isTrainer {
+                NavigationStack {
                     MyStudentsView()
                         .navigationTitle("")
-                } else {
-                    TeachersView()
-                        .navigationTitle("")
                 }
+                .tabItem {
+                    Label(loc.localized("tab_students"), systemImage: "person.2.fill")
+                }
+                .tag(3)
             }
-            .tabItem {
-                Label(
-                    isTrainer ? loc.localized("tab_students") : loc.localized("tab_teachers"),
-                    systemImage: "person.2.fill"
-                )
-            }
-            .tag(isTrainer ? 3 : 4)
 
-            // MARK: - Tab 5: Profile
+            // MARK: - Tab 4: Profile
             NavigationStack {
                 ProfileView(isLoggedIn: $isLoggedIn)
                     .navigationTitle(loc.localized("tab_profile"))
@@ -151,7 +155,7 @@ struct MainTabView: View {
             .tabItem {
                 Label(loc.localized("tab_profile"), systemImage: "person.fill")
             }
-            .tag(isTrainer ? 4 : 5)
+            .tag(4)
         }
     }
 }

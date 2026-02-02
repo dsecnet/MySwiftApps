@@ -48,6 +48,13 @@ class User(Base):
     )
     certificate_image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
+    # Verification details
+    instagram_handle: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    verification_photo_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    verification_score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    verification_attempts: Mapped[int] = mapped_column(Integer, default=0)
+    last_verification_attempt: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
     # Premium
     is_premium: Mapped[bool] = mapped_column(Boolean, default=False)
 

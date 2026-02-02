@@ -59,3 +59,18 @@ async def get_current_user(
     if user is None or not user.is_active:
         raise credentials_exception
     return user
+
+
+async def get_premium_user(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """Dependency: authentication + premium status check.
+
+    Defense in depth — always checks the DB field, not just the JWT claim.
+    """
+    if not current_user.is_premium:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Bu funksiya yalniz Premium istifadeciler ucundur. Premium abuneliq alin.",
+        )
+    return current_user

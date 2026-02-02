@@ -5,7 +5,7 @@ from sqlalchemy import select
 from app.database import get_db
 from app.models.user import User, UserType, VerificationStatus
 from app.schemas.user import UserResponse, UserProfileUpdate, TrainerListResponse
-from app.utils.security import get_current_user
+from app.utils.security import get_current_user, get_premium_user
 
 router = APIRouter(prefix="/api/v1/users", tags=["Users"])
 
@@ -56,9 +56,10 @@ async def get_trainer(trainer_id: str, db: AsyncSession = Depends(get_db)):
 @router.post("/assign-trainer/{trainer_id}", response_model=UserResponse)
 async def assign_trainer(
     trainer_id: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_premium_user),
     db: AsyncSession = Depends(get_db),
 ):
+    """Trainer-e qosul (Premium lazimdir)."""
     if current_user.user_type != UserType.client:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -78,6 +79,21 @@ async def assign_trainer(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trainer tapilmadi")
 
     current_user.trainer_id = trainer_id
+    return current_user
+
+
+@router.delete("/unassign-trainer", response_model=UserResponse)
+async def unassign_trainer(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Trainer-den ayril."""
+    if current_user.user_type != UserType.client:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Yalniz client trainer legv ede biler",
+        )
+    current_user.trainer_id = None
     return current_user
 
 

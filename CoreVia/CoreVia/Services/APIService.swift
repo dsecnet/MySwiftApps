@@ -227,6 +227,61 @@ class APIService {
         return data
     }
 
+    // MARK: - Multipart Upload (Image + Form Fields)
+
+    func uploadImageWithFields(
+        endpoint: String,
+        imageData: Data,
+        fields: [String: String],
+        fieldName: String = "file",
+        fileName: String = "photo.jpg"
+    ) async throws -> Data {
+        guard let url = URL(string: "\(baseURL)\(endpoint)") else {
+            throw APIError.invalidURL
+        }
+
+        let boundary = UUID().uuidString
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        if let token = KeychainManager.shared.accessToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        var body = Data()
+
+        // Form field-leri elave et
+        for (key, value) in fields {
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n".data(using: .utf8)!)
+            body.append("\(value)\r\n".data(using: .utf8)!)
+        }
+
+        // Sekil elave et
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"\(fieldName)\"; filename=\"\(fileName)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+        body.append(imageData)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+
+        request.httpBody = body
+
+        let (data, response) = try await performRequest(request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.networkError("Invalid response")
+        }
+
+        guard (200...299).contains(httpResponse.statusCode) else {
+            let detail = try? decoder.decode(ErrorDetail.self, from: data)
+            if httpResponse.statusCode == 429 {
+                throw APIError.serverError(429, detail?.detail ?? "Coxlu sorgu. Bir az gozleyin.")
+            }
+            throw APIError.serverError(httpResponse.statusCode, detail?.detail ?? "Upload ugursuz oldu")
+        }
+        return data
+    }
+
     // MARK: - Private Helpers
 
     private func performRequest(_ request: URLRequest) async throws -> (Data, URLResponse) {

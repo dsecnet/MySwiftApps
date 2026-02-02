@@ -140,6 +140,9 @@ struct TrainerProfileView: View {
                 .background(Color.purple.opacity(0.1))
                 .cornerRadius(12)
 
+                // Verification status badge
+                verificationBadge
+
                 if let price = profileManager.userProfile.pricePerSession, price > 0 {
                     Text("\(String(format: "%.0f", price)) AZN / seans")
                         .font(.system(size: 13, weight: .medium))
@@ -162,6 +165,50 @@ struct TrainerProfileView: View {
                 }
                 .padding(.top, 4)
             }
+        }
+    }
+
+    // MARK: - Verification Badge
+    @ViewBuilder
+    private var verificationBadge: some View {
+        let status = AuthManager.shared.currentUser?.verificationStatus ?? "pending"
+
+        if status == "verified" {
+            HStack(spacing: 6) {
+                Image(systemName: "checkmark.seal.fill")
+                    .font(.system(size: 12))
+                Text("Dogrulanmis Muellim")
+                    .font(.system(size: 12, weight: .semibold))
+            }
+            .foregroundColor(.green)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 5)
+            .background(Color.green.opacity(0.12))
+            .cornerRadius(10)
+        } else if status == "pending" {
+            HStack(spacing: 6) {
+                Image(systemName: "hourglass")
+                    .font(.system(size: 12))
+                Text("Gozden kecirilir")
+                    .font(.system(size: 12, weight: .semibold))
+            }
+            .foregroundColor(.orange)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 5)
+            .background(Color.orange.opacity(0.12))
+            .cornerRadius(10)
+        } else {
+            HStack(spacing: 6) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 12))
+                Text("Redd edildi")
+                    .font(.system(size: 12, weight: .semibold))
+            }
+            .foregroundColor(.red)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 5)
+            .background(Color.red.opacity(0.12))
+            .cornerRadius(10)
         }
     }
 

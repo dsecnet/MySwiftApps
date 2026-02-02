@@ -72,6 +72,11 @@ class UserResponse(BaseModel):
     bio: str | None = None
     verification_status: VerificationStatus | None = None
 
+    # Verification details
+    instagram_handle: str | None = None
+    verification_photo_url: str | None = None
+    verification_score: float | None = None
+
     model_config = {"from_attributes": True}
 
 
@@ -85,5 +90,12 @@ class TrainerListResponse(BaseModel):
     price_per_session: float | None = None
     bio: str | None = None
     verification_status: VerificationStatus
+    instagram_handle: str | None = None
 
     model_config = {"from_attributes": True}
+
+
+class TrainerVerificationResponse(BaseModel):
+    verification_status: VerificationStatus
+    verification_score: float | None = None
+    message: str

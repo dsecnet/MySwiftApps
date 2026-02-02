@@ -44,8 +44,10 @@ struct ActivitiesView: View {
 
     @ObservedObject private var routeManager = RouteManager.shared
     @ObservedObject private var locationManager = LocationManager.shared
+    @ObservedObject private var settingsManager = SettingsManager.shared
 
     @State private var selectedFilter: ActivityType? = nil
+    @State private var showPremium = false
     @State private var showStartActivity = false
     @State private var isTracking = false
     @State private var activeType: ActivityType = .running
@@ -87,6 +89,20 @@ struct ActivitiesView: View {
         ZStack {
             AppTheme.Colors.background.ignoresSafeArea()
 
+            if settingsManager.isPremium {
+                premiumActivitiesContent
+            } else {
+                lockedActivitiesContent
+            }
+        }
+        .sheet(isPresented: $showPremium) {
+            PremiumView()
+        }
+    }
+
+    // MARK: - Premium Activities Content (aciq)
+    private var premiumActivitiesContent: some View {
+        ZStack {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 20) {
                     headerSection
@@ -158,6 +174,101 @@ struct ActivitiesView: View {
                 pendingActivityType = nil
                 beginTracking(type: pending)
             }
+        }
+    }
+
+    // MARK: - Locked Activities Content (premium lazimdir)
+    private var lockedActivitiesContent: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 20) {
+                headerSection
+
+                // Blurred weekly stats
+                weeklyStatsSection
+                    .blur(radius: 3)
+                    .allowsHitTesting(false)
+
+                // Locked overlay
+                Button {
+                    showPremium = true
+                } label: {
+                    ZStack {
+                        // Placeholder cards
+                        VStack(spacing: 12) {
+                            ForEach(0..<3, id: \.self) { _ in
+                                HStack(spacing: 14) {
+                                    Circle()
+                                        .fill(Color.gray.opacity(0.1))
+                                        .frame(width: 48, height: 48)
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        RoundedRectangle(cornerRadius: 4)
+                                            .fill(Color.gray.opacity(0.15))
+                                            .frame(width: 120, height: 14)
+                                        RoundedRectangle(cornerRadius: 4)
+                                            .fill(Color.gray.opacity(0.1))
+                                            .frame(width: 180, height: 12)
+                                    }
+                                    Spacer()
+                                }
+                                .padding()
+                                .background(AppTheme.Colors.secondaryBackground)
+                                .cornerRadius(14)
+                            }
+                        }
+                        .blur(radius: 2)
+
+                        // Lock overlay
+                        VStack(spacing: 14) {
+                            ZStack {
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [.indigo, .purple],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 60, height: 60)
+
+                                Image(systemName: "lock.fill")
+                                    .font(.system(size: 26))
+                                    .foregroundColor(.white)
+                            }
+
+                            Text("GPS Hereket Izleme")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(AppTheme.Colors.primaryText)
+
+                            Text("Qacis, gezinti ve velosiped marsrutlarinizi izleyin")
+                                .font(.system(size: 13))
+                                .foregroundColor(AppTheme.Colors.secondaryText)
+                                .multilineTextAlignment(.center)
+
+                            HStack(spacing: 6) {
+                                Image(systemName: "sparkles")
+                                    .font(.system(size: 14))
+                                Text("Premium-a kec")
+                                    .font(.system(size: 15, weight: .semibold))
+                            }
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 12)
+                            .background(
+                                LinearGradient(
+                                    colors: [.indigo, .purple],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .cornerRadius(14)
+                            .shadow(color: .indigo.opacity(0.4), radius: 10, x: 0, y: 5)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 30)
+                }
+            }
+            .padding()
         }
     }
 
