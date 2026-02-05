@@ -14,7 +14,6 @@ struct RouteDetailView: View {
     @ObservedObject private var loc = LocalizationManager.shared
     @Environment(\.dismiss) private var dismiss
 
-    // Parsed coordinates
     private var coordinates: [CLLocationCoordinate2D] {
         parseCoordinates()
     }
@@ -70,14 +69,13 @@ struct RouteDetailView: View {
             if !coordinates.isEmpty {
                 Map {
                     MapPolyline(coordinates: coordinates)
-                        .stroke(.red, lineWidth: 4)
+                        .stroke(AppTheme.Colors.accent, lineWidth: 4)
 
-                    // Start marker (green)
                     if let first = coordinates.first {
                         Annotation("", coordinate: first) {
                             ZStack {
                                 Circle()
-                                    .fill(Color.green)
+                                    .fill(AppTheme.Colors.success)
                                     .frame(width: 16, height: 16)
                                 Circle()
                                     .stroke(Color.white, lineWidth: 3)
@@ -86,12 +84,11 @@ struct RouteDetailView: View {
                         }
                     }
 
-                    // End marker (red)
                     if let last = coordinates.last, coordinates.count > 1 {
                         Annotation("", coordinate: last) {
                             ZStack {
                                 Circle()
-                                    .fill(Color.red)
+                                    .fill(AppTheme.Colors.accent)
                                     .frame(width: 16, height: 16)
                                 Circle()
                                     .stroke(Color.white, lineWidth: 3)
@@ -104,7 +101,6 @@ struct RouteDetailView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 16))
 
             } else if let mapUrl = route.staticMapUrl, let url = URL(string: mapUrl) {
-                // Fallback: static map from backend
                 AsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let image):
@@ -137,7 +133,7 @@ struct RouteDetailView: View {
                 Image(systemName: "map")
                     .font(.system(size: 40))
                     .foregroundColor(AppTheme.Colors.tertiaryText)
-                Text("Xerite melumati yoxdur")
+                Text(loc.localized("route_no_map"))
                     .font(.system(size: 14))
                     .foregroundColor(AppTheme.Colors.secondaryText)
             }
@@ -153,7 +149,7 @@ struct RouteDetailView: View {
                     value: String(format: "%.2f", route.distanceKm),
                     unit: "km",
                     label: "Mesafe",
-                    color: .red
+                    color: AppTheme.Colors.accent
                 )
 
                 RouteStatCard(
@@ -161,7 +157,7 @@ struct RouteDetailView: View {
                     value: formatDuration(route.durationSeconds),
                     unit: "",
                     label: "Muddet",
-                    color: .blue
+                    color: AppTheme.Colors.accent
                 )
             }
 
@@ -171,7 +167,7 @@ struct RouteDetailView: View {
                     value: route.avgPace.map { String(format: "%.1f", $0) } ?? "--",
                     unit: "deq/km",
                     label: "Orta Temp",
-                    color: .orange
+                    color: AppTheme.Colors.accent
                 )
 
                 RouteStatCard(
@@ -179,7 +175,7 @@ struct RouteDetailView: View {
                     value: route.caloriesBurned.map { "\($0)" } ?? "--",
                     unit: "kkal",
                     label: "Kalori",
-                    color: .green
+                    color: AppTheme.Colors.accent
                 )
             }
 
@@ -189,7 +185,7 @@ struct RouteDetailView: View {
                     value: route.elevationGain.map { String(format: "%.0f", $0) } ?? "--",
                     unit: "m",
                     label: "Yukselis",
-                    color: .purple
+                    color: AppTheme.Colors.accent
                 )
 
                 RouteStatCard(
@@ -197,7 +193,7 @@ struct RouteDetailView: View {
                     value: route.avgSpeedKmh.map { String(format: "%.1f", $0) } ?? "--",
                     unit: "km/s",
                     label: "Orta Suret",
-                    color: .teal
+                    color: AppTheme.Colors.accent
                 )
             }
         }
@@ -206,7 +202,7 @@ struct RouteDetailView: View {
     // MARK: - Details Section
     private var detailsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Detallar")
+            Text(loc.localized("route_details"))
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 

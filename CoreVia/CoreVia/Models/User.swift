@@ -25,9 +25,9 @@ enum UserType: String, Codable {
     var displayName: String {
         switch self {
         case .client:
-            return "Müştəri"
+            return LocalizationManager.shared.localized("profile_type_client")
         case .trainer:
-            return "Müəllim"
+            return LocalizationManager.shared.localized("profile_type_trainer")
         }
     }
 }

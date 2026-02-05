@@ -8,7 +8,6 @@ struct AddFoodView: View {
     @StateObject private var foodManager = FoodManager.shared
     @StateObject private var foodImageManager = FoodImageManager.shared
 
-    // Form state
     @State private var foodName: String = ""
     @State private var calories: String = ""
     @State private var protein: String = ""
@@ -18,7 +17,6 @@ struct AddFoodView: View {
     @State private var notes: String = ""
     @State private var showSuccessAlert: Bool = false
 
-    // Camera state
     @State private var showCamera = false
     @State private var capturedImage: UIImage? = nil
     @State private var isAnalyzing = false
@@ -28,7 +26,6 @@ struct AddFoodView: View {
     @ObservedObject private var settingsManager = SettingsManager.shared
     @State private var showPremium = false
 
-    // Mock analiz nəticələri
     private var mockFoodResults: [(name: String, calories: Int, protein: Double, carbs: Double, fats: Double)] {
         [
             (loc.localized("food_mock_pilaf"), 450, 28, 55, 12),
@@ -44,7 +41,6 @@ struct AddFoodView: View {
         ]
     }
 
-    // Quick add items
     var quickAddItems: [QuickAddFood] {
         [
             QuickAddFood(name: loc.localized("food_quick_egg"), calories: 78, protein: 6, carbs: 0.6, fats: 5, icon: "🥚"),
@@ -66,14 +62,14 @@ struct AddFoodView: View {
                         Button(loc.localized("common_close")) {
                             dismiss()
                         }
-                        .foregroundColor(.red)
+                        .foregroundColor(AppTheme.Colors.accent)
                     }
 
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button(loc.localized("common_save")) {
                             saveFood()
                         }
-                        .foregroundColor(.red)
+                        .foregroundColor(AppTheme.Colors.accent)
                         .fontWeight(.semibold)
                         .disabled(!isFormValid)
                         .opacity(isFormValid ? 1.0 : 0.5)
@@ -96,6 +92,25 @@ struct AddFoodView: View {
                     if newImage != nil {
                         startMockAnalysis()
                     }
+                }
+                .onChange(of: calories) { _, val in
+                    calories = val.filter { $0.isNumber }
+                    if let n = Int(calories), n > 10000 { calories = "10000" }
+                }
+                .onChange(of: protein) { _, val in
+                    protein = val.filter { $0.isNumber || $0 == "." }
+                    if let n = Double(protein), n > 1000 { protein = "1000" }
+                }
+                .onChange(of: carbs) { _, val in
+                    carbs = val.filter { $0.isNumber || $0 == "." }
+                    if let n = Double(carbs), n > 1000 { carbs = "1000" }
+                }
+                .onChange(of: fats) { _, val in
+                    fats = val.filter { $0.isNumber || $0 == "." }
+                    if let n = Double(fats), n > 1000 { fats = "1000" }
+                }
+                .onChange(of: notes) { _, val in
+                    if val.count > 1000 { notes = String(val.prefix(1000)) }
                 }
         }
     }
@@ -139,7 +154,7 @@ struct AddFoodView: View {
                     .padding(.vertical, 4)
                     .background(
                         LinearGradient(
-                            colors: [.indigo, .purple],
+                            colors: [AppTheme.Colors.accent, AppTheme.Colors.accentDark],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
@@ -170,7 +185,7 @@ struct AddFoodView: View {
                     if isAnalyzing {
                         VStack(spacing: 12) {
                             ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .red))
+                                .progressViewStyle(CircularProgressViewStyle(tint: AppTheme.Colors.accent))
                                 .scaleEffect(1.2)
 
                             Text(loc.localized("food_analyzing"))
@@ -185,7 +200,7 @@ struct AddFoodView: View {
                         HStack(spacing: 12) {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.system(size: 24))
-                                .foregroundColor(.green)
+                                .foregroundColor(AppTheme.Colors.success)
 
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(loc.localized("food_analysis_done"))
@@ -200,11 +215,11 @@ struct AddFoodView: View {
                             Spacer()
                         }
                         .padding()
-                        .background(Color.green.opacity(0.1))
+                        .background(AppTheme.Colors.success.opacity(0.1))
                         .cornerRadius(12)
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.green.opacity(0.3), lineWidth: 1)
+                                .stroke(AppTheme.Colors.success.opacity(0.3), lineWidth: 1)
                         )
                     }
 
@@ -218,10 +233,10 @@ struct AddFoodView: View {
                             Text(loc.localized("food_retake"))
                                 .font(.system(size: 14, weight: .semibold))
                         }
-                        .foregroundColor(.red)
+                        .foregroundColor(AppTheme.Colors.accent)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 10)
-                        .background(Color.red.opacity(0.1))
+                        .background(AppTheme.Colors.accent.opacity(0.1))
                         .cornerRadius(10)
                     }
                 }
@@ -234,7 +249,7 @@ struct AddFoodView: View {
                             Circle()
                                 .fill(
                                     LinearGradient(
-                                        colors: [Color.red.opacity(0.2), Color.red.opacity(0.1)],
+                                        colors: [AppTheme.Colors.accent.opacity(0.2), AppTheme.Colors.accent.opacity(0.1)],
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing
                                     )
@@ -243,7 +258,7 @@ struct AddFoodView: View {
 
                             Image(systemName: "camera.fill")
                                 .font(.system(size: 28))
-                                .foregroundColor(.red)
+                                .foregroundColor(AppTheme.Colors.accent)
                         }
 
                         VStack(spacing: 4) {
@@ -262,7 +277,7 @@ struct AddFoodView: View {
                     .cornerRadius(16)
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.red.opacity(0.3), style: StrokeStyle(lineWidth: 1.5, dash: [8, 6]))
+                            .stroke(AppTheme.Colors.accent.opacity(0.3), style: StrokeStyle(lineWidth: 1.5, dash: [8, 6]))
                     )
                 }
             }
@@ -275,7 +290,6 @@ struct AddFoodView: View {
             showPremium = true
         } label: {
             ZStack {
-                // Blur olunmus arxa plan
                 VStack(spacing: 14) {
                     ZStack {
                         Circle()
@@ -301,13 +315,12 @@ struct AddFoodView: View {
                 .padding(.vertical, 24)
                 .blur(radius: 1)
 
-                // Kilid overlay
                 VStack(spacing: 12) {
                     ZStack {
                         Circle()
                             .fill(
                                 LinearGradient(
-                                    colors: [.indigo, .purple],
+                                    colors: [AppTheme.Colors.accent, AppTheme.Colors.accentDark],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )
@@ -319,18 +332,18 @@ struct AddFoodView: View {
                             .foregroundColor(.white)
                     }
 
-                    Text("AI Kalori Analizi")
+                    Text(loc.localized("food_ai_calorie_analysis"))
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(AppTheme.Colors.primaryText)
 
-                    Text("Premium ile acin")
+                    Text(loc.localized("food_unlock_premium"))
                         .font(.system(size: 13))
                         .foregroundColor(AppTheme.Colors.secondaryText)
 
                     HStack(spacing: 6) {
                         Image(systemName: "sparkles")
                             .font(.system(size: 13))
-                        Text("Premium-a kec")
+                        Text(loc.localized("food_go_premium"))
                             .font(.system(size: 14, weight: .semibold))
                     }
                     .foregroundColor(.white)
@@ -338,7 +351,7 @@ struct AddFoodView: View {
                     .padding(.vertical, 10)
                     .background(
                         LinearGradient(
-                            colors: [.indigo, .purple],
+                            colors: [AppTheme.Colors.accent, AppTheme.Colors.accentDark],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
@@ -352,7 +365,7 @@ struct AddFoodView: View {
             .cornerRadius(16)
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
-                    .stroke(Color.indigo.opacity(0.3), lineWidth: 1)
+                    .stroke(AppTheme.Colors.accent.opacity(0.3), lineWidth: 1)
             )
         }
     }
@@ -437,21 +450,21 @@ struct AddFoodView: View {
                 MacroInputField(
                     label: loc.localized("food_protein"),
                     icon: "💪",
-                    color: .blue,
+                    color: AppTheme.Colors.accent,
                     text: $protein
                 )
 
                 MacroInputField(
                     label: loc.localized("food_carbs"),
                     icon: "🍞",
-                    color: .orange,
+                    color: AppTheme.Colors.accentDark,
                     text: $carbs
                 )
 
                 MacroInputField(
                     label: loc.localized("food_fats"),
                     icon: "🥑",
-                    color: .green,
+                    color: AppTheme.Colors.accent,
                     text: $fats
                 )
             }
@@ -486,7 +499,13 @@ struct AddFoodView: View {
 
     // MARK: - Computed Properties
     private var isFormValid: Bool {
-        !foodName.isEmpty && !calories.isEmpty && Int(calories) != nil
+        let trimmed = foodName.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty, trimmed.count <= 200 else { return false }
+        guard let cal = Int(calories), cal >= 0, cal <= 10000 else { return false }
+        if let p = Double(protein), (p < 0 || p > 1000) { return false }
+        if let c = Double(carbs), (c < 0 || c > 1000) { return false }
+        if let f = Double(fats), (f < 0 || f > 1000) { return false }
+        return true
     }
 
     // MARK: - Actions
@@ -508,7 +527,6 @@ struct AddFoodView: View {
             hasImage: hasPhoto
         )
 
-        // Şəkli saxla
         if let image = capturedImage {
             foodImageManager.saveImage(image, forEntryId: entryId)
         }
@@ -581,7 +599,7 @@ struct QuickAddButton: View {
 
                 Text("\(item.calories) kcal")
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundColor(.green)
+                    .foregroundColor(AppTheme.Colors.accent)
             }
             .frame(width: 100)
             .padding(.vertical, 12)
@@ -637,7 +655,7 @@ struct FoodInputField: View {
 
             HStack(spacing: 12) {
                 Image(systemName: icon)
-                    .foregroundColor(.red)
+                    .foregroundColor(AppTheme.Colors.accent)
                     .frame(width: 20)
 
                 TextField("", text: $text, prompt: Text(placeholder).foregroundColor(AppTheme.Colors.tertiaryText))
@@ -650,7 +668,7 @@ struct FoodInputField: View {
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(
-                        text.isEmpty ? AppTheme.Colors.separator : Color.red.opacity(0.5),
+                        text.isEmpty ? AppTheme.Colors.separator : AppTheme.Colors.accent.opacity(0.5),
                         lineWidth: 1
                     )
             )

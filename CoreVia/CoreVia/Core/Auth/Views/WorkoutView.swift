@@ -9,20 +9,20 @@ struct WorkoutView: View {
     
     var body: some View {
         ZStack {
-            Color(UIColor.systemBackground).ignoresSafeArea()
-            
+            AppTheme.Colors.background.ignoresSafeArea()
+
             ScrollView {
                 VStack(spacing: 20) {
-                    
+
                     // MARK: - Header
                     VStack(alignment: .leading, spacing: 6) {
                         Text(loc.localized("workout_tracking"))
                             .font(.title)
                             .bold()
-                            .foregroundColor(Color(UIColor.label))
-                        
+                            .foregroundColor(AppTheme.Colors.primaryText)
+
                         Text(loc.localized("workout_subtitle"))
-                            .foregroundColor(Color(UIColor.secondaryLabel))
+                            .foregroundColor(AppTheme.Colors.secondaryText)
                             .font(.caption)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -31,48 +31,48 @@ struct WorkoutView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
                             Text(loc.localized("workout_today_goal"))
-                                .foregroundColor(Color(UIColor.label))
+                                .foregroundColor(AppTheme.Colors.primaryText)
                                 .font(.headline)
-                            
+
                             Spacer()
-                            
+
                             Text("\(Int(manager.todayProgress * 100))%")
-                                .foregroundColor(.red)
+                                .foregroundColor(AppTheme.Colors.accent)
                                 .font(.headline)
                         }
-                        
+
                         ProgressView(value: manager.todayProgress)
-                            .tint(.red)
-                        
+                            .tint(AppTheme.Colors.accent)
+
                         HStack {
                             HStack(spacing: 4) {
                                 Image(systemName: "flame.fill")
-                                    .foregroundColor(.orange)
+                                    .foregroundColor(AppTheme.Colors.accent)
                                 Text("\(manager.todayTotalCalories) kcal")
-                                    .foregroundColor(Color(UIColor.secondaryLabel))
+                                    .foregroundColor(AppTheme.Colors.secondaryText)
                             }
                             .font(.caption)
-                            
+
                             Spacer()
-                            
+
                             HStack(spacing: 4) {
                                 Image(systemName: "clock.fill")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(AppTheme.Colors.accent)
                                 Text("\(manager.todayTotalMinutes) \(loc.localized("common_min"))")
-                                    .foregroundColor(Color(UIColor.secondaryLabel))
+                                    .foregroundColor(AppTheme.Colors.secondaryText)
                             }
                             .font(.caption)
                         }
                     }
                     .padding()
-                    .background(Color(UIColor.secondarySystemBackground))
+                    .background(AppTheme.Colors.secondaryBackground)
                     .cornerRadius(14)
                     
                     // MARK: - Today's Workouts
                     if !manager.todayWorkouts.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
                             Text(loc.localized("workout_today"))
-                                .foregroundColor(Color(UIColor.label))
+                                .foregroundColor(AppTheme.Colors.primaryText)
                                 .font(.headline)
                             
                             ForEach(manager.todayWorkouts) { workout in
@@ -87,7 +87,7 @@ struct WorkoutView: View {
                     if !manager.pendingWorkouts.filter({ !$0.isToday }).isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
                             Text(loc.localized("workout_future"))
-                                .foregroundColor(Color(UIColor.label))
+                                .foregroundColor(AppTheme.Colors.primaryText)
                                 .font(.headline)
                             
                             ForEach(manager.pendingWorkouts.filter { !$0.isToday }.prefix(3)) { workout in
@@ -103,15 +103,15 @@ struct WorkoutView: View {
                         VStack(spacing: 16) {
                             Image(systemName: "figure.strengthtraining.traditional")
                                 .font(.system(size: 60))
-                                .foregroundColor(Color(UIColor.tertiaryLabel))
-                            
+                                .foregroundColor(AppTheme.Colors.tertiaryText)
+
                             Text(loc.localized("workout_no_workouts"))
                                 .font(.headline)
-                                .foregroundColor(Color(UIColor.secondaryLabel))
-                            
+                                .foregroundColor(AppTheme.Colors.secondaryText)
+
                             Text(loc.localized("workout_add_first"))
                                 .font(.caption)
-                                .foregroundColor(Color(UIColor.tertiaryLabel))
+                                .foregroundColor(AppTheme.Colors.tertiaryText)
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 60)
@@ -131,13 +131,13 @@ struct WorkoutView: View {
                         .frame(maxWidth: .infinity)
                         .background(
                             LinearGradient(
-                                colors: [Color.red, Color.red.opacity(0.8)],
+                                colors: [AppTheme.Colors.accent, AppTheme.Colors.accent.opacity(0.8)],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
                         )
                         .cornerRadius(14)
-                        .shadow(color: .red.opacity(0.3), radius: 8)
+                        .shadow(color: AppTheme.Colors.accent.opacity(0.3), radius: 8)
                     }
                     .padding(.top, 10)
                 }
@@ -157,7 +157,6 @@ struct WorkoutCard: View {
     
     var body: some View {
         HStack(spacing: 16) {
-            // Icon & Category Color
             ZStack {
                 Circle()
                     .fill(categoryColor.opacity(0.2))
@@ -168,66 +167,61 @@ struct WorkoutCard: View {
                     .foregroundColor(categoryColor)
             }
             
-            // Info
             VStack(alignment: .leading, spacing: 4) {
                 Text(workout.title)
-                    .foregroundColor(Color(UIColor.label))
+                    .foregroundColor(AppTheme.Colors.primaryText)
                     .bold()
-                
+
                 HStack(spacing: 12) {
-                    // Duration
                     HStack(spacing: 4) {
                         Image(systemName: "clock.fill")
                             .font(.caption2)
                         Text("\(workout.duration) \(LocalizationManager.shared.localized("common_min"))")
                     }
-                    .foregroundColor(Color(UIColor.secondaryLabel))
+                    .foregroundColor(AppTheme.Colors.secondaryText)
                     .font(.caption)
-                    
-                    // Calories
+
                     if let calories = workout.caloriesBurned {
                         HStack(spacing: 4) {
                             Image(systemName: "flame.fill")
                                 .font(.caption2)
                             Text("\(calories) kcal")
                         }
-                        .foregroundColor(.orange)
+                        .foregroundColor(AppTheme.Colors.accent)
                         .font(.caption)
                     }
                 }
-                
-                // Date (if not today)
+
                 if !workout.isToday {
                     Text(workout.relativeDate)
                         .font(.caption2)
-                        .foregroundColor(Color(UIColor.tertiaryLabel))
+                        .foregroundColor(AppTheme.Colors.tertiaryText)
                 }
             }
-            
+
             Spacer()
-            
-            // Completion Button
+
             Button(action: onToggle) {
                 Image(systemName: workout.isCompleted ? "checkmark.circle.fill" : "circle")
                     .font(.title2)
-                    .foregroundColor(workout.isCompleted ? .green : Color(UIColor.tertiaryLabel))
+                    .foregroundColor(workout.isCompleted ? AppTheme.Colors.success : AppTheme.Colors.tertiaryText)
             }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(AppTheme.Colors.secondaryBackground)
         .cornerRadius(14)
         .overlay(
             RoundedRectangle(cornerRadius: 14)
-                .stroke(workout.isCompleted ? Color.green.opacity(0.3) : Color.clear, lineWidth: 1)
+                .stroke(workout.isCompleted ? AppTheme.Colors.success.opacity(0.3) : Color.clear, lineWidth: 1)
         )
     }
     
     private var categoryColor: Color {
         switch workout.category {
-        case .strength: return .red
-        case .cardio: return .orange
-        case .flexibility: return .purple
-        case .endurance: return .blue
+        case .strength: return AppTheme.Colors.accent
+        case .cardio: return AppTheme.Colors.accentDark
+        case .flexibility: return AppTheme.Colors.accent
+        case .endurance: return AppTheme.Colors.accentDark
         }
     }
 }

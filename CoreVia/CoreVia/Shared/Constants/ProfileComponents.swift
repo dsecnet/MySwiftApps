@@ -25,7 +25,7 @@ struct TypeButton: View {
             .foregroundColor(isSelected ? .white : AppTheme.Colors.primaryText)
             .frame(maxWidth: .infinity)
             .padding()
-            .background(isSelected ? Color.red : AppTheme.Colors.secondaryBackground)
+            .background(isSelected ? AppTheme.Colors.accent : AppTheme.Colors.secondaryBackground)
             .cornerRadius(12)
         }
     }
@@ -41,7 +41,7 @@ struct ClientStatCard: View {
         VStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 20))
-                .foregroundColor(.red)
+                .foregroundColor(AppTheme.Colors.accent)
             
             Text(value)
                 .font(.system(size: 16, weight: .bold))
@@ -98,7 +98,7 @@ struct SettingsRow: View {
         Button(action: action) {
             HStack {
                 Image(systemName: icon)
-                    .foregroundColor(.red)
+                    .foregroundColor(AppTheme.Colors.accent)
                     .frame(width: 24)
                 
                 Text(title)

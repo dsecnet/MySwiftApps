@@ -1,20 +1,34 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from datetime import datetime
 from app.models.user import UserType, VerificationStatus
+import re
 
-
-# --- Auth Schemas ---
 
 class UserRegister(BaseModel):
-    name: str
+    name: str = Field(..., min_length=2, max_length=100)
     email: EmailStr
-    password: str
+    password: str = Field(..., min_length=6, max_length=128)
     user_type: UserType
+
+    @field_validator("name")
+    @classmethod
+    def name_must_be_valid(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Name cannot be empty")
+        return v
+
+    @field_validator("password")
+    @classmethod
+    def password_strength(cls, v: str) -> str:
+        if len(v) < 6:
+            raise ValueError("Password must be at least 6 characters")
+        return v
 
 
 class UserLogin(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(..., min_length=1, max_length=128)
 
 
 class Token(BaseModel):
@@ -27,24 +41,25 @@ class TokenRefresh(BaseModel):
     refresh_token: str
 
 
-# --- User Schemas ---
-
-class UserBase(BaseModel):
-    name: str
-    email: EmailStr
-    user_type: UserType
-
-
 class UserProfileUpdate(BaseModel):
-    name: str | None = None
-    age: int | None = None
-    weight: float | None = None
-    height: float | None = None
-    goal: str | None = None
-    specialization: str | None = None
-    experience: int | None = None
-    bio: str | None = None
-    price_per_session: float | None = None
+    name: str | None = Field(None, min_length=2, max_length=100)
+    age: int | None = Field(None, ge=13, le=120)
+    weight: float | None = Field(None, ge=20.0, le=500.0)
+    height: float | None = Field(None, ge=50.0, le=300.0)
+    goal: str | None = Field(None, max_length=100)
+    specialization: str | None = Field(None, max_length=100)
+    experience: int | None = Field(None, ge=0, le=60)
+    bio: str | None = Field(None, max_length=1000)
+    price_per_session: float | None = Field(None, ge=0.0, le=10000.0)
+
+    @field_validator("name")
+    @classmethod
+    def name_strip(cls, v):
+        if v is not None:
+            v = v.strip()
+            if not v:
+                raise ValueError("Name cannot be empty")
+        return v
 
 
 class UserResponse(BaseModel):
@@ -56,23 +71,17 @@ class UserResponse(BaseModel):
     is_active: bool
     is_premium: bool
     created_at: datetime
-
-    # Client fields
     age: int | None = None
     weight: float | None = None
     height: float | None = None
     goal: str | None = None
     trainer_id: str | None = None
-
-    # Trainer fields
     specialization: str | None = None
     experience: int | None = None
     rating: float | None = None
     price_per_session: float | None = None
     bio: str | None = None
     verification_status: VerificationStatus | None = None
-
-    # Verification details
     instagram_handle: str | None = None
     verification_photo_url: str | None = None
     verification_score: float | None = None
@@ -99,3 +108,38 @@ class TrainerVerificationResponse(BaseModel):
     verification_status: VerificationStatus
     verification_score: float | None = None
     message: str
+
+
+class StudentSummary(BaseModel):
+    id: str
+    name: str
+    email: str
+    weight: float | None = None
+    height: float | None = None
+    goal: str | None = None
+    age: int | None = None
+    profile_image_url: str | None = None
+    training_plans_count: int = 0
+    meal_plans_count: int = 0
+    total_workouts: int = 0
+    this_week_workouts: int = 0
+    total_calories_logged: int = 0
+
+    model_config = {"from_attributes": True}
+
+
+class StatsSummary(BaseModel):
+    avg_student_workouts_per_week: float = 0.0
+    total_workouts_all_students: int = 0
+    avg_student_weight: float = 0.0
+
+
+class TrainerDashboardStats(BaseModel):
+    total_subscribers: int = 0
+    active_students: int = 0
+    monthly_earnings: float = 0.0
+    currency: str = "₼"
+    total_training_plans: int = 0
+    total_meal_plans: int = 0
+    students: list[StudentSummary] = []
+    stats_summary: StatsSummary

@@ -24,9 +24,9 @@ enum PlanType: String, Codable, CaseIterable {
 
     var color: Color {
         switch self {
-        case .weightLoss: return .orange
-        case .weightGain: return .green
-        case .strengthTraining: return .red
+        case .weightLoss: return AppTheme.Colors.planWeightLoss
+        case .weightGain: return AppTheme.Colors.planWeightGain
+        case .strengthTraining: return AppTheme.Colors.planStrength
         }
     }
 

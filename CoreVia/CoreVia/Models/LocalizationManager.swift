@@ -377,6 +377,166 @@ class LocalizationManager: ObservableObject {
         "premium_terms": [.az: "\u{00D6}d\u{0259}ni\u{015F} Apple ID hesab\u{0131}n\u{0131}zdan \u{00E7}\u{0131}x\u{0131}lacaq.", .en: "Payment will be charged to your Apple ID.", .ru: "\u{041E}\u{043F}\u{043B}\u{0430}\u{0442}\u{0430} \u{0441} Apple ID."],
         "premium_terms2": [.az: "\u{0130}stifad\u{0259} \u{015F}\u{0259}rtl\u{0259}ri v\u{0259} m\u{0259}xfilik siyas\u{0259}ti t\u{0259}tbiq olunur.", .en: "Terms of use and privacy policy apply.", .ru: "\u{041F}\u{0440}\u{0438}\u{043C}\u{0435}\u{043D}\u{044F}\u{044E}\u{0442}\u{0441}\u{044F} \u{0443}\u{0441}\u{043B}\u{043E}\u{0432}\u{0438}\u{044F}."],
 
+        // Premium View — yeni açarlar
+        "premium_active": [.az: "Premium Aktiv", .en: "Premium Active", .ru: "Премиум активен"],
+        "premium_all_unlocked": [.az: "B\u{00FC}t\u{00FC}n imkanlar\u{0131} a\u{00E7}\u{0131}n, limitl\u{0259}r olmadan", .en: "Unlock all features, no limits", .ru: "Откройте все функции без ограничений"],
+        "premium_features_title": [.az: "Premium X\u{00FC}susiyy\u{0259}tl\u{0259}r", .en: "Premium Features", .ru: "Премиум функции"],
+        "premium_go_premium": [.az: "Premium-a ke\u{00E7}", .en: "Go Premium", .ru: "Стать Премиум"],
+        "premium_cancel": [.az: "Premium-i l\u{0259}\u{011F}v et", .en: "Cancel Premium", .ru: "Отменить Премиум"],
+        "premium_cancel_title": [.az: "Premium-i l\u{0259}\u{011F}v et", .en: "Cancel Premium", .ru: "Отмена Премиум"],
+        "premium_cancel_message": [.az: "Premium abun\u{0259}liyinizi l\u{0259}\u{011F}v etm\u{0259}k ist\u{0259}yirsiniz? B\u{00FC}t\u{00FC}n premium x\u{00FC}susiyy\u{0259}tl\u{0259}r\u{0259} giri\u{015F}iniz bit\u{0259}c\u{0259}k.", .en: "Do you want to cancel your premium subscription? You will lose access to all premium features.", .ru: "Вы хотите отменить подписку? Вы потеряете доступ ко всем премиум функциям."],
+        "premium_cancel_yes": [.az: "B\u{0259}li, l\u{0259}\u{011F}v et", .en: "Yes, cancel", .ru: "Да, отменить"],
+        "premium_cancel_no": [.az: "Xeyr", .en: "No", .ru: "Нет"],
+        "premium_user": [.az: "Premium \u{0130}stifad\u{0259}\u{00E7}i", .en: "Premium User", .ru: "Премиум пользователь"],
+        "premium_all_active": [.az: "B\u{00FC}t\u{00FC}n x\u{00FC}susiyy\u{0259}tl\u{0259}r aktivdir", .en: "All features are active", .ru: "Все функции активны"],
+        "premium_can_cancel": [.az: "\u{0130}st\u{0259}diyiniz vaxt l\u{0259}\u{011F}v ed\u{0259} bil\u{0259}rsiniz", .en: "You can cancel anytime", .ru: "Вы можете отменить в любое время"],
+        "premium_appstore_payment": [.az: "\u{00D6}d\u{0259}ni\u{015F} App Store hesab\u{0131}n\u{0131}z \u{00FC}z\u{0259}rind\u{0259}n al\u{0131}n\u{0131}r", .en: "Payment is charged through your App Store account", .ru: "Оплата списывается через App Store"],
+        "premium_save_33": [.az: "33% q\u{0259}na\u{0259}t", .en: "Save 33%", .ru: "Экономия 33%"],
+        "premium_error": [.az: "X\u{0259}ta ba\u{015F} verdi", .en: "An error occurred", .ru: "Произошла ошибка"],
+        "premium_badge": [.az: "Premium", .en: "Premium", .ru: "Премиум"],
+        "premium_go_banner": [.az: "Premium-a ke\u{00E7}in", .en: "Go Premium", .ru: "Стать Премиум"],
+        "premium_go_banner_desc": [.az: "AI analiz, detall\u{0131} statistika v\u{0259} daha \u{00E7}ox", .en: "AI analysis, detailed statistics and more", .ru: "AI анализ, детальная статистика и многое другое"],
+
+        // Profil səhifəsi əlavə açarlar
+        "profile_new_workout": [.az: "Yeni \u{0130}dman", .en: "New Workout", .ru: "Новая тренировка"],
+        "profile_start_activity": [.az: "H\u{0259}r\u{0259}k\u{0259}t\u{0259} Ba\u{015F}la", .en: "Start Activity", .ru: "Начать активность"],
+        "profile_gps_desc": [.az: "GPS il\u{0259} qa\u{00E7}\u{0131}\u{015F}, gezinti izl\u{0259}", .en: "Track running, walking with GPS", .ru: "Отслеживайте бег и ходьбу с GPS"],
+        "profile_calorie": [.az: "Kalori", .en: "Calorie", .ru: "Калории"],
+        "profile_my_teachers": [.az: "M\u{00FC}\u{0259}lliml\u{0259}rim", .en: "My Teachers", .ru: "Мои тренеры"],
+        "profile_change_teacher": [.az: "M\u{00FC}\u{0259}llimi D\u{0259}yi\u{015F}", .en: "Change Teacher", .ru: "Сменить тренера"],
+        "profile_select_teacher": [.az: "M\u{00FC}\u{0259}llim Se\u{00E7}", .en: "Select Teacher", .ru: "Выбрать тренера"],
+        "profile_view_teachers": [.az: "Professional m\u{00FC}\u{0259}lliml\u{0259}r\u{0259} bax\u{0131}n", .en: "View professional teachers", .ru: "Посмотреть профессиональных тренеров"],
+        "profile_quick_actions": [.az: "S\u{00FC}r\u{0259}tli \u{018F}m\u{0259}liyyatlar", .en: "Quick Actions", .ru: "Быстрые действия"],
+        "profile_add_food": [.az: "Qida \u{018F}lav\u{0259} Et", .en: "Add Food", .ru: "Добавить еду"],
+        "profile_today_highlights": [.az: "Bug\u{00FC}n\u{00FC}n N\u{0259}tic\u{0259}l\u{0259}ri", .en: "Today's Highlights", .ru: "Результаты дня"],
+        "premium_active_badge": [.az: "Aktiv", .en: "Active", .ru: "Активен"],
+
+        // Premium Feature satırları
+        "premium_feat_ai_calorie": [.az: "AI Kalori Analizi", .en: "AI Calorie Analysis", .ru: "AI анализ калорий"],
+        "premium_feat_ai_calorie_desc": [.az: "\u{015E}\u{0259}kil \u{00E7}\u{0259}kin, kalori avtomatik hesablans\u{0131}n", .en: "Take a photo, calories calculated automatically", .ru: "Сфотографируйте, калории рассчитаются автоматически"],
+        "premium_feat_food_photo": [.az: "\u{015E}\u{0259}kil il\u{0259} qida analizi", .en: "Photo food analysis", .ru: "Анализ еды по фото"],
+        "premium_feat_food_photo_desc": [.az: "AI il\u{0259} qida tan\u{0131}mas\u{0131} v\u{0259} besin d\u{0259}y\u{0259}rl\u{0259}ri", .en: "AI food recognition and nutritional values", .ru: "Распознавание еды и пищевая ценность"],
+        "premium_feat_gps": [.az: "GPS H\u{0259}r\u{0259}k\u{0259}t \u{0130}zl\u{0259}m\u{0259}", .en: "GPS Activity Tracking", .ru: "GPS трекинг активности"],
+        "premium_feat_gps_desc": [.az: "Qa\u{00E7}\u{0131}\u{015F}, gezinti v\u{0259} velosiped izl\u{0259}m\u{0259}", .en: "Running, walking and cycling tracking", .ru: "Отслеживание бега, ходьбы и велосипеда"],
+        "premium_feat_teachers": [.az: "M\u{00FC}\u{0259}llim sistemi", .en: "Teacher system", .ru: "Система тренеров"],
+        "premium_feat_teachers_desc": [.az: "Professional m\u{00FC}\u{0259}lliml\u{0259}r\u{0259} qo\u{015F}ulun", .en: "Connect with professional teachers", .ru: "Подключитесь к профессиональным тренерам"],
+        "premium_feat_stats": [.az: "Detall\u{0131} statistika", .en: "Detailed statistics", .ru: "Детальная статистика"],
+        "premium_feat_stats_desc": [.az: "H\u{0259}ft\u{0259}lik v\u{0259} ayl\u{0131}q inki\u{015F}af hesabatlar\u{0131}", .en: "Weekly and monthly progress reports", .ru: "Еженедельные и ежемесячные отчёты"],
+        "premium_feat_notifications": [.az: "A\u{011F}\u{0131}ll\u{0131} bildiri\u{015F}l\u{0259}r", .en: "Smart notifications", .ru: "Умные уведомления"],
+        "premium_feat_notifications_desc": [.az: "Yem\u{0259}k v\u{0259} idman xat\u{0131}rlatmalar\u{0131}", .en: "Meal and workout reminders", .ru: "Напоминания о еде и тренировках"],
+
+        // Premium status satırları
+        "premium_status_ai": [.az: "AI Kalori Analizi", .en: "AI Calorie Analysis", .ru: "AI анализ калорий"],
+        "premium_status_gps": [.az: "GPS \u{0130}zl\u{0259}m\u{0259}", .en: "GPS Tracking", .ru: "GPS трекинг"],
+        "premium_status_teachers": [.az: "M\u{00FC}\u{0259}llim Sistemi", .en: "Teacher System", .ru: "Система тренеров"],
+        "premium_status_stats": [.az: "Detall\u{0131} Statistika", .en: "Detailed Statistics", .ru: "Детальная статистика"],
+
+        // Vahidlər və About
+        "unit_kcal": [.az: "kkal", .en: "kcal", .ru: "ккал"],
+        "unit_kg": [.az: "kq", .en: "kg", .ru: "кг"],
+        "unit_cm": [.az: "sm", .en: "cm", .ru: "см"],
+        "about_made_with_love": [.az: "Azərbaycanda ❤️ ilə hazırlanıb", .en: "Made with ❤️ in Azerbaijan", .ru: "Сделано с ❤️ в Азербайджане"],
+        "premium_currency": [.az: "₼", .en: "₼", .ru: "₼"],
+
+        // ============================================================
+        // MARK: - Trainer Dashboard
+        // ============================================================
+        "dashboard_total_subscribers": [.az: "Ümumi Abunəçilər", .en: "Total Subscribers", .ru: "Всего подписчиков"],
+        "dashboard_active_students": [.az: "Aktiv Tələbələr", .en: "Active Students", .ru: "Активные студенты"],
+        "dashboard_monthly_earnings": [.az: "Aylıq Gəlir", .en: "Monthly Earnings", .ru: "Ежемесячный доход"],
+        "dashboard_total_plans": [.az: "Ümumi Planlar", .en: "Total Plans", .ru: "Всего планов"],
+        "dashboard_student_progress": [.az: "Tələbə İnkişafı", .en: "Student Progress", .ru: "Прогресс студентов"],
+        "dashboard_this_week": [.az: "Bu həftə", .en: "This week", .ru: "На этой неделе"],
+        "dashboard_workouts": [.az: "idman", .en: "workouts", .ru: "тренировок"],
+        "dashboard_avg_workouts": [.az: "Orta həftəlik idman", .en: "Avg weekly workouts", .ru: "Средн. тренировок/нед"],
+        "dashboard_total_workouts": [.az: "Ümumi idmanlar", .en: "Total workouts", .ru: "Всего тренировок"],
+        "dashboard_avg_weight": [.az: "Orta çəki", .en: "Avg weight", .ru: "Средний вес"],
+        "dashboard_no_students": [.az: "Hələ tələbəniz yoxdur", .en: "No students yet", .ru: "Пока нет студентов"],
+        "dashboard_no_students_desc": [.az: "Tələbələr Premium-a keçib sizə qoşulduqda burada görsənəcək", .en: "Students will appear here when they subscribe to Premium and join you", .ru: "Студенты появятся здесь, когда подпишутся на Премиум и присоединятся к вам"],
+        "dashboard_stats_summary": [.az: "Statistika", .en: "Statistics", .ru: "Статистика"],
+        "dashboard_training_plans": [.az: "İdman Planları", .en: "Training Plans", .ru: "Планы тренировок"],
+        "dashboard_meal_plans": [.az: "Qida Planları", .en: "Meal Plans", .ru: "Планы питания"],
+        "dashboard_weight": [.az: "Çəki", .en: "Weight", .ru: "Вес"],
+        "dashboard_goal": [.az: "Məqsəd", .en: "Goal", .ru: "Цель"],
+        "dashboard_plans": [.az: "plan", .en: "plans", .ru: "планов"],
+
+        // ============================================================
+        // MARK: - Activities (Hərəkətlər)
+        // ============================================================
+        "activities_title": [.az: "Hərəkətlər", .en: "Activities", .ru: "Активности"],
+        "activities_subtitle": [.az: "Gəzintilərinizi və qaçışlarınızı izləyin", .en: "Track your walks and runs", .ru: "Отслеживайте прогулки и пробежки"],
+        "activities_this_week": [.az: "Bu həftə", .en: "This week", .ru: "На этой неделе"],
+        "activities_distance": [.az: "Məsafə", .en: "Distance", .ru: "Расстояние"],
+        "activities_duration": [.az: "Müddət", .en: "Duration", .ru: "Длительность"],
+        "activities_calorie": [.az: "Kalori", .en: "Calorie", .ru: "Калории"],
+        "activities_active": [.az: "Aktiv", .en: "Active", .ru: "Активно"],
+        "activities_time": [.az: "Vaxt", .en: "Time", .ru: "Время"],
+        "activities_pace": [.az: "Temp", .en: "Pace", .ru: "Темп"],
+        "activities_stop": [.az: "Dayandır", .en: "Stop", .ru: "Стоп"],
+        "activities_history": [.az: "Tarixçə", .en: "History", .ru: "История"],
+        "activities_all": [.az: "Hamısı", .en: "All", .ru: "Все"],
+        "activities_not_found": [.az: "Hərəkət tapılmadı", .en: "No activity found", .ru: "Активностей не найдено"],
+        "activities_start_hint": [.az: "Aşağıdakı + düyməyə basıb yeni hərəkət başlayın", .en: "Tap the + button below to start a new activity", .ru: "Нажмите + ниже, чтобы начать новую активность"],
+        "activities_start": [.az: "Hərəkətə başla", .en: "Start Activity", .ru: "Начать активность"],
+        "activities_begin": [.az: "BAŞLA", .en: "START", .ru: "СТАРТ"],
+        "activities_walking": [.az: "Gəzinti", .en: "Walking", .ru: "Ходьба"],
+        "activities_running": [.az: "Qaçış", .en: "Running", .ru: "Бег"],
+        "activities_cycling": [.az: "Velosiped", .en: "Cycling", .ru: "Велосипед"],
+        "activities_gps_tracking": [.az: "GPS Hərəkət İzləmə", .en: "GPS Activity Tracking", .ru: "GPS трекинг активности"],
+        "activities_gps_desc": [.az: "Qaçış, gəzinti və velosiped marşrutlarınızı izləyin", .en: "Track your running, walking and cycling routes", .ru: "Отслеживайте маршруты бега, ходьбы и велосипеда"],
+        "activities_premium_go": [.az: "Premium-a keç", .en: "Go Premium", .ru: "Стать Премиум"],
+        "activities_hours_short": [.az: "s", .en: "h", .ru: "ч"],
+        "activities_mins_short": [.az: "d", .en: "m", .ru: "м"],
+        "activities_mins": [.az: "dəq", .en: "min", .ru: "мин"],
+
+        // ============================================================
+        // MARK: - Teachers Detail (Müəllim detalları)
+        // ============================================================
+        "teacher_join": [.az: "Müəllimlə Qoşul", .en: "Join Teacher", .ru: "Присоединиться"],
+        "teacher_already_joined": [.az: "Bu müəllimə qoşulmusunuz", .en: "You are already joined", .ru: "Вы уже присоединились"],
+        "teacher_assign_success_title": [.az: "Uğurlu!", .en: "Success!", .ru: "Успешно!"],
+        "teacher_assign_success_msg": [.az: "müəllim olaraq təyin olundu!", .en: "assigned as your teacher!", .ru: "назначен(а) вашим тренером!"],
+        "teacher_ok": [.az: "Tamam", .en: "OK", .ru: "ОК"],
+        "teacher_error": [.az: "Xəta", .en: "Error", .ru: "Ошибка"],
+        "teacher_unknown_error": [.az: "Bilinməyən xəta", .en: "Unknown error", .ru: "Неизвестная ошибка"],
+        "teacher_premium_required": [.az: "Premium abunəlik lazımdır", .en: "Premium subscription required", .ru: "Требуется Премиум подписка"],
+        "teacher_premium_feature": [.az: "Müəllim seçimi Premium funksiyasıdır", .en: "Teacher selection is a Premium feature", .ru: "Выбор тренера — Премиум функция"],
+
+        // ============================================================
+        // MARK: - Trainer Verification
+        // ============================================================
+        "verification_title": [.az: "Verifikasiya", .en: "Verification", .ru: "Верификация"],
+        "verification_subtitle": [.az: "Müəllim profilinizi tamamlayın", .en: "Complete your teacher profile", .ru: "Заполните профиль тренера"],
+        "verification_step_register": [.az: "Qeydiyyat", .en: "Registration", .ru: "Регистрация"],
+        "verification_step_verify": [.az: "Verifikasiya", .en: "Verification", .ru: "Верификация"],
+        "verification_photo_hint": [.az: "Bədən formanızı göstərən bir şəkil yükləyin. AI şəkilinizi analiz edəcək.", .en: "Upload a photo showing your body form. AI will analyze your photo.", .ru: "Загрузите фото, показывающее вашу форму. ИИ проанализирует фото."],
+        "verification_select_photo": [.az: "Şəkil Seç", .en: "Select Photo", .ru: "Выбрать фото"],
+        "verification_bio_placeholder": [.az: "Özünüz haqqında qısa məlumat yazın...", .en: "Write a short bio about yourself...", .ru: "Напишите кратко о себе..."],
+        "verification_submit": [.az: "Verifikasiya üçün Göndər", .en: "Submit for Verification", .ru: "Отправить на верификацию"],
+        "verification_select_photo_error": [.az: "Zəhmət olmasa şəkil seçin", .en: "Please select a photo", .ru: "Пожалуйста, выберите фото"],
+        "verification_ai_score": [.az: "AI Skoru", .en: "AI Score", .ru: "Оценка ИИ"],
+        "verification_continue": [.az: "Davam et", .en: "Continue", .ru: "Продолжить"],
+        "verification_waiting": [.az: "Gözləyirəm", .en: "Waiting", .ru: "Ожидание"],
+        "verification_retry": [.az: "Yenidən cəhd et", .en: "Try again", .ru: "Попробовать снова"],
+        "verification_logout": [.az: "Çıxış", .en: "Logout", .ru: "Выйти"],
+
+        // ============================================================
+        // MARK: - Teacher Profile View
+        // ============================================================
+        "teacher_verified": [.az: "Doğrulanmış Müəllim", .en: "Verified Teacher", .ru: "Верифицированный тренер"],
+        "teacher_pending": [.az: "Gözdən keçirilir", .en: "Under review", .ru: "На рассмотрении"],
+        "teacher_rejected": [.az: "Rədd edildi", .en: "Rejected", .ru: "Отклонено"],
+        "teacher_my_plans": [.az: "Planlarım", .en: "My Plans", .ru: "Мои планы"],
+        "teacher_workout_plan": [.az: "İdman Planı", .en: "Workout Plan", .ru: "План тренировок"],
+        "teacher_meal_plan": [.az: "Yemək Planı", .en: "Meal Plan", .ru: "План питания"],
+
+        // Əlavə səhifə yazıları
+        "route_no_map": [.az: "Xəritə məlumatı yoxdur", .en: "No map data available", .ru: "Нет данных карты"],
+        "route_details": [.az: "Detallar", .en: "Details", .ru: "Детали"],
+        "food_ai_calorie_analysis": [.az: "AI Kalori Analizi", .en: "AI Calorie Analysis", .ru: "AI анализ калорий"],
+        "food_unlock_premium": [.az: "Premium ilə açın", .en: "Unlock with Premium", .ru: "Откройте с Премиум"],
+        "food_go_premium": [.az: "Premium-a keç", .en: "Go Premium", .ru: "Стать Премиум"],
+
         // ============================================================
         // MARK: - Trainer (Müəllim xüsusi)
         // ============================================================
@@ -530,5 +690,218 @@ class LocalizationManager: ObservableObject {
         "student_detail_no_plans": [.az: "Hələ plan təyin edilməyib", .en: "No plans assigned yet", .ru: "Планы пока не назначены"],
         "student_detail_create_training": [.az: "İdman Planı Yarat", .en: "Create Training Plan", .ru: "Создать план тренировок"],
         "student_detail_create_meal": [.az: "Qida Planı Yarat", .en: "Create Meal Plan", .ru: "Создать план питания"],
+
+        // ============================================================
+        // MARK: - Trainer Profile Detail
+        // ============================================================
+        "trainer_subscribe": [.az: "Abunə Ol", .en: "Subscribe", .ru: "Подписаться"],
+        "trainer_subscribed": [.az: "Abunə olunub", .en: "Subscribed", .ru: "Подписан(а)"],
+        "trainer_view_profile": [.az: "Profilə Bax", .en: "View Profile", .ru: "Просмотр профиля"],
+        "trainer_price_per_session": [.az: "Qiymət / seans", .en: "Price / session", .ru: "Цена / сеанс"],
+        "trainer_specialties": [.az: "İxtisaslar", .en: "Specialties", .ru: "Специализации"],
+        "trainer_years_short": [.az: "il", .en: "yrs", .ru: "лет"],
+        "trainer_session_short": [.az: "seans", .en: "session", .ru: "сеанс"],
+        "trainer_no_bio": [.az: "Bio əlavə edilməyib", .en: "No bio added", .ru: "Био не добавлено"],
+        "trainer_instagram": [.az: "Instagram", .en: "Instagram", .ru: "Instagram"],
+
+        // Specialty Tags (localized)
+        "specialty_fitness": [.az: "Fitness", .en: "Fitness", .ru: "Фитнес"],
+        "specialty_strength": [.az: "Güc məşqi", .en: "Strength", .ru: "Силовые"],
+        "specialty_cardio": [.az: "Kardio", .en: "Cardio", .ru: "Кардио"],
+        "specialty_yoga": [.az: "Yoga", .en: "Yoga", .ru: "Йога"],
+        "specialty_nutrition": [.az: "Qidalanma", .en: "Nutrition", .ru: "Питание"],
+        "specialty_bodybuilding": [.az: "Bədən qurma", .en: "Bodybuilding", .ru: "Бодибилдинг"],
+        "specialty_pilates": [.az: "Pilates", .en: "Pilates", .ru: "Пилатес"],
+        "specialty_crossfit": [.az: "CrossFit", .en: "CrossFit", .ru: "Кроссфит"],
+        "specialty_boxing": [.az: "Boks", .en: "Boxing", .ru: "Бокс"],
+        "specialty_stretching": [.az: "Esnəmə", .en: "Stretching", .ru: "Растяжка"],
+        "specialty_rehabilitation": [.az: "Reabilitasiya", .en: "Rehabilitation", .ru: "Реабилитация"],
+        "specialty_functional": [.az: "Funksional", .en: "Functional", .ru: "Функциональный"],
+
+        // ============================================================
+        // MARK: - Reviews (Rəylər)
+        // ============================================================
+        "review_title": [.az: "Rəylər", .en: "Reviews", .ru: "Отзывы"],
+        "review_write": [.az: "Rəy yaz", .en: "Write Review", .ru: "Написать отзыв"],
+        "review_empty": [.az: "Hələ rəy yoxdur", .en: "No reviews yet", .ru: "Пока нет отзывов"],
+        "review_submit": [.az: "Göndər", .en: "Submit", .ru: "Отправить"],
+        "review_comment": [.az: "Şərh", .en: "Comment", .ru: "Комментарий"],
+        "review_rate_trainer": [.az: "Müəllimi qiymətləndirin", .en: "Rate the trainer", .ru: "Оцените тренера"],
+        "review_success_msg": [.az: "Rəyiniz uğurla göndərildi!", .en: "Your review was submitted successfully!", .ru: "Ваш отзыв успешно отправлен!"],
+        "review_rating_1": [.az: "Çox pis", .en: "Very bad", .ru: "Очень плохо"],
+        "review_rating_2": [.az: "Pis", .en: "Bad", .ru: "Плохо"],
+        "review_rating_3": [.az: "Orta", .en: "Average", .ru: "Средне"],
+        "review_rating_4": [.az: "Yaxşı", .en: "Good", .ru: "Хорошо"],
+        "review_rating_5": [.az: "Əla", .en: "Excellent", .ru: "Отлично"],
+
+        // ============================================================
+        // MARK: - Chat (Söhbət)
+        // ============================================================
+        "chat_title": [.az: "Mesajlar", .en: "Messages", .ru: "Сообщения"],
+        "chat_empty": [.az: "Mesaj yoxdur", .en: "No messages", .ru: "Нет сообщений"],
+        "chat_empty_desc": [.az: "Müəlliminizlə söhbət başlayın", .en: "Start chatting with your trainer", .ru: "Начните общение с тренером"],
+        "chat_type_message": [.az: "Mesaj yazın...", .en: "Type a message...", .ru: "Напишите сообщение..."],
+        "chat_remaining": [.az: "Qalan mesaj", .en: "Messages left", .ru: "Осталось сообщений"],
+        "chat_premium_required": [.az: "Premium lazımdır", .en: "Premium Required", .ru: "Требуется Премиум"],
+        "chat_premium_desc": [.az: "Mesajlaşma funksiyası yalnız Premium istifadəçilər üçündür", .en: "Messaging is only available for Premium users", .ru: "Обмен сообщениями доступен только для Премиум"],
+        "chat_limit_reached": [.az: "Günlük mesaj limitinə çatdınız", .en: "Daily message limit reached", .ru: "Дневной лимит сообщений исчерпан"],
+
+        // ============================================================
+        // MARK: - Content (Məzmun)
+        // ============================================================
+        "content_title": [.az: "Məzmun", .en: "Content", .ru: "Контент"],
+        "content_subtitle": [.az: "Tələbələriniz üçün məzmun yaradın", .en: "Create content for your students", .ru: "Создавайте контент для студентов"],
+        "content_empty": [.az: "Hələ məzmun yoxdur", .en: "No content yet", .ru: "Пока нет контента"],
+        "content_empty_desc": [.az: "İlk məzmununuzu yaradın!", .en: "Create your first content!", .ru: "Создайте свой первый контент!"],
+        "content_create": [.az: "Məzmun Yarat", .en: "Create Content", .ru: "Создать контент"],
+        "content_field_title": [.az: "Başlıq", .en: "Title", .ru: "Заголовок"],
+        "content_title_placeholder": [.az: "məs: Düzgün qidalanma məsləhətləri", .en: "e.g: Proper nutrition tips", .ru: "напр.: Советы по правильному питанию"],
+        "content_field_body": [.az: "Mətn", .en: "Body", .ru: "Текст"],
+        "content_premium_only": [.az: "Yalnız abunəçilər görsün", .en: "Subscribers only", .ru: "Только для подписчиков"],
+        "content_trainer_posts": [.az: "Müəllim Paylaşımları", .en: "Trainer Posts", .ru: "Посты тренера"],
+        "content_no_posts": [.az: "Hələ paylaşım yoxdur", .en: "No posts yet", .ru: "Пока нет постов"],
+
+        // ============================================================
+        // MARK: - Onboarding
+        // ============================================================
+        "onboarding_next": [.az: "Davam et", .en: "Continue", .ru: "Продолжить"],
+        "onboarding_finish": [.az: "Başla!", .en: "Get Started!", .ru: "Начать!"],
+        "onboarding_goal_title": [.az: "Məqsədiniz nədir?", .en: "What's your goal?", .ru: "Какова ваша цель?"],
+        "onboarding_goal_subtitle": [.az: "Sizə uyğun plan hazırlayaq", .en: "Let's prepare a plan for you", .ru: "Подготовим план для вас"],
+        "onboarding_level_title": [.az: "Fitness səviyyəniz?", .en: "Your fitness level?", .ru: "Ваш уровень фитнеса?"],
+        "onboarding_level_subtitle": [.az: "Təcrübənizə uyğun başlayaq", .en: "Let's start at your level", .ru: "Начнём с вашего уровня"],
+        "onboarding_trainer_title": [.az: "Hansı tip müəllim?", .en: "Preferred trainer type?", .ru: "Какой тип тренера?"],
+        "onboarding_trainer_subtitle": [.az: "Sizə uyğun müəllim tapaq", .en: "Let's find the right trainer", .ru: "Найдём подходящего тренера"],
+        "onboarding_skip": [.az: "Keç", .en: "Skip", .ru: "Пропустить"],
+
+        // ============================================================
+        // MARK: - Profile Enhancement (Real/Functional)
+        // ============================================================
+        "profile_member_since": [.az: "Üzvlük tarixi", .en: "Member since", .ru: "Дата регистрации"],
+        "profile_joined_date": [.az: "Qoşulma tarixi", .en: "Joined date", .ru: "Дата присоединения"],
+        "profile_completion": [.az: "Profil tamamlanması", .en: "Profile completion", .ru: "Заполнение профиля"],
+        "profile_complete_profile": [.az: "Profili tamamla", .en: "Complete your profile", .ru: "Заполните профиль"],
+        "profile_complete_desc": [.az: "Profilinizi dolduraraq daha yaxşı təcrübə əldə edin", .en: "Fill out your profile for a better experience", .ru: "Заполните профиль для лучшего опыта"],
+        "profile_message_trainer": [.az: "Müəllimə mesaj yaz", .en: "Message trainer", .ru: "Написать тренеру"],
+        "profile_subscribers": [.az: "Abunəçilər", .en: "Subscribers", .ru: "Подписчики"],
+        "profile_earnings": [.az: "Gəlir", .en: "Earnings", .ru: "Доход"],
+        "profile_monthly_earnings": [.az: "Aylıq gəlir", .en: "Monthly earnings", .ru: "Месячный доход"],
+        "profile_total_subscribers": [.az: "Ümumi abunəçi", .en: "Total subscribers", .ru: "Всего подписчиков"],
+        "profile_avg_workouts_week": [.az: "Ort. həftəlik məşq", .en: "Avg. workouts/week", .ru: "Ср. тренировок/нед."],
+        "profile_total_workouts": [.az: "Ümumi məşqlər", .en: "Total workouts", .ru: "Всего тренировок"],
+        "profile_no_students_yet": [.az: "Hələ tələbə yoxdur", .en: "No students yet", .ru: "Пока нет студентов"],
+        "profile_no_students_desc": [.az: "Tələbələr sizə abunə olduqda burada görünəcək", .en: "Students will appear here when they subscribe", .ru: "Студенты появятся здесь после подписки"],
+        "profile_workouts_this_week": [.az: "Bu həftə məşqlər", .en: "Workouts this week", .ru: "Тренировок на этой неделе"],
+        "profile_active_label": [.az: "Aktiv", .en: "Active", .ru: "Активные"],
+
+        // ============================================================
+        // MARK: - Social Features
+        // ============================================================
+        "social_feed": [.az: "Lenta", .en: "Feed", .ru: "Лента"],
+        "social_create_post": [.az: "Post Yarat", .en: "Create Post", .ru: "Создать пост"],
+        "social_post": [.az: "Paylaş", .en: "Post", .ru: "Опубликовать"],
+        "social_post_type": [.az: "Post növü", .en: "Post type", .ru: "Тип поста"],
+        "social_post_content": [.az: "Məzmun", .en: "Content", .ru: "Содержание"],
+        "social_add_image": [.az: "Şəkil əlavə et", .en: "Add image", .ru: "Добавить фото"],
+        "social_select_image": [.az: "Şəkil seç", .en: "Select image", .ru: "Выбрать фото"],
+        "social_public_post": [.az: "İctimai post", .en: "Public post", .ru: "Публичный пост"],
+        "social_general": [.az: "Ümumi", .en: "General", .ru: "Общее"],
+        "social_workout": [.az: "Məşq", .en: "Workout", .ru: "Тренировка"],
+        "social_meal": [.az: "Yemək", .en: "Meal", .ru: "Еда"],
+        "social_progress": [.az: "Tərəqqi", .en: "Progress", .ru: "Прогресс"],
+        "social_achievement": [.az: "Nailiyyət", .en: "Achievement", .ru: "Достижение"],
+        "social_likes": [.az: "bəyənmə", .en: "likes", .ru: "лайков"],
+        "social_comments": [.az: "Şərhlər", .en: "Comments", .ru: "Комментарии"],
+        "social_write_comment": [.az: "Şərh yaz...", .en: "Write a comment...", .ru: "Написать комментарий..."],
+        "social_no_comments": [.az: "Hələ şərh yoxdur", .en: "No comments yet", .ru: "Пока нет комментариев"],
+        "social_be_first_comment": [.az: "İlk şərh edən siz olun", .en: "Be the first to comment", .ru: "Будьте первым, кто оставит комментарий"],
+        "social_delete_comment": [.az: "Şərhi sil", .en: "Delete comment", .ru: "Удалить комментарий"],
+        "social_delete_comment_confirm": [.az: "Bu şərhi silmək istədiyinizə əminsiniz?", .en: "Are you sure you want to delete this comment?", .ru: "Вы уверены, что хотите удалить этот комментарий?"],
+        "social_delete_post": [.az: "Postu sil", .en: "Delete post", .ru: "Удалить пост"],
+        "social_delete_post_confirm": [.az: "Bu postu silmək istədiyinizə əminsiniz?", .en: "Are you sure you want to delete this post?", .ru: "Вы уверены, что хотите удалить этот пост?"],
+        "social_no_posts": [.az: "Hələ post yoxdur", .en: "No posts yet", .ru: "Пока нет постов"],
+        "social_start_sharing": [.az: "Paylaşmağa başlayın", .en: "Start sharing", .ru: "Начните делиться"],
+
+        // ============================================================
+        // MARK: - Marketplace
+        // ============================================================
+        "marketplace_title": [.az: "Mağaza", .en: "Marketplace", .ru: "Магазин"],
+        "marketplace_all": [.az: "Hamısı", .en: "All", .ru: "Все"],
+        "marketplace_workout_plan": [.az: "Məşq Planı", .en: "Workout Plan", .ru: "План тренировок"],
+        "marketplace_meal_plan": [.az: "Qida Planı", .en: "Meal Plan", .ru: "План питания"],
+        "marketplace_ebook": [.az: "E-Kitab", .en: "E-Book", .ru: "Электронная книга"],
+        "marketplace_consultation": [.az: "Məsləhət", .en: "Consultation", .ru: "Консультация"],
+        "marketplace_no_products": [.az: "Məhsul tapılmadı", .en: "No products found", .ru: "Товары не найдены"],
+        "marketplace_no_products_desc": [.az: "Bu kateqoriyada hələ məhsul yoxdur", .en: "No products in this category yet", .ru: "В этой категории пока нет товаров"],
+        "marketplace_description": [.az: "Təsvir", .en: "Description", .ru: "Описание"],
+        "marketplace_sold_by": [.az: "Satıcı", .en: "Sold by", .ru: "Продавец"],
+        "marketplace_reviews": [.az: "Rəylər", .en: "Reviews", .ru: "Отзывы"],
+        "marketplace_no_reviews": [.az: "Hələ rəy yoxdur", .en: "No reviews yet", .ru: "Пока нет отзывов"],
+        "marketplace_write_review": [.az: "Rəy yaz", .en: "Write Review", .ru: "Написать отзыв"],
+        "marketplace_see_all_reviews": [.az: "Bütün rəylərə bax", .en: "See all reviews", .ru: "Все отзывы"],
+        "marketplace_price": [.az: "Qiymət", .en: "Price", .ru: "Цена"],
+        "marketplace_buy_now": [.az: "İndi Al", .en: "Buy Now", .ru: "Купить сейчас"],
+        "marketplace_purchased": [.az: "Alınıb", .en: "Purchased", .ru: "Куплено"],
+        "marketplace_confirm_purchase": [.az: "Alışı təsdiqləyin", .en: "Confirm Purchase", .ru: "Подтвердите покупку"],
+        "marketplace_total": [.az: "Cəmi", .en: "Total", .ru: "Итого"],
+        "marketplace_your_rating": [.az: "Reytinqiniz", .en: "Your Rating", .ru: "Ваш рейтинг"],
+        "marketplace_your_review": [.az: "Rəyiniz", .en: "Your Review", .ru: "Ваш отзыв"],
+        "marketplace_optional": [.az: "İstəyə bağlı", .en: "Optional", .ru: "Необязательно"],
+        "marketplace_submit": [.az: "Göndər", .en: "Submit", .ru: "Отправить"],
+
+        // ============================================================
+        // MARK: - Analytics
+        // ============================================================
+        "analytics_title": [.az: "Analitika", .en: "Analytics", .ru: "Аналитика"],
+        "analytics_this_week": [.az: "Bu Həftə", .en: "This Week", .ru: "Эта неделя"],
+        "analytics_workouts": [.az: "Məşqlər", .en: "Workouts", .ru: "Тренировки"],
+        "analytics_minutes": [.az: "Dəqiqə", .en: "Minutes", .ru: "Минуты"],
+        "analytics_calories_burned": [.az: "Yandırılan Kalori", .en: "Calories Burned", .ru: "Сожжено калорий"],
+        "analytics_consistency": [.az: "Ardıcıllıq", .en: "Consistency", .ru: "Постоянство"],
+        "analytics_weight_trend": [.az: "Çəki Tendensiyası", .en: "Weight Trend", .ru: "Тренд веса"],
+        "analytics_workout_trend": [.az: "Məşq Tendensiyası", .en: "Workout Trend", .ru: "Тренд тренировок"],
+        "analytics_nutrition_trend": [.az: "Qidalanma Tendensiyası", .en: "Nutrition Trend", .ru: "Тренд питания"],
+        "analytics_last_30_days": [.az: "Son 30 Gün", .en: "Last 30 Days", .ru: "Последние 30 дней"],
+        "analytics_total_workouts": [.az: "Ümumi Məşqlər", .en: "Total Workouts", .ru: "Всего тренировок"],
+        "analytics_total_minutes": [.az: "Ümumi Dəqiqə", .en: "Total Minutes", .ru: "Всего минут"],
+        "analytics_workout_streak": [.az: "Məşq Seriyası", .en: "Workout Streak", .ru: "Серия тренировок"],
+        "analytics_no_data": [.az: "Məlumat yoxdur", .en: "No data available", .ru: "Нет данных"],
+        "analytics_no_data_desc": [.az: "Məşqlər və qida qeydləri əlavə edin", .en: "Add workouts and food entries", .ru: "Добавьте тренировки и записи питания"],
+
+        // ============================================================
+        // MARK: - Live Sessions
+        // ============================================================
+        "live_sessions_title": [.az: "Canlı Sessiyalar", .en: "Live Sessions", .ru: "Живые сессии"],
+        "live_sessions_all": [.az: "Hamısı", .en: "All", .ru: "Все"],
+        "live_sessions_upcoming": [.az: "Gələcək", .en: "Upcoming", .ru: "Предстоящие"],
+        "live_sessions_live": [.az: "Canlı", .en: "Live", .ru: "Прямой эфир"],
+        "live_sessions_completed": [.az: "Tamamlanmış", .en: "Completed", .ru: "Завершённые"],
+        "live_sessions_no_sessions": [.az: "Sessiya yoxdur", .en: "No sessions", .ru: "Нет сессий"],
+        "live_sessions_no_sessions_desc": [.az: "Hələ canlı sessiya planlaşdırılmayıb", .en: "No live sessions scheduled yet", .ru: "Пока нет запланированных сессий"],
+        "live_sessions_join": [.az: "Qoşul", .en: "Join", .ru: "Присоединиться"],
+        "live_sessions_participants": [.az: "İştirakçılar", .en: "Participants", .ru: "Участники"],
+        "live_sessions_start": [.az: "Başlat", .en: "Start", .ru: "Начать"],
+        "live_sessions_end": [.az: "Bitir", .en: "End", .ru: "Завершить"],
+        "common_free": [.az: "Pulsuz", .en: "Free", .ru: "Бесплатно"],
+        "common_free": [.az: "Pulsuz", .en: "Free", .ru: "Бесплатно"],
+
+        // ============================================================
+        // MARK: - Time Ago
+        // ============================================================
+        "time_just_now": [.az: "İndicə", .en: "Just now", .ru: "Только что"],
+        "time_second_ago": [.az: "saniyə əvvəl", .en: "second ago", .ru: "секунду назад"],
+        "time_seconds_ago": [.az: "saniyə əvvəl", .en: "seconds ago", .ru: "секунд назад"],
+        "time_minute_ago": [.az: "dəqiqə əvvəl", .en: "minute ago", .ru: "минуту назад"],
+        "time_minutes_ago": [.az: "dəqiqə əvvəl", .en: "minutes ago", .ru: "минут назад"],
+        "time_hour_ago": [.az: "saat əvvəl", .en: "hour ago", .ru: "час назад"],
+        "time_hours_ago": [.az: "saat əvvəl", .en: "hours ago", .ru: "часов назад"],
+        "time_day_ago": [.az: "gün əvvəl", .en: "day ago", .ru: "день назад"],
+        "time_days_ago": [.az: "gün əvvəl", .en: "days ago", .ru: "дней назад"],
+        "time_week_ago": [.az: "həftə əvvəl", .en: "week ago", .ru: "неделю назад"],
+        "time_weeks_ago": [.az: "həftə əvvəl", .en: "weeks ago", .ru: "недель назад"],
+        "time_month_ago": [.az: "ay əvvəl", .en: "month ago", .ru: "месяц назад"],
+        "time_months_ago": [.az: "ay əvvəl", .en: "months ago", .ru: "месяцев назад"],
+        "time_year_ago": [.az: "il əvvəl", .en: "year ago", .ru: "год назад"],
+        "time_years_ago": [.az: "il əvvəl", .en: "years ago", .ru: "лет назад"],
     ]
 }

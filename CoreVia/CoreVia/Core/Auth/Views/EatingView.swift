@@ -56,7 +56,6 @@ struct FoodView: View {
     // MARK: - Daily Progress Section
     private var dailyProgressSection: some View {
         VStack(spacing: 16) {
-            // Progress Ring
             ZStack {
                 Circle()
                     .stroke(AppTheme.Colors.separator, lineWidth: 20)
@@ -92,31 +91,29 @@ struct FoodView: View {
             }
             .padding(.vertical, 20)
             
-            // Stats Row
             HStack(spacing: 20) {
                 CalorieStat(
                     icon: "flame.fill",
                     value: "\(foodManager.remainingCalories)",
                     label: loc.localized("food_remaining"),
-                    color: .green
+                    color: AppTheme.Colors.accent
                 )
-                
+
                 CalorieStat(
                     icon: "target",
                     value: "\(Int(foodManager.todayProgress * 100))%",
                     label: loc.localized("food_completed"),
-                    color: .blue
+                    color: AppTheme.Colors.accent
                 )
-                
+
                 CalorieStat(
                     icon: "fork.knife",
                     value: "\(foodManager.todayEntries.count)",
                     label: loc.localized("food_meal"),
-                    color: .orange
+                    color: AppTheme.Colors.accent
                 )
             }
             
-            // Edit Goal Button
             Button {
                 showEditGoal = true
             } label: {
@@ -125,10 +122,10 @@ struct FoodView: View {
                     Text(loc.localized("food_edit_goal"))
                 }
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(.red)
+                .foregroundColor(AppTheme.Colors.accent)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
-                .background(Color.red.opacity(0.1))
+                .background(AppTheme.Colors.accent.opacity(0.1))
                 .cornerRadius(20)
             }
         }
@@ -149,21 +146,21 @@ struct FoodView: View {
                     icon: "💪",
                     label: loc.localized("food_protein"),
                     value: "\(Int(foodManager.todayTotalProtein))q",
-                    color: .blue
+                    color: AppTheme.Colors.accent
                 )
 
                 MacroCard(
                     icon: "🍞",
                     label: loc.localized("food_carbs"),
                     value: "\(Int(foodManager.todayTotalCarbs))q",
-                    color: .orange
+                    color: AppTheme.Colors.accentDark
                 )
 
                 MacroCard(
                     icon: "🥑",
                     label: loc.localized("food_fats"),
                     value: "\(Int(foodManager.todayTotalFats))q",
-                    color: .green
+                    color: AppTheme.Colors.accent
                 )
             }
         }
@@ -175,7 +172,6 @@ struct FoodView: View {
         let totalCalories = foodManager.caloriesForMealType(mealType)
         
         return VStack(alignment: .leading, spacing: 12) {
-            // Header
             HStack {
                 Image(systemName: mealType.icon)
                     .foregroundColor(mealType.color)
@@ -191,7 +187,6 @@ struct FoodView: View {
                     .foregroundColor(mealType.color)
             }
             
-            // Entries or Empty State
             if entries.isEmpty {
                 Button {
                     showAddFood = true
@@ -245,24 +240,24 @@ struct FoodView: View {
             .padding()
             .background(
                 LinearGradient(
-                    colors: [.green, .green.opacity(0.8)],
+                    colors: [AppTheme.Colors.accent, AppTheme.Colors.accent.opacity(0.8)],
                     startPoint: .leading,
                     endPoint: .trailing
                 )
             )
             .cornerRadius(12)
-            .shadow(color: .green.opacity(0.3), radius: 8)
+            .shadow(color: AppTheme.Colors.accent.opacity(0.3), radius: 8)
         }
     }
     
     // MARK: - Helpers
     private var progressGradientColors: [Color] {
         if foodManager.todayProgress < 0.5 {
-            return [.green, .yellow]
+            return [AppTheme.Colors.accent, AppTheme.Colors.accentDark]
         } else if foodManager.todayProgress < 1.0 {
-            return [.yellow, .orange]
+            return [AppTheme.Colors.accentDark, AppTheme.Colors.accent]
         } else {
-            return [.orange, .red]
+            return [AppTheme.Colors.accent, AppTheme.Colors.accentDark]
         }
     }
 }
@@ -331,7 +326,6 @@ struct FoodEntryRow: View {
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: 12) {
-                // Icon / Thumbnail
                 if entry.hasImage, let foodImage = FoodImageManager.shared.loadImage(forEntryId: entry.id) {
                     Image(uiImage: foodImage)
                         .resizable()
@@ -350,7 +344,6 @@ struct FoodEntryRow: View {
                     }
                 }
                 
-                // Info
                 VStack(alignment: .leading, spacing: 4) {
                     Text(entry.name)
                         .font(.system(size: 15, weight: .semibold))
@@ -369,7 +362,6 @@ struct FoodEntryRow: View {
                 
                 Spacer()
                 
-                // Calories
                 VStack(alignment: .trailing, spacing: 2) {
                     Text("\(entry.calories)")
                         .font(.system(size: 18, weight: .bold))
@@ -428,7 +420,6 @@ struct EditGoalView: View {
                         .font(.system(size: 20))
                         .foregroundColor(AppTheme.Colors.secondaryText)
                     
-                    // Quick selections
                     VStack(spacing: 12) {
                         Text(LocalizationManager.shared.localized("food_quick_selection"))
                             .font(.system(size: 14))
@@ -444,7 +435,7 @@ struct EditGoalView: View {
                                         .foregroundColor(goalText == "\(goal)" ? .white : AppTheme.Colors.primaryText)
                                         .padding(.horizontal, 16)
                                         .padding(.vertical, 8)
-                                        .background(goalText == "\(goal)" ? Color.green : AppTheme.Colors.secondaryBackground)
+                                        .background(goalText == "\(goal)" ? AppTheme.Colors.accent : AppTheme.Colors.secondaryBackground)
                                         .cornerRadius(8)
                                 }
                             }
@@ -462,9 +453,9 @@ struct EditGoalView: View {
                     Button(LocalizationManager.shared.localized("common_cancel")) {
                         dismiss()
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(AppTheme.Colors.accent)
                 }
-                
+
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(LocalizationManager.shared.localized("common_save")) {
                         if let goal = Int(goalText), goal > 0 {
@@ -472,7 +463,7 @@ struct EditGoalView: View {
                             dismiss()
                         }
                     }
-                    .foregroundColor(.green)
+                    .foregroundColor(AppTheme.Colors.accent)
                     .fontWeight(.semibold)
                 }
             }
@@ -492,7 +483,6 @@ struct FoodDetailView: View {
                 
                 ScrollView {
                     VStack(spacing: 24) {
-                        // Icon
                         ZStack {
                             Circle()
                                 .fill(entry.mealType.color.opacity(0.2))
@@ -503,12 +493,10 @@ struct FoodDetailView: View {
                                 .foregroundColor(entry.mealType.color)
                         }
                         
-                        // Name
                         Text(entry.name)
                             .font(.system(size: 24, weight: .bold))
                             .foregroundColor(AppTheme.Colors.primaryText)
                         
-                        // Calories
                         VStack(spacing: 4) {
                             Text("\(entry.calories)")
                                 .font(.system(size: 48, weight: .bold))
@@ -519,16 +507,14 @@ struct FoodDetailView: View {
                                 .foregroundColor(AppTheme.Colors.secondaryText)
                         }
                         
-                        // Macros
                         if let protein = entry.protein, let carbs = entry.carbs, let fats = entry.fats {
                             HStack(spacing: 12) {
-                                DetailMacroCard(icon: "💪", label: LocalizationManager.shared.localized("food_protein"), value: "\(Int(protein))q", color: .blue)
-                                DetailMacroCard(icon: "🍞", label: LocalizationManager.shared.localized("food_carbs"), value: "\(Int(carbs))q", color: .orange)
-                                DetailMacroCard(icon: "🥑", label: LocalizationManager.shared.localized("food_fats"), value: "\(Int(fats))q", color: .green)
+                                DetailMacroCard(icon: "💪", label: LocalizationManager.shared.localized("food_protein"), value: "\(Int(protein))q", color: AppTheme.Colors.accent)
+                                DetailMacroCard(icon: "🍞", label: LocalizationManager.shared.localized("food_carbs"), value: "\(Int(carbs))q", color: AppTheme.Colors.accentDark)
+                                DetailMacroCard(icon: "🥑", label: LocalizationManager.shared.localized("food_fats"), value: "\(Int(fats))q", color: AppTheme.Colors.accent)
                             }
                         }
                         
-                        // Notes
                         if let notes = entry.notes {
                             VStack(alignment: .leading, spacing: 12) {
                                 Text(LocalizationManager.shared.localized("food_notes_label"))
@@ -545,7 +531,6 @@ struct FoodDetailView: View {
                             .cornerRadius(12)
                         }
                         
-                        // Meta info
                         VStack(spacing: 8) {
                             InfoRow(icon: "calendar", label: LocalizationManager.shared.localized("food_meal_type"), value: entry.mealType.localizedName)
                             InfoRow(icon: "clock", label: LocalizationManager.shared.localized("food_time"), value: entry.formattedDate)
@@ -561,7 +546,7 @@ struct FoodDetailView: View {
                     Button(LocalizationManager.shared.localized("common_close")) {
                         dismiss()
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(AppTheme.Colors.accent)
                 }
             }
         }
@@ -602,7 +587,7 @@ struct InfoRow: View {
     var body: some View {
         HStack {
             Image(systemName: icon)
-                .foregroundColor(.red)
+                .foregroundColor(AppTheme.Colors.accent)
             
             Text(label)
                 .foregroundColor(AppTheme.Colors.secondaryText)

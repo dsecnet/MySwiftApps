@@ -3,7 +3,9 @@ import SwiftUI
 struct ContentView: View {
 
     @StateObject private var authManager = AuthManager.shared
+    @StateObject private var onboardingManager = OnboardingManager.shared
     @State private var showRegister: Bool = false
+    @State private var onboardingCompleted: Bool = false
     @StateObject private var workoutManager = WorkoutManager.shared
 
     /// Trainer login olub amma hele verified deyilse → verifikasiya sehifesini goster
@@ -12,11 +14,19 @@ struct ContentView: View {
         return user.userType == "trainer" && user.verificationStatus != "verified"
     }
 
+    /// Client onboarding tamamlanıb mı?
+    private var needsOnboarding: Bool {
+        guard let user = authManager.currentUser else { return false }
+        return user.userType == "client" && !onboardingCompleted && !onboardingManager.isCompleted
+    }
+
     var body: some View {
         Group {
             if authManager.isLoggedIn {
                 if needsTrainerVerification {
                     TrainerVerificationView()
+                } else if needsOnboarding {
+                    OnboardingView(isCompleted: $onboardingCompleted)
                 } else {
                     MainTabView(isLoggedIn: $authManager.isLoggedIn)
                         .environmentObject(workoutManager)
@@ -30,6 +40,11 @@ struct ContentView: View {
                         showRegister: $showRegister
                     )
                 }
+            }
+        }
+        .onChange(of: authManager.isLoggedIn) { _, loggedIn in
+            if loggedIn {
+                Task { await onboardingManager.checkStatus() }
             }
         }
     }
@@ -60,9 +75,9 @@ struct MainTabView: View {
             .foregroundColor: UIColor.secondaryLabel // Adaptiv
         ]
 
-        appearance.stackedLayoutAppearance.selected.iconColor = .red
+        appearance.stackedLayoutAppearance.selected.iconColor = UIColor(AppTheme.Colors.accent)
         appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
-            .foregroundColor: UIColor.red
+            .foregroundColor: UIColor(AppTheme.Colors.accent)
         ]
 
         UITabBar.appearance().standardAppearance = appearance
@@ -123,31 +138,40 @@ struct MainTabView: View {
             }
             .tag(2)
 
-            // MARK: - Tab 3: Activities (yalnız client üçün)
+            // MARK: - Tab 3: Chat (both trainer & client)
+            NavigationStack {
+                ConversationsView()
+                    .navigationTitle("")
+            }
+            .tabItem {
+                Label(loc.localized("chat_title"), systemImage: "bubble.left.and.bubble.right")
+            }
+            .tag(3)
+
+            // MARK: - Tab 4: Activities (client) / Content (trainer)
             if !isTrainer {
                 NavigationStack {
                     ActivitiesView()
                         .navigationTitle("")
                 }
                 .tabItem {
-                    Label("Hereketler", systemImage: "figure.run")
+                    Label(loc.localized("activities_title"), systemImage: "figure.run")
                 }
-                .tag(3)
+                .tag(4)
             }
 
-            // MARK: - Tab 3 (Trainer only): Students
             if isTrainer {
                 NavigationStack {
-                    MyStudentsView()
+                    TrainerContentView()
                         .navigationTitle("")
                 }
                 .tabItem {
-                    Label(loc.localized("tab_students"), systemImage: "person.2.fill")
+                    Label(loc.localized("content_title"), systemImage: "doc.richtext")
                 }
-                .tag(3)
+                .tag(4)
             }
 
-            // MARK: - Tab 4: Profile
+            // MARK: - Tab 5: Profile
             NavigationStack {
                 ProfileView(isLoggedIn: $isLoggedIn)
                     .navigationTitle(loc.localized("tab_profile"))
@@ -155,7 +179,7 @@ struct MainTabView: View {
             .tabItem {
                 Label(loc.localized("tab_profile"), systemImage: "person.fill")
             }
-            .tag(4)
+            .tag(5)
         }
     }
 }

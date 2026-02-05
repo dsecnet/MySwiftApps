@@ -1,27 +1,27 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 from app.models.food_entry import MealType
 
 
 class FoodEntryCreate(BaseModel):
-    name: str
-    calories: int
-    protein: float | None = None
-    carbs: float | None = None
-    fats: float | None = None
+    name: str = Field(..., min_length=1, max_length=200)
+    calories: int = Field(..., ge=0, le=10000)
+    protein: float | None = Field(None, ge=0.0, le=1000.0)
+    carbs: float | None = Field(None, ge=0.0, le=1000.0)
+    fats: float | None = Field(None, ge=0.0, le=1000.0)
     meal_type: MealType
     date: datetime | None = None
-    notes: str | None = None
+    notes: str | None = Field(None, max_length=1000)
 
 
 class FoodEntryUpdate(BaseModel):
-    name: str | None = None
-    calories: int | None = None
-    protein: float | None = None
-    carbs: float | None = None
-    fats: float | None = None
+    name: str | None = Field(None, min_length=1, max_length=200)
+    calories: int | None = Field(None, ge=0, le=10000)
+    protein: float | None = Field(None, ge=0.0, le=1000.0)
+    carbs: float | None = Field(None, ge=0.0, le=1000.0)
+    fats: float | None = Field(None, ge=0.0, le=1000.0)
     meal_type: MealType | None = None
-    notes: str | None = None
+    notes: str | None = Field(None, max_length=1000)
 
 
 class FoodEntryResponse(BaseModel):

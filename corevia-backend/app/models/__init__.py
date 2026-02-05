@@ -7,6 +7,10 @@ from app.models.settings import UserSettings
 from app.models.route import Route
 from app.models.notification import DeviceToken, Notification
 from app.models.subscription import Subscription
+from app.models.review import Review
+from app.models.chat import ChatMessage, DailyMessageCount
+from app.models.content import TrainerContent, ContentType
+from app.models.onboarding import UserOnboarding
 
 __all__ = [
     "User", "UserType", "VerificationStatus",
@@ -18,4 +22,8 @@ __all__ = [
     "Route",
     "DeviceToken", "Notification",
     "Subscription",
+    "Review",
+    "ChatMessage", "DailyMessageCount",
+    "TrainerContent", "ContentType",
+    "UserOnboarding",
 ]

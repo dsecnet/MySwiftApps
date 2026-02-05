@@ -2,8 +2,6 @@
 //  Teachers.swift
 //  CoreVia
 //
-//  Muellimler siyahisi — Backend API inteqrasiyasi + Premium gate
-//
 
 import SwiftUI
 
@@ -131,7 +129,7 @@ struct TeachersView: View {
 
                 ForEach(TrainerCategory.allCases, id: \.self) { cat in
                     CategoryChip(
-                        title: cat.rawValue,
+                        title: cat.localizedName,
                         icon: cat.icon,
                         isSelected: selectedCategory == cat,
                         color: cat.color
@@ -169,35 +167,32 @@ struct TeachersView: View {
 struct TrainerCard: View {
     let trainer: TrainerResponse
     let action: () -> Void
+    @ObservedObject private var loc = LocalizationManager.shared
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: 16) {
-                // Avatar
-                ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [trainer.category.color.opacity(0.3), trainer.category.color],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 64, height: 64)
-
-                    Image(systemName: trainer.category.icon)
-                        .font(.system(size: 26))
-                        .foregroundColor(.white)
-                }
+                TrainerAvatarView(
+                    profileImageUrl: trainer.profileImageUrl,
+                    category: trainer.category,
+                    size: 64
+                )
                 .shadow(color: trainer.category.color.opacity(0.3), radius: 8, x: 0, y: 4)
 
-                // Info
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(trainer.name)
-                        .font(.system(size: 17, weight: .bold))
-                        .foregroundColor(AppTheme.Colors.primaryText)
+                    HStack(spacing: 6) {
+                        Text(trainer.name)
+                            .font(.system(size: 17, weight: .bold))
+                            .foregroundColor(AppTheme.Colors.primaryText)
 
-                    Text(trainer.specialization ?? trainer.category.rawValue)
+                        if trainer.verificationStatus == "verified" {
+                            Image(systemName: "checkmark.seal.fill")
+                                .font(.system(size: 14))
+                                .foregroundColor(.blue)
+                        }
+                    }
+
+                    Text(trainer.specialization ?? trainer.category.localizedName)
                         .font(.system(size: 14))
                         .foregroundColor(AppTheme.Colors.secondaryText)
 
@@ -206,7 +201,7 @@ struct TrainerCard: View {
                             HStack(spacing: 4) {
                                 Image(systemName: "star.fill")
                                     .font(.system(size: 12))
-                                    .foregroundColor(.yellow)
+                                    .foregroundColor(AppTheme.Colors.starFilled)
                                 Text(String(format: "%.1f", rating))
                                     .font(.system(size: 13, weight: .semibold))
                                     .foregroundColor(AppTheme.Colors.primaryText)
@@ -218,7 +213,7 @@ struct TrainerCard: View {
                                 Image(systemName: "clock.fill")
                                     .font(.system(size: 12))
                                     .foregroundColor(AppTheme.Colors.secondaryText)
-                                Text("\(exp) il")
+                                Text("\(exp) \(loc.localized("trainer_years_short"))")
                                     .font(.system(size: 13))
                                     .foregroundColor(AppTheme.Colors.secondaryText)
                             }
@@ -229,7 +224,7 @@ struct TrainerCard: View {
                                 Image(systemName: "creditcard")
                                     .font(.system(size: 12))
                                     .foregroundColor(AppTheme.Colors.secondaryText)
-                                Text(String(format: "%.0f", price))
+                                Text(String(format: "%.0f ₼", price))
                                     .font(.system(size: 13))
                                     .foregroundColor(AppTheme.Colors.secondaryText)
                             }
@@ -252,6 +247,56 @@ struct TrainerCard: View {
             )
         }
         .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Trainer Avatar View
+struct TrainerAvatarView: View {
+    let profileImageUrl: String?
+    let category: TrainerCategory
+    let size: CGFloat
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(
+                    LinearGradient(
+                        colors: [category.color.opacity(0.3), category.color],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(width: size, height: size)
+
+            if let imageUrl = profileImageUrl, !imageUrl.isEmpty {
+                let fullURL = imageUrl.hasPrefix("http") ? imageUrl : APIService.shared.baseURL + imageUrl
+                AsyncImage(url: URL(string: fullURL)) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: size, height: size)
+                            .clipShape(Circle())
+                    case .failure:
+                        Image(systemName: category.icon)
+                            .font(.system(size: size * 0.4))
+                            .foregroundColor(.white)
+                    case .empty:
+                        ProgressView()
+                            .frame(width: size, height: size)
+                    @unknown default:
+                        Image(systemName: category.icon)
+                            .font(.system(size: size * 0.4))
+                            .foregroundColor(.white)
+                    }
+                }
+            } else {
+                Image(systemName: category.icon)
+                    .font(.system(size: size * 0.4))
+                    .foregroundColor(.white)
+            }
+        }
     }
 }
 
@@ -294,7 +339,7 @@ struct StatBadge: View {
         HStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 16))
-                .foregroundColor(.red)
+                .foregroundColor(AppTheme.Colors.accent)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(value)
@@ -336,83 +381,25 @@ struct TrainerDetailView: View {
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 24) {
-                        // Avatar
-                        ZStack {
-                            Circle()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [trainer.category.color.opacity(0.3), trainer.category.color],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                                .frame(width: 110, height: 110)
+                        profilePhotoSection
+                        nameAndSpecSection
+                        specialtyTagsSection
+                        statsCardsSection
 
-                            Image(systemName: trainer.category.icon)
-                                .font(.system(size: 48))
-                                .foregroundColor(.white)
-                        }
-                        .shadow(color: trainer.category.color.opacity(0.4), radius: 20, x: 0, y: 10)
-
-                        // Name & Specialty
-                        VStack(spacing: 8) {
-                            Text(trainer.name)
-                                .font(.system(size: 26, weight: .bold))
-                                .foregroundColor(AppTheme.Colors.primaryText)
-
-                            Text(trainer.specialization ?? trainer.category.rawValue)
-                                .font(.system(size: 16))
-                                .foregroundColor(AppTheme.Colors.secondaryText)
-
-                            if let rating = trainer.rating {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "star.fill")
-                                        .foregroundColor(.yellow)
-                                    Text(String(format: "%.1f", rating))
-                                        .font(.system(size: 16, weight: .semibold))
-                                        .foregroundColor(AppTheme.Colors.primaryText)
-                                }
-                            }
-                        }
-
-                        // Stats
-                        HStack(spacing: 12) {
-                            DetailStatCard(
-                                icon: "graduationcap.fill",
-                                value: trainer.displayExperience,
-                                label: loc.localized("teacher_experience")
-                            )
-                            DetailStatCard(
-                                icon: "manatsign",
-                                value: trainer.displayPrice,
-                                label: "Qiymet/seans"
-                            )
-                            DetailStatCard(
-                                icon: "star.fill",
-                                value: trainer.displayRating,
-                                label: loc.localized("teacher_rating")
-                            )
-                        }
-
-                        // Bio
                         if let bio = trainer.bio, !bio.isEmpty {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text(loc.localized("teacher_about"))
-                                    .font(.system(size: 18, weight: .bold))
-                                    .foregroundColor(AppTheme.Colors.primaryText)
-
-                                Text(bio)
-                                    .font(.system(size: 15))
-                                    .foregroundColor(AppTheme.Colors.secondaryText)
-                                    .lineSpacing(4)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding()
-                            .background(AppTheme.Colors.secondaryBackground)
-                            .cornerRadius(16)
+                            bioSection(bio: bio)
                         }
 
-                        // Action Buttons
+                        if let instagram = trainer.instagramHandle, !instagram.isEmpty {
+                            instagramSection(handle: instagram)
+                        }
+
+                        // Reviews Section
+                        ReviewsSection(trainerId: trainer.id)
+
+                        // Trainer Content Section
+                        StudentContentView(trainerId: trainer.id)
+
                         actionButtons
                     }
                     .padding()
@@ -433,41 +420,192 @@ struct TrainerDetailView: View {
             .sheet(isPresented: $showPremium) {
                 PremiumView()
             }
-            .alert("Ugurlu!", isPresented: $showAssignSuccess) {
-                Button("Tamam") { dismiss() }
+            .alert(loc.localized("teacher_assign_success_title"), isPresented: $showAssignSuccess) {
+                Button(loc.localized("teacher_ok")) { dismiss() }
             } message: {
-                Text("\(trainer.name) muellim olaraq teyin olundu!")
+                Text("\(trainer.name) \(loc.localized("teacher_assign_success_msg"))")
             }
-            .alert("Xeta", isPresented: $showError) {
-                Button("Tamam", role: .cancel) {}
+            .alert(loc.localized("teacher_error"), isPresented: $showError) {
+                Button(loc.localized("teacher_ok"), role: .cancel) {}
             } message: {
-                Text(trainerManager.errorMessage ?? "Bilinmeyen xeta")
+                Text(trainerManager.errorMessage ?? loc.localized("teacher_unknown_error"))
             }
         }
+    }
+
+    // MARK: - Profile Photo
+    private var profilePhotoSection: some View {
+        TrainerAvatarView(
+            profileImageUrl: trainer.profileImageUrl,
+            category: trainer.category,
+            size: 120
+        )
+        .shadow(color: trainer.category.color.opacity(0.4), radius: 20, x: 0, y: 10)
+    }
+
+    // MARK: - Name & Specialization
+    private var nameAndSpecSection: some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 6) {
+                Text(trainer.name)
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(AppTheme.Colors.primaryText)
+
+                if trainer.verificationStatus == "verified" {
+                    Image(systemName: "checkmark.seal.fill")
+                        .font(.system(size: 18))
+                        .foregroundColor(.blue)
+                }
+            }
+
+            if let spec = trainer.specialization, !spec.isEmpty {
+                Text(spec)
+                    .font(.system(size: 16))
+                    .foregroundColor(AppTheme.Colors.secondaryText)
+            }
+
+            if let rating = trainer.rating {
+                HStack(spacing: 4) {
+                    ForEach(0..<5, id: \.self) { index in
+                        Image(systemName: starIcon(for: index, rating: rating))
+                            .font(.system(size: 16))
+                            .foregroundColor(AppTheme.Colors.starFilled)
+                    }
+                    Text(String(format: "%.1f", rating))
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(AppTheme.Colors.primaryText)
+                        .padding(.leading, 4)
+                }
+            }
+
+            HStack(spacing: 6) {
+                Image(systemName: "checkmark.seal.fill")
+                    .font(.system(size: 12))
+                Text(loc.localized("teacher_verified"))
+                    .font(.system(size: 12, weight: .semibold))
+            }
+            .foregroundColor(AppTheme.Colors.badgeVerified)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 5)
+            .background(AppTheme.Colors.badgeVerified.opacity(0.12))
+            .cornerRadius(10)
+        }
+    }
+
+    // MARK: - Specialty Tags
+    private var specialtyTagsSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(loc.localized("trainer_specialties"))
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(AppTheme.Colors.secondaryText)
+
+            WrappingHStack(spacing: 8) {
+                ForEach(trainer.specialtyTags, id: \.self) { tag in
+                    HStack(spacing: 6) {
+                        Image(systemName: tag.icon)
+                            .font(.system(size: 12))
+                        Text(tag.localizedName)
+                            .font(.system(size: 13, weight: .semibold))
+                    }
+                    .foregroundColor(tag.color)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(tag.color.opacity(0.12))
+                    .cornerRadius(20)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(AppTheme.Colors.secondaryBackground)
+        .cornerRadius(16)
+    }
+
+    // MARK: - Stats Cards
+    private var statsCardsSection: some View {
+        HStack(spacing: 12) {
+            DetailStatCard(
+                icon: "graduationcap.fill",
+                value: trainer.displayExperience,
+                label: loc.localized("teacher_experience"),
+                accentColor: AppTheme.Colors.accent
+            )
+            DetailStatCard(
+                icon: "manatsign",
+                value: trainer.displayPrice,
+                label: loc.localized("trainer_price_per_session"),
+                accentColor: AppTheme.Colors.accent
+            )
+            DetailStatCard(
+                icon: "star.fill",
+                value: trainer.displayRating,
+                label: loc.localized("teacher_rating"),
+                accentColor: AppTheme.Colors.starFilled
+            )
+        }
+    }
+
+    // MARK: - Bio
+    private func bioSection(bio: String) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(loc.localized("teacher_about"))
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(AppTheme.Colors.primaryText)
+
+            Text(bio)
+                .font(.system(size: 15))
+                .foregroundColor(AppTheme.Colors.secondaryText)
+                .lineSpacing(4)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(AppTheme.Colors.secondaryBackground)
+        .cornerRadius(16)
+    }
+
+    // MARK: - Instagram
+    private func instagramSection(handle: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: "camera.fill")
+                .font(.system(size: 18))
+                .foregroundColor(AppTheme.Colors.accent)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(loc.localized("trainer_instagram"))
+                    .font(.system(size: 12))
+                    .foregroundColor(AppTheme.Colors.secondaryText)
+                Text("@\(handle)")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(AppTheme.Colors.primaryText)
+            }
+
+            Spacer()
+        }
+        .padding()
+        .background(AppTheme.Colors.secondaryBackground)
+        .cornerRadius(16)
     }
 
     // MARK: - Action Buttons
     private var actionButtons: some View {
         VStack(spacing: 12) {
             if isAlreadyAssigned {
-                // Artiq qosulub
                 HStack(spacing: 8) {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                    Text("Bu muellime qosulmusunuz")
+                        .foregroundColor(AppTheme.Colors.success)
+                    Text(loc.localized("teacher_already_joined"))
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.green)
+                        .foregroundColor(AppTheme.Colors.success)
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(Color.green.opacity(0.1))
+                .background(AppTheme.Colors.success.opacity(0.1))
                 .cornerRadius(12)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.green.opacity(0.3), lineWidth: 1)
+                        .stroke(AppTheme.Colors.success.opacity(0.3), lineWidth: 1)
                 )
             } else if settingsManager.isPremium {
-                // Premium — qosul duymesi
                 Button {
                     isAssigning = true
                     Task {
@@ -487,7 +625,7 @@ struct TrainerDetailView: View {
                         } else {
                             Image(systemName: "person.badge.plus")
                         }
-                        Text("Muellimle Qosul")
+                        Text(loc.localized("trainer_subscribe"))
                             .font(.system(size: 16, weight: .bold))
                     }
                     .foregroundColor(.white)
@@ -505,19 +643,18 @@ struct TrainerDetailView: View {
                 }
                 .disabled(isAssigning)
             } else {
-                // Premium deyil — kilidli
                 Button {
                     showPremium = true
                 } label: {
                     VStack(spacing: 10) {
                         HStack(spacing: 8) {
                             Image(systemName: "lock.fill")
-                            Text("Muellimle Qosul")
+                            Text(loc.localized("trainer_subscribe"))
                                 .font(.system(size: 16, weight: .bold))
                         }
                         .foregroundColor(.white)
 
-                        Text("Premium abuneliq lazimdir")
+                        Text(loc.localized("teacher_premium_required"))
                             .font(.system(size: 12))
                             .foregroundColor(.white.opacity(0.7))
                     }
@@ -525,24 +662,54 @@ struct TrainerDetailView: View {
                     .padding()
                     .background(
                         LinearGradient(
-                            colors: [.indigo, .purple],
+                            colors: [AppTheme.Colors.premiumGradientStart, AppTheme.Colors.premiumGradientEnd],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
                     )
                     .cornerRadius(12)
-                    .shadow(color: .indigo.opacity(0.4), radius: 8)
+                    .shadow(color: AppTheme.Colors.premiumGradientStart.opacity(0.4), radius: 8)
                 }
 
-                // Premium info
                 HStack(spacing: 8) {
                     Image(systemName: "sparkles")
-                        .foregroundColor(.indigo)
-                    Text("Muellim secimi Premium funksiyasidir")
+                        .foregroundColor(AppTheme.Colors.premiumGradientStart)
+                    Text(loc.localized("teacher_premium_feature"))
                         .font(.system(size: 13))
                         .foregroundColor(AppTheme.Colors.secondaryText)
                 }
                 .padding(.top, 4)
+            }
+        }
+    }
+
+    // MARK: - Star Helper
+    private func starIcon(for index: Int, rating: Double) -> String {
+        let threshold = Double(index) + 1.0
+        if rating >= threshold {
+            return "star.fill"
+        } else if rating >= threshold - 0.5 {
+            return "star.leadinghalf.filled"
+        } else {
+            return "star"
+        }
+    }
+}
+
+// MARK: - Wrapping HStack (horizontal scrollable tags)
+struct WrappingHStack<Content: View>: View {
+    let spacing: CGFloat
+    let content: () -> Content
+
+    init(spacing: CGFloat = 8, @ViewBuilder content: @escaping () -> Content) {
+        self.spacing = spacing
+        self.content = content
+    }
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: spacing) {
+                content()
             }
         }
     }
@@ -553,20 +720,23 @@ struct DetailStatCard: View {
     let icon: String
     let value: String
     let label: String
+    var accentColor: Color = AppTheme.Colors.accent
 
     var body: some View {
         VStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 20))
-                .foregroundColor(.red)
+                .foregroundColor(accentColor)
 
             Text(value)
                 .font(.system(size: 18, weight: .bold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
             Text(label)
-                .font(.system(size: 12))
+                .font(.system(size: 11))
                 .foregroundColor(AppTheme.Colors.secondaryText)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
         }
         .frame(maxWidth: .infinity)
         .padding()

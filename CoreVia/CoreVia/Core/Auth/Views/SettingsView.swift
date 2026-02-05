@@ -20,7 +20,7 @@ struct NotificationsSettingsView: View {
                         Toggle(isOn: $settings.notificationsEnabled) {
                             HStack {
                                 Image(systemName: "bell.fill")
-                                    .foregroundColor(.red)
+                                    .foregroundColor(AppTheme.Colors.accent)
                                 Text(loc.localized("settings_notifications"))
                             }
                         }
@@ -42,7 +42,7 @@ struct NotificationsSettingsView: View {
                         Toggle(isOn: $settings.workoutReminders) {
                             HStack {
                                 Image(systemName: "figure.strengthtraining.traditional")
-                                    .foregroundColor(.orange)
+                                    .foregroundColor(AppTheme.Colors.accent)
                                 Text(loc.localized("settings_workout_reminders"))
                             }
                         }
@@ -51,7 +51,7 @@ struct NotificationsSettingsView: View {
                         Toggle(isOn: $settings.mealReminders) {
                             HStack {
                                 Image(systemName: "fork.knife")
-                                    .foregroundColor(.green)
+                                    .foregroundColor(AppTheme.Colors.accent)
                                 Text(loc.localized("settings_meal_reminders"))
                             }
                         }
@@ -60,7 +60,7 @@ struct NotificationsSettingsView: View {
                         Toggle(isOn: $settings.weeklyReports) {
                             HStack {
                                 Image(systemName: "chart.bar.fill")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(AppTheme.Colors.accent)
                                 Text(loc.localized("settings_weekly_report"))
                             }
                         }
@@ -80,7 +80,7 @@ struct NotificationsSettingsView: View {
                     Button(loc.localized("common_close")) {
                         dismiss()
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(AppTheme.Colors.accent)
                 }
             }
             .alert(loc.localized("settings_permission_required"), isPresented: $showPermissionAlert) {
@@ -116,7 +116,7 @@ struct SecuritySettingsView: View {
                         Toggle(isOn: $settings.faceIDEnabled) {
                             HStack {
                                 Image(systemName: "faceid")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(AppTheme.Colors.accent)
                                 
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(settings.getBiometricType())
@@ -144,7 +144,7 @@ struct SecuritySettingsView: View {
                             } label: {
                                 HStack {
                                     Image(systemName: "key.fill")
-                                        .foregroundColor(.orange)
+                                        .foregroundColor(AppTheme.Colors.accent)
                                     Text(loc.localized("settings_change_password"))
                                     Spacer()
                                     Image(systemName: "chevron.right")
@@ -167,7 +167,7 @@ struct SecuritySettingsView: View {
                             } label: {
                                 HStack {
                                     Image(systemName: "lock.fill")
-                                        .foregroundColor(.green)
+                                        .foregroundColor(AppTheme.Colors.accent)
                                     Text(loc.localized("settings_set_password"))
                                     Spacer()
                                     Image(systemName: "chevron.right")
@@ -185,7 +185,7 @@ struct SecuritySettingsView: View {
                     Section {
                         HStack {
                             Image(systemName: "lock.shield.fill")
-                                .foregroundColor(.purple)
+                                .foregroundColor(AppTheme.Colors.accent)
                             Text(loc.localized("settings_2fa"))
                             Spacer()
                             Text(loc.localized("settings_coming_soon"))
@@ -205,7 +205,7 @@ struct SecuritySettingsView: View {
                     Button(loc.localized("common_close")) {
                         dismiss()
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(AppTheme.Colors.accent)
                 }
             }
             .sheet(isPresented: $showPasswordSheet) {
@@ -253,7 +253,7 @@ struct SetPasswordView: View {
                     VStack(spacing: 12) {
                         Image(systemName: "lock.shield.fill")
                             .font(.system(size: 60))
-                            .foregroundColor(.blue)
+                            .foregroundColor(AppTheme.Colors.accent)
                         
                         Text(settings.hasAppPassword ? loc.localized("settings_change_password") : loc.localized("settings_set_password"))
                             .font(.system(size: 24, weight: .bold))
@@ -270,7 +270,7 @@ struct SetPasswordView: View {
                     
                     if showError {
                         Text(errorMessage)
-                            .foregroundColor(.red)
+                            .foregroundColor(AppTheme.Colors.error)
                             .font(.caption)
                     }
                     
@@ -282,7 +282,7 @@ struct SetPasswordView: View {
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.blue)
+                            .background(AppTheme.Colors.accent)
                             .cornerRadius(12)
                     }
                     .disabled(password.count != 4 || confirmPassword.count != 4)
@@ -299,7 +299,7 @@ struct SetPasswordView: View {
                     Button(loc.localized("common_cancel")) {
                         dismiss()
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(AppTheme.Colors.accent)
                 }
             }
         }
@@ -349,7 +349,7 @@ struct PinCodeField: View {
                         
                         if text.count > index {
                             Circle()
-                                .fill(Color.blue)
+                                .fill(AppTheme.Colors.accent)
                                 .frame(width: 16, height: 16)
                         }
                     }
@@ -384,24 +384,23 @@ struct AboutView: View {
                 ScrollView {
                     VStack(spacing: 32) {
                         
-                        // App Icon & Version
                         VStack(spacing: 16) {
                             ZStack {
                                 Circle()
                                     .fill(
                                         LinearGradient(
-                                            colors: [Color.red.opacity(0.3), Color.red],
+                                            colors: [AppTheme.Colors.accent.opacity(0.3), AppTheme.Colors.accent],
                                             startPoint: .topLeading,
                                             endPoint: .bottomTrailing
                                         )
                                     )
                                     .frame(width: 120, height: 120)
-                                
+
                                 Image(systemName: "figure.strengthtraining.traditional")
                                     .font(.system(size: 50))
                                     .foregroundColor(.white)
                             }
-                            .shadow(color: Color.red.opacity(0.3), radius: 20)
+                            .shadow(color: AppTheme.Colors.accent.opacity(0.3), radius: 20)
                             
                             VStack(spacing: 6) {
                                 Text("CoreVia")
@@ -440,11 +439,11 @@ struct AboutView: View {
                                 .font(.system(size: 20, weight: .bold))
                                 .foregroundColor(AppTheme.Colors.primaryText)
                             
-                            FeatureRow(icon: "figure.strengthtraining.traditional", title: loc.localized("about_workout_tracking"), color: .red)
-                            FeatureRow(icon: "fork.knife", title: loc.localized("about_food_tracking"), color: .green)
-                            FeatureRow(icon: "person.2.fill", title: loc.localized("about_teacher_system"), color: .purple)
-                            FeatureRow(icon: "chart.bar.fill", title: loc.localized("about_statistics"), color: .blue)
-                            FeatureRow(icon: "bell.fill", title: loc.localized("about_reminders"), color: .orange)
+                            FeatureRow(icon: "figure.strengthtraining.traditional", title: loc.localized("about_workout_tracking"), color: AppTheme.Colors.accent)
+                            FeatureRow(icon: "fork.knife", title: loc.localized("about_food_tracking"), color: AppTheme.Colors.accent)
+                            FeatureRow(icon: "person.2.fill", title: loc.localized("about_teacher_system"), color: AppTheme.Colors.accent)
+                            FeatureRow(icon: "chart.bar.fill", title: loc.localized("about_statistics"), color: AppTheme.Colors.accent)
+                            FeatureRow(icon: "bell.fill", title: loc.localized("about_reminders"), color: AppTheme.Colors.accent)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding()
@@ -465,7 +464,7 @@ struct AboutView: View {
                                 .font(.system(size: 13))
                                 .foregroundColor(AppTheme.Colors.tertiaryText)
                             
-                            Text("Made with ❤️ in Azerbaijan")
+                            Text(loc.localized("about_made_with_love"))
                                 .font(.system(size: 12))
                                 .foregroundColor(AppTheme.Colors.tertiaryText)
                         }
@@ -481,7 +480,7 @@ struct AboutView: View {
                     Button(loc.localized("common_close")) {
                         dismiss()
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(AppTheme.Colors.accent)
                 }
             }
         }
@@ -506,7 +505,7 @@ struct FeatureRow: View {
             Spacer()
             
             Image(systemName: "checkmark.circle.fill")
-                .foregroundColor(.green)
+                .foregroundColor(AppTheme.Colors.success)
         }
     }
 }
@@ -524,7 +523,7 @@ struct AboutLinkButton: View {
         } label: {
             HStack {
                 Image(systemName: icon)
-                    .foregroundColor(.red)
+                    .foregroundColor(AppTheme.Colors.accent)
                     .frame(width: 24)
                 
                 Text(title)
@@ -548,6 +547,7 @@ struct PremiumView: View {
 
     @Environment(\.dismiss) var dismiss
     @StateObject private var settings = SettingsManager.shared
+    @ObservedObject private var loc = LocalizationManager.shared
     @State private var animateGradient = false
     @State private var heroScale: CGFloat = 0.5
     @State private var heroOpacity: Double = 0
@@ -574,12 +574,12 @@ struct PremiumView: View {
 
     var features: [PremiumFeature] {
         [
-            PremiumFeature(icon: "sparkles", title: "AI Kalori Analizi", description: "Sekil cekin, kalori avtomatik hesablansin", color: .pink),
-            PremiumFeature(icon: "camera.fill", title: "Sekil ile qida analizi", description: "AI ile qida tanimasi ve besin deyerleri", color: .red),
-            PremiumFeature(icon: "location.fill", title: "GPS Hereket Izleme", description: "Qacis, gezinti ve velosiped izleme", color: .blue),
-            PremiumFeature(icon: "person.2.fill", title: "Muellim sistemi", description: "Professional muellimlere qosulun", color: .purple),
-            PremiumFeature(icon: "chart.bar.fill", title: "Detalli statistika", description: "Heftelik ve ayliq inkisaf hesabatlari", color: .cyan),
-            PremiumFeature(icon: "bell.badge.fill", title: "Agilli bildirisler", description: "Yemek ve idman xatirlatmalari", color: .orange)
+            PremiumFeature(icon: "sparkles", title: loc.localized("premium_feat_ai_calorie"), description: loc.localized("premium_feat_ai_calorie_desc"), color: AppTheme.Colors.accent),
+            PremiumFeature(icon: "camera.fill", title: loc.localized("premium_feat_food_photo"), description: loc.localized("premium_feat_food_photo_desc"), color: AppTheme.Colors.accent),
+            PremiumFeature(icon: "location.fill", title: loc.localized("premium_feat_gps"), description: loc.localized("premium_feat_gps_desc"), color: AppTheme.Colors.accent),
+            PremiumFeature(icon: "person.2.fill", title: loc.localized("premium_feat_teachers"), description: loc.localized("premium_feat_teachers_desc"), color: AppTheme.Colors.accent),
+            PremiumFeature(icon: "chart.bar.fill", title: loc.localized("premium_feat_stats"), description: loc.localized("premium_feat_stats_desc"), color: AppTheme.Colors.accent),
+            PremiumFeature(icon: "bell.badge.fill", title: loc.localized("premium_feat_notifications"), description: loc.localized("premium_feat_notifications_desc"), color: AppTheme.Colors.accent)
         ]
     }
 
@@ -588,8 +588,8 @@ struct PremiumView: View {
             // Animated gradient background
             LinearGradient(
                 colors: animateGradient
-                    ? [Color(red: 0.05, green: 0.02, blue: 0.15), Color.indigo.opacity(0.4), Color(red: 0.02, green: 0.05, blue: 0.12)]
-                    : [Color(red: 0.02, green: 0.05, blue: 0.12), Color.teal.opacity(0.3), Color(red: 0.05, green: 0.02, blue: 0.15)],
+                    ? [Color(red: 0.05, green: 0.02, blue: 0.15), AppTheme.Colors.premiumGradientStart.opacity(0.4), Color(red: 0.02, green: 0.05, blue: 0.12)]
+                    : [Color(red: 0.02, green: 0.05, blue: 0.12), AppTheme.Colors.premiumGradientEnd.opacity(0.3), Color(red: 0.05, green: 0.02, blue: 0.15)],
                 startPoint: animateGradient ? .topLeading : .bottomLeading,
                 endPoint: animateGradient ? .bottomTrailing : .topTrailing
             )
@@ -621,7 +621,7 @@ struct PremiumView: View {
                         Circle()
                             .fill(
                                 RadialGradient(
-                                    colors: [Color.indigo.opacity(0.5), Color.teal.opacity(0.2), Color.clear],
+                                    colors: [AppTheme.Colors.premiumGradientStart.opacity(0.5), AppTheme.Colors.premiumGradientEnd.opacity(0.2), Color.clear],
                                     center: .center,
                                     startRadius: 10,
                                     endRadius: 90
@@ -635,7 +635,7 @@ struct PremiumView: View {
                                 .font(.system(size: 65))
                                 .foregroundStyle(
                                     LinearGradient(
-                                        colors: settings.isPremium ? [.yellow, .orange] : [.indigo, .purple],
+                                        colors: settings.isPremium ? [AppTheme.Colors.starFilled, AppTheme.Colors.accent] : [AppTheme.Colors.premiumGradientStart, AppTheme.Colors.premiumGradientEnd],
                                         startPoint: .top,
                                         endPoint: .bottom
                                     )
@@ -650,7 +650,7 @@ struct PremiumView: View {
                         }
                         .scaleEffect(heroScale)
                         .opacity(heroOpacity)
-                        .shadow(color: settings.isPremium ? .yellow.opacity(0.6) : .indigo.opacity(0.6), radius: 25, x: 0, y: 10)
+                        .shadow(color: settings.isPremium ? AppTheme.Colors.starFilled.opacity(0.6) : AppTheme.Colors.premiumGradientStart.opacity(0.6), radius: 25, x: 0, y: 10)
                     }
                     .onAppear {
                         withAnimation(.spring(response: 0.8, dampingFraction: 0.6)) {
@@ -666,11 +666,11 @@ struct PremiumView: View {
                             .foregroundColor(.white.opacity(0.5))
                             .tracking(6)
 
-                        Text("PREMIUM")
+                        Text(loc.localized("premium_title"))
                             .font(.system(size: 38, weight: .black))
                             .foregroundStyle(
                                 LinearGradient(
-                                    colors: settings.isPremium ? [.yellow, .orange, .yellow] : [.white, .indigo.opacity(0.8), .white],
+                                    colors: settings.isPremium ? [AppTheme.Colors.starFilled, AppTheme.Colors.accent, AppTheme.Colors.starFilled] : [.white, AppTheme.Colors.premiumGradientStart.opacity(0.8), .white],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
@@ -679,17 +679,17 @@ struct PremiumView: View {
                         if settings.isPremium {
                             HStack(spacing: 6) {
                                 Image(systemName: "checkmark.seal.fill")
-                                    .foregroundColor(.green)
-                                Text("Premium Aktiv")
+                                    .foregroundColor(AppTheme.Colors.success)
+                                Text(loc.localized("premium_active"))
                                     .font(.system(size: 15, weight: .bold))
-                                    .foregroundColor(.green)
+                                    .foregroundColor(AppTheme.Colors.success)
                             }
                             .padding(.horizontal, 16)
                             .padding(.vertical, 8)
-                            .background(Color.green.opacity(0.15))
+                            .background(AppTheme.Colors.success.opacity(0.15))
                             .cornerRadius(20)
                         } else {
-                            Text("Butun imkanlari acin, limitler olmadan")
+                            Text(loc.localized("premium_all_unlocked"))
                                 .font(.system(size: 14))
                                 .foregroundColor(.white.opacity(0.5))
                         }
@@ -702,8 +702,8 @@ struct PremiumView: View {
                         HStack(spacing: 8) {
                             Image(systemName: "star.fill")
                                 .font(.system(size: 14))
-                                .foregroundColor(.yellow)
-                            Text("Premium Xususiyyetler")
+                                .foregroundColor(AppTheme.Colors.starFilled)
+                            Text(loc.localized("premium_features_title"))
                                 .font(.system(size: 16, weight: .bold))
                                 .foregroundColor(.white)
                         }
@@ -739,7 +739,6 @@ struct PremiumView: View {
                         // Premium aktiv — status + ləğv et
                         premiumActiveSection
                     } else {
-                        // Premium deyil — qiymətlər + aktivləşdir
                         premiumSubscribeSection
                     }
 
@@ -747,13 +746,13 @@ struct PremiumView: View {
                     if showError {
                         HStack(spacing: 8) {
                             Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundColor(.red)
+                                .foregroundColor(AppTheme.Colors.error)
                             Text(errorMessage)
                                 .font(.system(size: 13))
-                                .foregroundColor(.red)
+                                .foregroundColor(AppTheme.Colors.error)
                         }
                         .padding()
-                        .background(Color.red.opacity(0.15))
+                        .background(AppTheme.Colors.error.opacity(0.15))
                         .cornerRadius(12)
                     }
                 }
@@ -761,13 +760,13 @@ struct PremiumView: View {
                 .padding(.bottom, 30)
             }
         }
-        .alert("Premium-i legv et", isPresented: $showCancelAlert) {
-            Button("Xeyr", role: .cancel) { }
-            Button("Beli, legv et", role: .destructive) {
+        .alert(loc.localized("premium_cancel_title"), isPresented: $showCancelAlert) {
+            Button(loc.localized("premium_cancel_no"), role: .cancel) { }
+            Button(loc.localized("premium_cancel_yes"), role: .destructive) {
                 cancelPremium()
             }
         } message: {
-            Text("Premium abuneliyinizi legv etmek isteyirsiniz? Butun premium xususiyyetlere girisiniz bitecek.")
+            Text(loc.localized("premium_cancel_message"))
         }
     }
 
@@ -779,27 +778,27 @@ struct PremiumView: View {
                 HStack(spacing: 10) {
                     ZStack {
                         Circle()
-                            .fill(Color.green.opacity(0.2))
+                            .fill(AppTheme.Colors.success.opacity(0.2))
                             .frame(width: 44, height: 44)
                         Image(systemName: "crown.fill")
                             .font(.system(size: 20))
-                            .foregroundColor(.yellow)
+                            .foregroundColor(AppTheme.Colors.starFilled)
                     }
 
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Premium Istifadeci")
+                        Text(loc.localized("premium_user"))
                             .font(.system(size: 16, weight: .bold))
                             .foregroundColor(.white)
-                        Text("Butun xususiyyetler aktivdir")
+                        Text(loc.localized("premium_all_active"))
                             .font(.system(size: 13))
-                            .foregroundColor(.green)
+                            .foregroundColor(AppTheme.Colors.success)
                     }
 
                     Spacer()
 
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 24))
-                        .foregroundColor(.green)
+                        .foregroundColor(AppTheme.Colors.success)
                 }
 
                 Divider()
@@ -807,10 +806,10 @@ struct PremiumView: View {
 
                 // Aktiv xususiyyetler
                 VStack(spacing: 8) {
-                    premiumStatusRow(icon: "sparkles", title: "AI Kalori Analizi", active: true)
-                    premiumStatusRow(icon: "location.fill", title: "GPS Izleme", active: true)
-                    premiumStatusRow(icon: "person.2.fill", title: "Muellim Sistemi", active: true)
-                    premiumStatusRow(icon: "chart.bar.fill", title: "Detalli Statistika", active: true)
+                    premiumStatusRow(icon: "sparkles", title: loc.localized("premium_status_ai"), active: true)
+                    premiumStatusRow(icon: "location.fill", title: loc.localized("premium_status_gps"), active: true)
+                    premiumStatusRow(icon: "person.2.fill", title: loc.localized("premium_status_teachers"), active: true)
+                    premiumStatusRow(icon: "chart.bar.fill", title: loc.localized("premium_status_stats"), active: true)
                 }
             }
             .padding(16)
@@ -820,7 +819,7 @@ struct PremiumView: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
-                    .stroke(Color.green.opacity(0.3), lineWidth: 1)
+                    .stroke(AppTheme.Colors.success.opacity(0.3), lineWidth: 1)
             )
 
             // Ləğv et düyməsi
@@ -830,22 +829,22 @@ struct PremiumView: View {
                 HStack(spacing: 8) {
                     if isCancelling {
                         ProgressView()
-                            .tint(.red)
+                            .tint(AppTheme.Colors.error)
                     } else {
                         Image(systemName: "xmark.circle")
                             .font(.system(size: 16))
                     }
-                    Text("Premium-i legv et")
+                    Text(loc.localized("premium_cancel"))
                         .font(.system(size: 15, weight: .semibold))
                 }
-                .foregroundColor(.red.opacity(0.8))
+                .foregroundColor(AppTheme.Colors.error.opacity(0.8))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .background(Color.red.opacity(0.1))
+                .background(AppTheme.Colors.error.opacity(0.1))
                 .cornerRadius(12)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.red.opacity(0.2), lineWidth: 1)
+                        .stroke(AppTheme.Colors.error.opacity(0.2), lineWidth: 1)
                 )
             }
             .disabled(isCancelling)
@@ -864,7 +863,7 @@ struct PremiumView: View {
             Spacer()
             Image(systemName: "checkmark")
                 .font(.system(size: 12, weight: .bold))
-                .foregroundColor(.green)
+                .foregroundColor(AppTheme.Colors.success)
         }
     }
 
@@ -874,9 +873,9 @@ struct PremiumView: View {
             // Qiymət kartları
             HStack(spacing: 12) {
                 PremiumPricingCard(
-                    title: "Ayliq",
+                    title: loc.localized("premium_monthly"),
                     price: "9.99",
-                    period: "ay",
+                    period: loc.localized("premium_month"),
                     isSelected: selectedPlan == .monthly,
                     isPopular: false
                 )
@@ -887,12 +886,12 @@ struct PremiumView: View {
                 }
 
                 PremiumPricingCard(
-                    title: "Illik",
+                    title: loc.localized("premium_yearly"),
                     price: "79.99",
-                    period: "il",
+                    period: loc.localized("premium_year"),
                     isSelected: selectedPlan == .yearly,
                     isPopular: true,
-                    savings: "33% qenaet"
+                    savings: loc.localized("premium_save_33")
                 )
                 .onTapGesture {
                     withAnimation(.spring(response: 0.3)) {
@@ -921,7 +920,7 @@ struct PremiumView: View {
                         Image(systemName: "sparkles")
                             .font(.system(size: 18))
                     }
-                    Text("Premium-a kec")
+                    Text(loc.localized("premium_go_premium"))
                         .font(.system(size: 18, weight: .bold))
                 }
                 .foregroundColor(.white)
@@ -929,24 +928,24 @@ struct PremiumView: View {
                 .padding(.vertical, 16)
                 .background(
                     LinearGradient(
-                        colors: [.indigo, .purple],
+                        colors: [AppTheme.Colors.premiumGradientStart, AppTheme.Colors.premiumGradientEnd],
                         startPoint: .leading,
                         endPoint: .trailing
                     )
                 )
                 .cornerRadius(16)
-                .shadow(color: .indigo.opacity(0.6), radius: 15, x: 0, y: 8)
+                .shadow(color: AppTheme.Colors.premiumGradientStart.opacity(0.6), radius: 15, x: 0, y: 8)
             }
             .scaleEffect(buttonPressed ? 0.95 : 1.0)
             .disabled(isActivating)
 
             // Şərtlər
             VStack(spacing: 6) {
-                Text("Istediyiniz vaxt legv ede bilersiniz")
+                Text(loc.localized("premium_can_cancel"))
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(.white.opacity(0.5))
 
-                Text("Odenis App Store hesabiniz uzerinden alinir")
+                Text(loc.localized("premium_appstore_payment"))
                     .font(.system(size: 11))
                     .foregroundColor(.white.opacity(0.3))
             }
@@ -971,7 +970,7 @@ struct PremiumView: View {
                 await MainActor.run {
                     isActivating = false
                     showError = true
-                    errorMessage = (error as? APIError)?.errorDescription ?? "Xeta bas verdi"
+                    errorMessage = (error as? APIError)?.errorDescription ?? loc.localized("premium_error")
                 }
                 return
             }
@@ -1004,6 +1003,8 @@ struct PremiumView: View {
 
             await MainActor.run {
                 settings.isPremium = false
+                // Müəllim abunəliyini də ləğv et
+                TrainerManager.shared.assignedTrainer = nil
                 isCancelling = false
             }
         }
@@ -1043,13 +1044,13 @@ struct PremiumFeatureRow: View {
             if isActive {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 20))
-                    .foregroundColor(.green)
+                    .foregroundColor(AppTheme.Colors.success)
             } else {
                 Image(systemName: "lock.circle.fill")
                     .font(.system(size: 20))
                     .foregroundStyle(
                         LinearGradient(
-                            colors: [.indigo, .teal],
+                            colors: [AppTheme.Colors.premiumGradientStart, AppTheme.Colors.premiumGradientEnd],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
@@ -1073,14 +1074,14 @@ struct PremiumPricingCard: View {
     var body: some View {
         VStack(spacing: 10) {
             if isPopular {
-                Text("EN POPULYAR")
+                Text(LocalizationManager.shared.localized("premium_most_popular"))
                     .font(.system(size: 10, weight: .heavy))
                     .foregroundColor(.white)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
                     .background(
                         LinearGradient(
-                            colors: [.indigo, .purple],
+                            colors: [AppTheme.Colors.premiumGradientStart, AppTheme.Colors.premiumGradientEnd],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
@@ -1093,7 +1094,7 @@ struct PremiumPricingCard: View {
                 .foregroundColor(.white)
 
             HStack(alignment: .firstTextBaseline, spacing: 2) {
-                Text("₼")
+                Text(LocalizationManager.shared.localized("premium_currency"))
                     .font(.system(size: 14, weight: .semibold))
                 Text(price)
                     .font(.system(size: 30, weight: .black))
@@ -1106,7 +1107,7 @@ struct PremiumPricingCard: View {
             if let savings = savings {
                 Text(savings)
                     .font(.system(size: 11, weight: .bold))
-                    .foregroundColor(.teal)
+                    .foregroundColor(AppTheme.Colors.accent)
             }
         }
         .frame(maxWidth: .infinity)
@@ -1119,7 +1120,7 @@ struct PremiumPricingCard: View {
             RoundedRectangle(cornerRadius: 16)
                 .stroke(
                     isSelected
-                        ? LinearGradient(colors: [.indigo, .teal], startPoint: .topLeading, endPoint: .bottomTrailing)
+                        ? LinearGradient(colors: [AppTheme.Colors.premiumGradientStart, AppTheme.Colors.premiumGradientEnd], startPoint: .topLeading, endPoint: .bottomTrailing)
                         : LinearGradient(colors: [.white.opacity(0.15), .white.opacity(0.08)], startPoint: .topLeading, endPoint: .bottomTrailing),
                     lineWidth: isSelected ? 2 : 1
                 )

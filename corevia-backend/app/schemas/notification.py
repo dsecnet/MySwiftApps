@@ -1,12 +1,11 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 
 
 class DeviceTokenCreate(BaseModel):
-    """iOS app FCM token qeydiyyati"""
-    fcm_token: str
-    device_name: str | None = None
-    platform: str = "ios"
+    fcm_token: str = Field(..., min_length=1, max_length=500)
+    device_name: str | None = Field(None, max_length=100)
+    platform: str = Field("ios", max_length=20)
 
 
 class NotificationResponse(BaseModel):
@@ -24,10 +23,9 @@ class NotificationResponse(BaseModel):
 
 
 class NotificationSend(BaseModel):
-    """Trainer -> Student bildirisi gondermek"""
     student_id: str
-    title: str
-    body: str
+    title: str = Field(..., min_length=1, max_length=100)
+    body: str = Field(..., min_length=1, max_length=500)
 
 
 class NotificationMarkRead(BaseModel):

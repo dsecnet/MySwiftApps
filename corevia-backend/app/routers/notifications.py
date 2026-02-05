@@ -30,7 +30,6 @@ async def register_device_token(
     db: AsyncSession = Depends(get_db),
 ):
     """iOS app-in FCM token-ini qeyd et (login/startup zamani)"""
-    # Eyni token artiq varsa yenile, yoxdursa yarat
     result = await db.execute(
         select(DeviceToken).where(
             DeviceToken.user_id == current_user.id,
@@ -181,7 +180,6 @@ async def send_notification_to_student(
             detail="Yalniz trainer bildiris gondare biler",
         )
 
-    # Student-in bu trainer-e aid olduğunu yoxla
     student_result = await db.execute(
         select(User).where(User.id == data.student_id)
     )
@@ -194,7 +192,6 @@ async def send_notification_to_student(
             detail="Bu student sizin student-iniz deyil",
         )
 
-    # DB-ye bildiris yaz
     notification = Notification(
         user_id=data.student_id,
         title=data.title,
@@ -205,7 +202,6 @@ async def send_notification_to_student(
     db.add(notification)
     await db.flush()
 
-    # Push notification gonder
     tokens_result = await db.execute(
         select(DeviceToken).where(
             DeviceToken.user_id == data.student_id,

@@ -21,9 +21,11 @@ async def update_profile(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    ALLOWED_PROFILE_FIELDS = {"name", "age", "weight", "height", "goal", "specialization", "experience", "price_per_session", "bio", "instagram_handle"}
     update_data = profile_data.model_dump(exclude_unset=True)
     for field, value in update_data.items():
-        setattr(current_user, field, value)
+        if field in ALLOWED_PROFILE_FIELDS:
+            setattr(current_user, field, value)
     return current_user
 
 
@@ -66,7 +68,6 @@ async def assign_trainer(
             detail="Yalniz client trainer sece biler",
         )
 
-    # Trainer movcudlugunu yoxla
     result = await db.execute(
         select(User).where(
             User.id == trainer_id,

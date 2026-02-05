@@ -35,12 +35,14 @@ struct ClientProfileView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 20) {
                     profileHeader
+                    profileCompletionSection
                     if !settingsManager.isPremium { premiumBanner }
                     quickActionsSection
                     todayHighlightsSection
                     weeklyProgressSection
                     teachersSection
                     goalsSection
+                    memberSinceSection
                     settingsSection
                     logoutButton
                 }
@@ -88,9 +90,9 @@ struct ClientProfileView: View {
         } message: {
             Text(loc.localized("profile_logout_confirm"))
         }
-        .alert("Premium-i legv et", isPresented: $showCancelPremiumAlert) {
-            Button("Xeyr", role: .cancel) { }
-            Button("Beli, legv et", role: .destructive) {
+        .alert(loc.localized("premium_cancel_title"), isPresented: $showCancelPremiumAlert) {
+            Button(loc.localized("premium_cancel_no"), role: .cancel) { }
+            Button(loc.localized("premium_cancel_yes"), role: .destructive) {
                 Task {
                     // Backend-e cancel gonderin
                     do {
@@ -103,14 +105,15 @@ struct ClientProfileView: View {
                     }
                     // Token-leri yenile (is_premium claim yenilenir)
                     await AuthManager.shared.refreshTokenClaims()
-                    // Lokal statusu sondur
+                    // Lokal statusu sondur + muellim abuneliyini legv et
                     await MainActor.run {
                         settingsManager.isPremium = false
+                        trainerManager.assignedTrainer = nil
                     }
                 }
             }
         } message: {
-            Text("Premium abuneliyinizi legv etmek isteyirsiniz? Butun premium xususiyyetlere girisiniz bitecek.")
+            Text(loc.localized("premium_cancel_message"))
         }
     }
 
@@ -122,7 +125,7 @@ struct ClientProfileView: View {
                     Circle()
                         .fill(
                             LinearGradient(
-                                colors: [Color.blue.opacity(0.3), Color.blue],
+                                colors: [AppTheme.Colors.accent.opacity(0.3), AppTheme.Colors.accent],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
@@ -141,14 +144,14 @@ struct ClientProfileView: View {
                             .foregroundColor(.white)
                     }
                 }
-                .shadow(color: Color.blue.opacity(0.3), radius: 15, x: 0, y: 8)
+                .shadow(color: AppTheme.Colors.accent.opacity(0.3), radius: 15, x: 0, y: 8)
 
                 if settingsManager.isPremium {
                     ZStack {
                         Circle()
                             .fill(
                                 LinearGradient(
-                                    colors: [.yellow, .orange],
+                                    colors: [AppTheme.Colors.starFilled, AppTheme.Colors.accent],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )
@@ -158,7 +161,7 @@ struct ClientProfileView: View {
                             .font(.system(size: 14))
                             .foregroundColor(.white)
                     }
-                    .shadow(color: .yellow.opacity(0.5), radius: 4)
+                    .shadow(color: AppTheme.Colors.starFilled.opacity(0.5), radius: 4)
                     .offset(x: -2, y: -2)
                 }
 
@@ -167,13 +170,13 @@ struct ClientProfileView: View {
                 } label: {
                     ZStack {
                         Circle()
-                            .fill(Color.blue)
+                            .fill(AppTheme.Colors.accent)
                             .frame(width: 32, height: 32)
                         Image(systemName: "camera.fill")
                             .font(.system(size: 14))
                             .foregroundColor(.white)
                     }
-                    .shadow(color: Color.blue.opacity(0.5), radius: 6)
+                    .shadow(color: AppTheme.Colors.accent.opacity(0.5), radius: 6)
                 }
             }
 
@@ -185,7 +188,7 @@ struct ClientProfileView: View {
 
                     if settingsManager.isPremium {
                         Image(systemName: "checkmark.seal.fill")
-                            .foregroundColor(.indigo)
+                            .foregroundColor(AppTheme.Colors.accentDark)
                             .font(.system(size: 16))
                     }
                 }
@@ -198,7 +201,7 @@ struct ClientProfileView: View {
                     HStack(spacing: 5) {
                         Image(systemName: "crown.fill")
                             .font(.system(size: 11))
-                        Text("Premium")
+                        Text(loc.localized("premium_badge"))
                             .font(.system(size: 12, weight: .bold))
                     }
                     .foregroundColor(.white)
@@ -206,13 +209,13 @@ struct ClientProfileView: View {
                     .padding(.vertical, 5)
                     .background(
                         LinearGradient(
-                            colors: [.yellow.opacity(0.9), .orange],
+                            colors: [AppTheme.Colors.starFilled.opacity(0.9), AppTheme.Colors.accent],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
                     )
                     .cornerRadius(12)
-                    .shadow(color: .orange.opacity(0.3), radius: 4, x: 0, y: 2)
+                    .shadow(color: AppTheme.Colors.accent.opacity(0.3), radius: 4, x: 0, y: 2)
                 }
 
                 Button {
@@ -224,13 +227,54 @@ struct ClientProfileView: View {
                         Text(loc.localized("profile_edit"))
                             .font(.system(size: 13, weight: .semibold))
                     }
-                    .foregroundColor(.blue)
+                    .foregroundColor(AppTheme.Colors.accent)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 6)
-                    .background(Color.blue.opacity(0.1))
+                    .background(AppTheme.Colors.accent.opacity(0.1))
                     .cornerRadius(16)
                 }
                 .padding(.top, 2)
+            }
+        }
+    }
+
+    // MARK: - Profile Completion
+    private var profileCompletionSection: some View {
+        let fields: [Bool] = [
+            !profileManager.userProfile.name.isEmpty,
+            profileManager.userProfile.age != nil && profileManager.userProfile.age! > 0,
+            profileManager.userProfile.weight != nil && profileManager.userProfile.weight! > 0,
+            profileManager.userProfile.height != nil && profileManager.userProfile.height! > 0,
+            profileManager.userProfile.goal != nil && !profileManager.userProfile.goal!.isEmpty,
+            imageManager.profileImage != nil
+        ]
+        let filled = fields.filter { $0 }.count
+        let total = fields.count
+        let percentage = Double(filled) / Double(total)
+
+        return Group {
+            if percentage < 1.0 {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack {
+                        Text(loc.localized("profile_completion"))
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(AppTheme.Colors.primaryText)
+                        Spacer()
+                        Text("\(Int(percentage * 100))%")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(AppTheme.Colors.accent)
+                    }
+
+                    ProgressView(value: percentage)
+                        .tint(AppTheme.Colors.accent)
+
+                    Text(loc.localized("profile_complete_desc"))
+                        .font(.system(size: 12))
+                        .foregroundColor(AppTheme.Colors.secondaryText)
+                }
+                .padding()
+                .background(AppTheme.Colors.secondaryBackground)
+                .cornerRadius(14)
             }
         }
     }
@@ -252,11 +296,11 @@ struct ClientProfileView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Premium-a kecin")
+                    Text(loc.localized("premium_go_banner"))
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(.white)
 
-                    Text("AI analiz, detalli statistika ve daha cox")
+                    Text(loc.localized("premium_go_banner_desc"))
                         .font(.system(size: 12))
                         .foregroundColor(.white.opacity(0.8))
                 }
@@ -270,20 +314,20 @@ struct ClientProfileView: View {
             .padding(16)
             .background(
                 LinearGradient(
-                    colors: [.indigo, .purple.opacity(0.8)],
+                    colors: [AppTheme.Colors.premiumGradientStart, AppTheme.Colors.premiumGradientEnd.opacity(0.8)],
                     startPoint: .leading,
                     endPoint: .trailing
                 )
             )
             .cornerRadius(16)
-            .shadow(color: .indigo.opacity(0.4), radius: 12, x: 0, y: 6)
+            .shadow(color: AppTheme.Colors.premiumGradientStart.opacity(0.4), radius: 12, x: 0, y: 6)
         }
     }
 
     // MARK: - Quick Actions
     private var quickActionsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Suretli Emeliyyatlar")
+            Text(loc.localized("profile_quick_actions"))
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
@@ -300,10 +344,10 @@ struct ClientProfileView: View {
                                     .font(.system(size: 18))
                                     .foregroundColor(.white)
                             }
-                            Text("Yeni Idman")
+                            Text(loc.localized("profile_new_workout"))
                                 .font(.system(size: 14, weight: .bold))
                                 .foregroundColor(.white)
-                            Text("\(workoutManager.todayWorkouts.count) bugun")
+                            Text("\(workoutManager.todayWorkouts.count) \(loc.localized("profile_today"))")
                                 .font(.system(size: 11))
                                 .foregroundColor(.white.opacity(0.7))
                         }
@@ -311,13 +355,13 @@ struct ClientProfileView: View {
                         .padding(14)
                         .background(
                             LinearGradient(
-                                colors: [.red, .orange],
+                                colors: [AppTheme.Colors.accent, AppTheme.Colors.accent.opacity(0.8)],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
                         )
                         .cornerRadius(16)
-                        .shadow(color: .red.opacity(0.3), radius: 8, x: 0, y: 4)
+                        .shadow(color: AppTheme.Colors.accent.opacity(0.3), radius: 8, x: 0, y: 4)
                     }
 
                     Button { showAddFood = true } label: {
@@ -330,10 +374,10 @@ struct ClientProfileView: View {
                                     .font(.system(size: 18))
                                     .foregroundColor(.white)
                             }
-                            Text("Qida Elave Et")
+                            Text(loc.localized("profile_add_food"))
                                 .font(.system(size: 14, weight: .bold))
                                 .foregroundColor(.white)
-                            Text("\(foodManager.todayTotalCalories) kcal")
+                            Text("\(foodManager.todayTotalCalories) \(loc.localized("unit_kcal"))")
                                 .font(.system(size: 11))
                                 .foregroundColor(.white.opacity(0.7))
                         }
@@ -341,13 +385,13 @@ struct ClientProfileView: View {
                         .padding(14)
                         .background(
                             LinearGradient(
-                                colors: [.green, .teal],
+                                colors: [AppTheme.Colors.success, AppTheme.Colors.success.opacity(0.8)],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
                         )
                         .cornerRadius(16)
-                        .shadow(color: .green.opacity(0.3), radius: 8, x: 0, y: 4)
+                        .shadow(color: AppTheme.Colors.success.opacity(0.3), radius: 8, x: 0, y: 4)
                     }
                 }
 
@@ -364,10 +408,10 @@ struct ClientProfileView: View {
                                     .foregroundColor(.white)
                             }
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("Herekete Basla")
+                                Text(loc.localized("profile_start_activity"))
                                     .font(.system(size: 14, weight: .bold))
                                     .foregroundColor(.white)
-                                Text("GPS ile qacis, gezinti izle")
+                                Text(loc.localized("profile_gps_desc"))
                                     .font(.system(size: 11))
                                     .foregroundColor(.white.opacity(0.7))
                             }
@@ -379,13 +423,13 @@ struct ClientProfileView: View {
                         .padding(14)
                         .background(
                             LinearGradient(
-                                colors: [.blue, .indigo],
+                                colors: [AppTheme.Colors.accent, AppTheme.Colors.accentDark],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
                         )
                         .cornerRadius(16)
-                        .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
+                        .shadow(color: AppTheme.Colors.accent.opacity(0.3), radius: 8, x: 0, y: 4)
                     }
                 }
             }
@@ -395,7 +439,7 @@ struct ClientProfileView: View {
     // MARK: - Today Highlights (horizontal scroll)
     private var todayHighlightsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Bugunun Netlikleri")
+            Text(loc.localized("profile_today_highlights"))
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
@@ -405,19 +449,19 @@ struct ClientProfileView: View {
                         icon: "figure.strengthtraining.traditional",
                         value: "\(workoutManager.todayWorkouts.count)",
                         label: loc.localized("profile_workouts"),
-                        color: .red
+                        color: AppTheme.Colors.accent
                     )
                     TodayHighlightCard(
                         icon: "flame.fill",
                         value: "\(foodManager.todayTotalCalories)",
-                        label: "Kalori",
-                        color: .orange
+                        label: loc.localized("profile_calorie"),
+                        color: AppTheme.Colors.accent
                     )
                     TodayHighlightCard(
                         icon: "fork.knife",
                         value: "\(foodManager.todayEntries.count)",
                         label: loc.localized("profile_meals"),
-                        color: .green
+                        color: AppTheme.Colors.success
                     )
                 }
             }
@@ -427,7 +471,7 @@ struct ClientProfileView: View {
     // MARK: - Weekly Progress (Circular Rings)
     private var weeklyProgressSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Heftelik Inkisaf")
+            Text(loc.localized("profile_weekly_progress"))
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
@@ -436,15 +480,15 @@ struct ClientProfileView: View {
                     value: Double(workoutManager.weekWorkouts.count),
                     total: 5.0,
                     label: loc.localized("profile_workouts"),
-                    color: .red,
+                    color: AppTheme.Colors.accent,
                     icon: "figure.strengthtraining.traditional"
                 )
 
                 CircularProgressCard(
                     value: Double(foodManager.todayTotalCalories),
                     total: Double(foodManager.dailyCalorieGoal),
-                    label: "Kalori",
-                    color: .orange,
+                    label: loc.localized("profile_calorie"),
+                    color: AppTheme.Colors.accent,
                     icon: "flame.fill"
                 )
             }
@@ -456,7 +500,7 @@ struct ClientProfileView: View {
 
     private var teachersSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Muellimlerim")
+            Text(loc.localized("profile_my_teachers"))
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
@@ -482,7 +526,7 @@ struct ClientProfileView: View {
                         Text(trainer.name)
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(AppTheme.Colors.primaryText)
-                        Text(trainer.specialization ?? trainer.category.rawValue)
+                        Text(trainer.specialization ?? trainer.category.localizedName)
                             .font(.system(size: 12))
                             .foregroundColor(AppTheme.Colors.secondaryText)
                     }
@@ -493,7 +537,7 @@ struct ClientProfileView: View {
                         HStack(spacing: 3) {
                             Image(systemName: "star.fill")
                                 .font(.system(size: 11))
-                                .foregroundColor(.yellow)
+                                .foregroundColor(AppTheme.Colors.starFilled)
                             Text(String(format: "%.1f", rating))
                                 .font(.system(size: 13, weight: .semibold))
                                 .foregroundColor(AppTheme.Colors.primaryText)
@@ -501,7 +545,7 @@ struct ClientProfileView: View {
                     }
 
                     Image(systemName: "checkmark.seal.fill")
-                        .foregroundColor(.green)
+                        .foregroundColor(AppTheme.Colors.success)
                         .font(.system(size: 16))
                 }
                 .padding(14)
@@ -509,8 +553,31 @@ struct ClientProfileView: View {
                 .cornerRadius(14)
                 .overlay(
                     RoundedRectangle(cornerRadius: 14)
-                        .stroke(Color.green.opacity(0.2), lineWidth: 1)
+                        .stroke(AppTheme.Colors.success.opacity(0.2), lineWidth: 1)
                 )
+
+                // Message Trainer button
+                NavigationLink(destination: ChatDetailView(
+                    userId: trainer.id,
+                    userName: trainer.name,
+                    userProfileImage: trainer.profileImageUrl
+                )) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "message.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(AppTheme.Colors.accent)
+                        Text(loc.localized("profile_message_trainer"))
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(AppTheme.Colors.accent)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .foregroundColor(AppTheme.Colors.tertiaryText)
+                            .font(.system(size: 13))
+                    }
+                    .padding(12)
+                    .background(AppTheme.Colors.accent.opacity(0.08))
+                    .cornerRadius(12)
+                }
             }
 
             // Butun muellimlere bax linki
@@ -518,18 +585,18 @@ struct ClientProfileView: View {
                 HStack(spacing: 14) {
                     ZStack {
                         Circle()
-                            .fill(Color.purple.opacity(0.15))
+                            .fill(AppTheme.Colors.accent.opacity(0.15))
                             .frame(width: 44, height: 44)
                         Image(systemName: "person.2.fill")
                             .font(.system(size: 18))
-                            .foregroundColor(.purple)
+                            .foregroundColor(AppTheme.Colors.accent)
                     }
 
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(trainerManager.assignedTrainer != nil ? "Muellimi Deyis" : "Muellim Sec")
+                        Text(trainerManager.assignedTrainer != nil ? loc.localized("profile_change_teacher") : loc.localized("profile_select_teacher"))
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(AppTheme.Colors.primaryText)
-                        Text("Professional muellimlere baxin")
+                        Text(loc.localized("profile_view_teachers"))
                             .font(.system(size: 12))
                             .foregroundColor(AppTheme.Colors.secondaryText)
                     }
@@ -540,14 +607,14 @@ struct ClientProfileView: View {
                         HStack(spacing: 3) {
                             Image(systemName: "lock.fill")
                                 .font(.system(size: 10))
-                            Text("Premium")
+                            Text(loc.localized("premium_badge"))
                                 .font(.system(size: 11, weight: .bold))
                         }
                         .foregroundColor(.white)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .background(
-                            LinearGradient(colors: [.indigo, .purple], startPoint: .leading, endPoint: .trailing)
+                            LinearGradient(colors: [AppTheme.Colors.premiumGradientStart, AppTheme.Colors.premiumGradientEnd], startPoint: .leading, endPoint: .trailing)
                         )
                         .cornerRadius(8)
                     }
@@ -561,7 +628,7 @@ struct ClientProfileView: View {
                 .cornerRadius(14)
                 .overlay(
                     RoundedRectangle(cornerRadius: 14)
-                        .stroke(Color.purple.opacity(0.15), lineWidth: 1)
+                        .stroke(AppTheme.Colors.accent.opacity(0.15), lineWidth: 1)
                 )
             }
         }
@@ -586,12 +653,12 @@ struct ClientProfileView: View {
                     )
                     ClientStatCard(
                         icon: "scalemass",
-                        value: "\(Int(profileManager.userProfile.weight ?? 0)) kg",
+                        value: "\(Int(profileManager.userProfile.weight ?? 0)) \(loc.localized("unit_kg"))",
                         label: loc.localized("profile_weight")
                     )
                     ClientStatCard(
                         icon: "ruler",
-                        value: "\(Int(profileManager.userProfile.height ?? 0)) sm",
+                        value: "\(Int(profileManager.userProfile.height ?? 0)) \(loc.localized("unit_cm"))",
                         label: loc.localized("profile_height")
                     )
                 }
@@ -599,7 +666,7 @@ struct ClientProfileView: View {
                 if let goal = profileManager.userProfile.goal {
                     HStack {
                         Image(systemName: "target")
-                            .foregroundColor(.blue)
+                            .foregroundColor(AppTheme.Colors.accent)
                         Text(loc.localized("profile_goal_label"))
                             .foregroundColor(AppTheme.Colors.secondaryText)
                         Text(goal)
@@ -611,8 +678,92 @@ struct ClientProfileView: View {
                     .background(AppTheme.Colors.secondaryBackground)
                     .cornerRadius(12)
                 }
+
+                // Complete profile prompt when fields are missing
+                if profileManager.userProfile.age == nil
+                    || profileManager.userProfile.weight == nil
+                    || profileManager.userProfile.height == nil
+                    || profileManager.userProfile.goal == nil {
+                    Button {
+                        showEditProfile = true
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "exclamationmark.circle.fill")
+                                .font(.system(size: 18))
+                                .foregroundColor(AppTheme.Colors.accent)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(loc.localized("profile_complete_profile"))
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(AppTheme.Colors.primaryText)
+                                Text(loc.localized("profile_complete_desc"))
+                                    .font(.system(size: 12))
+                                    .foregroundColor(AppTheme.Colors.secondaryText)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(AppTheme.Colors.tertiaryText)
+                                .font(.system(size: 13))
+                        }
+                        .padding(14)
+                        .background(AppTheme.Colors.accent.opacity(0.08))
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(AppTheme.Colors.accent.opacity(0.2), lineWidth: 1)
+                        )
+                    }
+                }
             }
         }
+    }
+
+    // MARK: - Member Since
+    private var memberSinceSection: some View {
+        Group {
+            if let user = AuthManager.shared.currentUser {
+                let formattedDate = formatDateString(user.createdAt)
+                HStack(spacing: 14) {
+                    ZStack {
+                        Circle()
+                            .fill(AppTheme.Colors.accent.opacity(0.15))
+                            .frame(width: 44, height: 44)
+                        Image(systemName: "calendar.badge.clock")
+                            .font(.system(size: 18))
+                            .foregroundColor(AppTheme.Colors.accent)
+                    }
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(loc.localized("profile_member_since"))
+                            .font(.system(size: 13))
+                            .foregroundColor(AppTheme.Colors.secondaryText)
+                        Text(formattedDate)
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(AppTheme.Colors.primaryText)
+                    }
+
+                    Spacer()
+                }
+                .padding(14)
+                .background(AppTheme.Colors.secondaryBackground)
+                .cornerRadius(14)
+            }
+        }
+    }
+
+    private func formatDateString(_ dateString: String) -> String {
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+        let fallbackFormatter = DateFormatter()
+        fallbackFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+
+        let date = isoFormatter.date(from: dateString) ?? fallbackFormatter.date(from: dateString) ?? Date()
+
+        let displayFormatter = DateFormatter()
+        displayFormatter.dateStyle = .long
+        displayFormatter.timeStyle = .none
+        displayFormatter.locale = Locale.current
+        return displayFormatter.string(from: date)
     }
 
     // MARK: - Settings Section
@@ -627,7 +778,7 @@ struct ClientProfileView: View {
                     icon: "bell.fill",
                     title: loc.localized("settings_notifications"),
                     badge: settingsManager.notificationsEnabled ? loc.localized("common_active") : nil,
-                    badgeColor: .green
+                    badgeColor: AppTheme.Colors.success
                 ) {
                     showNotifications = true
                 }
@@ -636,7 +787,7 @@ struct ClientProfileView: View {
                     icon: "lock.fill",
                     title: loc.localized("settings_security"),
                     badge: settingsManager.faceIDEnabled || settingsManager.hasAppPassword ? "🔒" : nil,
-                    badgeColor: .blue
+                    badgeColor: AppTheme.Colors.accent
                 ) {
                     showSecurity = true
                 }
@@ -644,8 +795,8 @@ struct ClientProfileView: View {
                 SettingsRow(
                     icon: "sparkles",
                     title: loc.localized("settings_premium"),
-                    badge: settingsManager.isPremium ? "Aktiv" : nil,
-                    badgeColor: settingsManager.isPremium ? .green : .indigo
+                    badge: settingsManager.isPremium ? loc.localized("premium_active_badge") : nil,
+                    badgeColor: settingsManager.isPremium ? AppTheme.Colors.success : AppTheme.Colors.accentDark
                 ) {
                     showPremium = true
                 }
@@ -670,14 +821,14 @@ struct ClientProfileView: View {
                 Text(loc.localized("profile_logout"))
                     .font(.system(size: 16, weight: .semibold))
             }
-            .foregroundColor(.red)
+            .foregroundColor(AppTheme.Colors.error)
             .frame(maxWidth: .infinity)
             .padding()
             .background(AppTheme.Colors.secondaryBackground)
             .cornerRadius(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.red, lineWidth: 1)
+                    .stroke(AppTheme.Colors.error, lineWidth: 1)
             )
         }
     }

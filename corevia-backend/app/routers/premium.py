@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.database import get_db
+from app.config import get_settings
 from app.models.user import User
 from app.models.subscription import Subscription
 from app.schemas.subscription import (
@@ -21,6 +22,7 @@ from app.services.premium_service import (
 )
 
 router = APIRouter(prefix="/api/v1/premium", tags=["Premium"])
+settings = get_settings()
 
 
 @router.get("/status", response_model=PremiumStatusResponse)
@@ -29,7 +31,6 @@ async def get_premium_status(
     db: AsyncSession = Depends(get_db),
 ):
     """Istifadecinin premium statusunu yoxla"""
-    # Son aktiv abuneligi tap
     result = await db.execute(
         select(Subscription)
         .where(Subscription.user_id == current_user.id, Subscription.is_active == True)
@@ -46,7 +47,6 @@ async def get_premium_status(
             features=PREMIUM_FEATURES,
         )
 
-    # Abunəlik bitibse, user-in premium statusunu sondur
     if subscription and not check_subscription_active(subscription.expires_at):
         subscription.is_active = False
         if current_user.is_premium:
@@ -72,16 +72,19 @@ async def subscribe(
             detail=f"Tanınmayan product_id: {data.product_id}. Movcud planlar: com.corevia.monthly, com.corevia.yearly",
         )
 
-    # Apple receipt dogrula (hazirda mock)
     if data.receipt_data:
-        validation = await validate_apple_receipt(data.receipt_data)
-        if not validation:
+        # Real Apple receipt validation with config settings
+        validation = await validate_apple_receipt(
+            receipt_data=data.receipt_data,
+            use_production=settings.apple_use_production,
+            shared_secret=settings.apple_shared_secret or None
+        )
+        if not validation or validation.get("status") != "valid":
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Apple receipt dogrulana bilmedi",
+                detail="Apple receipt doğrulana bilmədi. Ödəniş uğursuz oldu.",
             )
 
-    # Eyni transaction_id ile tekrar satin alma yoxla
     if data.transaction_id:
         existing = await db.execute(
             select(Subscription).where(Subscription.transaction_id == data.transaction_id)
@@ -92,7 +95,6 @@ async def subscribe(
                 detail="Bu transaction artiq movcuddur",
             )
 
-    # Kohne aktiv abunelikleri sondur
     old_subs = await db.execute(
         select(Subscription).where(
             Subscription.user_id == current_user.id,
@@ -102,7 +104,6 @@ async def subscribe(
     for old_sub in old_subs.scalars().all():
         old_sub.is_active = False
 
-    # Yeni abunəlik yarat
     expires_at = calculate_expiry(data.product_id)
 
     subscription = Subscription(
@@ -118,7 +119,6 @@ async def subscribe(
     )
     db.add(subscription)
 
-    # User-i premium et
     current_user.is_premium = True
 
     await db.flush()
@@ -135,16 +135,17 @@ async def activate_premium(
     Production-da Apple IAP /subscribe endpoint istifadə olunacaq.
     Bu endpoint test məqsədli olaraq useri birbaşa premium edir.
     """
+    if not get_settings().debug:
+        raise HTTPException(status_code=404, detail="Not found")
+
     if current_user.is_premium:
         return {
             "message": "Artıq premium istifadəçisiniz",
             "is_premium": True,
         }
 
-    # Useri premium et
     current_user.is_premium = True
 
-    # Subscription record yarat (30 günlük default)
     expires_at = calculate_expiry("com.corevia.monthly")
     subscription = Subscription(
         user_id=current_user.id,
@@ -172,7 +173,6 @@ async def cancel_subscription(
     db: AsyncSession = Depends(get_db),
 ):
     """Abunəliyi ləğv et — premium dərhal söndürülür"""
-    # Aktiv abunəlikləri söndür
     result = await db.execute(
         select(Subscription).where(
             Subscription.user_id == current_user.id,
@@ -186,8 +186,10 @@ async def cancel_subscription(
         sub.auto_renew = False
         sub.cancelled_at = datetime.utcnow()
 
-    # Userin premium statusunu söndür
     current_user.is_premium = False
+
+    if current_user.trainer_id:
+        current_user.trainer_id = None
 
     return {
         "message": "Premium abunəlik ləğv olundu.",
@@ -210,7 +212,6 @@ async def restore_subscription(
                 detail="Receipt dogrulana bilmedi",
             )
 
-    # original_transaction_id ile abuneligi tap
     if data.original_transaction_id:
         result = await db.execute(
             select(Subscription).where(
@@ -220,7 +221,6 @@ async def restore_subscription(
         subscription = result.scalar_one_or_none()
 
         if subscription and check_subscription_active(subscription.expires_at):
-            # Bu user-e bagla
             subscription.user_id = current_user.id
             subscription.is_active = True
             current_user.is_premium = True

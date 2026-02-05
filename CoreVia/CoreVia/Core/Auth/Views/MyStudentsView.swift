@@ -12,6 +12,8 @@ struct MyStudentsView: View {
 
     @State private var searchText: String = ""
     @State private var selectedStudent: DemoStudent? = nil
+    @State private var showAddTrainingPlan: Bool = false
+    @State private var showAddMealPlan: Bool = false
     @ObservedObject private var loc = LocalizationManager.shared
 
     // Data source
@@ -73,6 +75,16 @@ struct MyStudentsView: View {
         .sheet(item: $selectedStudent) { student in
             StudentDetailView(student: student)
         }
+        .sheet(isPresented: $showAddTrainingPlan) {
+            if let student = selectedStudent {
+                AddTrainingPlanView(preSelectedStudent: student)
+            }
+        }
+        .sheet(isPresented: $showAddMealPlan) {
+            if let student = selectedStudent {
+                AddMealPlanView(preSelectedStudent: student)
+            }
+        }
     }
 
     // MARK: - Header Section
@@ -87,7 +99,7 @@ struct MyStudentsView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "person.2.fill")
                         .font(.system(size: 16))
-                        .foregroundColor(.blue)
+                        .foregroundColor(AppTheme.Colors.accent)
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text("\(students.count)")
@@ -100,14 +112,14 @@ struct MyStudentsView: View {
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
-                .background(Color.blue.opacity(0.1))
+                .background(AppTheme.Colors.accent.opacity(0.1))
                 .cornerRadius(12)
 
                 // Avg progress badge
                 HStack(spacing: 8) {
                     Image(systemName: "chart.bar.fill")
                         .font(.system(size: 16))
-                        .foregroundColor(.green)
+                        .foregroundColor(AppTheme.Colors.success)
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text("\(averageProgress)%")
@@ -120,7 +132,7 @@ struct MyStudentsView: View {
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
-                .background(Color.green.opacity(0.1))
+                .background(AppTheme.Colors.success.opacity(0.1))
                 .cornerRadius(12)
 
                 Spacer()
@@ -354,10 +366,10 @@ struct StudentDetailView: View {
                     Text("\(student.age) \(loc.localized("my_students_age"))")
                         .font(.system(size: 14))
                 }
-                .foregroundColor(.blue)
+                .foregroundColor(AppTheme.Colors.accent)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(Color.blue.opacity(0.1))
+                .background(AppTheme.Colors.accent.opacity(0.1))
                 .cornerRadius(20)
 
                 HStack(spacing: 4) {
@@ -366,10 +378,10 @@ struct StudentDetailView: View {
                     Text(student.goal)
                         .font(.system(size: 14))
                 }
-                .foregroundColor(.orange)
+                .foregroundColor(AppTheme.Colors.accent)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(Color.orange.opacity(0.1))
+                .background(AppTheme.Colors.accent.opacity(0.1))
                 .cornerRadius(20)
             }
         }
@@ -458,19 +470,19 @@ struct StudentDetailView: View {
                     icon: "flame.fill",
                     value: "\(workoutsThisWeek)",
                     label: loc.localized("student_detail_workouts_week"),
-                    color: .red
+                    color: AppTheme.Colors.accent
                 )
                 StudentDetailStatCard(
                     icon: "figure.strengthtraining.traditional",
                     value: "\(totalWorkouts)",
                     label: loc.localized("student_detail_total_workouts"),
-                    color: .blue
+                    color: AppTheme.Colors.accent
                 )
                 StudentDetailStatCard(
                     icon: "bolt.fill",
                     value: "\(caloriesBurned)",
                     label: loc.localized("student_detail_calories_burned"),
-                    color: .orange
+                    color: AppTheme.Colors.accent
                 )
             }
         }
@@ -525,7 +537,7 @@ struct StudentDetailView: View {
         VStack(spacing: 12) {
             // Create Training Plan
             Button {
-                // TODO: Navigate to AddTrainingPlanView with student pre-selected
+                showAddTrainingPlan = true
             } label: {
                 HStack {
                     Image(systemName: "figure.strengthtraining.traditional")
@@ -537,32 +549,32 @@ struct StudentDetailView: View {
                 .padding()
                 .background(
                     LinearGradient(
-                        colors: [.red, .red.opacity(0.8)],
+                        colors: [AppTheme.Colors.accent, AppTheme.Colors.accent.opacity(0.8)],
                         startPoint: .leading,
                         endPoint: .trailing
                     )
                 )
                 .cornerRadius(12)
-                .shadow(color: Color.red.opacity(0.4), radius: 8)
+                .shadow(color: AppTheme.Colors.accent.opacity(0.4), radius: 8)
             }
 
             // Create Meal Plan
             Button {
-                // TODO: Navigate to AddMealPlanView with student pre-selected
+                showAddMealPlan = true
             } label: {
                 HStack {
                     Image(systemName: "fork.knife")
                     Text(loc.localized("student_detail_create_meal"))
                         .font(.system(size: 16, weight: .semibold))
                 }
-                .foregroundColor(.orange)
+                .foregroundColor(AppTheme.Colors.accent)
                 .frame(maxWidth: .infinity)
                 .padding()
                 .background(AppTheme.Colors.secondaryBackground)
                 .cornerRadius(12)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.orange, lineWidth: 2)
+                        .stroke(AppTheme.Colors.accent, lineWidth: 2)
                 )
             }
         }
@@ -629,7 +641,7 @@ struct AssignedPlanRow: View {
             Spacer()
 
             Image(systemName: "checkmark.circle.fill")
-                .foregroundColor(.green)
+                .foregroundColor(AppTheme.Colors.success)
         }
         .padding()
         .background(AppTheme.Colors.secondaryBackground)

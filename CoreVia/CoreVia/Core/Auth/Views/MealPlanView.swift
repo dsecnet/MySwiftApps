@@ -47,7 +47,7 @@ struct MealPlanView: View {
                             FilterChip(
                                 title: loc.localized("common_all"),
                                 isSelected: selectedFilter == nil,
-                                color: .orange
+                                color: AppTheme.Colors.accent
                             ) {
                                 selectedFilter = nil
                             }
@@ -69,19 +69,19 @@ struct MealPlanView: View {
                         MiniStatCard(
                             value: "\(manager.totalPlans)",
                             label: loc.localized("trainer_total_plans"),
-                            color: .orange
+                            color: AppTheme.Colors.accent
                         )
 
                         MiniStatCard(
                             value: "\(manager.plansForType(.weightLoss).count)",
                             label: loc.localized("plan_type_weight_loss"),
-                            color: .orange
+                            color: AppTheme.Colors.accent
                         )
 
                         MiniStatCard(
                             value: "\(manager.plansForType(.weightGain).count)",
                             label: loc.localized("plan_type_weight_gain"),
-                            color: .green
+                            color: AppTheme.Colors.accent
                         )
                     }
 
@@ -124,9 +124,9 @@ struct MealPlanView: View {
                             .bold()
                             .foregroundColor(.white)
                             .frame(width: 56, height: 56)
-                            .background(Color.orange)
+                            .background(AppTheme.Colors.accent)
                             .clipShape(Circle())
-                            .shadow(color: .orange.opacity(0.4), radius: 8, x: 0, y: 4)
+                            .shadow(color: AppTheme.Colors.accent.opacity(0.4), radius: 8, x: 0, y: 4)
                     }
                     .padding(.trailing, 20)
                     .padding(.bottom, 20)
@@ -179,7 +179,7 @@ struct MealPlanCard: View {
             HStack(spacing: 6) {
                 Image(systemName: "flame.fill")
                     .font(.caption)
-                    .foregroundColor(.orange)
+                    .foregroundColor(AppTheme.Colors.accent)
 
                 Text("\(plan.dailyCalorieTarget) \(loc.localized("common_kcal")) / \(loc.localized("trainer_daily"))")
                     .font(.caption)
@@ -190,7 +190,7 @@ struct MealPlanCard: View {
                 HStack(spacing: 6) {
                     Image(systemName: "person.fill")
                         .font(.caption)
-                        .foregroundColor(.blue)
+                        .foregroundColor(AppTheme.Colors.accent)
 
                     Text(student)
                         .font(.caption)
@@ -202,7 +202,7 @@ struct MealPlanCard: View {
                 HStack(spacing: 6) {
                     Image(systemName: "list.bullet")
                         .font(.caption)
-                        .foregroundColor(.green)
+                        .foregroundColor(AppTheme.Colors.success)
 
                     Text("\(plan.meals.count) \(loc.localized("trainer_meals_count"))")
                         .font(.caption)

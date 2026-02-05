@@ -58,6 +58,9 @@ class User(Base):
     # Premium
     is_premium: Mapped[bool] = mapped_column(Boolean, default=False)
 
+    # Admin
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
+
     # Relationships
     trainer: Mapped["User | None"] = relationship("User", remote_side="User.id", foreign_keys=[trainer_id])
     workouts: Mapped[list["Workout"]] = relationship("Workout", back_populates="user", cascade="all, delete-orphan")

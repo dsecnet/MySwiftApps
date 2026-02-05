@@ -87,10 +87,10 @@ struct RegisterView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 14, weight: .semibold))
-                    Text("Geri")
+                    Text(loc.localized("common_back"))
                         .font(.system(size: 15, weight: .medium))
                 }
-                .foregroundColor(.red)
+                .foregroundColor(AppTheme.Colors.accent)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
                 .background(AppTheme.Colors.secondaryBackground)
@@ -142,12 +142,12 @@ struct RegisterView: View {
             VStack(spacing: 10) {
                 ZStack {
                     Circle()
-                        .fill(userType == type ? Color.red.opacity(0.2) : AppTheme.Colors.secondaryBackground)
+                        .fill(userType == type ? AppTheme.Colors.accent.opacity(0.2) : AppTheme.Colors.secondaryBackground)
                         .frame(width: 50, height: 50)
-                    
+
                     Image(systemName: type.icon)
                         .font(.system(size: 20))
-                        .foregroundColor(userType == type ? .red : AppTheme.Colors.secondaryText)
+                        .foregroundColor(userType == type ? AppTheme.Colors.accent : AppTheme.Colors.secondaryText)
                 }
                 
                 VStack(spacing: 3) {
@@ -166,11 +166,11 @@ struct RegisterView: View {
             .padding(.vertical, 14)
             .background(
                 RoundedRectangle(cornerRadius: 14)
-                    .fill(userType == type ? Color.red.opacity(0.1) : AppTheme.Colors.secondaryBackground)
+                    .fill(userType == type ? AppTheme.Colors.accent.opacity(0.1) : AppTheme.Colors.secondaryBackground)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 14)
-                    .stroke(userType == type ? Color.red : AppTheme.Colors.separator, lineWidth: userType == type ? 2 : 1)
+                    .stroke(userType == type ? AppTheme.Colors.accent : AppTheme.Colors.separator, lineWidth: userType == type ? 2 : 1)
             )
         }
     }
@@ -240,12 +240,12 @@ struct RegisterView: View {
     private var passwordMatchIndicator: some View {
         HStack(spacing: 5) {
             Image(systemName: passwordsMatch ? "checkmark.circle.fill" : "xmark.circle.fill")
-                .foregroundColor(passwordsMatch ? .green : .red)
+                .foregroundColor(passwordsMatch ? AppTheme.Colors.success : AppTheme.Colors.error)
                 .font(.system(size: 12))
-            
-            Text(passwordsMatch ? "Şifrələr uyğundur" : "Şifrələr uyğun deyil")
+
+            Text(passwordsMatch ? loc.localized("register_passwords_match") : loc.localized("register_passwords_mismatch"))
                 .font(.system(size: 11))
-                .foregroundColor(passwordsMatch ? .green : .red)
+                .foregroundColor(passwordsMatch ? AppTheme.Colors.success : AppTheme.Colors.error)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 20)
@@ -259,13 +259,13 @@ struct RegisterView: View {
             HStack(spacing: 10) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 5)
-                        .stroke(Color.red, lineWidth: 2)
+                        .stroke(AppTheme.Colors.accent, lineWidth: 2)
                         .frame(width: 20, height: 20)
-                    
+
                     if acceptTerms {
                         Image(systemName: "checkmark")
                             .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(.red)
+                            .foregroundColor(AppTheme.Colors.accent)
                     }
                 }
                 
@@ -283,14 +283,14 @@ struct RegisterView: View {
     private var errorView: some View {
         HStack(spacing: 8) {
             Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundColor(.red)
+                .foregroundColor(AppTheme.Colors.error)
             Text(errorMessage)
                 .font(.system(size: 13))
                 .foregroundColor(AppTheme.Colors.primaryText)
         }
         .padding()
         .frame(maxWidth: .infinity)
-        .background(Color.red.opacity(0.2))
+        .background(AppTheme.Colors.error.opacity(0.2))
         .cornerRadius(10)
         .padding(.horizontal, 20)
         .transition(.move(edge: .top).combined(with: .opacity))
@@ -317,14 +317,14 @@ struct RegisterView: View {
             .padding(.vertical, 14)
             .background(
                 LinearGradient(
-                    colors: [Color.red, Color.red.opacity(0.8)],
+                    colors: [AppTheme.Colors.accent, AppTheme.Colors.accent.opacity(0.8)],
                     startPoint: .leading,
                     endPoint: .trailing
                 )
             )
             .foregroundColor(.white)
             .cornerRadius(12)
-            .shadow(color: .red.opacity(0.4), radius: 8, x: 0, y: 4)
+            .shadow(color: AppTheme.Colors.accent.opacity(0.4), radius: 8, x: 0, y: 4)
         }
         .disabled(isLoading || !isFormValid)
         .opacity(isFormValid ? 1.0 : 0.5)
@@ -342,18 +342,18 @@ struct RegisterView: View {
     
     private var strengthColor: Color {
         switch passwordStrength {
-        case 0, 1: return .red
-        case 2: return .orange
-        case 3: return .green
+        case 0, 1: return AppTheme.Colors.error
+        case 2: return AppTheme.Colors.warning
+        case 3: return AppTheme.Colors.success
         default: return AppTheme.Colors.secondaryText
         }
     }
     
     private var strengthText: String {
         switch passwordStrength {
-        case 0, 1: return "Zəif şifrə"
-        case 2: return "Orta güclü"
-        case 3: return "Güclü şifrə"
+        case 0, 1: return loc.localized("register_weak_password")
+        case 2: return loc.localized("register_medium_password")
+        case 3: return loc.localized("register_strong_password")
         default: return ""
         }
     }
@@ -432,10 +432,10 @@ struct InputFieldCompact: View {
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: icon)
-                .foregroundColor(.red)
+                .foregroundColor(AppTheme.Colors.accent)
                 .frame(width: 20)
                 .font(.system(size: 14))
-            
+
             TextField(placeholder, text: $text)
                 .foregroundColor(AppTheme.Colors.primaryText)
                 .autocapitalization(.none)
@@ -447,7 +447,7 @@ struct InputFieldCompact: View {
         .cornerRadius(12)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(text.isEmpty ? AppTheme.Colors.separator : Color.red.opacity(0.5), lineWidth: 1)
+                .stroke(text.isEmpty ? AppTheme.Colors.separator : AppTheme.Colors.accent.opacity(0.5), lineWidth: 1)
         )
         .padding(.horizontal, 20)
     }
@@ -462,10 +462,10 @@ struct SecureFieldCompact: View {
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: icon)
-                .foregroundColor(.red)
+                .foregroundColor(AppTheme.Colors.accent)
                 .frame(width: 20)
                 .font(.system(size: 14))
-            
+
             Group {
                 if isVisible {
                     TextField(placeholder, text: $text)
@@ -491,7 +491,7 @@ struct SecureFieldCompact: View {
         .cornerRadius(12)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(text.isEmpty ? AppTheme.Colors.separator : Color.red.opacity(0.5), lineWidth: 1)
+                .stroke(text.isEmpty ? AppTheme.Colors.separator : AppTheme.Colors.accent.opacity(0.5), lineWidth: 1)
         )
         .padding(.horizontal, 20)
     }

@@ -47,7 +47,7 @@ struct TrainingPlanView: View {
                             FilterChip(
                                 title: loc.localized("common_all"),
                                 isSelected: selectedFilter == nil,
-                                color: .red
+                                color: AppTheme.Colors.accent
                             ) {
                                 selectedFilter = nil
                             }
@@ -69,19 +69,19 @@ struct TrainingPlanView: View {
                         MiniStatCard(
                             value: "\(manager.totalPlans)",
                             label: loc.localized("trainer_total_plans"),
-                            color: .red
+                            color: AppTheme.Colors.accent
                         )
 
                         MiniStatCard(
                             value: "\(manager.plansForType(.weightLoss).count)",
                             label: loc.localized("plan_type_weight_loss"),
-                            color: .orange
+                            color: AppTheme.Colors.accent
                         )
 
                         MiniStatCard(
                             value: "\(manager.plansForType(.strengthTraining).count)",
                             label: loc.localized("plan_type_strength"),
-                            color: .red
+                            color: AppTheme.Colors.accent
                         )
                     }
 
@@ -125,9 +125,9 @@ struct TrainingPlanView: View {
                             .bold()
                             .foregroundColor(.white)
                             .frame(width: 56, height: 56)
-                            .background(Color.red)
+                            .background(AppTheme.Colors.accent)
                             .clipShape(Circle())
-                            .shadow(color: .red.opacity(0.4), radius: 8, x: 0, y: 4)
+                            .shadow(color: AppTheme.Colors.accent.opacity(0.4), radius: 8, x: 0, y: 4)
                     }
                     .padding(.trailing, 20)
                     .padding(.bottom, 20)
@@ -180,7 +180,7 @@ struct TrainingPlanCard: View {
                 HStack(spacing: 6) {
                     Image(systemName: "person.fill")
                         .font(.caption)
-                        .foregroundColor(.blue)
+                        .foregroundColor(AppTheme.Colors.accent)
 
                     Text(student)
                         .font(.caption)
@@ -192,7 +192,7 @@ struct TrainingPlanCard: View {
                 HStack(spacing: 6) {
                     Image(systemName: "list.bullet")
                         .font(.caption)
-                        .foregroundColor(.green)
+                        .foregroundColor(AppTheme.Colors.success)
 
                     Text("\(plan.workouts.count) \(loc.localized("trainer_exercises"))")
                         .font(.caption)

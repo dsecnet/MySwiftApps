@@ -2,8 +2,6 @@
 //  ActivitiesView.swift
 //  CoreVia
 //
-//  Hereketler - Real GPS ile qacis, gezinti, velosiped izleme
-//
 
 import SwiftUI
 import CoreLocation
@@ -24,17 +22,18 @@ enum ActivityType: String, CaseIterable {
 
     var color: Color {
         switch self {
-        case .walking: return .green
-        case .running: return .orange
-        case .cycling: return .blue
+        case .walking: return AppTheme.Colors.actWalking
+        case .running: return AppTheme.Colors.actRunning
+        case .cycling: return AppTheme.Colors.actCycling
         }
     }
 
     var displayName: String {
+        let loc = LocalizationManager.shared
         switch self {
-        case .walking: return "Gezinti"
-        case .running: return "Qacis"
-        case .cycling: return "Velosiped"
+        case .walking: return loc.localized("activities_walking")
+        case .running: return loc.localized("activities_running")
+        case .cycling: return loc.localized("activities_cycling")
         }
     }
 }
@@ -45,6 +44,7 @@ struct ActivitiesView: View {
     @ObservedObject private var routeManager = RouteManager.shared
     @ObservedObject private var locationManager = LocationManager.shared
     @ObservedObject private var settingsManager = SettingsManager.shared
+    @ObservedObject private var loc = LocalizationManager.shared
 
     @State private var selectedFilter: ActivityType? = nil
     @State private var showPremium = false
@@ -114,7 +114,6 @@ struct ActivitiesView: View {
                 .padding()
             }
 
-            // Start Activity FAB
             if !isTracking {
                 VStack {
                     Spacer()
@@ -127,13 +126,13 @@ struct ActivitiesView: View {
                                 Circle()
                                     .fill(
                                         LinearGradient(
-                                            colors: [.red, .orange],
+                                            colors: [AppTheme.Colors.accent, AppTheme.Colors.accent.opacity(0.7)],
                                             startPoint: .topLeading,
                                             endPoint: .bottomTrailing
                                         )
                                     )
                                     .frame(width: 60, height: 60)
-                                    .shadow(color: .red.opacity(0.4), radius: 12, x: 0, y: 6)
+                                    .shadow(color: AppTheme.Colors.accent.opacity(0.4), radius: 12, x: 0, y: 6)
 
                                 Image(systemName: "play.fill")
                                     .font(.system(size: 22))
@@ -183,17 +182,14 @@ struct ActivitiesView: View {
             VStack(spacing: 20) {
                 headerSection
 
-                // Blurred weekly stats
                 weeklyStatsSection
                     .blur(radius: 3)
                     .allowsHitTesting(false)
 
-                // Locked overlay
                 Button {
                     showPremium = true
                 } label: {
                     ZStack {
-                        // Placeholder cards
                         VStack(spacing: 12) {
                             ForEach(0..<3, id: \.self) { _ in
                                 HStack(spacing: 14) {
@@ -217,13 +213,12 @@ struct ActivitiesView: View {
                         }
                         .blur(radius: 2)
 
-                        // Lock overlay
                         VStack(spacing: 14) {
                             ZStack {
                                 Circle()
                                     .fill(
                                         LinearGradient(
-                                            colors: [.indigo, .purple],
+                                            colors: [AppTheme.Colors.accentDark, AppTheme.Colors.accent],
                                             startPoint: .topLeading,
                                             endPoint: .bottomTrailing
                                         )
@@ -235,11 +230,11 @@ struct ActivitiesView: View {
                                     .foregroundColor(.white)
                             }
 
-                            Text("GPS Hereket Izleme")
+                            Text(loc.localized("activities_gps_tracking"))
                                 .font(.system(size: 18, weight: .bold))
                                 .foregroundColor(AppTheme.Colors.primaryText)
 
-                            Text("Qacis, gezinti ve velosiped marsrutlarinizi izleyin")
+                            Text(loc.localized("activities_gps_desc"))
                                 .font(.system(size: 13))
                                 .foregroundColor(AppTheme.Colors.secondaryText)
                                 .multilineTextAlignment(.center)
@@ -247,7 +242,7 @@ struct ActivitiesView: View {
                             HStack(spacing: 6) {
                                 Image(systemName: "sparkles")
                                     .font(.system(size: 14))
-                                Text("Premium-a kec")
+                                Text(loc.localized("activities_premium_go"))
                                     .font(.system(size: 15, weight: .semibold))
                             }
                             .foregroundColor(.white)
@@ -255,13 +250,13 @@ struct ActivitiesView: View {
                             .padding(.vertical, 12)
                             .background(
                                 LinearGradient(
-                                    colors: [.indigo, .purple],
+                                    colors: [AppTheme.Colors.accentDark, AppTheme.Colors.accent],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
                             )
                             .cornerRadius(14)
-                            .shadow(color: .indigo.opacity(0.4), radius: 10, x: 0, y: 5)
+                            .shadow(color: AppTheme.Colors.accentDark.opacity(0.4), radius: 10, x: 0, y: 5)
                         }
                     }
                     .frame(maxWidth: .infinity)
@@ -275,11 +270,11 @@ struct ActivitiesView: View {
     // MARK: - Header
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Hereketler")
+            Text(loc.localized("activities_title"))
                 .font(.system(size: 28, weight: .bold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
-            Text("Gezintilerinizi ve qacislarinizi izleyin")
+            Text(loc.localized("activities_subtitle"))
                 .font(.system(size: 14))
                 .foregroundColor(AppTheme.Colors.secondaryText)
         }
@@ -289,7 +284,7 @@ struct ActivitiesView: View {
     // MARK: - Weekly Stats
     private var weeklyStatsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Bu hefte")
+            Text(loc.localized("activities_this_week"))
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
@@ -297,22 +292,22 @@ struct ActivitiesView: View {
                 ActivityStatCard(
                     icon: "location.fill",
                     value: String(format: "%.1f km", weekDistance),
-                    label: "Mesafe",
-                    color: .blue
+                    label: loc.localized("activities_distance"),
+                    color: AppTheme.Colors.accent
                 )
 
                 ActivityStatCard(
                     icon: "clock.fill",
                     value: formatMinutes(weekDuration / 60),
-                    label: "Muddet",
-                    color: .green
+                    label: loc.localized("activities_duration"),
+                    color: AppTheme.Colors.accent
                 )
 
                 ActivityStatCard(
                     icon: "flame.fill",
                     value: "\(weekCalories)",
-                    label: "Kalori",
-                    color: .orange
+                    label: loc.localized("activities_calorie"),
+                    color: AppTheme.Colors.accent
                 )
             }
         }
@@ -330,11 +325,11 @@ struct ActivitiesView: View {
                     .foregroundColor(AppTheme.Colors.primaryText)
                 Spacer()
                 Circle()
-                    .fill(Color.red)
+                    .fill(AppTheme.Colors.accent)
                     .frame(width: 10, height: 10)
-                Text("Aktiv")
+                Text(loc.localized("activities_active"))
                     .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(.red)
+                    .foregroundColor(AppTheme.Colors.accent)
             }
 
             HStack(spacing: 24) {
@@ -342,7 +337,7 @@ struct ActivitiesView: View {
                     Text(formatElapsedTime(elapsedSeconds))
                         .font(.system(size: 28, weight: .bold, design: .monospaced))
                         .foregroundColor(AppTheme.Colors.primaryText)
-                    Text("Vaxt")
+                    Text(loc.localized("activities_time"))
                         .font(.system(size: 12))
                         .foregroundColor(AppTheme.Colors.secondaryText)
                 }
@@ -360,7 +355,7 @@ struct ActivitiesView: View {
                     Text(livePace)
                         .font(.system(size: 28, weight: .bold, design: .monospaced))
                         .foregroundColor(AppTheme.Colors.primaryText)
-                    Text("Temp")
+                    Text(loc.localized("activities_pace"))
                         .font(.system(size: 12))
                         .foregroundColor(AppTheme.Colors.secondaryText)
                 }
@@ -371,13 +366,13 @@ struct ActivitiesView: View {
             } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "stop.fill")
-                    Text("Dayandir")
+                    Text(loc.localized("activities_stop"))
                         .font(.system(size: 16, weight: .bold))
                 }
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .background(Color.red)
+                .background(AppTheme.Colors.accent)
                 .cornerRadius(14)
             }
         }
@@ -395,16 +390,16 @@ struct ActivitiesView: View {
     // MARK: - Filter
     private var filterSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Tarixce")
+            Text(loc.localized("activities_history"))
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
                     FilterChip(
-                        title: "Hamisi",
+                        title: loc.localized("activities_all"),
                         isSelected: selectedFilter == nil,
-                        color: .red
+                        color: AppTheme.Colors.accent
                     ) {
                         withAnimation { selectedFilter = nil }
                     }
@@ -435,10 +430,10 @@ struct ActivitiesView: View {
                     Image(systemName: "figure.walk")
                         .font(.system(size: 40))
                         .foregroundColor(AppTheme.Colors.secondaryText)
-                    Text("Hereket tapilmadi")
+                    Text(loc.localized("activities_not_found"))
                         .font(.system(size: 15))
                         .foregroundColor(AppTheme.Colors.secondaryText)
-                    Text("Asagidaki + duymeye basib yeni hereket baslayin")
+                    Text(loc.localized("activities_start_hint"))
                         .font(.system(size: 13))
                         .foregroundColor(AppTheme.Colors.secondaryText.opacity(0.7))
                 }
@@ -524,9 +519,9 @@ struct ActivitiesView: View {
 
     private func formatMinutes(_ mins: Int) -> String {
         if mins >= 60 {
-            return "\(mins / 60)s \(mins % 60)d"
+            return "\(mins / 60)\(loc.localized("activities_hours_short")) \(mins % 60)\(loc.localized("activities_mins_short"))"
         }
-        return "\(mins) deq"
+        return "\(mins) \(loc.localized("activities_mins"))"
     }
 }
 
@@ -543,7 +538,7 @@ struct StartActivitySheet: View {
                 .frame(width: 40, height: 5)
                 .padding(.top, 12)
 
-            Text("Herekete basla")
+            Text(LocalizationManager.shared.localized("activities_start"))
                 .font(.system(size: 22, weight: .bold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
@@ -593,7 +588,7 @@ struct StartActivitySheet: View {
                 HStack(spacing: 10) {
                     Image(systemName: "play.fill")
                         .font(.system(size: 18))
-                    Text("BASLA")
+                    Text(LocalizationManager.shared.localized("activities_begin"))
                         .font(.system(size: 18, weight: .bold))
                 }
                 .foregroundColor(.white)
@@ -646,8 +641,6 @@ struct ActivityStatCard: View {
         .cornerRadius(14)
     }
 }
-
-// FilterChip - TrainingPlanView.swift-de tanimlanib
 
 struct RouteActivityCard: View {
     let route: RouteResponse

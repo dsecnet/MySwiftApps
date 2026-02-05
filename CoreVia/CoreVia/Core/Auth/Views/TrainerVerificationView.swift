@@ -2,8 +2,6 @@
 //  TrainerVerificationView.swift
 //  CoreVia
 //
-//  Muellim qeydiyyati — Addim 2: Fitness sekil + Instagram + ixtisas
-//
 
 import SwiftUI
 import PhotosUI
@@ -25,8 +23,8 @@ struct VerificationResponse: Codable {
 struct TrainerVerificationView: View {
 
     @ObservedObject private var authManager = AuthManager.shared
+    @ObservedObject private var loc = LocalizationManager.shared
 
-    // Form state
     @State private var selectedImage: UIImage?
     @State private var photoPickerItem: PhotosPickerItem?
     @State private var instagram: String = ""
@@ -34,7 +32,6 @@ struct TrainerVerificationView: View {
     @State private var experience: Int = 1
     @State private var bio: String = ""
 
-    // UI state
     @State private var isLoading = false
     @State private var showResult = false
     @State private var resultStatus: String = ""
@@ -61,7 +58,6 @@ struct TrainerVerificationView: View {
     // MARK: - Form View
     private var formView: some View {
         VStack(spacing: 0) {
-            // Header
             headerSection
 
             ScrollView(showsIndicators: false) {
@@ -84,18 +80,17 @@ struct TrainerVerificationView: View {
         VStack(spacing: 4) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Verifikasiya")
+                    Text(loc.localized("verification_title"))
                         .font(.system(size: 28, weight: .black))
                         .foregroundColor(AppTheme.Colors.primaryText)
 
-                    Text("Muellim profilinizi tamamlayin")
+                    Text(loc.localized("verification_subtitle"))
                         .font(.system(size: 14))
                         .foregroundColor(AppTheme.Colors.secondaryText)
                 }
 
                 Spacer()
 
-                // Logout button
                 Button {
                     authManager.logout()
                 } label: {
@@ -117,30 +112,27 @@ struct TrainerVerificationView: View {
     // MARK: - Step Indicator
     private var stepIndicator: some View {
         HStack(spacing: 12) {
-            // Step 1 - completed
             HStack(spacing: 6) {
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(.green)
+                    .foregroundColor(AppTheme.Colors.success)
                     .font(.system(size: 18))
-                Text("Qeydiyyat")
+                Text(loc.localized("verification_step_register"))
                     .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(.green)
+                    .foregroundColor(AppTheme.Colors.success)
             }
 
-            // Line
             Rectangle()
-                .fill(Color.red)
+                .fill(AppTheme.Colors.accent)
                 .frame(height: 2)
                 .frame(maxWidth: 40)
 
-            // Step 2 - current
             HStack(spacing: 6) {
                 Image(systemName: "2.circle.fill")
-                    .foregroundColor(.red)
+                    .foregroundColor(AppTheme.Colors.accent)
                     .font(.system(size: 18))
-                Text("Verifikasiya")
+                Text(loc.localized("verification_title"))
                     .font(.system(size: 13, weight: .bold))
-                    .foregroundColor(.red)
+                    .foregroundColor(AppTheme.Colors.accent)
             }
         }
         .padding(.horizontal, 20)
@@ -154,7 +146,7 @@ struct TrainerVerificationView: View {
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
-            Text("Beden formanizi gosteren bir sekil yukleyin. AI sekilinizi analiz edecek.")
+            Text(loc.localized("verification_photo_hint"))
                 .font(.system(size: 12))
                 .foregroundColor(AppTheme.Colors.secondaryText)
 
@@ -168,33 +160,33 @@ struct TrainerVerificationView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                         .overlay(
                             RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color.red.opacity(0.5), lineWidth: 2)
+                                .stroke(AppTheme.Colors.accent.opacity(0.5), lineWidth: 2)
                         )
                         .overlay(alignment: .bottomTrailing) {
                             Image(systemName: "pencil.circle.fill")
                                 .font(.system(size: 28))
                                 .foregroundColor(.white)
-                                .background(Circle().fill(Color.red))
+                                .background(Circle().fill(AppTheme.Colors.accent))
                                 .padding(12)
                         }
                 } else {
                     VStack(spacing: 12) {
                         Image(systemName: "person.crop.rectangle.badge.plus")
                             .font(.system(size: 40))
-                            .foregroundColor(.red.opacity(0.6))
+                            .foregroundColor(AppTheme.Colors.accent.opacity(0.6))
 
-                        Text("Sekil Sec")
+                        Text(loc.localized("verification_select_photo"))
                             .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.red)
+                            .foregroundColor(AppTheme.Colors.accent)
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 180)
                     .background(
                         RoundedRectangle(cornerRadius: 16)
                             .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [8]))
-                            .foregroundColor(.red.opacity(0.3))
+                            .foregroundColor(AppTheme.Colors.accent.opacity(0.3))
                     )
-                    .background(Color.red.opacity(0.05))
+                    .background(AppTheme.Colors.accent.opacity(0.05))
                     .cornerRadius(16)
                 }
             }
@@ -219,7 +211,7 @@ struct TrainerVerificationView: View {
 
             HStack(spacing: 10) {
                 Text("@")
-                    .foregroundColor(.red)
+                    .foregroundColor(AppTheme.Colors.accent)
                     .font(.system(size: 16, weight: .bold))
 
                 TextField("instagram_username", text: $instagram)
@@ -232,7 +224,7 @@ struct TrainerVerificationView: View {
             .cornerRadius(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(instagram.isEmpty ? AppTheme.Colors.separator : Color.red.opacity(0.5), lineWidth: 1)
+                    .stroke(instagram.isEmpty ? AppTheme.Colors.separator : AppTheme.Colors.accent.opacity(0.5), lineWidth: 1)
             )
         }
         .padding(.horizontal, 20)
@@ -260,7 +252,7 @@ struct TrainerVerificationView: View {
                                 .padding(.vertical, 10)
                                 .background(
                                     RoundedRectangle(cornerRadius: 10)
-                                        .fill(selectedSpecialization == spec ? Color.red : AppTheme.Colors.secondaryBackground)
+                                        .fill(selectedSpecialization == spec ? AppTheme.Colors.accent : AppTheme.Colors.secondaryBackground)
                                 )
                         }
                     }
@@ -287,7 +279,7 @@ struct TrainerVerificationView: View {
                     get: { Double(experience) },
                     set: { experience = Int($0) }
                 ), in: 1...30, step: 1)
-                .tint(.red)
+                .tint(AppTheme.Colors.accent)
             }
             .padding()
             .background(AppTheme.Colors.secondaryBackground)
@@ -316,7 +308,7 @@ struct TrainerVerificationView: View {
                 )
                 .overlay(alignment: .topLeading) {
                     if bio.isEmpty {
-                        Text("Ozunuz haqqinda qisa melumat yazin...")
+                        Text(loc.localized("verification_bio_placeholder"))
                             .foregroundColor(AppTheme.Colors.secondaryText.opacity(0.5))
                             .font(.system(size: 14))
                             .padding(.horizontal, 12)
@@ -327,7 +319,7 @@ struct TrainerVerificationView: View {
 
             Text("\(bio.count)/500")
                 .font(.system(size: 11))
-                .foregroundColor(bio.count > 500 ? .red : AppTheme.Colors.secondaryText)
+                .foregroundColor(bio.count > 500 ? AppTheme.Colors.error : AppTheme.Colors.secondaryText)
                 .frame(maxWidth: .infinity, alignment: .trailing)
         }
         .padding(.horizontal, 20)
@@ -346,7 +338,7 @@ struct TrainerVerificationView: View {
                     } else {
                         Image(systemName: "checkmark.shield.fill")
                             .font(.system(size: 16))
-                        Text("Verifikasiya ucun Gonder")
+                        Text(loc.localized("verification_submit"))
                             .font(.system(size: 16, weight: .bold))
                     }
                 }
@@ -354,14 +346,14 @@ struct TrainerVerificationView: View {
                 .padding(.vertical, 14)
                 .background(
                     LinearGradient(
-                        colors: isFormValid ? [Color.red, Color.red.opacity(0.8)] : [Color.gray, Color.gray.opacity(0.5)],
+                        colors: isFormValid ? [AppTheme.Colors.accent, AppTheme.Colors.accent.opacity(0.8)] : [Color.gray, Color.gray.opacity(0.5)],
                         startPoint: .leading,
                         endPoint: .trailing
                     )
                 )
                 .foregroundColor(.white)
                 .cornerRadius(12)
-                .shadow(color: isFormValid ? .red.opacity(0.4) : .clear, radius: 8, x: 0, y: 4)
+                .shadow(color: isFormValid ? AppTheme.Colors.accent.opacity(0.4) : .clear, radius: 8, x: 0, y: 4)
             }
             .disabled(isLoading || !isFormValid)
             .padding(.horizontal, 20)
@@ -369,14 +361,14 @@ struct TrainerVerificationView: View {
             if showError {
                 HStack(spacing: 8) {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(.red)
+                        .foregroundColor(AppTheme.Colors.error)
                     Text(errorMessage)
                         .font(.system(size: 13))
                         .foregroundColor(AppTheme.Colors.primaryText)
                 }
                 .padding()
                 .frame(maxWidth: .infinity)
-                .background(Color.red.opacity(0.15))
+                .background(AppTheme.Colors.error.opacity(0.15))
                 .cornerRadius(10)
                 .padding(.horizontal, 20)
             }
@@ -388,7 +380,6 @@ struct TrainerVerificationView: View {
         VStack(spacing: 24) {
             Spacer()
 
-            // Status icon
             ZStack {
                 Circle()
                     .fill(statusColor.opacity(0.15))
@@ -399,7 +390,6 @@ struct TrainerVerificationView: View {
                     .foregroundColor(statusColor)
             }
 
-            // Status text
             Text(statusTitle)
                 .font(.system(size: 24, weight: .black))
                 .foregroundColor(AppTheme.Colors.primaryText)
@@ -410,12 +400,11 @@ struct TrainerVerificationView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
 
-            // Score badge
             if resultScore > 0 {
                 HStack(spacing: 6) {
                     Image(systemName: "chart.bar.fill")
                         .font(.system(size: 12))
-                    Text("AI Skoru: \(Int(resultScore * 100))%")
+                    Text("\(loc.localized("verification_ai_score")): \(Int(resultScore * 100))%")
                         .font(.system(size: 13, weight: .semibold))
                 }
                 .foregroundColor(statusColor)
@@ -427,7 +416,6 @@ struct TrainerVerificationView: View {
 
             Spacer()
 
-            // Action button
             if resultStatus == "verified" {
                 Button {
                     Task {
@@ -436,12 +424,12 @@ struct TrainerVerificationView: View {
                 } label: {
                     HStack(spacing: 8) {
                         Image(systemName: "arrow.right.circle.fill")
-                        Text("Davam et")
+                        Text(loc.localized("verification_continue"))
                             .font(.system(size: 16, weight: .bold))
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(Color.green)
+                    .background(AppTheme.Colors.success)
                     .foregroundColor(.white)
                     .cornerRadius(12)
                 }
@@ -454,19 +442,18 @@ struct TrainerVerificationView: View {
                 } label: {
                     HStack(spacing: 8) {
                         Image(systemName: "clock.fill")
-                        Text("Gozleyirem")
+                        Text(loc.localized("verification_waiting"))
                             .font(.system(size: 16, weight: .bold))
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(Color.orange)
+                    .background(AppTheme.Colors.accent)
                     .foregroundColor(.white)
                     .cornerRadius(12)
                 }
                 .padding(.horizontal, 20)
             } else {
                 Button {
-                    // Reset form for retry
                     withAnimation {
                         showResult = false
                         selectedImage = nil
@@ -475,23 +462,22 @@ struct TrainerVerificationView: View {
                 } label: {
                     HStack(spacing: 8) {
                         Image(systemName: "arrow.counterclockwise")
-                        Text("Yeniden ceht et")
+                        Text(loc.localized("verification_retry"))
                             .font(.system(size: 16, weight: .bold))
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(Color.red)
+                    .background(AppTheme.Colors.accent)
                     .foregroundColor(.white)
                     .cornerRadius(12)
                 }
                 .padding(.horizontal, 20)
             }
 
-            // Logout option
             Button {
                 authManager.logout()
             } label: {
-                Text("Cixis")
+                Text(loc.localized("verification_logout"))
                     .font(.system(size: 14))
                     .foregroundColor(AppTheme.Colors.secondaryText)
             }
@@ -509,9 +495,9 @@ struct TrainerVerificationView: View {
 
     private var statusColor: Color {
         switch resultStatus {
-        case "verified": return .green
-        case "pending": return .orange
-        default: return .red
+        case "verified": return AppTheme.Colors.success
+        case "pending": return AppTheme.Colors.accent
+        default: return AppTheme.Colors.error
         }
     }
 
@@ -536,7 +522,7 @@ struct TrainerVerificationView: View {
     private func submitVerification() {
         guard let image = selectedImage,
               let imageData = image.jpegData(compressionQuality: 0.8) else {
-            showErrorMsg("Zehmet olmasa sekil secin")
+            showErrorMsg(loc.localized("verification_select_photo_error"))
             return
         }
 

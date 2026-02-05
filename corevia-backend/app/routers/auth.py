@@ -1,8 +1,11 @@
+import logging
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from jose import JWTError, jwt
+
+logger = logging.getLogger(__name__)
 
 from app.database import get_db
 from app.models.user import User, UserType, VerificationStatus
@@ -25,15 +28,13 @@ router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)):
-    # Email movcud olub-olmadigini yoxla
     result = await db.execute(select(User).where(User.email == user_data.email))
     if result.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Bu email artiq qeydiyyatdan kecib",
+            detail="Qeydiyyat ugursuz oldu",
         )
 
-    # Yeni user yarat
     new_user = User(
         name=user_data.name,
         email=user_data.email,
@@ -48,7 +49,6 @@ async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)):
     db.add(new_user)
     await db.flush()
 
-    # Default settings yarat
     user_settings = UserSettings(user_id=new_user.id)
     db.add(user_settings)
 
@@ -57,11 +57,11 @@ async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)):
 
 @router.post("/login", response_model=Token)
 async def login(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
-    # Useri tap
     result = await db.execute(select(User).where(User.email == user_data.email))
     user = result.scalar_one_or_none()
 
     if not user or not verify_password(user_data.password, user.hashed_password):
+        logger.warning(f"Failed login attempt for: {user_data.email}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Email ve ya sifre sehvdir",
@@ -74,7 +74,8 @@ async def login(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
             detail="Hesab deaktiv edilib",
         )
 
-    # Token-ler yarat (is_premium claim daxil)
+    logger.info(f"Successful login: {user.email}")
+
     token_data = {
         "sub": user.id,
         "user_type": user.user_type.value,
@@ -106,7 +107,6 @@ async def refresh_token(token_data: TokenRefresh, db: AsyncSession = Depends(get
             detail="Etibarsiz refresh token",
         )
 
-    # Userin movcudlugunu yoxla
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
 
@@ -116,7 +116,6 @@ async def refresh_token(token_data: TokenRefresh, db: AsyncSession = Depends(get
             detail="User tapilmadi",
         )
 
-    # Yeni token-ler yarat (is_premium claim daxil)
     new_token_data = {
         "sub": user.id,
         "user_type": user.user_type.value,
@@ -165,21 +164,18 @@ async def verify_trainer(
     Addim 2: qeydiyyatdan sonra trainer beden/fitness sekili yukleyir,
     AI formasini qiymetlendirir, score-a gore avtomatik qerar verilir.
     """
-    # 1. Yalniz trainer ola biler
     if current_user.user_type != UserType.trainer:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Yalniz muellimler verifikasiya ede biler",
         )
 
-    # 2. Artiq verified ise tekrar verifikasiya lazim deyil
     if current_user.verification_status == VerificationStatus.verified:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Hesabiniz artiq dogrulanib",
         )
 
-    # 3. Rate limit: gunde 3 cehd
     now = datetime.utcnow()
     if current_user.last_verification_attempt:
         time_since_last = now - current_user.last_verification_attempt
@@ -190,15 +186,12 @@ async def verify_trainer(
                     detail="Gunde maksimum 3 verifikasiya cehdine icaze verilir. Sabah yeniden ceht edin.",
                 )
         else:
-            # Yeni gun — saygaci sifirla
             current_user.verification_attempts = 0
 
-    # 4. Sekili saxla
     content = await file.read()
     await file.seek(0)
     file_path = await save_upload(file, "verification")
 
-    # 5. AI analiz
     analysis = await analyze_trainer_photo(content)
 
     if "error" in analysis:
@@ -208,19 +201,29 @@ async def verify_trainer(
         )
 
     score = analysis.get("confidence_score", 0.0)
+    red_flags = analysis.get("red_flags", [])
+    photo_quality = analysis.get("photo_quality", "unknown")
+    requires_manual = analysis.get("requires_manual_review", False)
 
-    # 6. Score-a gore qerar
-    if score >= 0.80:
+    if photo_quality == "invalid":
+        new_status = VerificationStatus.rejected
+        message = "Yüklədiyiniz şəkil keyfiyyətsizdir. Zəhmət olmasa aydın fitness şəkli yükləyin."
+    elif score >= 0.80 and not requires_manual:
         new_status = VerificationStatus.verified
-        message = "Tebrikler! Hesabiniz ugurla dogrulandi."
+        message = "Təbriklər! Hesabınız uğurla doğrulandı."
     elif score >= 0.50:
         new_status = VerificationStatus.pending
-        message = "Sekiliniz gozden kecirilir. Admin terefinden yoxlanilacaq."
+        if requires_manual:
+            message = "Şəkiliniz qəbul edildi. AI analizi mövcud olmadığı üçün admin tərəfindən yoxlanılacaq."
+        else:
+            message = "Şəkiliniz gözdən keçirilir. Admin tərəfindən yoxlanılacaq."
+    elif score >= 0.30:
+        new_status = VerificationStatus.rejected
+        message = "Şəkiliniz fitness müəllimi standartlarına uyğun deyil. Daha aydın idman/fitness şəkli yükləyin."
     else:
         new_status = VerificationStatus.rejected
-        message = "Teessuf ki, sekiliniz verifikasiya telblerine uygun deyil. Yeniden ceht edin."
+        message = "Yüklədiyiniz şəkil verifikasiya tələblərinə uyğun deyil. Bədən formanızın aydın göründüyü fitness şəkli yükləyin."
 
-    # 7. User model-i yenile
     current_user.instagram_handle = instagram
     current_user.verification_photo_url = file_path
     current_user.verification_score = score
@@ -228,13 +231,15 @@ async def verify_trainer(
     current_user.verification_attempts = (current_user.verification_attempts or 0) + 1
     current_user.last_verification_attempt = now
 
-    # 8. Trainer field-lerini de yenile (eger gonderilibse)
     if specialization:
         current_user.specialization = specialization
     if experience is not None:
         current_user.experience = experience
     if bio:
         current_user.bio = bio
+
+    await db.commit()
+    await db.refresh(current_user)
 
     return TrainerVerificationResponse(
         verification_status=new_status,

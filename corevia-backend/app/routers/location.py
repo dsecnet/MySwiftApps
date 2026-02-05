@@ -26,7 +26,6 @@ async def create_route(
     db: AsyncSession = Depends(get_db),
 ):
     """Yeni marsrut yarat — Premium lazimdir"""
-    # Koordinat datalarini emal et
     stats = process_route_data(
         route_data.coordinates_json,
         route_data.activity_type,
@@ -101,7 +100,6 @@ async def get_route_stats(
     """Marsrut statistikası (son N gün)"""
     since = datetime.utcnow() - timedelta(days=days)
 
-    # Umumi statistikalar
     result = await db.execute(
         select(
             func.count(Route.id),
@@ -123,7 +121,6 @@ async def get_route_stats(
     total_calories = int(row[3])
     longest = float(row[4]) if row[4] else 0.0
 
-    # Activity type breakdown
     breakdown_result = await db.execute(
         select(Route.activity_type, func.count(Route.id))
         .where(
@@ -135,7 +132,6 @@ async def get_route_stats(
     )
     breakdown = {row[0]: row[1] for row in breakdown_result.all()}
 
-    # Ortalama pace ve speed
     avg_pace = None
     avg_speed = None
     if total_distance > 0 and total_duration > 0:
@@ -201,7 +197,6 @@ async def update_route(
 
     update_data = route_data.model_dump(exclude_unset=True)
 
-    # Eger coordinates_json yenilenirsə, stats-i yeniden hesabla
     if "coordinates_json" in update_data and update_data["coordinates_json"]:
         duration = update_data.get("duration_seconds", route.duration_seconds)
         stats = process_route_data(
@@ -210,7 +205,6 @@ async def update_route(
             duration,
             weight_kg=current_user.weight,
         )
-        # Yalniz None olan field-leri doldur (user override ede biler)
         for key, value in stats.items():
             if key not in update_data or update_data[key] is None:
                 update_data[key] = value
@@ -252,7 +246,6 @@ async def assign_route_to_student(
             detail="Yalniz trainer marsrut teyin ede biler",
         )
 
-    # Student-in bu trainer-e aid olduğunu yoxla
     from app.models.user import User as UserModel
     student_result = await db.execute(
         select(UserModel).where(UserModel.id == assign_data.student_id)
@@ -317,6 +310,10 @@ async def get_directions_preview(
     current_user: User = Depends(get_current_user),
 ):
     """Mapbox Directions API ile 2 nöqtə arasında marsrut preview al"""
+    VALID_PROFILES = {"walking", "cycling", "driving", "driving-traffic"}
+    if profile not in VALID_PROFILES:
+        raise HTTPException(status_code=400, detail="Invalid profile")
+
     result = await get_mapbox_directions(
         start=(start_lat, start_lng),
         end=(end_lat, end_lng),

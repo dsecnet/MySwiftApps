@@ -27,6 +27,14 @@ async def create_meal_plan(
     if current_user.user_type != UserType.trainer:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Yalniz trainer plan yarada biler")
 
+    if plan_data.assigned_student_id:
+        student_result = await db.execute(
+            select(User).where(User.id == plan_data.assigned_student_id)
+        )
+        student = student_result.scalar_one_or_none()
+        if not student or student.trainer_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Bu student sizin student-iniz deyil")
+
     meal_plan = MealPlan(
         trainer_id=current_user.id,
         title=plan_data.title,
@@ -52,7 +60,6 @@ async def create_meal_plan(
 
     await db.flush()
 
-    # Reload with items
     result = await db.execute(
         select(MealPlan).options(selectinload(MealPlan.items)).where(MealPlan.id == meal_plan.id)
     )
@@ -91,7 +98,6 @@ async def get_meal_plan(
     if not plan:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Meal plan tapilmadi")
 
-    # Yalniz trainer (sahibi) ve ya assigned student gore biler
     if plan.trainer_id != current_user.id and plan.assigned_student_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Bu plana icazeniz yoxdur")
 
@@ -144,6 +150,14 @@ async def create_training_plan(
 ):
     if current_user.user_type != UserType.trainer:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Yalniz trainer plan yarada biler")
+
+    if plan_data.assigned_student_id:
+        student_result = await db.execute(
+            select(User).where(User.id == plan_data.assigned_student_id)
+        )
+        student = student_result.scalar_one_or_none()
+        if not student or student.trainer_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Bu student sizin student-iniz deyil")
 
     training_plan = TrainingPlan(
         trainer_id=current_user.id,

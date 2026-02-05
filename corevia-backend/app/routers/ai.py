@@ -24,10 +24,8 @@ async def analyze_food(
     """Sekili upload et, AI ile analiz et — Premium lazimdir"""
     content = await file.read()
 
-    # AI analiz
     analysis = analyze_food_image(content)
 
-    # Eger async ise await et
     if hasattr(analysis, "__await__"):
         analysis = await analysis
 
@@ -46,7 +44,6 @@ async def analyze_and_save(
     """Sekili upload et, AI analiz et, saxla — Premium lazimdir"""
     content = await file.read()
 
-    # AI analiz
     analysis = analyze_food_image(content)
     if hasattr(analysis, "__await__"):
         analysis = await analysis
@@ -54,18 +51,15 @@ async def analyze_and_save(
     if "error" in analysis:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=analysis["error"])
 
-    # Sekili saxla
     await file.seek(0)
     file_path = await save_upload(file, "food")
 
-    # Meal type mapping
     meal_type_str = analysis.get("meal_type", "lunch")
     try:
         meal_type = MealType(meal_type_str)
     except ValueError:
         meal_type = MealType.lunch
 
-    # Food entry yarat
     food_name = ", ".join(f["name"] for f in analysis.get("foods", [])) or "AI analiz olunmus yemek"
 
     entry = FoodEntry(
@@ -95,7 +89,6 @@ async def get_recommendations(
     """AI tovsiyeler — Premium lazimdir"""
     week_ago = datetime.utcnow() - timedelta(days=7)
 
-    # Heftelik workout stats
     workout_result = await db.execute(
         select(
             func.count(Workout.id),
@@ -105,7 +98,6 @@ async def get_recommendations(
     )
     w = workout_result.one()
 
-    # Heftelik nutrition stats
     food_result = await db.execute(
         select(
             func.count(FoodEntry.id),
@@ -145,6 +137,5 @@ async def get_recommendations(
     if "error" in recommendations:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=recommendations["error"])
 
-    # User datalarini da qaytaraq ki iOS app gostere bilsin
     recommendations["user_stats"] = user_data
     return recommendations

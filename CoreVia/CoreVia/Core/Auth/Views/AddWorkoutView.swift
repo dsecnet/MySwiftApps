@@ -20,32 +20,32 @@ struct AddWorkoutView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(UIColor.systemBackground).ignoresSafeArea()
-                
+                AppTheme.Colors.background.ignoresSafeArea()
+
                 ScrollView {
                     VStack(spacing: 24) {
-                        
+
                         // MARK: - Title Input
                         VStack(alignment: .leading, spacing: 8) {
                             Text(loc.localized("workout_name"))
-                                .foregroundColor(Color(UIColor.secondaryLabel))
+                                .foregroundColor(AppTheme.Colors.secondaryText)
                                 .font(.subheadline)
-                            
-                            TextField("", text: $title, prompt: Text("məs: Biceps Training").foregroundColor(Color(UIColor.tertiaryLabel)))
-                                .foregroundColor(Color(UIColor.label))
+
+                            TextField("", text: $title, prompt: Text("məs: Biceps Training").foregroundColor(AppTheme.Colors.tertiaryText))
+                                .foregroundColor(AppTheme.Colors.primaryText)
                                 .padding()
-                                .background(Color(UIColor.secondarySystemBackground))
+                                .background(AppTheme.Colors.secondaryBackground)
                                 .cornerRadius(12)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12)
-                                        .stroke(title.isEmpty ? Color(UIColor.separator) : Color.red, lineWidth: 1)
+                                        .stroke(title.isEmpty ? AppTheme.Colors.separator : AppTheme.Colors.accent, lineWidth: 1)
                                 )
                         }
                         
                         // MARK: - Category Picker
                         VStack(alignment: .leading, spacing: 8) {
                             Text(loc.localized("workout_category"))
-                                .foregroundColor(Color(UIColor.secondaryLabel))
+                                .foregroundColor(AppTheme.Colors.secondaryText)
                                 .font(.subheadline)
                             
                             ScrollView(.horizontal, showsIndicators: false) {
@@ -67,9 +67,9 @@ struct AddWorkoutView: View {
                         // MARK: - Duration Stepper
                         VStack(alignment: .leading, spacing: 8) {
                             Text(loc.localized("workout_duration"))
-                                .foregroundColor(Color(UIColor.secondaryLabel))
+                                .foregroundColor(AppTheme.Colors.secondaryText)
                                 .font(.subheadline)
-                            
+
                             HStack {
                                 Button {
                                     if duration > 5 {
@@ -78,86 +78,85 @@ struct AddWorkoutView: View {
                                 } label: {
                                     Image(systemName: "minus.circle.fill")
                                         .font(.title2)
-                                        .foregroundColor(.red)
+                                        .foregroundColor(AppTheme.Colors.accent)
                                 }
-                                
+
                                 Spacer()
-                                
+
                                 Text("\(duration) \(loc.localized("common_min"))")
                                     .font(.title2)
                                     .bold()
-                                    .foregroundColor(Color(UIColor.label))
-                                
+                                    .foregroundColor(AppTheme.Colors.primaryText)
+
                                 Spacer()
-                                
+
                                 Button {
-                                    duration += 5
+                                    if duration < 1440 { duration += 5 }
                                 } label: {
                                     Image(systemName: "plus.circle.fill")
                                         .font(.title2)
-                                        .foregroundColor(.red)
+                                        .foregroundColor(duration >= 1440 ? .gray : AppTheme.Colors.accent)
                                 }
                             }
                             .padding()
-                            .background(Color(UIColor.secondarySystemBackground))
+                            .background(AppTheme.Colors.secondaryBackground)
                             .cornerRadius(12)
                         }
                         
                         // MARK: - Calories (Optional)
                         VStack(alignment: .leading, spacing: 8) {
                             Text(loc.localized("workout_calories_optional"))
-                                .foregroundColor(Color(UIColor.secondaryLabel))
+                                .foregroundColor(AppTheme.Colors.secondaryText)
                                 .font(.subheadline)
-                            
-                            TextField("", text: $caloriesBurned, prompt: Text("məs: 250").foregroundColor(Color(UIColor.tertiaryLabel)))
-                                .foregroundColor(Color(UIColor.label))
+
+                            TextField("", text: $caloriesBurned, prompt: Text("məs: 250").foregroundColor(AppTheme.Colors.tertiaryText))
+                                .foregroundColor(AppTheme.Colors.primaryText)
                                 .keyboardType(.numberPad)
                                 .padding()
-                                .background(Color(UIColor.secondarySystemBackground))
+                                .background(AppTheme.Colors.secondaryBackground)
                                 .cornerRadius(12)
                         }
                         
                         // MARK: - Date Picker
                         VStack(alignment: .leading, spacing: 8) {
                             Text(loc.localized("workout_date"))
-                                .foregroundColor(Color(UIColor.secondaryLabel))
+                                .foregroundColor(AppTheme.Colors.secondaryText)
                                 .font(.subheadline)
-                            
+
                             DatePicker("", selection: $selectedDate, displayedComponents: [.date])
                                 .datePickerStyle(.compact)
-                                .tint(.red)
+                                .tint(AppTheme.Colors.accent)
                                 .padding()
-                                .background(Color(UIColor.secondarySystemBackground))
+                                .background(AppTheme.Colors.secondaryBackground)
                                 .cornerRadius(12)
                         }
                         
                         // MARK: - Notes (Optional)
                         VStack(alignment: .leading, spacing: 8) {
                             Text(loc.localized("workout_notes"))
-                                .foregroundColor(Color(UIColor.secondaryLabel))
+                                .foregroundColor(AppTheme.Colors.secondaryText)
                                 .font(.subheadline)
-                            
+
                             ZStack(alignment: .topLeading) {
-                                // Placeholder text
                                 if notes.isEmpty {
                                     Text(loc.localized("workout_notes_placeholder"))
-                                        .foregroundColor(Color(UIColor.tertiaryLabel))
+                                        .foregroundColor(AppTheme.Colors.tertiaryText)
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 16)
                                 }
-                                
+
                                 TextEditor(text: $notes)
-                                    .foregroundColor(Color(UIColor.label))
+                                    .foregroundColor(AppTheme.Colors.primaryText)
                                     .scrollContentBackground(.hidden)
                                     .background(Color.clear)
                                     .frame(height: 100)
                                     .padding(4)
                             }
-                            .background(Color(UIColor.secondarySystemBackground))
+                            .background(AppTheme.Colors.secondaryBackground)
                             .cornerRadius(12)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color(UIColor.separator), lineWidth: 1)
+                                    .stroke(AppTheme.Colors.separator, lineWidth: 1)
                             )
                         }
                         
@@ -175,16 +174,16 @@ struct AddWorkoutView: View {
                             .padding()
                             .background(
                                 LinearGradient(
-                                    colors: [Color.red, Color.red.opacity(0.8)],
+                                    colors: [AppTheme.Colors.accent, AppTheme.Colors.accent.opacity(0.8)],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
                             )
                             .cornerRadius(12)
-                            .shadow(color: .red.opacity(0.4), radius: 8)
+                            .shadow(color: AppTheme.Colors.accent.opacity(0.4), radius: 8)
                         }
-                        .disabled(title.isEmpty)
-                        .opacity(title.isEmpty ? 0.5 : 1.0)
+                        .disabled(!isWorkoutFormValid)
+                        .opacity(isWorkoutFormValid ? 1.0 : 0.5)
                         .padding(.top, 10)
                     }
                     .padding()
@@ -192,12 +191,19 @@ struct AddWorkoutView: View {
             }
             .navigationTitle(loc.localized("workout_new"))
             .navigationBarTitleDisplayMode(.inline)
+            .onChange(of: caloriesBurned) { _, val in
+                caloriesBurned = val.filter { $0.isNumber }
+                if let n = Int(caloriesBurned), n > 10000 { caloriesBurned = "10000" }
+            }
+            .onChange(of: notes) { _, val in
+                if val.count > 1000 { notes = String(val.prefix(1000)) }
+            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(loc.localized("common_cancel")) {
                         dismiss()
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(AppTheme.Colors.accent)
                 }
             }
             .alert("\(loc.localized("common_success")) ✅", isPresented: $showSuccessAlert) {
@@ -210,7 +216,14 @@ struct AddWorkoutView: View {
         }
     }
     
-    // MARK: - Save Action
+    private var isWorkoutFormValid: Bool {
+        let trimmed = title.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty, trimmed.count <= 200 else { return false }
+        guard duration >= 1, duration <= 1440 else { return false }
+        if let cal = Int(caloriesBurned), (cal < 0 || cal > 10000) { return false }
+        return true
+    }
+
     private func saveWorkout() {
         let workout = Workout(
             title: title,
@@ -241,22 +254,22 @@ struct CategoryButton: View {
             VStack(spacing: 8) {
                 Image(systemName: category.icon)
                     .font(.title2)
-                    .foregroundColor(isSelected ? .white : Color(UIColor.secondaryLabel))
-                
+                    .foregroundColor(isSelected ? .white : AppTheme.Colors.secondaryText)
+
                 Text(category.localizedName)
                     .font(.caption)
-                    .foregroundColor(isSelected ? .white : Color(UIColor.secondaryLabel))
+                    .foregroundColor(isSelected ? .white : AppTheme.Colors.secondaryText)
             }
             .frame(width: 80, height: 80)
             .background(
                 isSelected ?
-                LinearGradient(colors: [.red, .red.opacity(0.8)], startPoint: .top, endPoint: .bottom) :
-                LinearGradient(colors: [Color(UIColor.secondarySystemBackground), Color(UIColor.secondarySystemBackground)], startPoint: .top, endPoint: .bottom)
+                LinearGradient(colors: [AppTheme.Colors.accent, AppTheme.Colors.accent.opacity(0.8)], startPoint: .top, endPoint: .bottom) :
+                LinearGradient(colors: [AppTheme.Colors.secondaryBackground, AppTheme.Colors.secondaryBackground], startPoint: .top, endPoint: .bottom)
             )
             .cornerRadius(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(isSelected ? Color.red : Color(UIColor.separator), lineWidth: isSelected ? 2 : 1)
+                    .stroke(isSelected ? AppTheme.Colors.accent : AppTheme.Colors.separator, lineWidth: isSelected ? 2 : 1)
             )
         }
     }

@@ -27,10 +27,10 @@ enum MealType: String, Codable, CaseIterable {
 
     var color: Color {
         switch self {
-        case .breakfast: return .orange
-        case .lunch: return .yellow
-        case .dinner: return .purple
-        case .snack: return .green
+        case .breakfast: return AppTheme.Colors.mealBreakfast
+        case .lunch: return AppTheme.Colors.mealLunch
+        case .dinner: return AppTheme.Colors.mealDinner
+        case .snack: return AppTheme.Colors.mealSnack
         }
     }
 

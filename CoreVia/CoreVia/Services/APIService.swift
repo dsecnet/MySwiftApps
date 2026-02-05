@@ -45,8 +45,12 @@ struct ErrorDetail: Codable {
 class APIService {
     static let shared = APIService()
 
-    // Backend URL - hazırda localhost, domain alınanda dəyişəcək
-    let baseURL = "http://localhost:8000"
+    // Backend URL - development və production üçün ayrı
+    #if DEBUG
+    let baseURL = "http://localhost:8000"  // Development
+    #else
+    let baseURL = "https://api.corevia.az"  // Production (HTTPS)
+    #endif
 
     private let session: URLSession
     private let decoder: JSONDecoder

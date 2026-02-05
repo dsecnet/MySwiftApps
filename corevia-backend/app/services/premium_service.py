@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime, timedelta
+import httpx
 
 logger = logging.getLogger(__name__)
 
@@ -44,32 +45,94 @@ def calculate_expiry(product_id: str, start: datetime | None = None) -> datetime
     return start + timedelta(days=plan["duration_days"])
 
 
-async def validate_apple_receipt(receipt_data: str) -> dict | None:
+async def validate_apple_receipt(
+    receipt_data: str,
+    use_production: bool = False,
+    shared_secret: str | None = None
+) -> dict | None:
     """Apple receipt-i dogrula (App Store Server API)
 
-    Production-da Apple-in verifyReceipt endpoint-ine request gonderilir.
-    Hazirda mock implementasiya - her zaman valid qaytarir.
+    Args:
+        receipt_data: Base64 encoded receipt data from iOS
+        use_production: True = production server, False = sandbox
+        shared_secret: App-specific shared secret (optional, for subscriptions)
+
+    Returns:
+        dict with validation results or None if invalid
     """
     if not receipt_data:
+        logger.warning("Empty receipt data provided")
         return None
 
-    # TODO: Production-da Apple App Store Server API ile dogrulama
-    # https://developer.apple.com/documentation/appstoreserverapi
-    #
-    # async with httpx.AsyncClient() as client:
-    #     response = await client.post(
-    #         "https://buy.itunes.apple.com/verifyReceipt",
-    #         json={"receipt-data": receipt_data, "password": SHARED_SECRET}
-    #     )
-    #     data = response.json()
-    #     if data["status"] == 0:
-    #         return data["latest_receipt_info"]
+    # Apple verifyReceipt endpoint
+    # Sandbox: https://sandbox.itunes.apple.com/verifyReceipt
+    # Production: https://buy.itunes.apple.com/verifyReceipt
+    url = (
+        "https://buy.itunes.apple.com/verifyReceipt"
+        if use_production
+        else "https://sandbox.itunes.apple.com/verifyReceipt"
+    )
 
-    logger.info("[MOCK] Apple receipt validation - ugurlu (mock)")
-    return {
-        "status": "valid",
-        "is_mock": True,
-    }
+    payload = {"receipt-data": receipt_data}
+    if shared_secret:
+        payload["password"] = shared_secret
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(url, json=payload)
+            data = response.json()
+
+            # Status codes: https://developer.apple.com/documentation/appstorereceipts/status
+            status = data.get("status")
+
+            if status == 0:
+                # Valid receipt
+                logger.info(f"Apple receipt validation successful (environment: {'production' if use_production else 'sandbox'})")
+                return {
+                    "status": "valid",
+                    "environment": data.get("environment"),
+                    "receipt": data.get("receipt"),
+                    "latest_receipt_info": data.get("latest_receipt_info"),
+                    "pending_renewal_info": data.get("pending_renewal_info"),
+                }
+
+            elif status == 21007:
+                # Sandbox receipt sent to production - retry with sandbox
+                if use_production:
+                    logger.info("Receipt is sandbox, retrying with sandbox server")
+                    return await validate_apple_receipt(receipt_data, use_production=False, shared_secret=shared_secret)
+
+            elif status == 21008:
+                # Production receipt sent to sandbox - retry with production
+                if not use_production:
+                    logger.info("Receipt is production, retrying with production server")
+                    return await validate_apple_receipt(receipt_data, use_production=True, shared_secret=shared_secret)
+
+            else:
+                # Other errors
+                error_messages = {
+                    21000: "App Store could not read the receipt",
+                    21002: "Receipt data is malformed",
+                    21003: "Receipt could not be authenticated",
+                    21004: "Shared secret does not match",
+                    21005: "Receipt server unavailable",
+                    21006: "Receipt valid but subscription expired",
+                    21009: "Internal data access error",
+                    21010: "User account not found",
+                }
+                error_msg = error_messages.get(status, f"Unknown status code: {status}")
+                logger.warning(f"Apple receipt validation failed: {error_msg}")
+                return None
+
+    except httpx.TimeoutException:
+        logger.error("Apple receipt validation timeout")
+        return None
+    except httpx.RequestError as e:
+        logger.error(f"Apple receipt validation network error: {e}")
+        return None
+    except Exception as e:
+        logger.error(f"Apple receipt validation unexpected error: {e}")
+        return None
 
 
 def check_subscription_active(expires_at: datetime) -> bool:

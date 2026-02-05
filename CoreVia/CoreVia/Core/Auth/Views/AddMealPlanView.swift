@@ -2,8 +2,6 @@
 //  AddMealPlanView.swift
 //  CoreVia
 //
-//  Yeni qida planı əlavə etmə formu
-//
 
 import SwiftUI
 
@@ -20,7 +18,6 @@ struct AddMealPlanView: View {
     @State private var notes: String = ""
     @State private var meals: [MealPlanItem] = []
 
-    // Add meal sheet
     @State private var showAddMeal: Bool = false
     @State private var newMealName: String = ""
     @State private var newMealCalories: String = ""
@@ -127,7 +124,7 @@ struct AddMealPlanView: View {
                                         Text(loc.localized("trainer_add_meal"))
                                     }
                                     .font(.caption)
-                                    .foregroundColor(.orange)
+                                    .foregroundColor(AppTheme.Colors.accent)
                                 }
                             }
 
@@ -154,7 +151,6 @@ struct AddMealPlanView: View {
                                     }
                                 }
 
-                                // Totals
                                 HStack {
                                     Text(loc.localized("trainer_total_calories"))
                                         .font(.caption)
@@ -165,7 +161,7 @@ struct AddMealPlanView: View {
                                     Text("\(meals.reduce(0) { $0 + $1.calories }) \(loc.localized("common_kcal"))")
                                         .font(.caption)
                                         .bold()
-                                        .foregroundColor(.orange)
+                                        .foregroundColor(AppTheme.Colors.accent)
                                 }
                                 .padding(.horizontal, 8)
                             }
@@ -192,7 +188,7 @@ struct AddMealPlanView: View {
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(title.isEmpty ? Color.gray : Color.orange)
+                                .background(title.isEmpty ? Color.gray : AppTheme.Colors.accent)
                                 .cornerRadius(14)
                         }
                         .disabled(title.isEmpty)
@@ -207,7 +203,7 @@ struct AddMealPlanView: View {
                     Button(loc.localized("common_cancel")) {
                         dismiss()
                     }
-                    .foregroundColor(.orange)
+                    .foregroundColor(AppTheme.Colors.accent)
                 }
             }
             .sheet(isPresented: $showAddMeal) {
@@ -221,7 +217,6 @@ struct AddMealPlanView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    // Name
                     VStack(alignment: .leading, spacing: 8) {
                         Text(loc.localized("trainer_meal_name"))
                             .font(.caption)
@@ -234,7 +229,6 @@ struct AddMealPlanView: View {
                             .foregroundColor(Color(UIColor.label))
                     }
 
-                    // Meal Type
                     VStack(alignment: .leading, spacing: 8) {
                         Text(loc.localized("trainer_meal_type"))
                             .font(.caption)
@@ -260,7 +254,6 @@ struct AddMealPlanView: View {
                         }
                     }
 
-                    // Calories
                     VStack(alignment: .leading, spacing: 8) {
                         Text(loc.localized("food_calories"))
                             .font(.caption)
@@ -274,7 +267,6 @@ struct AddMealPlanView: View {
                             .foregroundColor(Color(UIColor.label))
                     }
 
-                    // Macros
                     HStack(spacing: 12) {
                         VStack(alignment: .leading, spacing: 8) {
                             Text(loc.localized("food_protein"))
@@ -322,7 +314,7 @@ struct AddMealPlanView: View {
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(newMealName.isEmpty || newMealCalories.isEmpty ? Color.gray : Color.orange)
+                            .background(newMealName.isEmpty || newMealCalories.isEmpty ? Color.gray : AppTheme.Colors.accent)
                             .cornerRadius(14)
                     }
                     .disabled(newMealName.isEmpty || newMealCalories.isEmpty)
@@ -336,7 +328,7 @@ struct AddMealPlanView: View {
                     Button(loc.localized("common_close")) {
                         showAddMeal = false
                     }
-                    .foregroundColor(.orange)
+                    .foregroundColor(AppTheme.Colors.accent)
                 }
             }
         }
@@ -344,12 +336,13 @@ struct AddMealPlanView: View {
 
     // MARK: - Actions
     func addMeal() {
+        let cal = max(0, min(10000, Int(newMealCalories) ?? 0))
         let meal = MealPlanItem(
-            name: newMealName,
-            calories: Int(newMealCalories) ?? 0,
-            protein: Double(newMealProtein),
-            carbs: Double(newMealCarbs),
-            fats: Double(newMealFats),
+            name: newMealName.trimmingCharacters(in: .whitespaces),
+            calories: cal,
+            protein: min(1000, max(0, Double(newMealProtein) ?? 0)),
+            carbs: min(1000, max(0, Double(newMealCarbs) ?? 0)),
+            fats: min(1000, max(0, Double(newMealFats) ?? 0)),
             mealType: newMealType
         )
         meals.append(meal)
@@ -363,13 +356,14 @@ struct AddMealPlanView: View {
     }
 
     func savePlan() {
+        let target = max(500, min(10000, Int(dailyCalorieTarget) ?? 2000))
         let plan = MealPlan(
-            title: title,
+            title: title.trimmingCharacters(in: .whitespaces),
             planType: selectedPlanType,
             meals: meals,
             assignedStudentName: selectedStudent,
-            dailyCalorieTarget: Int(dailyCalorieTarget) ?? 2000,
-            notes: notes.isEmpty ? nil : notes
+            dailyCalorieTarget: target,
+            notes: notes.isEmpty ? nil : String(notes.prefix(1000))
         )
         manager.addPlan(plan)
         dismiss()
@@ -398,7 +392,7 @@ struct MealItemRow: View {
                 HStack(spacing: 8) {
                     Text("\(meal.calories) kcal")
                         .font(.caption)
-                        .foregroundColor(.orange)
+                        .foregroundColor(AppTheme.Colors.accent)
 
                     if let protein = meal.protein, protein > 0 {
                         Text("P: \(String(format: "%.0f", protein))g")

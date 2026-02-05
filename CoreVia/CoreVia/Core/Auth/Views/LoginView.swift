@@ -36,11 +36,11 @@ struct LoginView: View {
                                 Text(language.flag)
                                     .font(.system(size: 22))
                                     .frame(width: 40, height: 40)
-                                    .background(loc.currentLanguage == language ? Color.red.opacity(0.15) : AppTheme.Colors.secondaryBackground)
+                                    .background(loc.currentLanguage == language ? AppTheme.Colors.accent.opacity(0.15) : AppTheme.Colors.secondaryBackground)
                                     .cornerRadius(10)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 10)
-                                            .stroke(loc.currentLanguage == language ? Color.red : Color.clear, lineWidth: 2)
+                                            .stroke(loc.currentLanguage == language ? AppTheme.Colors.accent : Color.clear, lineWidth: 2)
                                     )
                             }
                         }
@@ -56,7 +56,7 @@ struct LoginView: View {
                             Circle()
                                 .fill(
                                     LinearGradient(
-                                        colors: [Color.red.opacity(0.3), Color.red],
+                                        colors: [AppTheme.Colors.accent.opacity(0.3), AppTheme.Colors.accent],
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing
                                     )
@@ -71,13 +71,13 @@ struct LoginView: View {
                                 .padding(12)
                                 .background(
                                     LinearGradient(
-                                        colors: [Color.red, Color.red.opacity(0.8)],
+                                        colors: [AppTheme.Colors.accent, AppTheme.Colors.accent.opacity(0.8)],
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing
                                     )
                                 )
                                 .cornerRadius(20)
-                                .shadow(color: .red.opacity(0.5), radius: 15, x: 0, y: 8)
+                                .shadow(color: AppTheme.Colors.accent.opacity(0.5), radius: 15, x: 0, y: 8)
                         }
 
                         // App Adı
@@ -88,7 +88,7 @@ struct LoginView: View {
 
                             Text(loc.localized("login_slogan"))
                                 .font(.system(size: 11, weight: .semibold))
-                                .foregroundColor(.red)
+                                .foregroundColor(AppTheme.Colors.accent)
                                 .tracking(2.5)
                         }
                     }
@@ -114,12 +114,12 @@ struct LoginView: View {
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
-                                .background(selectedUserType == .client ? Color.red : AppTheme.Colors.secondaryBackground)
+                                .background(selectedUserType == .client ? AppTheme.Colors.accent : AppTheme.Colors.secondaryBackground)
                                 .foregroundColor(selectedUserType == .client ? .white : AppTheme.Colors.primaryText)
                                 .cornerRadius(10)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 10)
-                                        .stroke(selectedUserType == .client ? Color.red : AppTheme.Colors.separator, lineWidth: selectedUserType == .client ? 2 : 1)
+                                        .stroke(selectedUserType == .client ? AppTheme.Colors.accent : AppTheme.Colors.separator, lineWidth: selectedUserType == .client ? 2 : 1)
                                 )
                             }
 
@@ -137,12 +137,12 @@ struct LoginView: View {
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
-                                .background(selectedUserType == .trainer ? Color.red : AppTheme.Colors.secondaryBackground)
+                                .background(selectedUserType == .trainer ? AppTheme.Colors.accent : AppTheme.Colors.secondaryBackground)
                                 .foregroundColor(selectedUserType == .trainer ? .white : AppTheme.Colors.primaryText)
                                 .cornerRadius(10)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 10)
-                                        .stroke(selectedUserType == .trainer ? Color.red : AppTheme.Colors.separator, lineWidth: selectedUserType == .trainer ? 2 : 1)
+                                        .stroke(selectedUserType == .trainer ? AppTheme.Colors.accent : AppTheme.Colors.separator, lineWidth: selectedUserType == .trainer ? 2 : 1)
                                 )
                             }
                         }
@@ -160,7 +160,7 @@ struct LoginView: View {
 
                             HStack(spacing: 10) {
                                 Image(systemName: "envelope.fill")
-                                    .foregroundColor(.red)
+                                    .foregroundColor(AppTheme.Colors.accent)
                                     .frame(width: 20)
 
                                 TextField("", text: $email, prompt: Text(loc.localized("login_email_placeholder")).foregroundColor(AppTheme.Colors.placeholderText))
@@ -175,7 +175,7 @@ struct LoginView: View {
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
                                     .stroke(
-                                        email.isEmpty ? AppTheme.Colors.separator : Color.red.opacity(0.5),
+                                        email.isEmpty ? AppTheme.Colors.separator : AppTheme.Colors.accent.opacity(0.5),
                                         lineWidth: 1
                                     )
                             )
@@ -189,7 +189,7 @@ struct LoginView: View {
 
                             HStack(spacing: 10) {
                                 Image(systemName: "lock.fill")
-                                    .foregroundColor(.red)
+                                    .foregroundColor(AppTheme.Colors.accent)
                                     .frame(width: 20)
 
                                 Group {
@@ -218,7 +218,7 @@ struct LoginView: View {
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
                                     .stroke(
-                                        password.isEmpty ? AppTheme.Colors.separator : Color.red.opacity(0.5),
+                                        password.isEmpty ? AppTheme.Colors.separator : AppTheme.Colors.accent.opacity(0.5),
                                         lineWidth: 1
                                     )
                             )
@@ -243,14 +243,14 @@ struct LoginView: View {
                     if showError {
                         HStack(spacing: 8) {
                             Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundColor(.red)
+                                .foregroundColor(AppTheme.Colors.error)
                             Text(errorMessage)
                                 .font(.system(size: 13))
                                 .foregroundColor(AppTheme.Colors.primaryText)
                         }
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background(Color.red.opacity(0.2))
+                        .background(AppTheme.Colors.error.opacity(0.2))
                         .cornerRadius(10)
                         .padding(.horizontal, 28)
                         .transition(.move(edge: .top).combined(with: .opacity))
@@ -282,7 +282,7 @@ struct LoginView: View {
                             .padding(.vertical, 14)
                             .background(
                                 LinearGradient(
-                                    colors: [Color.red, Color.red.opacity(0.8)],
+                                    colors: [AppTheme.Colors.accent, AppTheme.Colors.accent.opacity(0.8)],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
@@ -290,7 +290,7 @@ struct LoginView: View {
                             .foregroundColor(.white)
                             .cornerRadius(12)
                             .shadow(
-                                color: Color.red.opacity(0.4),
+                                color: AppTheme.Colors.accent.opacity(0.4),
                                 radius: 8,
                                 x: 0,
                                 y: 4
@@ -330,7 +330,7 @@ struct LoginView: View {
                         } label: {
                             Text(loc.localized("login_register"))
                                 .font(.system(size: 14, weight: .bold))
-                                .foregroundColor(.red)
+                                .foregroundColor(AppTheme.Colors.accent)
                         }
                     }
                     .padding(.bottom, 30)

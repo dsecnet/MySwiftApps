@@ -39,11 +39,11 @@ struct DemoStudent: Identifiable, Codable, Hashable {
 
     var progressColor: Color {
         if progress >= 0.8 {
-            return .green
+            return AppTheme.Colors.progressHigh
         } else if progress >= 0.5 {
-            return .orange
+            return AppTheme.Colors.progressMedium
         } else {
-            return .red
+            return AppTheme.Colors.progressLow
         }
     }
 }

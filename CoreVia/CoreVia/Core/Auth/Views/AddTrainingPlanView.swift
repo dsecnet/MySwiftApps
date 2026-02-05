@@ -2,8 +2,6 @@
 //  AddTrainingPlanView.swift
 //  CoreVia
 //
-//  Yeni idman planı əlavə etmə formu
-//
 
 import SwiftUI
 
@@ -19,7 +17,6 @@ struct AddTrainingPlanView: View {
     @State private var notes: String = ""
     @State private var workouts: [PlanWorkout] = []
 
-    // Add workout sheet
     @State private var showAddWorkout: Bool = false
     @State private var newWorkoutName: String = ""
     @State private var newWorkoutSets: String = "3"
@@ -104,7 +101,7 @@ struct AddTrainingPlanView: View {
                                         Text(loc.localized("trainer_add_exercise"))
                                     }
                                     .font(.caption)
-                                    .foregroundColor(.red)
+                                    .foregroundColor(AppTheme.Colors.accent)
                                 }
                             }
 
@@ -154,7 +151,7 @@ struct AddTrainingPlanView: View {
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(title.isEmpty ? Color.gray : Color.red)
+                                .background(title.isEmpty ? Color.gray : AppTheme.Colors.accent)
                                 .cornerRadius(14)
                         }
                         .disabled(title.isEmpty)
@@ -169,7 +166,7 @@ struct AddTrainingPlanView: View {
                     Button(loc.localized("common_cancel")) {
                         dismiss()
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(AppTheme.Colors.accent)
                 }
             }
             .sheet(isPresented: $showAddWorkout) {
@@ -241,7 +238,7 @@ struct AddTrainingPlanView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(newWorkoutName.isEmpty ? Color.gray : Color.red)
+                        .background(newWorkoutName.isEmpty ? Color.gray : AppTheme.Colors.accent)
                         .cornerRadius(14)
                 }
                 .disabled(newWorkoutName.isEmpty)
@@ -256,7 +253,7 @@ struct AddTrainingPlanView: View {
                     Button(loc.localized("common_close")) {
                         showAddWorkout = false
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(AppTheme.Colors.accent)
                 }
             }
         }
@@ -264,11 +261,16 @@ struct AddTrainingPlanView: View {
 
     // MARK: - Actions
     func addWorkout() {
+        let sets = max(1, min(100, Int(newWorkoutSets) ?? 3))
+        let reps = max(1, min(1000, Int(newWorkoutReps) ?? 12))
+        var dur: Int? = nil
+        if let d = Int(newWorkoutDuration), d > 0 { dur = min(d, 1440) }
+
         let workout = PlanWorkout(
-            name: newWorkoutName,
-            sets: Int(newWorkoutSets) ?? 3,
-            reps: Int(newWorkoutReps) ?? 12,
-            duration: Int(newWorkoutDuration)
+            name: newWorkoutName.trimmingCharacters(in: .whitespaces),
+            sets: sets,
+            reps: reps,
+            duration: dur
         )
         workouts.append(workout)
         newWorkoutName = ""
@@ -341,15 +343,15 @@ struct StudentSelectRow: View {
                 Spacer()
 
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(isSelected ? .red : Color(UIColor.tertiaryLabel))
+                    .foregroundColor(isSelected ? AppTheme.Colors.accent : Color(UIColor.tertiaryLabel))
                     .font(.title3)
             }
             .padding()
-            .background(isSelected ? Color.red.opacity(0.08) : Color(UIColor.secondarySystemBackground))
+            .background(isSelected ? AppTheme.Colors.accent.opacity(0.08) : Color(UIColor.secondarySystemBackground))
             .cornerRadius(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(isSelected ? Color.red.opacity(0.3) : Color.clear, lineWidth: 1.5)
+                    .stroke(isSelected ? AppTheme.Colors.accent.opacity(0.3) : Color.clear, lineWidth: 1.5)
             )
         }
     }
@@ -363,10 +365,10 @@ struct ExerciseRow: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: "dumbbell.fill")
-                .foregroundColor(.red)
+                .foregroundColor(AppTheme.Colors.accent)
                 .font(.caption)
                 .frame(width: 28, height: 28)
-                .background(Color.red.opacity(0.15))
+                .background(AppTheme.Colors.accent.opacity(0.15))
                 .cornerRadius(6)
 
             VStack(alignment: .leading, spacing: 2) {

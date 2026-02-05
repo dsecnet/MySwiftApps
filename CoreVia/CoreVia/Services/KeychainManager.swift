@@ -13,7 +13,7 @@ class KeychainManager {
     // MARK: - Access Token
 
     var accessToken: String? {
-        get { read(key: accessTokenKey) }
+        get { load(key: accessTokenKey) }
         set {
             if let value = newValue {
                 save(key: accessTokenKey, value: value)
@@ -24,7 +24,7 @@ class KeychainManager {
     }
 
     var refreshToken: String? {
-        get { read(key: refreshTokenKey) }
+        get { load(key: refreshTokenKey) }
         set {
             if let value = newValue {
                 save(key: refreshTokenKey, value: value)
@@ -47,38 +47,32 @@ class KeychainManager {
 
     // MARK: - Keychain Operations
 
-    private func save(key: String, value: String) {
-        guard let data = value.data(using: .utf8) else { return }
-
-        // Əvvəlcə köhnəni sil
-        delete(key: key)
-
+    func save(key: String, value: String) {
+        let data = Data(value.utf8)
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
             kSecValueData as String: data,
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
         ]
-
+        SecItemDelete(query as CFDictionary)
         SecItemAdd(query as CFDictionary, nil)
     }
 
-    private func read(key: String) -> String? {
+    func load(key: String) -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne,
         ]
-
-        var result: AnyObject?
-        let status = SecItemCopyMatching(query as CFDictionary, &result)
-
-        guard status == errSecSuccess, let data = result as? Data else { return nil }
+        var item: CFTypeRef?
+        guard SecItemCopyMatching(query as CFDictionary, &item) == errSecSuccess,
+              let data = item as? Data else { return nil }
         return String(data: data, encoding: .utf8)
     }
 
-    private func delete(key: String) {
+    func delete(key: String) {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,

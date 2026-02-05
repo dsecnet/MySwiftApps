@@ -32,14 +32,14 @@ struct HomeView: View {
                             title: loc.localized("home_workout"),
                             value: "\(workoutManager.todayTotalMinutes) \(loc.localized("common_min"))",
                             icon: "flame.fill",
-                            color: .red
+                            color: AppTheme.Colors.accent
                         )
                         
                         StatCard(
                             title: loc.localized("home_calories"),
                             value: "\(workoutManager.todayTotalCalories)",
                             icon: "bolt.fill",
-                            color: .orange
+                            color: AppTheme.Colors.accent
                         )
                     }
                     
@@ -53,12 +53,12 @@ struct HomeView: View {
                             Spacer()
                             
                             Text("\(Int(workoutManager.todayProgress * 100))%")
-                                .foregroundColor(.red)
+                                .foregroundColor(AppTheme.Colors.accent)
                                 .bold()
                         }
                         
                         ProgressView(value: workoutManager.todayProgress)
-                            .tint(.red)
+                            .tint(AppTheme.Colors.accent)
                         
                         HStack {
                             Text("\(workoutManager.todayWorkouts.filter { $0.isCompleted }.count)/\(workoutManager.todayWorkouts.count) \(loc.localized("home_completed"))")
@@ -87,7 +87,7 @@ struct HomeView: View {
                                 } label: {
                                     Text(loc.localized("home_see_all"))
                                         .font(.caption)
-                                        .foregroundColor(.red)
+                                        .foregroundColor(AppTheme.Colors.accent)
                                 }
                             }
                             
@@ -206,7 +206,7 @@ struct QuickActionButton: View {
             .foregroundColor(.white)
             .padding()
             .frame(maxWidth: .infinity)
-            .background(Color.red.opacity(0.85))
+            .background(AppTheme.Colors.accent.opacity(0.85))
             .cornerRadius(12)
         }
     }
@@ -219,7 +219,7 @@ struct CompactWorkoutCard: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: workout.category.icon)
-                .foregroundColor(.red)
+                .foregroundColor(AppTheme.Colors.accent)
                 .frame(width: 30)
             
             VStack(alignment: .leading, spacing: 2) {
@@ -237,7 +237,7 @@ struct CompactWorkoutCard: View {
             
             Button(action: onToggle) {
                 Image(systemName: workout.isCompleted ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(workout.isCompleted ? .green : Color(UIColor.tertiaryLabel))
+                    .foregroundColor(workout.isCompleted ? AppTheme.Colors.success : Color(UIColor.tertiaryLabel))
             }
         }
         .padding()
@@ -254,7 +254,7 @@ struct WeekStatItem: View {
     var body: some View {
         VStack(spacing: 6) {
             Image(systemName: icon)
-                .foregroundColor(.red)
+                .foregroundColor(AppTheme.Colors.accent)
                 .font(.title3)
             
             Text(value)

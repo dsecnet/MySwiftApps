@@ -33,14 +33,12 @@ struct EditClientProfileView: View {
                 ScrollView {
                     VStack(spacing: 20) {
                         
-                        // Name
                         EditField(
                             label: loc.localized("edit_name"),
                             icon: "person.fill",
                             text: $name
                         )
 
-                        // Email
                         EditField(
                             label: loc.localized("common_email"),
                             icon: "envelope.fill",
@@ -48,31 +46,39 @@ struct EditClientProfileView: View {
                             keyboardType: .emailAddress
                         )
 
-                        // Age
                         EditField(
                             label: loc.localized("edit_age"),
                             icon: "calendar",
                             text: $age,
                             keyboardType: .numberPad
                         )
+                        .onChange(of: age) { _, val in
+                            age = val.filter { $0.isNumber }
+                            if let n = Int(age), n > 120 { age = "120" }
+                        }
 
-                        // Weight
                         EditField(
                             label: loc.localized("edit_weight"),
                             icon: "scalemass",
                             text: $weight,
                             keyboardType: .decimalPad
                         )
+                        .onChange(of: weight) { _, val in
+                            weight = val.filter { $0.isNumber || $0 == "." }
+                            if let n = Double(weight), n > 500 { weight = "500" }
+                        }
 
-                        // Height
                         EditField(
                             label: loc.localized("edit_height"),
                             icon: "ruler",
                             text: $height,
                             keyboardType: .numberPad
                         )
+                        .onChange(of: height) { _, val in
+                            height = val.filter { $0.isNumber }
+                            if let n = Int(height), n > 300 { height = "300" }
+                        }
 
-                        // Goal
                         VStack(alignment: .leading, spacing: 8) {
                             Text(loc.localized("edit_goal"))
                                 .font(.system(size: 14, weight: .semibold))
@@ -90,7 +96,6 @@ struct EditClientProfileView: View {
                             }
                         }
                         
-                        // Save Button
                         Button {
                             saveProfile()
                         } label: {
@@ -102,7 +107,7 @@ struct EditClientProfileView: View {
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.red)
+                            .background(AppTheme.Colors.accent)
                             .cornerRadius(12)
                         }
                         .padding(.top, 10)
@@ -117,21 +122,31 @@ struct EditClientProfileView: View {
                     Button(loc.localized("common_cancel")) {
                         dismiss()
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(AppTheme.Colors.accent)
                 }
             }
         }
     }
 
+    private var isFormValid: Bool {
+        let trimmedName = name.trimmingCharacters(in: .whitespaces)
+        guard trimmedName.count >= 2 else { return false }
+        if let a = Int(age), (a < 13 || a > 120) { return false }
+        if let w = Double(weight), (w < 20 || w > 500) { return false }
+        if let h = Double(height), (h < 50 || h > 300) { return false }
+        return true
+    }
+
     private func saveProfile() {
+        guard isFormValid else { return }
         var updatedProfile = profileManager.userProfile
-        updatedProfile.name = name
+        updatedProfile.name = name.trimmingCharacters(in: .whitespaces)
         updatedProfile.email = email
         updatedProfile.age = Int(age)
         updatedProfile.weight = Double(weight)
         updatedProfile.height = Double(height)
         updatedProfile.goal = goal
-        
+
         profileManager.saveProfile(updatedProfile)
         dismiss()
     }
@@ -149,7 +164,9 @@ struct EditTrainerProfileView: View {
     @State private var specialty: String
     @State private var experience: String
     @State private var bio: String
-    
+    @State private var pricePerSession: String
+    @State private var instagramHandle: String
+
     init() {
         let profile = UserProfileManager.shared.userProfile
         _name = State(initialValue: profile.name)
@@ -157,6 +174,8 @@ struct EditTrainerProfileView: View {
         _specialty = State(initialValue: profile.specialty ?? "")
         _experience = State(initialValue: "\(profile.experience ?? 0)")
         _bio = State(initialValue: profile.bio ?? "")
+        _pricePerSession = State(initialValue: profile.pricePerSession != nil ? String(format: "%.0f", profile.pricePerSession!) : "")
+        _instagramHandle = State(initialValue: "")
     }
     
     var body: some View {
@@ -167,14 +186,12 @@ struct EditTrainerProfileView: View {
                 ScrollView {
                     VStack(spacing: 20) {
                         
-                        // Name
                         EditField(
                             label: loc.localized("edit_name"),
                             icon: "person.fill",
                             text: $name
                         )
 
-                        // Email
                         EditField(
                             label: loc.localized("common_email"),
                             icon: "envelope.fill",
@@ -182,14 +199,20 @@ struct EditTrainerProfileView: View {
                             keyboardType: .emailAddress
                         )
 
-                        // Specialty
                         VStack(alignment: .leading, spacing: 8) {
                             Text(loc.localized("edit_specialty"))
                                 .font(.system(size: 14, weight: .semibold))
                                 .foregroundColor(AppTheme.Colors.primaryText)
                             
                             VStack(spacing: 8) {
-                                ForEach(["Fitness Coach", "Strength Trainer", "Yoga Instructor", "Nutrition Specialist"], id: \.self) { option in
+                                                ForEach([
+                                    loc.localized("specialty_fitness"),
+                                    loc.localized("specialty_strength"),
+                                    loc.localized("specialty_yoga"),
+                                    loc.localized("specialty_nutrition"),
+                                    loc.localized("specialty_cardio"),
+                                    loc.localized("specialty_bodybuilding")
+                                ], id: \.self) { option in
                                     SpecialtyRow(
                                         title: option,
                                         isSelected: specialty == option
@@ -200,15 +223,17 @@ struct EditTrainerProfileView: View {
                             }
                         }
                         
-                        // Experience
                         EditField(
                             label: loc.localized("edit_experience"),
                             icon: "calendar",
                             text: $experience,
                             keyboardType: .numberPad
                         )
+                        .onChange(of: experience) { _, val in
+                            experience = val.filter { $0.isNumber }
+                            if let n = Int(experience), n > 60 { experience = "60" }
+                        }
 
-                        // Bio
                         VStack(alignment: .leading, spacing: 8) {
                             Text(loc.localized("edit_bio"))
                                 .font(.system(size: 14, weight: .semibold))
@@ -227,12 +252,31 @@ struct EditTrainerProfileView: View {
                                     .scrollContentBackground(.hidden)
                                     .frame(height: 100)
                                     .padding(8)
+                                    .onChange(of: bio) { _, val in
+                                        if val.count > 1000 { bio = String(val.prefix(1000)) }
+                                    }
                             }
                             .background(AppTheme.Colors.secondaryBackground)
                             .cornerRadius(12)
                         }
-                        
-                        // Save Button
+
+                        EditField(
+                            label: loc.localized("trainer_price_per_session"),
+                            icon: "manatsign",
+                            text: $pricePerSession,
+                            keyboardType: .decimalPad
+                        )
+                        .onChange(of: pricePerSession) { _, val in
+                            pricePerSession = val.filter { $0.isNumber || $0 == "." }
+                            if let n = Double(pricePerSession), n > 10000 { pricePerSession = "10000" }
+                        }
+
+                        EditField(
+                            label: loc.localized("trainer_instagram"),
+                            icon: "camera.fill",
+                            text: $instagramHandle
+                        )
+
                         Button {
                             saveProfile()
                         } label: {
@@ -244,7 +288,7 @@ struct EditTrainerProfileView: View {
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.red)
+                            .background(AppTheme.Colors.accent)
                             .cornerRadius(12)
                         }
                         .padding(.top, 10)
@@ -259,7 +303,7 @@ struct EditTrainerProfileView: View {
                     Button(loc.localized("common_cancel")) {
                         dismiss()
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(AppTheme.Colors.accent)
                 }
             }
         }
@@ -272,7 +316,8 @@ struct EditTrainerProfileView: View {
         updatedProfile.specialty = specialty
         updatedProfile.experience = Int(experience)
         updatedProfile.bio = bio
-        
+        updatedProfile.pricePerSession = Double(pricePerSession)
+
         profileManager.saveProfile(updatedProfile)
         dismiss()
     }
@@ -294,7 +339,7 @@ struct EditField: View {
             
             HStack(spacing: 12) {
                 Image(systemName: icon)
-                    .foregroundColor(.red)
+                    .foregroundColor(AppTheme.Colors.accent)
                     .frame(width: 20)
                 
                 TextField("", text: $text)
@@ -320,7 +365,7 @@ struct GoalChip: View {
                 .foregroundColor(isSelected ? .white : AppTheme.Colors.primaryText)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(isSelected ? Color.red : AppTheme.Colors.secondaryBackground)
+                .background(isSelected ? AppTheme.Colors.accent : AppTheme.Colors.secondaryBackground)
                 .cornerRadius(8)
         }
     }
@@ -341,7 +386,7 @@ struct SpecialtyRow: View {
                 
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.red)
+                        .foregroundColor(AppTheme.Colors.accent)
                 }
             }
             .padding()
@@ -349,7 +394,7 @@ struct SpecialtyRow: View {
             .cornerRadius(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(isSelected ? Color.red : Color.clear, lineWidth: 2)
+                    .stroke(isSelected ? AppTheme.Colors.accent : Color.clear, lineWidth: 2)
             )
         }
     }

@@ -3,6 +3,7 @@
 import Foundation
 import LocalAuthentication
 import SwiftUI
+import CryptoKit
 
 class SettingsManager: ObservableObject {
     
@@ -82,22 +83,42 @@ class SettingsManager: ObservableObject {
     
     // MARK: - Password Management
     func setPassword(_ password: String) {
-        UserDefaults.standard.set(password, forKey: passwordKey)
+        // Hash the PIN before storing in Keychain
+        let hashedPin = hashPin(password)
+        KeychainManager.shared.save(key: "app_pin_hash", value: hashedPin)
         hasAppPassword = true
-        print("✅ Şifrə təyin edildi")
+        saveSettings()
+        print("Shifre teyin edildi")
     }
-    
+
     func removePassword() {
-        UserDefaults.standard.removeObject(forKey: passwordKey)
+        KeychainManager.shared.delete(key: "app_pin_hash")
+        UserDefaults.standard.removeObject(forKey: "app_password") // cleanup old
         hasAppPassword = false
-        print("🗑️ Şifrə silindi")
+        saveSettings()
     }
-    
+
     func verifyPassword(_ password: String) -> Bool {
-        guard let savedPassword = UserDefaults.standard.string(forKey: passwordKey) else {
+        guard let savedHash = KeychainManager.shared.load(key: "app_pin_hash") else {
+            // Fallback: check old UserDefaults storage for migration
+            if let oldPassword = UserDefaults.standard.string(forKey: "app_password") {
+                if password == oldPassword {
+                    // Migrate to Keychain
+                    setPassword(password)
+                    UserDefaults.standard.removeObject(forKey: "app_password")
+                    return true
+                }
+                return false
+            }
             return false
         }
-        return password == savedPassword
+        return hashPin(password) == savedHash
+    }
+
+    private func hashPin(_ pin: String) -> String {
+        let data = Data(pin.utf8)
+        let hash = SHA256.hash(data: data)
+        return hash.compactMap { String(format: "%02x", $0) }.joined()
     }
     
     // MARK: - Face ID / Touch ID
