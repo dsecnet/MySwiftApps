@@ -104,19 +104,48 @@ struct HomeView: View {
                         .foregroundColor(Color(UIColor.label))
                         .font(.headline)
                     
-                    HStack(spacing: 12) {
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                         QuickActionButton(
                             title: loc.localized("home_add_workout"),
                             icon: "plus.circle.fill"
                         ) {
                             showAddWorkout = true
                         }
-                        
+
                         QuickActionButton(
                             title: loc.localized("home_add_food"),
                             icon: "fork.knife"
                         ) {
                             showAddFood = true
+                        }
+
+                        // NEW FEATURES
+                        NavigationLink(destination: SocialFeedView()) {
+                            QuickActionButtonStyle(
+                                title: loc.localized("social_title"),
+                                icon: "person.3.fill"
+                            )
+                        }
+
+                        NavigationLink(destination: MarketplaceView()) {
+                            QuickActionButtonStyle(
+                                title: loc.localized("marketplace_title"),
+                                icon: "cart.fill"
+                            )
+                        }
+
+                        NavigationLink(destination: AnalyticsDashboardView()) {
+                            QuickActionButtonStyle(
+                                title: loc.localized("analytics_title"),
+                                icon: "chart.bar.fill"
+                            )
+                        }
+
+                        NavigationLink(destination: LiveSessionListView()) {
+                            QuickActionButtonStyle(
+                                title: loc.localized("live_sessions_title"),
+                                icon: "video.fill"
+                            )
                         }
                     }
                     
@@ -196,7 +225,7 @@ struct QuickActionButton: View {
     let title: String
     let icon: String
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             HStack {
@@ -209,6 +238,24 @@ struct QuickActionButton: View {
             .background(AppTheme.Colors.accent.opacity(0.85))
             .cornerRadius(12)
         }
+    }
+}
+
+struct QuickActionButtonStyle: View {
+    let title: String
+    let icon: String
+
+    var body: some View {
+        HStack {
+            Image(systemName: icon)
+            Text(title)
+                .font(.caption)
+        }
+        .foregroundColor(.white)
+        .padding()
+        .frame(maxWidth: .infinity)
+        .background(AppTheme.Colors.accent.opacity(0.85))
+        .cornerRadius(12)
     }
 }
 

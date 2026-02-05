@@ -37,7 +37,18 @@ class SettingsManager: ObservableObject {
     @Published var isPremium: Bool {
         didSet { saveSettings() }
     }
-    
+
+    // Computed property: Trainers automatically have premium access
+    var hasPremiumAccess: Bool {
+        // Check if user is trainer
+        if let userType = UserDefaults.standard.string(forKey: "userType"),
+           userType == "trainer" {
+            return true
+        }
+        // Otherwise check premium status
+        return isPremium
+    }
+
     private let settingsKey = "app_settings"
     private let passwordKey = "app_password"
     

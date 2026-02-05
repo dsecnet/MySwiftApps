@@ -76,14 +76,10 @@ struct MyStudentsView: View {
             StudentDetailView(student: student)
         }
         .sheet(isPresented: $showAddTrainingPlan) {
-            if let student = selectedStudent {
-                AddTrainingPlanView(preSelectedStudent: student)
-            }
+            AddTrainingPlanView()
         }
         .sheet(isPresented: $showAddMealPlan) {
-            if let student = selectedStudent {
-                AddMealPlanView(preSelectedStudent: student)
-            }
+            AddMealPlanView()
         }
     }
 
@@ -281,6 +277,9 @@ struct StudentDetailView: View {
     @StateObject private var trainingPlanManager = TrainingPlanManager.shared
     @StateObject private var mealPlanManager = MealPlanManager.shared
 
+    @State private var showAddTrainingPlan: Bool = false
+    @State private var showAddMealPlan: Bool = false
+
     // Mock training statistics (seeded by student id for consistency)
     private var workoutsThisWeek: Int {
         abs(student.id.hashValue % 4) + 2  // 2-5
@@ -329,6 +328,12 @@ struct StudentDetailView: View {
                             .foregroundColor(AppTheme.Colors.secondaryText)
                     }
                 }
+            }
+            .sheet(isPresented: $showAddTrainingPlan) {
+                AddTrainingPlanView()
+            }
+            .sheet(isPresented: $showAddMealPlan) {
+                AddMealPlanView()
             }
         }
     }

@@ -64,13 +64,13 @@ struct AnalyticsDashboardView: View {
                 .fontWeight(.bold)
 
             HStack(spacing: 16) {
-                StatCard(
+                AnalyticsStatCard(
                     title: loc.localized("analytics_workouts"),
                     value: "\(week.workoutsCompleted)",
                     icon: "figure.run"
                 )
 
-                StatCard(
+                AnalyticsStatCard(
                     title: loc.localized("analytics_minutes"),
                     value: "\(week.totalWorkoutMinutes)",
                     icon: "clock"
@@ -78,13 +78,13 @@ struct AnalyticsDashboardView: View {
             }
 
             HStack(spacing: 16) {
-                StatCard(
+                AnalyticsStatCard(
                     title: loc.localized("analytics_calories_burned"),
                     value: "\(week.caloriesBurned)",
                     icon: "flame"
                 )
 
-                StatCard(
+                AnalyticsStatCard(
                     title: loc.localized("analytics_consistency"),
                     value: "\(week.workoutConsistencyPercent)%",
                     icon: "chart.line.uptrend.xyaxis"
@@ -193,25 +193,25 @@ struct AnalyticsDashboardView: View {
                 .padding(.horizontal)
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                SummaryStatCard(
+                SummaryAnalyticsStatCard(
                     title: loc.localized("analytics_total_workouts"),
                     value: "\(dashboard.totalWorkouts30d)",
                     icon: "dumbbell"
                 )
 
-                SummaryStatCard(
+                SummaryAnalyticsStatCard(
                     title: loc.localized("analytics_total_minutes"),
                     value: "\(dashboard.totalMinutes30d)",
                     icon: "clock.fill"
                 )
 
-                SummaryStatCard(
+                SummaryAnalyticsStatCard(
                     title: loc.localized("analytics_calories_burned"),
                     value: "\(dashboard.totalCaloriesBurned30d)",
                     icon: "flame.fill"
                 )
 
-                SummaryStatCard(
+                SummaryAnalyticsStatCard(
                     title: loc.localized("analytics_workout_streak"),
                     value: "\(dashboard.workoutStreakDays)",
                     icon: "calendar"
@@ -254,7 +254,7 @@ struct AnalyticsDashboardView: View {
 
 // MARK: - Stat Card
 
-struct StatCard: View {
+struct AnalyticsStatCard: View {
     let title: String
     let value: String
     let icon: String
@@ -289,7 +289,7 @@ struct StatCard: View {
 
 // MARK: - Summary Stat Card
 
-struct SummaryStatCard: View {
+struct SummaryAnalyticsStatCard: View {
     let title: String
     let value: String
     let icon: String

@@ -57,7 +57,11 @@ class PoseDetectionService: NSObject, ObservableObject {
 
         // Rotate connection to portrait
         if let connection = videoOutput.connection(with: .video) {
-            connection.videoOrientation = .portrait
+            if #available(iOS 17.0, *) {
+                connection.videoRotationAngle = 0
+            } else {
+                connection.videoOrientation = .portrait
+            }
         }
 
         self.captureSession = session
@@ -329,12 +333,11 @@ class PoseDetectionService: NSObject, ObservableObject {
         // Check body alignment (straight horizontal line)
         if let shoulder = pose.keypoints["left_shoulder_1"],
            let hip = pose.keypoints["left_hip_1"],
-           let ankle = pose.keypoints["left_ankle_1"] {
+           let _ = pose.keypoints["left_ankle_1"] {
 
             // Check if body forms straight line
             let shoulderY = shoulder.y
             let hipY = hip.y
-            let ankleY = ankle.y
 
             if abs(hipY - shoulderY) > 0.1 {
                 score -= 30

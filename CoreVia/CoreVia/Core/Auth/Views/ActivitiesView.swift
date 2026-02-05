@@ -89,7 +89,7 @@ struct ActivitiesView: View {
         ZStack {
             AppTheme.Colors.background.ignoresSafeArea()
 
-            if settingsManager.isPremium {
+            if settingsManager.hasPremiumAccess {
                 premiumActivitiesContent
             } else {
                 lockedActivitiesContent

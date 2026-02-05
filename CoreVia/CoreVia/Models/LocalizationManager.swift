@@ -823,6 +823,11 @@ class LocalizationManager: ObservableObject {
         "social_start_sharing": [.az: "Paylaşmağa başlayın", .en: "Start sharing", .ru: "Начните делиться"],
 
         // ============================================================
+        // MARK: - Social & Community
+        // ============================================================
+        "social_title": [.az: "Sosial", .en: "Social", .ru: "Социальная"],
+
+        // ============================================================
         // MARK: - Marketplace
         // ============================================================
         "marketplace_title": [.az: "Mağaza", .en: "Marketplace", .ru: "Магазин"],
@@ -882,7 +887,6 @@ class LocalizationManager: ObservableObject {
         "live_sessions_participants": [.az: "İştirakçılar", .en: "Participants", .ru: "Участники"],
         "live_sessions_start": [.az: "Başlat", .en: "Start", .ru: "Начать"],
         "live_sessions_end": [.az: "Bitir", .en: "End", .ru: "Завершить"],
-        "common_free": [.az: "Pulsuz", .en: "Free", .ru: "Бесплатно"],
         "common_free": [.az: "Pulsuz", .en: "Free", .ru: "Бесплатно"],
 
         // ============================================================

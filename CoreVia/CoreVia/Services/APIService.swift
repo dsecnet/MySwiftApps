@@ -92,9 +92,16 @@ class APIService {
         endpoint: String,
         method: String = "GET",
         body: Encodable? = nil,
+        queryItems: [URLQueryItem]? = nil,
         requiresAuth: Bool = true
     ) async throws -> T {
-        guard let url = URL(string: "\(baseURL)\(endpoint)") else {
+        var urlComponents = URLComponents(string: "\(baseURL)\(endpoint)")
+
+        if let queryItems = queryItems {
+            urlComponents?.queryItems = queryItems
+        }
+
+        guard let url = urlComponents?.url else {
             throw APIError.invalidURL
         }
 

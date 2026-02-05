@@ -90,3 +90,15 @@ async def get_premium_or_trainer(
             detail="Bu funksiya yalniz Premium istifadeciler ucundur. Premium abuneliq alin.",
         )
     return current_user
+
+
+async def require_trainer(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """Dependency: only trainers can access."""
+    if not current_user.is_trainer:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Bu funksiya yalniz trainer-ler ucundur.",
+        )
+    return current_user

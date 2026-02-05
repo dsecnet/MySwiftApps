@@ -97,7 +97,7 @@ class ProductDetailViewModel: ObservableObject {
                 receiptData: receiptData
             )
 
-            let purchase: ProductPurchase = try await APIService.shared.request(
+            let _: ProductPurchase = try await APIService.shared.request(
                 endpoint: "/api/v1/marketplace/purchase",
                 method: "POST",
                 body: request
@@ -119,19 +119,27 @@ class ProductDetailViewModel: ObservableObject {
         // For demonstration - in production, use StoreKit 2
         // This is a simplified version
 
-        // 1. Fetch product
-        let request = SKProductsRequest(productIdentifiers: [productIdentifier])
-        // ... StoreKit flow ...
+        // 1. Fetch product (StoreKit 2 recommended for iOS 18+)
+        #if compiler(>=5.9)
+        if #available(iOS 15.0, *) {
+            // TODO: Use StoreKit 2 Product.products(for:) instead
+            // let products = try await Product.products(for: [productIdentifier])
+        }
+        #endif
 
         // 2. Purchase product
         // ... Purchase flow ...
 
-        // 3. Get receipt
-        guard let receiptURL = Bundle.main.appStoreReceiptURL,
-              let receiptData = try? Data(contentsOf: receiptURL) else {
-            throw NSError(domain: "Purchase", code: -1, userInfo: [NSLocalizedDescriptionKey: "No receipt found"])
+        // 3. Get receipt (deprecated in iOS 18+)
+        if #available(iOS 18.0, *) {
+            // TODO: Use AppTransaction.shared and Transaction.all
+            throw NSError(domain: "Purchase", code: -1, userInfo: [NSLocalizedDescriptionKey: "StoreKit 2 required for iOS 18+"])
+        } else {
+            guard let receiptURL = Bundle.main.appStoreReceiptURL,
+                  let receiptData = try? Data(contentsOf: receiptURL) else {
+                throw NSError(domain: "Purchase", code: -1, userInfo: [NSLocalizedDescriptionKey: "No receipt found"])
+            }
+            return receiptData.base64EncodedString()
         }
-
-        return receiptData.base64EncodedString()
     }
 }
