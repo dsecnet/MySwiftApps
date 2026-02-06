@@ -13,7 +13,7 @@ from app.schemas.route import (
     RouteResponse,
     RouteStatsResponse,
 )
-from app.utils.security import get_current_user, get_premium_user
+from app.utils.security import get_current_user, get_premium_or_trainer
 from app.services.location_service import process_route_data, get_mapbox_directions
 
 router = APIRouter(prefix="/api/v1/routes", tags=["Routes & Location"])
@@ -22,7 +22,7 @@ router = APIRouter(prefix="/api/v1/routes", tags=["Routes & Location"])
 @router.post("/", response_model=RouteResponse, status_code=status.HTTP_201_CREATED)
 async def create_route(
     route_data: RouteCreate,
-    current_user: User = Depends(get_premium_user),
+    current_user: User = Depends(get_premium_or_trainer),
     db: AsyncSession = Depends(get_db),
 ):
     """Yeni marsrut yarat — Premium lazimdir"""
@@ -65,7 +65,7 @@ async def create_route(
 
 @router.get("/", response_model=list[RouteResponse])
 async def get_routes(
-    current_user: User = Depends(get_premium_user),
+    current_user: User = Depends(get_premium_or_trainer),
     db: AsyncSession = Depends(get_db),
     activity_type: str | None = None,
     is_completed: bool | None = None,
@@ -93,7 +93,7 @@ async def get_routes(
 
 @router.get("/stats", response_model=RouteStatsResponse)
 async def get_route_stats(
-    current_user: User = Depends(get_premium_user),
+    current_user: User = Depends(get_premium_or_trainer),
     db: AsyncSession = Depends(get_db),
     days: int = Query(default=30, le=365),
 ):

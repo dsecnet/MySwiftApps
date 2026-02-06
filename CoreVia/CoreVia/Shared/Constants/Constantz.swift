@@ -11,14 +11,11 @@ import SwiftUI
 
 struct Layout {
     
-    // MARK: - Spacing (Boşluqlar)
-    // UI elementləri arasında məsafələr
-    
-    static let spacingXS: CGFloat = 4      // Çox kiçik
-    static let spacingS: CGFloat = 8       // Kiçik
-    static let spacingM: CGFloat = 16      // Orta
-    static let spacingL: CGFloat = 24      // Böyük
-    static let spacingXL: CGFloat = 32     // Çox böyük
+    static let spacingXS: CGFloat = 4
+    static let spacingS: CGFloat = 8
+    static let spacingM: CGFloat = 16
+    static let spacingL: CGFloat = 24      
+    static let spacingXL: CGFloat = 32
     
     // MARK: - Corner Radius (Künc radiusu)
     // Düymələr, kartlar üçün dairəvi küncklər

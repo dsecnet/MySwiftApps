@@ -171,6 +171,9 @@ class AuthManager: ObservableObject {
             )
             UserProfileManager.shared.userProfile = profile
 
+            // Save userType to UserDefaults for premium access check
+            UserDefaults.standard.set(user.userType, forKey: "userType")
+
             // Premium statusu yenilə
             SettingsManager.shared.isPremium = user.isPremium
         } catch {
@@ -225,5 +228,8 @@ class AuthManager: ObservableObject {
         keychain.clearTokens()
         isLoggedIn = false
         currentUser = nil
+
+        // Clear userType from UserDefaults
+        UserDefaults.standard.removeObject(forKey: "userType")
     }
 }
