@@ -335,3 +335,8 @@ INFO:     127.0.0.1:55140 - "GET /api/v1/admin/panel HTTP/1.1" 200 OK
 INFO:     127.0.0.1:55142 - "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 Not Found
 INFO:     127.0.0.1:55142 - "GET /apple-touch-icon.png HTTP/1.1" 404 Not Found
 INFO:     127.0.0.1:55144 - "GET /api/v1/admin/panel HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [17125]
+INFO:     Stopping reloader process [17120]
