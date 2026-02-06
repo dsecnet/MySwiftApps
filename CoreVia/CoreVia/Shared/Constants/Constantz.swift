@@ -7,14 +7,12 @@
 
 import SwiftUI
 
-// MARK: - Layout Constants (Görünüş sabiti)
-
 struct Layout {
     
     static let spacingXS: CGFloat = 4
     static let spacingS: CGFloat = 8
     static let spacingM: CGFloat = 16
-    static let spacingL: CGFloat = 24      
+    static let spacingL: CGFloat = 24
     static let spacingXL: CGFloat = 32
     
     // MARK: - Corner Radius (Künc radiusu)
@@ -51,7 +49,7 @@ struct Animations {
     static let slowDuration: Double = 0.5       // Yavaş animasiya
 }
 
-// MARK: - Niyə struct istifadə edirik?
+
 // Struct-lar namespace kimi işləyir və dəyərləri qruplaşdırır
 // Məsələn: Layout.spacingM, Typography.body
 
