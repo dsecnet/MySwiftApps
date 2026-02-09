@@ -67,31 +67,13 @@ class APIService {
 
     // MARK: - Auth
     func login(email: String, password: String) async throws -> AuthResponse {
-        let loginData = "grant_type=&username=\(email)&password=\(password)&scope=&client_id=&client_secret="
-
-        guard let url = URL(string: baseURL + "/auth/login") else {
-            throw APIError.invalidURL
+        struct LoginRequest: Encodable {
+            let email: String
+            let password: String
         }
 
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        request.httpBody = loginData.data(using: .utf8)
-
-        let (data, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            throw APIError.invalidCredentials
-        }
-
-        let authResponse = try decoder.decode(AuthResponse.self, from: data)
-
-        // Save tokens
-        UserDefaults.standard.set(authResponse.accessToken, forKey: "accessToken")
-        UserDefaults.standard.set(authResponse.refreshToken, forKey: "refreshToken")
-
-        return authResponse
+        let loginRequest = LoginRequest(email: email, password: password)
+        return try await request(endpoint: "/auth/login", method: "POST", body: loginRequest, requiresAuth: false)
     }
 
     func register(email: String, password: String, fullName: String) async throws -> User {
@@ -118,6 +100,10 @@ class APIService {
     func logout() {
         UserDefaults.standard.removeObject(forKey: "accessToken")
         UserDefaults.standard.removeObject(forKey: "refreshToken")
+    }
+
+    func getCurrentUser() async throws -> User {
+        return try await request(endpoint: "/auth/me")
     }
 
     // MARK: - Properties

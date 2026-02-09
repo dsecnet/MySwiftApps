@@ -7,7 +7,7 @@ import asyncio
 import sys
 from datetime import datetime, timedelta
 from app.database import AsyncSessionLocal
-from app.utils.security import get_password_hash
+from app.utils.security import hash_password
 from app.models.user import User
 from app.models.property import Property
 from app.models.client import Client
@@ -22,35 +22,35 @@ async def create_demo_data():
             print("🚀 Demo data yaradılır...")
 
             # Demo user yarat
-        demo_email = "demo@emlakcrm.az"
-        result = await db.execute(select(User).filter(User.email == demo_email))
-        existing_user = result.scalar_one_or_none()
+            demo_email = "demo@emlakcrm.az"
+            result = await db.execute(select(User).filter(User.email == demo_email))
+            existing_user = result.scalar_one_or_none()
 
-        if existing_user:
-            print(f"✅ Demo user artıq mövcuddur: {demo_email}")
-            user = existing_user
-        else:
-            user = User(
-                email=demo_email,
-                hashed_password=get_password_hash("demo123"),
-                full_name="Demo İstifadəçi",
-                is_active=True,
-                is_superuser=False
-            )
-            db.add(user)
-            await db.commit()
-            await db.refresh(user)
-            print(f"✅ Demo user yaradıldı: {demo_email} / demo123")
+            if existing_user:
+                print(f"✅ Demo user artıq mövcuddur: {demo_email}")
+                user = existing_user
+            else:
+                user = User(
+                    email=demo_email,
+                    hashed_password=hash_password("demo123"),
+                    full_name="Demo İstifadəçi",
+                    is_active=True,
+                    is_superuser=False
+                )
+                db.add(user)
+                await db.commit()
+                await db.refresh(user)
+                print(f"✅ Demo user yaradıldı: {demo_email} / demo123")
 
-        # Clients yarat
-        clients_data = [
+            # Clients yarat
+            clients_data = [
             {
                 "name": "Rəşad Məmmədov",
                 "email": "reshad@example.com",
                 "phone": "+994501234567",
                 "client_type": "buyer",
                 "source": "website",
-                "status": "active",
+                "lead_status": "contacted",
                 "notes": "3 otaqlı mənzil axtarır"
             },
             {
@@ -59,16 +59,16 @@ async def create_demo_data():
                 "phone": "+994551234567",
                 "client_type": "seller",
                 "source": "referral",
-                "status": "active",
+                "lead_status": "negotiating",
                 "notes": "Yasamalda mənzil satır"
             },
             {
                 "name": "Elçin Quliyev",
                 "email": "elchin@example.com",
                 "phone": "+994701234567",
-                "client_type": "tenant",
+                "client_type": "renter",
                 "source": "direct_call",
-                "status": "potential",
+                "lead_status": "new",
                 "notes": "Ofis kirayəsi axtarır"
             },
             {
@@ -77,50 +77,50 @@ async def create_demo_data():
                 "phone": "+994771234567",
                 "client_type": "landlord",
                 "source": "social_media",
-                "status": "active",
+                "lead_status": "deal_closed",
                 "notes": "Nərimanovda 2 mənzili var"
             }
-        ]
+            ]
 
-        clients = []
-        for client_data in clients_data:
-            client = Client(
-                **client_data,
-                created_by=user.id
-            )
-            db.add(client)
-            clients.append(client)
+            clients = []
+            for client_data in clients_data:
+                client = Client(
+                    **client_data,
+                    agent_id=user.id
+                )
+                db.add(client)
+                clients.append(client)
 
-        await db.commit()
-        print(f"✅ {len(clients)} müştəri yaradıldı")
+            await db.commit()
+            print(f"✅ {len(clients)} müştəri yaradıldı")
 
-        # Properties yarat
-        properties_data = [
+            # Properties yarat
+            properties_data = [
             {
                 "title": "Yasamalda 3 otaqlı mənzil",
                 "description": "Yeni tikili, təmirli, əlverişli yerləşmə",
                 "property_type": "apartment",
-                "listing_type": "sale",
-                "status": "active",
+                "deal_type": "sale",
+                "status": "available",
                 "price": 150000,
-                "area": 85,
+                "area_sqm": 85,
                 "address": "Yasamal rayonu, H.Cavid prospekti 123",
                 "city": "Bakı",
-                "bedrooms": 3,
+                "rooms": 3,
                 "bathrooms": 2,
                 "floor": 5
             },
             {
                 "title": "Nərimanovda villa",
                 "description": "3 mərtəbəli, hovuzu var, geniş həyət",
-                "property_type": "villa",
-                "listing_type": "sale",
-                "status": "active",
+                "property_type": "house",
+                "deal_type": "sale",
+                "status": "available",
                 "price": 450000,
-                "area": 300,
+                "area_sqm": 300,
                 "address": "Nərimanov rayonu, 8-ci kilometr",
                 "city": "Bakı",
-                "bedrooms": 5,
+                "rooms": 5,
                 "bathrooms": 4,
                 "floor": 3
             },
@@ -128,13 +128,13 @@ async def create_demo_data():
                 "title": "28 May metrosu yaxınlığında ofis",
                 "description": "Kommersiya mərkəzində, təmirli",
                 "property_type": "office",
-                "listing_type": "rent",
-                "status": "active",
+                "deal_type": "rent",
+                "status": "available",
                 "price": 2000,
-                "area": 120,
+                "area_sqm": 120,
                 "address": "28 May metrosu, Nizami küçəsi",
                 "city": "Bakı",
-                "bedrooms": None,
+                "rooms": None,
                 "bathrooms": 1,
                 "floor": 3
             },
@@ -142,13 +142,13 @@ async def create_demo_data():
                 "title": "Nəsimidə 2 otaqlı mənzil",
                 "description": "Köhnə tikili, təmirli, metro yaxın",
                 "property_type": "apartment",
-                "listing_type": "rent",
+                "deal_type": "rent",
                 "status": "rented",
                 "price": 800,
-                "area": 65,
+                "area_sqm": 65,
                 "address": "Nəsimi rayonu, Azadlıq prospekti",
                 "city": "Bakı",
-                "bedrooms": 2,
+                "rooms": 2,
                 "bathrooms": 1,
                 "floor": 4
             },
@@ -156,32 +156,32 @@ async def create_demo_data():
                 "title": "Binəqədidə torpaq sahəsi",
                 "description": "İnşaat üçün, bütün kommunikasiyalar var",
                 "property_type": "land",
-                "listing_type": "sale",
-                "status": "active",
+                "deal_type": "sale",
+                "status": "available",
                 "price": 80000,
-                "area": 600,
+                "area_sqm": 600,
                 "address": "Binəqədi rayonu, Xocalı prospekti",
                 "city": "Bakı",
-                "bedrooms": None,
+                "rooms": None,
                 "bathrooms": None,
                 "floor": None
             }
-        ]
+            ]
 
-        properties = []
-        for prop_data in properties_data:
-            prop = Property(
-                **prop_data,
-                created_by=user.id
-            )
-            db.add(prop)
-            properties.append(prop)
+            properties = []
+            for prop_data in properties_data:
+                prop = Property(
+                    **prop_data,
+                    agent_id=user.id
+                )
+                db.add(prop)
+                properties.append(prop)
 
-        await db.commit()
-        print(f"✅ {len(properties)} əmlak yaradıldı")
+            await db.commit()
+            print(f"✅ {len(properties)} əmlak yaradıldı")
 
-        # Activities yarat
-        activities_data = [
+            # Activities yarat
+            activities_data = [
             {
                 "activity_type": "call",
                 "title": "Rəşad Məmmədov ilə zəng",
@@ -201,7 +201,7 @@ async def create_demo_data():
                 "completed_at": None
             },
             {
-                "activity_type": "visit",
+                "activity_type": "viewing",
                 "title": "Ofis göstərilməsi",
                 "description": "28 May metrosunda ofis göstərildi",
                 "property_id": properties[2].id,
@@ -218,80 +218,72 @@ async def create_demo_data():
                 "scheduled_at": None,
                 "completed_at": datetime.utcnow() - timedelta(hours=5)
             }
-        ]
+            ]
 
-        for activity_data in activities_data:
-            activity = Activity(
-                **activity_data,
-                created_by=user.id
-            )
-            db.add(activity)
+            for activity_data in activities_data:
+                activity = Activity(
+                    **activity_data,
+                    agent_id=user.id
+                )
+                db.add(activity)
 
-        await db.commit()
-        print(f"✅ {len(activities_data)} fəaliyyət yaradıldı")
+            await db.commit()
+            print(f"✅ {len(activities_data)} fəaliyyət yaradıldı")
 
-        # Deals yarat
-        deals_data = [
+            # Deals yarat
+            deals_data = [
             {
-                "title": "Yasamal mənzil satışı",
-                "description": "Rəşad Məmmədov 3 otaqlı mənzil alır",
-                "amount": 150000,
-                "status": "active",
+                "notes": "Yasamal mənzil satışı - Rəşad Məmmədov 3 otaqlı mənzil alır",
+                "agreed_price": 150000,
+                "status": "in_progress",
                 "property_id": properties[0].id,
-                "client_id": clients[0].id,
-                "closed_at": None
+                "client_id": clients[0].id
             },
             {
-                "title": "Villa satışı",
-                "description": "Nərimanov villanın satışı",
-                "amount": 450000,
+                "notes": "Villa satışı - Nərimanov villanın satışı",
+                "agreed_price": 450000,
                 "status": "pending",
                 "property_id": properties[1].id,
-                "client_id": clients[1].id,
-                "closed_at": None
+                "client_id": clients[1].id
             },
             {
-                "title": "Ofis kirayəsi",
-                "description": "28 May ofis kirayə verildi",
-                "amount": 24000,  # İllik
-                "status": "won",
+                "notes": "Ofis kirayəsi - 28 May ofis kirayə verildi",
+                "agreed_price": 24000,  # İllik
+                "status": "completed",
                 "property_id": properties[2].id,
-                "client_id": clients[2].id,
-                "closed_at": datetime.utcnow() - timedelta(days=2)
+                "client_id": clients[2].id
             },
             {
-                "title": "Torpaq sahəsi",
-                "description": "Binəqədi torpaq sahəsi",
-                "amount": 80000,
+                "notes": "Torpaq sahəsi - Binəqədi torpaq sahəsi",
+                "agreed_price": 80000,
                 "status": "pending",
                 "property_id": properties[4].id,
-                "client_id": clients[3].id,
-                "closed_at": None
+                "client_id": clients[3].id
             }
-        ]
+            ]
 
-        for deal_data in deals_data:
-            deal = Deal(
-                **deal_data,
-                created_by=user.id
-            )
-            db.add(deal)
+            for deal_data in deals_data:
+                deal = Deal(
+                    **deal_data,
+                    agent_id=user.id
+                )
+                db.add(deal)
 
-        await db.commit()
-        print(f"✅ {len(deals_data)} sövdələşmə yaradıldı")
+            await db.commit()
+            print(f"✅ {len(deals_data)} sövdələşmə yaradıldı")
 
-        print("\n" + "="*60)
-        print("🎉 Demo data uğurla yaradıldı!")
-        print("="*60)
-        print(f"\n📧 Email: {demo_email}")
-        print(f"🔑 Şifrə: demo123")
-        print(f"\n📊 Statistika:")
-        print(f"   • {len(clients)} müştəri")
-        print(f"   • {len(properties)} əmlak")
-        print(f"   • {len(activities_data)} fəaliyyət")
-        print(f"   • {len(deals_data)} sövdələşmə")
-        print("\n💡 Mobil app-də bu məlumatlarla giriş edə bilərsiniz!")
-        print("="*60 + "\n")
+            print("\n" + "="*60)
+            print("🎉 Demo data uğurla yaradıldı!")
+            print("="*60)
+            print(f"\n📧 Email: {demo_email}")
+            print(f"🔑 Şifrə: demo123")
+            print(f"\n📊 Statistika:")
+            print(f"   • {len(clients)} müştəri")
+            print(f"   • {len(properties)} əmlak")
+            print(f"   • {len(activities_data)} fəaliyyət")
+            print(f"   • {len(deals_data)} sövdələşmə")
+            print("\n💡 Mobil app-də bu məlumatlarla giriş edə bilərsiniz!")
+            print("="*60 + "\n")
 
         except Exception as e:
             print(f"\n❌ Xəta baş verdi: {str(e)}")

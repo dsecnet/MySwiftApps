@@ -31,14 +31,14 @@ struct DealsListView: View {
                 VStack(spacing: 0) {
                     // Stats Header
                     HStack(spacing: 16) {
-                        StatCard(
+                        DealStatCard(
                             title: "Toplam",
                             value: formatPrice(viewModel.totalAmount),
                             icon: "dollarsign.circle.fill",
                             color: AppTheme.successColor
                         )
 
-                        StatCard(
+                        DealStatCard(
                             title: "Aktiv",
                             value: "\(viewModel.activeDeals)",
                             icon: "chart.line.uptrend.xyaxis",
@@ -231,7 +231,7 @@ struct DealStatusBadge: View {
     }
 }
 
-struct StatCard: View {
+struct DealStatCard: View {
     let title: String
     let value: String
     let icon: String

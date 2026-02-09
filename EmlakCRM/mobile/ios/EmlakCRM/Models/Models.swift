@@ -16,15 +16,23 @@ struct AuthResponse: Codable {
     let accessToken: String
     let refreshToken: String
     let tokenType: String
-    let user: User
 }
 
 struct User: Codable, Identifiable {
     let id: String
+    let name: String
     let email: String
-    let fullName: String
+    let phone: String?
+    let role: String
+    let subscriptionPlan: String
+    let agencyName: String?
+    let profileImageUrl: String?
+    let city: String
+    let totalProperties: Int
+    let totalClients: Int
+    let totalDeals: Int
     let isActive: Bool
-    let isSuperuser: Bool
+    let isVerified: Bool
     let createdAt: Date
 }
 
@@ -32,7 +40,6 @@ struct User: Codable, Identifiable {
 enum PropertyType: String, Codable, CaseIterable {
     case apartment = "apartment"
     case house = "house"
-    case villa = "villa"
     case office = "office"
     case land = "land"
     case commercial = "commercial"
@@ -40,8 +47,7 @@ enum PropertyType: String, Codable, CaseIterable {
     var displayName: String {
         switch self {
         case .apartment: return "Mənzil"
-        case .house: return "Ev"
-        case .villa: return "Villa"
+        case .house: return "Ev/Villa"
         case .office: return "Ofis"
         case .land: return "Torpaq"
         case .commercial: return "Kommersiya"
@@ -49,7 +55,7 @@ enum PropertyType: String, Codable, CaseIterable {
     }
 }
 
-enum ListingType: String, Codable {
+enum DealType: String, Codable {
     case sale = "sale"
     case rent = "rent"
 
@@ -62,17 +68,19 @@ enum ListingType: String, Codable {
 }
 
 enum PropertyStatus: String, Codable {
-    case active = "active"
-    case pending = "pending"
+    case available = "available"
+    case reserved = "reserved"
     case sold = "sold"
     case rented = "rented"
+    case archived = "archived"
 
     var displayName: String {
         switch self {
-        case .active: return "Aktiv"
-        case .pending: return "Gözləyir"
+        case .available: return "Mövcud"
+        case .reserved: return "Rezerv"
         case .sold: return "Satıldı"
         case .rented: return "Kirayələndi"
+        case .archived: return "Arxiv"
         }
     }
 }
@@ -82,13 +90,13 @@ struct Property: Codable, Identifiable {
     let title: String
     let description: String?
     let propertyType: PropertyType
-    let listingType: ListingType?
+    let dealType: DealType
     let status: PropertyStatus
     let price: Double
-    let area: Double
-    let address: String
+    let areaSqm: Double?
+    let address: String?
     let city: String
-    let bedrooms: Int?
+    let rooms: Int?
     let bathrooms: Int?
     let floor: Int?
     let createdAt: Date
@@ -99,13 +107,13 @@ struct PropertyCreate: Codable {
     let title: String
     let description: String?
     let propertyType: PropertyType
-    let listingType: ListingType
-    let status: PropertyStatus
+    let dealType: DealType
+    let status: PropertyStatus?
     let price: Double
-    let area: Double
-    let address: String
+    let areaSqm: Double?
+    let address: String?
     let city: String
-    let bedrooms: Int?
+    let rooms: Int?
     let bathrooms: Int?
     let floor: Int?
 }
@@ -114,14 +122,14 @@ struct PropertyCreate: Codable {
 enum ClientType: String, Codable, CaseIterable {
     case buyer = "buyer"
     case seller = "seller"
-    case tenant = "tenant"
+    case renter = "renter"
     case landlord = "landlord"
 
     var displayName: String {
         switch self {
         case .buyer: return "Alıcı"
         case .seller: return "Satıcı"
-        case .tenant: return "Kirayəçi"
+        case .renter: return "Kirayəçi"
         case .landlord: return "Ev sahibi"
         }
     }
@@ -188,17 +196,19 @@ struct ClientCreate: Codable {
 enum ActivityType: String, Codable, CaseIterable {
     case call = "call"
     case meeting = "meeting"
+    case viewing = "viewing"
+    case message = "message"
     case email = "email"
-    case visit = "visit"
-    case other = "other"
+    case note = "note"
 
     var displayName: String {
         switch self {
         case .call: return "Zəng"
         case .meeting: return "Görüş"
+        case .viewing: return "Baxış"
+        case .message: return "Mesaj"
         case .email: return "Email"
-        case .visit: return "Baxış"
-        case .other: return "Digər"
+        case .note: return "Qeyd"
         }
     }
 
@@ -206,9 +216,10 @@ enum ActivityType: String, Codable, CaseIterable {
         switch self {
         case .call: return "phone.fill"
         case .meeting: return "person.2.fill"
+        case .viewing: return "eye.fill"
+        case .message: return "message.fill"
         case .email: return "envelope.fill"
-        case .visit: return "eye.fill"
-        case .other: return "ellipsis.circle.fill"
+        case .note: return "note.text"
         }
     }
 }
@@ -238,37 +249,36 @@ struct ActivityCreate: Codable {
 // MARK: - Deal Models
 enum DealStatus: String, Codable {
     case pending = "pending"
-    case active = "active"
-    case won = "won"
-    case lost = "lost"
+    case inProgress = "in_progress"
+    case completed = "completed"
+    case cancelled = "cancelled"
 
     var displayName: String {
         switch self {
         case .pending: return "Gözləyir"
-        case .active: return "Aktiv"
-        case .won: return "Qazanıldı"
-        case .lost: return "İtirildi"
+        case .inProgress: return "Davam edir"
+        case .completed: return "Tamamlandı"
+        case .cancelled: return "Ləğv edildi"
         }
     }
 }
 
 struct Deal: Codable, Identifiable {
     let id: String
-    let title: String
-    let description: String?
-    let amount: Double
+    let propertyId: String
+    let clientId: String
     let status: DealStatus
-    let propertyId: String?
-    let clientId: String?
-    let closedAt: Date?
+    let agreedPrice: Double
+    let notes: String?
     let createdAt: Date
     let updatedAt: Date
 }
 
 struct DealCreate: Codable {
-    let title: String
-    let description: String?
-    let amount: Double
+    let propertyId: String
+    let clientId: String
+    let agreedPrice: Double
+    let notes: String?
     let status: DealStatus
     let propertyId: String?
     let clientId: String?

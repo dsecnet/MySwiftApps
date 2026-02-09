@@ -22,13 +22,24 @@ class AuthViewModel: ObservableObject {
 
         do {
             let response = try await APIService.shared.login(email: email, password: password)
-            currentUser = response.user
+            // Login successful, tokens are saved
             isAuthenticated = true
+
+            // Fetch current user info
+            await fetchCurrentUser()
         } catch {
             errorMessage = error.localizedDescription
         }
 
         isLoading = false
+    }
+
+    func fetchCurrentUser() async {
+        do {
+            currentUser = try await APIService.shared.getCurrentUser()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     func register(email: String, password: String, fullName: String) async {
