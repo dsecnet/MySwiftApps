@@ -1,0 +1,18 @@
+0000000000000000000000000000000000000000 843ea472844843df1accdffdf2a34792baa5d619 dsecnet <dsecnet@gmail.com> 1770376707 +0400	commit (initial): Initial commit: Əmlak CRM project structure
+843ea472844843df1accdffdf2a34792baa5d619 3d891ea5b00cdce4f6089e9912c2a09757e3448a dsecnet <dsecnet@gmail.com> 1770376871 +0400	commit: feat: Backend foundation - Database models and config
+3d891ea5b00cdce4f6089e9912c2a09757e3448a ce5fae5a7bbcf798ac1a625260db99860505ec95 dsecnet <dsecnet@gmail.com> 1770376944 +0400	commit: docs: Add project plan and setup guide
+ce5fae5a7bbcf798ac1a625260db99860505ec95 d0aeaea8ddaef2c71045e06e88db3f8b90fb06af dsecnet <dsecnet@gmail.com> 1770377594 +0400	commit: feat: Auth system - Register, Login, JWT tokens
+d0aeaea8ddaef2c71045e06e88db3f8b90fb06af bfb9b936ed1bcd669260555bc3f4a781efe4a53e dsecnet <dsecnet@gmail.com> 1770377626 +0400	commit: docs: Update README with API endpoints and quick start
+bfb9b936ed1bcd669260555bc3f4a781efe4a53e c7015638f5c5efa36b13e86a0b34f8fd3c6f3453 dsecnet <dsecnet@gmail.com> 1770381458 +0400	commit: feat: Database migration and backend tested
+c7015638f5c5efa36b13e86a0b34f8fd3c6f3453 83fa7712b9650c88fc3ff192e303a5c88b5d4d60 dsecnet <dsecnet@gmail.com> 1770385669 +0400	commit: feat: Properties API - Full CRUD + Stats
+83fa7712b9650c88fc3ff192e303a5c88b5d4d60 0000000000000000000000000000000000000000 dsecnet <dsecnet@gmail.com> 1770385872 +0400	Branch: renamed refs/heads/main to refs/heads/main
+83fa7712b9650c88fc3ff192e303a5c88b5d4d60 83fa7712b9650c88fc3ff192e303a5c88b5d4d60 dsecnet <dsecnet@gmail.com> 1770385872 +0400	Branch: renamed refs/heads/main to refs/heads/main
+83fa7712b9650c88fc3ff192e303a5c88b5d4d60 7482b21239da22b62d69ce465ed4abcc7bdf98b7 dsecnet <dsecnet@gmail.com> 1770401828 +0400	commit: feat: Clients API - Full CRM functionality
+7482b21239da22b62d69ce465ed4abcc7bdf98b7 0000000000000000000000000000000000000000 dsecnet <dsecnet@gmail.com> 1770401931 +0400	Branch: renamed refs/heads/main to refs/heads/main
+7482b21239da22b62d69ce465ed4abcc7bdf98b7 7482b21239da22b62d69ce465ed4abcc7bdf98b7 dsecnet <dsecnet@gmail.com> 1770401931 +0400	Branch: renamed refs/heads/main to refs/heads/main
+7482b21239da22b62d69ce465ed4abcc7bdf98b7 32bf9aac1a182deaf5c3d449de4e229f242cfb1d dsecnet <dsecnet@gmail.com> 1770401990 +0400	commit: docs: Add GitHub push authentication guide
+32bf9aac1a182deaf5c3d449de4e229f242cfb1d 4104d5ae9d840a36f86cc6629282f2a2a9c0c4d7 dsecnet <dsecnet@gmail.com> 1770402726 +0400	commit: newly added
+4104d5ae9d840a36f86cc6629282f2a2a9c0c4d7 909893578addad3138f03546f833baf47d20f1ea dsecnet <dsecnet@gmail.com> 1770404388 +0400	commit: feat: Activities API - Calendar & scheduling
+909893578addad3138f03546f833baf47d20f1ea 4ebcf96cfaffcb4960ef969477756b602f6edf1a dsecnet <dsecnet@gmail.com> 1770619487 +0400	commit: feat: Deals API - Sales & commission management
+4ebcf96cfaffcb4960ef969477756b602f6edf1a 4eec786965247161e36a057242e4164497e4d1a2 dsecnet <dsecnet@gmail.com> 1770619836 +0400	commit: feat: Dashboard API - Complete overview for agents
+4eec786965247161e36a057242e4164497e4d1a2 fbe18c99a698b8e75e8e4817f31c787e1eb0b92f dsecnet <dsecnet@gmail.com> 1770620949 +0400	commit: feat: iOS SwiftUI app - Authentication & Dashboard
