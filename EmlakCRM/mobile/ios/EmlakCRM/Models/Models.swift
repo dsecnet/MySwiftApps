@@ -279,9 +279,6 @@ struct DealCreate: Codable {
     let clientId: String
     let agreedPrice: Double
     let notes: String?
-    let status: DealStatus
-    let propertyId: String?
-    let clientId: String?
 }
 
 // MARK: - Dashboard Models
