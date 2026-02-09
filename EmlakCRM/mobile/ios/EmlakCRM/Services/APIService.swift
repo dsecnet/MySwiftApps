@@ -162,6 +162,52 @@ class APIService {
         let _: EmptyResponse = try await request(endpoint: "/clients/\(id)", method: "DELETE")
     }
 
+    // MARK: - Activities
+    func getActivities(page: Int = 1, size: Int = 20) async throws -> PaginatedResponse<Activity> {
+        return try await request(endpoint: "/activities?page=\(page)&size=\(size)")
+    }
+
+    func getActivity(id: String) async throws -> Activity {
+        return try await request(endpoint: "/activities/\(id)")
+    }
+
+    func createActivity(_ activity: ActivityCreate) async throws -> Activity {
+        return try await request(endpoint: "/activities", method: "POST", body: activity)
+    }
+
+    func updateActivity(id: String, _ activity: ActivityCreate) async throws -> Activity {
+        return try await request(endpoint: "/activities/\(id)", method: "PUT", body: activity)
+    }
+
+    func deleteActivity(id: String) async throws {
+        let _: EmptyResponse = try await request(endpoint: "/activities/\(id)", method: "DELETE")
+    }
+
+    func completeActivity(id: String) async throws -> Activity {
+        return try await request(endpoint: "/activities/\(id)/complete", method: "POST")
+    }
+
+    // MARK: - Deals
+    func getDeals(page: Int = 1, size: Int = 20) async throws -> PaginatedResponse<Deal> {
+        return try await request(endpoint: "/deals?page=\(page)&size=\(size)")
+    }
+
+    func getDeal(id: String) async throws -> Deal {
+        return try await request(endpoint: "/deals/\(id)")
+    }
+
+    func createDeal(_ deal: DealCreate) async throws -> Deal {
+        return try await request(endpoint: "/deals", method: "POST", body: deal)
+    }
+
+    func updateDeal(id: String, _ deal: DealCreate) async throws -> Deal {
+        return try await request(endpoint: "/deals/\(id)", method: "PUT", body: deal)
+    }
+
+    func deleteDeal(id: String) async throws {
+        let _: EmptyResponse = try await request(endpoint: "/deals/\(id)", method: "DELETE")
+    }
+
     // MARK: - Dashboard
     func getDashboardStats() async throws -> DashboardStats {
         return try await request(endpoint: "/dashboard/stats")

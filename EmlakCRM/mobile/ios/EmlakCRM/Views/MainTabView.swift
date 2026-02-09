@@ -23,17 +23,13 @@ struct MainTabView: View {
                 }
                 .tag(2)
 
-            Text("Fəaliyyətlər - Tezliklə")
-                .font(AppTheme.title())
-                .foregroundColor(AppTheme.textSecondary)
+            ActivitiesListView()
                 .tabItem {
                     Label("Fəaliyyətlər", systemImage: "list.bullet.clipboard.fill")
                 }
                 .tag(3)
 
-            Text("Sövdələşmələr - Tezliklə")
-                .font(AppTheme.title())
-                .foregroundColor(AppTheme.textSecondary)
+            DealsListView()
                 .tabItem {
                     Label("Sövdələşmələr", systemImage: "dollarsign.circle.fill")
                 }

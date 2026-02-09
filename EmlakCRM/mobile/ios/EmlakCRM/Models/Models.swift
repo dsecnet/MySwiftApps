@@ -184,6 +184,96 @@ struct ClientCreate: Codable {
     let notes: String?
 }
 
+// MARK: - Activity Models
+enum ActivityType: String, Codable, CaseIterable {
+    case call = "call"
+    case meeting = "meeting"
+    case email = "email"
+    case visit = "visit"
+    case other = "other"
+
+    var displayName: String {
+        switch self {
+        case .call: return "Zəng"
+        case .meeting: return "Görüş"
+        case .email: return "Email"
+        case .visit: return "Baxış"
+        case .other: return "Digər"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .call: return "phone.fill"
+        case .meeting: return "person.2.fill"
+        case .email: return "envelope.fill"
+        case .visit: return "eye.fill"
+        case .other: return "ellipsis.circle.fill"
+        }
+    }
+}
+
+struct Activity: Codable, Identifiable {
+    let id: String
+    let activityType: ActivityType
+    let title: String
+    let description: String?
+    let propertyId: String?
+    let clientId: String?
+    let scheduledAt: Date?
+    let completedAt: Date?
+    let createdAt: Date
+    let updatedAt: Date
+}
+
+struct ActivityCreate: Codable {
+    let activityType: ActivityType
+    let title: String
+    let description: String?
+    let propertyId: String?
+    let clientId: String?
+    let scheduledAt: Date?
+}
+
+// MARK: - Deal Models
+enum DealStatus: String, Codable {
+    case pending = "pending"
+    case active = "active"
+    case won = "won"
+    case lost = "lost"
+
+    var displayName: String {
+        switch self {
+        case .pending: return "Gözləyir"
+        case .active: return "Aktiv"
+        case .won: return "Qazanıldı"
+        case .lost: return "İtirildi"
+        }
+    }
+}
+
+struct Deal: Codable, Identifiable {
+    let id: String
+    let title: String
+    let description: String?
+    let amount: Double
+    let status: DealStatus
+    let propertyId: String?
+    let clientId: String?
+    let closedAt: Date?
+    let createdAt: Date
+    let updatedAt: Date
+}
+
+struct DealCreate: Codable {
+    let title: String
+    let description: String?
+    let amount: Double
+    let status: DealStatus
+    let propertyId: String?
+    let clientId: String?
+}
+
 // MARK: - Dashboard Models
 struct DashboardStats: Codable {
     let totalProperties: Int

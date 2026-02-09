@@ -24,6 +24,14 @@
 		791954302F39E2010061D348 /* ClientsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791954312F39E2010061D348 /* ClientsListView.swift */; };
 		791954322F39E2020061D348 /* ClientDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791954332F39E2020061D348 /* ClientDetailView.swift */; };
 		791954342F39E2030061D348 /* AddClientView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791954352F39E2030061D348 /* AddClientView.swift */; };
+		791954362F39E3000061D348 /* ActivitiesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791954372F39E3000061D348 /* ActivitiesViewModel.swift */; };
+		791954382F39E3010061D348 /* DealsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791954392F39E3010061D348 /* DealsViewModel.swift */; };
+		7919543A2F39E3020061D348 /* ActivitiesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7919543B2F39E3020061D348 /* ActivitiesListView.swift */; };
+		7919543C2F39E3030061D348 /* ActivityDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7919543D2F39E3030061D348 /* ActivityDetailView.swift */; };
+		7919543E2F39E3040061D348 /* AddActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7919543F2F39E3040061D348 /* AddActivityView.swift */; };
+		791954402F39E3050061D348 /* DealsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791954412F39E3050061D348 /* DealsListView.swift */; };
+		791954422F39E3060061D348 /* DealDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791954432F39E3060061D348 /* DealDetailView.swift */; };
+		791954442F39E3070061D348 /* AddDealView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791954452F39E3070061D348 /* AddDealView.swift */; };
 		E101 /* EmlakCRMApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E102 /* EmlakCRMApp.swift */; };
 		E103 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E104 /* ContentView.swift */; };
 		E105 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E106 /* Assets.xcassets */; };
@@ -47,6 +55,14 @@
 		791954312F39E2010061D348 /* ClientsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientsListView.swift; sourceTree = "<group>"; };
 		791954332F39E2020061D348 /* ClientDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientDetailView.swift; sourceTree = "<group>"; };
 		791954352F39E2030061D348 /* AddClientView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddClientView.swift; sourceTree = "<group>"; };
+		791954372F39E3000061D348 /* ActivitiesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivitiesViewModel.swift; sourceTree = "<group>"; };
+		791954392F39E3010061D348 /* DealsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DealsViewModel.swift; sourceTree = "<group>"; };
+		7919543B2F39E3020061D348 /* ActivitiesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivitiesListView.swift; sourceTree = "<group>"; };
+		7919543D2F39E3030061D348 /* ActivityDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityDetailView.swift; sourceTree = "<group>"; };
+		7919543F2F39E3040061D348 /* AddActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddActivityView.swift; sourceTree = "<group>"; };
+		791954412F39E3050061D348 /* DealsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DealsListView.swift; sourceTree = "<group>"; };
+		791954432F39E3060061D348 /* DealDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DealDetailView.swift; sourceTree = "<group>"; };
+		791954452F39E3070061D348 /* AddDealView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddDealView.swift; sourceTree = "<group>"; };
 		E100 /* EmlakCRM.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EmlakCRM.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E102 /* EmlakCRMApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmlakCRMApp.swift; sourceTree = "<group>"; };
 		E104 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -96,6 +112,8 @@
 				791954122F39DFF70061D348 /* DashboardViewModel.swift */,
 				791954272F39E1000061D348 /* PropertiesViewModel.swift */,
 				7919542F2F39E2000061D348 /* ClientsViewModel.swift */,
+				791954372F39E3000061D348 /* ActivitiesViewModel.swift */,
+				791954392F39E3010061D348 /* DealsViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -137,6 +155,26 @@
 			path = Properties;
 			sourceTree = "<group>";
 		};
+		791954462F39E3080061D348 /* Activities */ = {
+			isa = PBXGroup;
+			children = (
+				7919543B2F39E3020061D348 /* ActivitiesListView.swift */,
+				7919543D2F39E3030061D348 /* ActivityDetailView.swift */,
+				7919543F2F39E3040061D348 /* AddActivityView.swift */,
+			);
+			path = Activities;
+			sourceTree = "<group>";
+		};
+		791954472F39E3090061D348 /* Deals */ = {
+			isa = PBXGroup;
+			children = (
+				791954412F39E3050061D348 /* DealsListView.swift */,
+				791954432F39E3060061D348 /* DealDetailView.swift */,
+				791954452F39E3070061D348 /* AddDealView.swift */,
+			);
+			path = Deals;
+			sourceTree = "<group>";
+		};
 		7919541B2F39DFF70061D348 /* Views */ = {
 			isa = PBXGroup;
 			children = (
@@ -145,6 +183,8 @@
 				791954172F39DFF70061D348 /* Clients */,
 				791954192F39DFF70061D348 /* Dashboard */,
 				7919541A2F39DFF70061D348 /* Properties */,
+				791954462F39E3080061D348 /* Activities */,
+				791954472F39E3090061D348 /* Deals */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -269,6 +309,14 @@
 				791954302F39E2010061D348 /* ClientsListView.swift in Sources */,
 				791954322F39E2020061D348 /* ClientDetailView.swift in Sources */,
 				791954342F39E2030061D348 /* AddClientView.swift in Sources */,
+				791954362F39E3000061D348 /* ActivitiesViewModel.swift in Sources */,
+				791954382F39E3010061D348 /* DealsViewModel.swift in Sources */,
+				7919543A2F39E3020061D348 /* ActivitiesListView.swift in Sources */,
+				7919543C2F39E3030061D348 /* ActivityDetailView.swift in Sources */,
+				7919543E2F39E3040061D348 /* AddActivityView.swift in Sources */,
+				791954402F39E3050061D348 /* DealsListView.swift in Sources */,
+				791954422F39E3060061D348 /* DealDetailView.swift in Sources */,
+				791954442F39E3070061D348 /* AddDealView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
