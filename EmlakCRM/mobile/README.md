@@ -7,14 +7,36 @@ Native iOS app for Əmlak CRM built with SwiftUI.
 ### ✅ Implemented:
 - **Authentication** - Login & Register
 - **Dashboard** - Complete statistics overview
+- **Properties** - List, Detail & Add Property
+- **Clients** - List, Detail & Add Client
+- **Tab Navigation** - Easy navigation between sections
 - **API Integration** - Full backend connection
 - **Theme System** - Custom colors & typography
+- **Search** - Search properties and clients
+- **Pull to Refresh** - Refresh data with pull gesture
+- **Infinite Scroll** - Load more items automatically
 
-### 📊 Dashboard Stats:
+### 📊 Features by Section:
+
+**Dashboard:**
 - Properties, Clients, Activities, Deals overview
 - Revenue & Commission tracking
 - Recent activities feed
 - Today's schedule & overdue items
+
+**Properties:**
+- List all properties with search
+- Property details with full information
+- Add new property with form validation
+- Filter by type, status, listing type
+- Infinite scroll pagination
+
+**Clients:**
+- List all clients with search
+- Client details with contact info
+- Add new client with type selection
+- Activity timeline for each client
+- Quick call/email actions
 
 ## 🛠 Tech Stack
 
@@ -28,13 +50,16 @@ Native iOS app for Əmlak CRM built with SwiftUI.
 
 ```
 EmlakCRM/
-├── Models/          # Data models
-├── Views/           # SwiftUI views
-│   ├── Auth/        # Login, Register
-│   └── Dashboard/   # Main dashboard
-├── ViewModels/      # Business logic
-├── Services/        # API service layer
-└── Utils/           # Theme, extensions
+├── Models/              # Data models (Auth, Property, Client, etc.)
+├── Views/               # SwiftUI views
+│   ├── Auth/            # Login, Register
+│   ├── Dashboard/       # Main dashboard with stats
+│   ├── Properties/      # List, Detail, Add Property
+│   ├── Clients/         # List, Detail, Add Client
+│   └── MainTabView.swift # Tab navigation
+├── ViewModels/          # Business logic & state management
+├── Services/            # API service layer with auto-refresh
+└── Utils/               # Theme, extensions, helpers
 ```
 
 ## 🚀 Getting Started
@@ -68,11 +93,13 @@ EmlakCRM/
 - Email: `agent@emlak.az`
 - Password: `Test123456`
 
-### Dashboard Features:
-- View total properties, clients, activities
-- Track revenue & commission
-- See recent activities
-- Monitor today's schedule
+### App Features:
+- **Dashboard:** View stats, revenue, and recent activities
+- **Properties:** Browse, search, and add properties
+- **Clients:** Manage clients with full contact details
+- **Search:** Quick search across properties and clients
+- **Navigation:** Easy tab-based navigation
+- **Forms:** Smart forms with validation
 
 ## 🔄 API Endpoints Used
 
@@ -96,14 +123,15 @@ EmlakCRM/
 ## 📦 Next Steps
 
 ### To Implement:
-- [ ] Properties List & Detail
-- [ ] Clients List & Detail
-- [ ] Activities Calendar
-- [ ] Deals Management
-- [ ] Add Property (Camera, Location)
-- [ ] Add Client
+- [ ] Activities Calendar & Management
+- [ ] Deals Management & Pipeline
+- [ ] Property Image Upload (Camera, Gallery)
+- [ ] Location Picker & Map View
+- [ ] Edit Property & Client
+- [ ] Delete with confirmation
 - [ ] Push Notifications
-- [ ] Offline Mode
+- [ ] Offline Mode & Caching
+- [ ] Filters & Advanced Search
 
 ### Future:
 - [ ] Dark Mode

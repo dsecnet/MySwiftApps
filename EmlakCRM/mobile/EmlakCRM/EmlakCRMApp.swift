@@ -14,7 +14,7 @@ struct EmlakCRMApp: App {
     var body: some Scene {
         WindowGroup {
             if authVM.isAuthenticated {
-                DashboardView()
+                MainTabView()
                     .environmentObject(authVM)
             } else {
                 LoginView()
