@@ -19,7 +19,9 @@ struct ConversationsView: View {
     }
 
     private var canAccessChat: Bool {
-        settingsManager.isPremium || isTrainer
+        // Premium features temporarily disabled
+        return isTrainer  // Only trainers can access for now
+        // settingsManager.isPremium || isTrainer
     }
 
     var body: some View {
@@ -104,39 +106,59 @@ struct ConversationsView: View {
     }
 
     private var premiumRequiredView: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 24) {
             Spacer()
-            Image(systemName: "lock.fill")
-                .font(.system(size: 50))
-                .foregroundColor(AppTheme.Colors.premiumGradientStart)
 
-            Text(loc.localized("chat_premium_required"))
-                .font(.system(size: 18, weight: .bold))
-                .foregroundColor(AppTheme.Colors.primaryText)
-
-            Text(loc.localized("chat_premium_desc"))
-                .font(.system(size: 14))
-                .foregroundColor(AppTheme.Colors.secondaryText)
-                .multilineTextAlignment(.center)
-
-            Button {
-                showPremium = true
-            } label: {
-                Text(loc.localized("activities_premium_go"))
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(
-                        LinearGradient(
-                            colors: [AppTheme.Colors.premiumGradientStart, AppTheme.Colors.premiumGradientEnd],
-                            startPoint: .leading,
-                            endPoint: .trailing
+            // Coming Soon Icon
+            ZStack {
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [AppTheme.Colors.premiumGradientStart.opacity(0.3), Color.clear],
+                            center: .center,
+                            startRadius: 10,
+                            endRadius: 70
                         )
                     )
-                    .cornerRadius(12)
+                    .frame(width: 140, height: 140)
+
+                Image(systemName: "sparkles")
+                    .font(.system(size: 60))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [AppTheme.Colors.premiumGradientStart, AppTheme.Colors.premiumGradientEnd],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
             }
-            .padding(.horizontal, 40)
+
+            VStack(spacing: 12) {
+                Text("Premium Chat")
+                    .font(.system(size: 26, weight: .black))
+                    .foregroundColor(AppTheme.Colors.primaryText)
+
+                Text("COMING SOON")
+                    .font(.system(size: 14, weight: .bold))
+                    .tracking(3)
+                    .foregroundColor(AppTheme.Colors.premiumGradientStart)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(AppTheme.Colors.premiumGradientStart.opacity(0.1))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(AppTheme.Colors.premiumGradientStart.opacity(0.3), lineWidth: 1)
+                    )
+
+                Text("Müəllimlərlə söhbət funksiyası tezliklə aktiv olacaq")
+                    .font(.system(size: 15))
+                    .foregroundColor(AppTheme.Colors.secondaryText)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 4)
+            }
 
             Spacer()
         }

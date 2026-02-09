@@ -606,55 +606,20 @@ struct TrainerDetailView: View {
                         .stroke(AppTheme.Colors.success.opacity(0.3), lineWidth: 1)
                 )
             } else if settingsManager.isPremium {
+                // Premium temporarily disabled - show coming soon
                 Button {
-                    isAssigning = true
-                    Task {
-                        let success = await trainerManager.assignTrainer(trainerId: trainer.id)
-                        isAssigning = false
-                        if success {
-                            showAssignSuccess = true
-                        } else {
-                            showError = true
-                        }
-                    }
-                } label: {
-                    HStack(spacing: 8) {
-                        if isAssigning {
-                            ProgressView()
-                                .tint(.white)
-                        } else {
-                            Image(systemName: "person.badge.plus")
-                        }
-                        Text(loc.localized("trainer_subscribe"))
-                            .font(.system(size: 16, weight: .bold))
-                    }
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(
-                        LinearGradient(
-                            colors: [trainer.category.color, trainer.category.color.opacity(0.8)],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .cornerRadius(12)
-                    .shadow(color: trainer.category.color.opacity(0.4), radius: 8)
-                }
-                .disabled(isAssigning)
-            } else {
-                Button {
-                    showPremium = true
+                    // Disabled - do nothing
                 } label: {
                     VStack(spacing: 10) {
                         HStack(spacing: 8) {
-                            Image(systemName: "lock.fill")
-                            Text(loc.localized("trainer_subscribe"))
-                                .font(.system(size: 16, weight: .bold))
+                            Image(systemName: "sparkles")
+                            Text("COMING SOON")
+                                .font(.system(size: 14, weight: .bold))
+                                .tracking(2)
                         }
                         .foregroundColor(.white)
 
-                        Text(loc.localized("teacher_premium_required"))
+                        Text("Müəllim abunəliyi tezliklə aktiv olacaq")
                             .font(.system(size: 12))
                             .foregroundColor(.white.opacity(0.7))
                     }
@@ -668,8 +633,40 @@ struct TrainerDetailView: View {
                         )
                     )
                     .cornerRadius(12)
-                    .shadow(color: AppTheme.Colors.premiumGradientStart.opacity(0.4), radius: 8)
+                    .opacity(0.6)
                 }
+                .disabled(true)
+            } else {
+                // Non-premium users - show coming soon
+                Button {
+                    // Disabled - do nothing
+                } label: {
+                    VStack(spacing: 10) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "sparkles")
+                            Text("COMING SOON")
+                                .font(.system(size: 14, weight: .bold))
+                                .tracking(2)
+                        }
+                        .foregroundColor(.white)
+
+                        Text("Müəllim abunəliyi tezliklə aktiv olacaq")
+                            .font(.system(size: 12))
+                            .foregroundColor(.white.opacity(0.7))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(
+                        LinearGradient(
+                            colors: [AppTheme.Colors.premiumGradientStart, AppTheme.Colors.premiumGradientEnd],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(12)
+                    .opacity(0.6)
+                }
+                .disabled(true)
 
                 HStack(spacing: 8) {
                     Image(systemName: "sparkles")
