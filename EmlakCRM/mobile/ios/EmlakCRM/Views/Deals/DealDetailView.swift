@@ -51,21 +51,21 @@ struct DealDetailView: View {
                         )
 
                         StatusTimelineItem(
-                            title: "Aktiv",
-                            isActive: deal.status == .active,
-                            isPassed: deal.status == .won || deal.status == .lost
+                            title: "Davam edir",
+                            isActive: deal.status == .inProgress,
+                            isPassed: deal.status == .completed || deal.status == .cancelled
                         )
 
-                        if deal.status == .won {
+                        if deal.status == .completed {
                             StatusTimelineItem(
-                                title: "Qazanıldı",
+                                title: "Tamamlandı",
                                 isActive: true,
                                 isPassed: false,
                                 color: AppTheme.successColor
                             )
-                        } else if deal.status == .lost {
+                        } else if deal.status == .cancelled {
                             StatusTimelineItem(
-                                title: "İtirildi",
+                                title: "Ləğv edildi",
                                 isActive: true,
                                 isPassed: false,
                                 color: AppTheme.errorColor
@@ -76,26 +76,6 @@ struct DealDetailView: View {
                 .padding()
                 .cardStyle()
 
-                // Closed Date
-                if let closedAt = deal.closedAt {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Bağlanma Tarixi")
-                            .font(AppTheme.headline())
-                            .foregroundColor(AppTheme.textPrimary)
-
-                        HStack {
-                            Image(systemName: "calendar.badge.checkmark")
-                                .foregroundColor(AppTheme.successColor)
-                                .font(.title3)
-
-                            Text(formatFullDate(closedAt))
-                                .font(AppTheme.body())
-                                .foregroundColor(AppTheme.textSecondary)
-                        }
-                    }
-                    .padding()
-                    .cardStyle()
-                }
 
                 // Dates
                 VStack(alignment: .leading, spacing: 12) {
@@ -194,13 +174,11 @@ struct StatusTimelineItem: View {
     NavigationStack {
         DealDetailView(deal: Deal(
             id: "1",
-            title: "Mənzil satışı",
-            description: "3 otaqlı mənzil",
-            amount: 150000,
-            status: .active,
-            propertyId: nil,
-            clientId: nil,
-            closedAt: nil,
+            propertyId: "prop1",
+            clientId: "client1",
+            status: .inProgress,
+            agreedPrice: 150000,
+            notes: "3 otaqlı mənzil satışı",
             createdAt: Date(),
             updatedAt: Date()
         ))
