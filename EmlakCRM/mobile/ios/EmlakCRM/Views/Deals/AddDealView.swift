@@ -198,9 +198,9 @@ struct StatusOptionCard: View {
     private func colorForStatus(_ status: DealStatus) -> Color {
         switch status {
         case .pending: return AppTheme.warningColor
-        case .active: return AppTheme.primaryColor
-        case .won: return AppTheme.successColor
-        case .lost: return AppTheme.errorColor
+        case .inProgress: return AppTheme.primaryColor
+        case .completed: return AppTheme.successColor
+        case .cancelled: return AppTheme.errorColor
         }
     }
 }
