@@ -21,7 +21,7 @@ class AuthViewModel: ObservableObject {
         errorMessage = nil
 
         do {
-            let response = try await APIService.shared.login(email: email, password: password)
+            _ = try await APIService.shared.login(email: email, password: password)
             // Login successful, tokens are saved
             isAuthenticated = true
 
@@ -47,7 +47,7 @@ class AuthViewModel: ObservableObject {
         errorMessage = nil
 
         do {
-            let user = try await APIService.shared.register(email: email, password: password, fullName: fullName)
+            _ = try await APIService.shared.register(email: email, password: password, fullName: fullName)
             // After registration, login automatically
             await login(email: email, password: password)
         } catch {

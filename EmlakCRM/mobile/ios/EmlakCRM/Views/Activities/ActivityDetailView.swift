@@ -168,8 +168,8 @@ struct ActivityDetailView: View {
         case .call: return AppTheme.primaryColor
         case .meeting: return AppTheme.secondaryColor
         case .email: return AppTheme.infoColor
-        case .visit: return AppTheme.accentColor
-        case .other: return AppTheme.textSecondary
+        case .viewing: return AppTheme.accentColor
+        case .note: return AppTheme.textSecondary
         }
     }
 
