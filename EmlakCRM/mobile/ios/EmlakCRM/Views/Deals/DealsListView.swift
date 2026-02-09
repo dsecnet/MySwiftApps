@@ -15,8 +15,7 @@ struct DealsListView: View {
 
         if !searchText.isEmpty {
             filtered = filtered.filter {
-                $0.title.localizedCaseInsensitiveContains(searchText) ||
-                ($0.description?.localizedCaseInsensitiveContains(searchText) ?? false)
+                ($0.notes?.localizedCaseInsensitiveContains(searchText) ?? false)
             }
         }
 
@@ -146,15 +145,15 @@ struct DealRowView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(deal.title)
-                        .font(AppTheme.headline())
-                        .foregroundColor(AppTheme.textPrimary)
-
-                    if let description = deal.description {
-                        Text(description)
-                            .font(AppTheme.caption())
-                            .foregroundColor(AppTheme.textSecondary)
+                    if let notes = deal.notes {
+                        Text(notes)
+                            .font(AppTheme.headline())
+                            .foregroundColor(AppTheme.textPrimary)
                             .lineLimit(2)
+                    } else {
+                        Text("Sövdələşmə")
+                            .font(AppTheme.headline())
+                            .foregroundColor(AppTheme.textPrimary)
                     }
                 }
 
@@ -169,7 +168,7 @@ struct DealRowView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "dollarsign.circle.fill")
                         .foregroundStyle(AppTheme.successGradient)
-                    Text(formatPrice(deal.amount))
+                    Text(formatPrice(deal.agreedPrice))
                         .font(AppTheme.title2())
                         .foregroundColor(AppTheme.textPrimary)
                         .fontWeight(.bold)

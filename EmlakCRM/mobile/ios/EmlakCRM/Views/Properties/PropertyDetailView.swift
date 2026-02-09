@@ -20,15 +20,13 @@ struct PropertyDetailView: View {
                     HStack {
                         StatusBadge(status: property.status)
 
-                        if let listingType = property.listingType {
-                            Text(listingType.displayName)
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(AppTheme.primaryColor)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 5)
-                                .background(AppTheme.primaryColor.opacity(0.1))
-                                .cornerRadius(8)
-                        }
+                        Text(property.dealType.displayName)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(AppTheme.primaryColor)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(AppTheme.primaryColor.opacity(0.1))
+                            .cornerRadius(8)
                     }
                 }
                 .padding()
@@ -42,10 +40,12 @@ struct PropertyDetailView: View {
                         .foregroundColor(AppTheme.textPrimary)
 
                     HStack(spacing: 16) {
-                        InfoItem(icon: "square.fill", label: "\(Int(property.area)) m²")
+                        if let area = property.areaSqm {
+                            InfoItem(icon: "square.fill", label: "\(Int(area)) m²")
+                        }
 
-                        if let bedrooms = property.bedrooms {
-                            InfoItem(icon: "bed.double.fill", label: "\(bedrooms)")
+                        if let rooms = property.rooms {
+                            InfoItem(icon: "bed.double.fill", label: "\(rooms)")
                         }
 
                         if let bathrooms = property.bathrooms {
@@ -85,9 +85,15 @@ struct PropertyDetailView: View {
                         Image(systemName: "location.fill")
                             .foregroundColor(AppTheme.primaryColor)
 
-                        Text("\(property.address), \(property.city)")
-                            .font(AppTheme.body())
-                            .foregroundColor(AppTheme.textSecondary)
+                        if let address = property.address {
+                            Text("\(address), \(property.city)")
+                                .font(AppTheme.body())
+                                .foregroundColor(AppTheme.textSecondary)
+                        } else {
+                            Text(property.city)
+                                .font(AppTheme.body())
+                                .foregroundColor(AppTheme.textSecondary)
+                        }
                     }
                 }
                 .padding()
@@ -185,13 +191,13 @@ struct InfoItem: View {
             title: "Nümunə Mənzil",
             description: "Gözəl mənzil",
             propertyType: .apartment,
-            listingType: .sale,
-            status: .active,
+            dealType: .sale,
+            status: .available,
             price: 150000,
-            area: 85,
+            areaSqm: 85,
             address: "Nizami küçəsi 123",
             city: "Bakı",
-            bedrooms: 3,
+            rooms: 3,
             bathrooms: 2,
             floor: 5,
             createdAt: Date(),

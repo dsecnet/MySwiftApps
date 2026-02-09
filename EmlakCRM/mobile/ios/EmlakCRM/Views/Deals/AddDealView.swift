@@ -4,9 +4,10 @@ struct AddDealView: View {
     @Environment(\.dismiss) var dismiss
     let onSuccess: () async -> Void
 
-    @State private var title = ""
-    @State private var description = ""
+    @State private var notes = ""
     @State private var amount = ""
+    @State private var propertyId = ""
+    @State private var clientId = ""
     @State private var status: DealStatus = .pending
 
     @State private var isLoading = false
@@ -52,12 +53,15 @@ struct AddDealView: View {
                                 .foregroundColor(AppTheme.textPrimary)
 
                             VStack(spacing: 12) {
-                                TextField("Başlıq *", text: $title)
-                                    .textFieldStyle(ModernTextFieldStyle())
-
-                                TextField("Təsvir", text: $description, axis: .vertical)
+                                TextField("Qeydlər", text: $notes, axis: .vertical)
                                     .textFieldStyle(ModernTextFieldStyle())
                                     .lineLimit(3...6)
+
+                                TextField("Əmlak ID *", text: $propertyId)
+                                    .textFieldStyle(ModernTextFieldStyle())
+
+                                TextField("Müştəri ID *", text: $clientId)
+                                    .textFieldStyle(ModernTextFieldStyle())
                             }
                         }
                         .padding()
@@ -70,7 +74,7 @@ struct AddDealView: View {
                                 .foregroundColor(AppTheme.textPrimary)
 
                             VStack(spacing: 12) {
-                                ForEach([DealStatus.pending, .active], id: \.self) { dealStatus in
+                                ForEach([DealStatus.pending, .inProgress], id: \.self) { dealStatus in
                                     StatusOptionCard(
                                         status: dealStatus,
                                         isSelected: status == dealStatus
@@ -128,7 +132,7 @@ struct AddDealView: View {
     }
 
     private var isFormValid: Bool {
-        !title.isEmpty && !amount.isEmpty && Double(amount) != nil
+        !propertyId.isEmpty && !clientId.isEmpty && !amount.isEmpty && Double(amount) != nil
     }
 
     private func createDeal() async {
@@ -142,12 +146,10 @@ struct AddDealView: View {
         }
 
         let deal = DealCreate(
-            title: title,
-            description: description.isEmpty ? nil : description,
-            amount: amountValue,
-            status: status,
-            propertyId: nil,
-            clientId: nil
+            propertyId: propertyId,
+            clientId: clientId,
+            agreedPrice: amountValue,
+            notes: notes.isEmpty ? nil : notes
         )
 
         do {

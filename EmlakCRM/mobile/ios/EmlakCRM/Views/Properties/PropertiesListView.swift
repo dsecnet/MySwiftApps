@@ -89,23 +89,28 @@ struct PropertyRowView: View {
                     .font(AppTheme.headline())
                     .foregroundColor(AppTheme.textPrimary)
 
-                Text("\(property.address), \(property.city)")
-                    .font(AppTheme.caption())
-                    .foregroundColor(AppTheme.textSecondary)
-                    .lineLimit(1)
+                if let address = property.address {
+                    Text("\(address), \(property.city)")
+                        .font(AppTheme.caption())
+                        .foregroundColor(AppTheme.textSecondary)
+                        .lineLimit(1)
+                } else {
+                    Text(property.city)
+                        .font(AppTheme.caption())
+                        .foregroundColor(AppTheme.textSecondary)
+                        .lineLimit(1)
+                }
 
                 HStack(spacing: 8) {
                     StatusBadge(status: property.status)
 
-                    if let listingType = property.listingType {
-                        Text(listingType.displayName)
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(AppTheme.primaryColor)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(AppTheme.primaryColor.opacity(0.1))
-                            .cornerRadius(6)
-                    }
+                    Text(property.dealType.displayName)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(AppTheme.primaryColor)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(AppTheme.primaryColor.opacity(0.1))
+                        .cornerRadius(6)
                 }
             }
 
@@ -116,9 +121,11 @@ struct PropertyRowView: View {
                     .font(AppTheme.headline())
                     .foregroundColor(AppTheme.primaryColor)
 
-                Text("\(Int(property.area)) m²")
-                    .font(AppTheme.caption())
-                    .foregroundColor(AppTheme.textSecondary)
+                if let area = property.areaSqm {
+                    Text("\(Int(area)) m²")
+                        .font(AppTheme.caption())
+                        .foregroundColor(AppTheme.textSecondary)
+                }
             }
         }
         .padding()

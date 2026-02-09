@@ -11,11 +11,11 @@ class DealsViewModel: ObservableObject {
     private let pageSize = 20
 
     var totalAmount: Double {
-        deals.filter { $0.status == .won }.reduce(0) { $0 + $1.amount }
+        deals.filter { $0.status == .completed }.reduce(0) { $0 + $1.agreedPrice }
     }
 
     var activeDeals: Int {
-        deals.filter { $0.status == .active || $0.status == .pending }.count
+        deals.filter { $0.status == .inProgress || $0.status == .pending }.count
     }
 
     func loadDeals() async {

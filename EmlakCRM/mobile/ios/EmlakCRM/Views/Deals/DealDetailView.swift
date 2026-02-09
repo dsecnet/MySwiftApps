@@ -12,7 +12,7 @@ struct DealDetailView: View {
                         .font(.system(size: 60))
                         .foregroundStyle(AppTheme.primaryGradient)
 
-                    Text(formatPrice(deal.amount))
+                    Text(formatPrice(deal.agreedPrice))
                         .font(.system(size: 42, weight: .bold))
                         .foregroundStyle(AppTheme.successGradient)
 
@@ -22,31 +22,20 @@ struct DealDetailView: View {
                 .padding(.vertical, 30)
                 .cardStyle()
 
-                // Title & Description
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Başlıq")
-                        .font(AppTheme.headline())
-                        .foregroundColor(AppTheme.textPrimary)
-
-                    Text(deal.title)
-                        .font(AppTheme.body())
-                        .foregroundColor(AppTheme.textSecondary)
-
-                    if let description = deal.description, !description.isEmpty {
-                        Divider()
-                            .padding(.vertical, 4)
-
-                        Text("Təsvir")
+                // Notes
+                if let notes = deal.notes, !notes.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Qeydlər")
                             .font(AppTheme.headline())
                             .foregroundColor(AppTheme.textPrimary)
 
-                        Text(description)
+                        Text(notes)
                             .font(AppTheme.body())
                             .foregroundColor(AppTheme.textSecondary)
                     }
+                    .padding()
+                    .cardStyle()
                 }
-                .padding()
-                .cardStyle()
 
                 // Status Timeline
                 VStack(alignment: .leading, spacing: 16) {

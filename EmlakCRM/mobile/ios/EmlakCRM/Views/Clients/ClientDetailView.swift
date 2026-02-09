@@ -129,7 +129,7 @@ struct ClientDetailView: View {
         switch type {
         case .buyer: return AppTheme.primaryColor
         case .seller: return AppTheme.successColor
-        case .tenant: return AppTheme.warningColor
+        case .renter: return AppTheme.warningColor
         case .landlord: return AppTheme.secondaryColor
         }
     }

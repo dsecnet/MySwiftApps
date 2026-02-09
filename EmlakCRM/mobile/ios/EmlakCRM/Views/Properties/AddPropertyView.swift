@@ -7,13 +7,13 @@ struct AddPropertyView: View {
     @State private var title = ""
     @State private var description = ""
     @State private var propertyType: PropertyType = .apartment
-    @State private var listingType: ListingType = .sale
-    @State private var status: PropertyStatus = .active
+    @State private var dealType: DealType = .sale
+    @State private var status: PropertyStatus = .available
     @State private var price = ""
     @State private var area = ""
     @State private var address = ""
-    @State private var city = ""
-    @State private var bedrooms = ""
+    @State private var city = "Bakı"
+    @State private var rooms = ""
     @State private var bathrooms = ""
     @State private var floor = ""
 
@@ -47,15 +47,15 @@ struct AddPropertyView: View {
                             }
                             .pickerStyle(.segmented)
 
-                            Picker("Siyahı növü", selection: $listingType) {
-                                ForEach([ListingType.sale, ListingType.rent], id: \.self) { type in
+                            Picker("Sövdələşmə növü", selection: $dealType) {
+                                ForEach([DealType.sale, DealType.rent], id: \.self) { type in
                                     Text(type.displayName).tag(type)
                                 }
                             }
                             .pickerStyle(.segmented)
 
                             Picker("Status", selection: $status) {
-                                ForEach([PropertyStatus.active, PropertyStatus.pending], id: \.self) { s in
+                                ForEach([PropertyStatus.available, PropertyStatus.reserved], id: \.self) { s in
                                     Text(s.displayName).tag(s)
                                 }
                             }
@@ -102,7 +102,7 @@ struct AddPropertyView: View {
                                 .font(AppTheme.headline())
                                 .foregroundColor(AppTheme.textPrimary)
 
-                            TextField("Otaq sayı", text: $bedrooms)
+                            TextField("Otaq sayı", text: $rooms)
                                 .textFieldStyle(.roundedBorder)
                                 .keyboardType(.numberPad)
 
@@ -180,13 +180,13 @@ struct AddPropertyView: View {
             title: title,
             description: description.isEmpty ? nil : description,
             propertyType: propertyType,
-            listingType: listingType,
+            dealType: dealType,
             status: status,
             price: priceValue,
-            area: areaValue,
-            address: address,
+            areaSqm: areaValue,
+            address: address.isEmpty ? nil : address,
             city: city,
-            bedrooms: Int(bedrooms),
+            rooms: Int(rooms),
             bathrooms: Int(bathrooms),
             floor: Int(floor)
         )
