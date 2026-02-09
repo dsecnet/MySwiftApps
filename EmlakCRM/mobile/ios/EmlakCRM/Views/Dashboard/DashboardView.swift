@@ -7,72 +7,149 @@ struct DashboardView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                AppTheme.backgroundColor.ignoresSafeArea()
+                AppTheme.backgroundGradient.ignoresSafeArea()
 
-                ScrollView {
-                    VStack(spacing: 20) {
-                        // Header
-                        HStack {
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 24) {
+                        // Modern Header
+                        HStack(alignment: .center) {
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Salam,")
-                                    .font(AppTheme.body())
+                                Text("Xoş gəlmisiniz,")
+                                    .font(.system(size: 14, weight: .medium))
                                     .foregroundColor(AppTheme.textSecondary)
 
-                                Text(authVM.currentUser?.fullName ?? "")
-                                    .font(AppTheme.title())
+                                Text(authVM.currentUser?.name ?? "")
+                                    .font(.system(size: 24, weight: .bold))
                                     .foregroundColor(AppTheme.textPrimary)
                             }
 
                             Spacer()
 
-                            Button {
-                                authVM.logout()
-                            } label: {
-                                Image(systemName: "rectangle.portrait.and.arrow.right")
-                                    .font(.title2)
-                                    .foregroundColor(AppTheme.errorColor)
+                            // Profile/Notification buttons
+                            HStack(spacing: 12) {
+                                Button {
+                                    // Notification action
+                                } label: {
+                                    Image(systemName: "bell.fill")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(AppTheme.textSecondary)
+                                        .frame(width: 44, height: 44)
+                                        .background(AppTheme.cardBackground)
+                                        .cornerRadius(12)
+                                        .shadow(color: AppTheme.cardShadow, radius: 8, x: 0, y: 2)
+                                }
+
+                                Button {
+                                    authVM.logout()
+                                } label: {
+                                    Image(systemName: "person.circle.fill")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(AppTheme.primaryColor)
+                                        .frame(width: 44, height: 44)
+                                        .background(AppTheme.cardBackground)
+                                        .cornerRadius(12)
+                                        .shadow(color: AppTheme.cardShadow, radius: 8, x: 0, y: 2)
+                                }
                             }
                         }
-                        .padding()
+                        .padding(.horizontal, 20)
+                        .padding(.top, 8)
 
-                        // Stats Grid
                         if viewModel.isLoading {
                             ProgressView()
                                 .padding(.top, 100)
                         } else if let stats = viewModel.stats {
-                            LazyVGrid(columns: [
-                                GridItem(.flexible()),
-                                GridItem(.flexible())
-                            ], spacing: 16) {
-                                StatCard(
-                                    title: "Əmlaklar",
-                                    value: "\(stats.totalProperties)",
-                                    icon: "building.2.fill",
-                                    color: AppTheme.primaryColor
-                                )
+                            // Balance Card - similar to reference
+                            BalanceCard(
+                                title: "Toplam Əmlak Dəyəri",
+                                amount: "₼\(stats.totalProperties * 100000)",
+                                subtitle: "Son 30 gün"
+                            )
+                            .padding(.horizontal, 20)
 
-                                StatCard(
-                                    title: "Müştərilər",
-                                    value: "\(stats.totalClients)",
-                                    icon: "person.2.fill",
-                                    color: AppTheme.secondaryColor
-                                )
+                            // Overview Section
+                            VStack(alignment: .leading, spacing: 16) {
+                                Text("İcmal")
+                                    .font(.system(size: 20, weight: .bold))
+                                    .foregroundColor(AppTheme.textPrimary)
+                                    .padding(.horizontal, 20)
 
-                                StatCard(
-                                    title: "Fəaliyyətlər",
-                                    value: "\(stats.totalActivities)",
-                                    icon: "list.bullet.clipboard.fill",
-                                    color: AppTheme.warningColor
-                                )
+                                // Stats Grid - 2x2
+                                LazyVGrid(columns: [
+                                    GridItem(.flexible(), spacing: 16),
+                                    GridItem(.flexible(), spacing: 16)
+                                ], spacing: 16) {
+                                    ModernStatCard(
+                                        title: "Əmlaklar",
+                                        value: "\(stats.totalProperties)",
+                                        icon: "building.2.fill",
+                                        trend: "+30%",
+                                        color: AppTheme.primaryColor
+                                    )
 
-                                StatCard(
-                                    title: "Sövdələşmələr",
-                                    value: "\(stats.totalDeals)",
-                                    icon: "dollarsign.circle.fill",
-                                    color: AppTheme.successColor
-                                )
+                                    ModernStatCard(
+                                        title: "Müştərilər",
+                                        value: "\(stats.totalClients)",
+                                        icon: "person.2.fill",
+                                        trend: "+12%",
+                                        color: AppTheme.secondaryColor
+                                    )
+
+                                    ModernStatCard(
+                                        title: "Fəaliyyətlər",
+                                        value: "\(stats.totalActivities)",
+                                        icon: "calendar.badge.clock",
+                                        trend: nil,
+                                        color: AppTheme.accentColor
+                                    )
+
+                                    ModernStatCard(
+                                        title: "Sövdələşmələr",
+                                        value: "\(stats.totalDeals)",
+                                        icon: "chart.line.uptrend.xyaxis",
+                                        trend: "+8%",
+                                        color: AppTheme.successColor
+                                    )
+                                }
+                                .padding(.horizontal, 20)
                             }
-                            .padding(.horizontal)
+
+                            // Quick Actions
+                            VStack(alignment: .leading, spacing: 16) {
+                                Text("Sürətli Əməliyyatlar")
+                                    .font(.system(size: 20, weight: .bold))
+                                    .foregroundColor(AppTheme.textPrimary)
+                                    .padding(.horizontal, 20)
+
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 12) {
+                                        QuickActionCard(
+                                            title: "Əmlak Əlavə Et",
+                                            icon: "plus.square.fill",
+                                            color: AppTheme.primaryColor
+                                        )
+
+                                        QuickActionCard(
+                                            title: "Müştəri Əlavə Et",
+                                            icon: "person.crop.circle.badge.plus",
+                                            color: AppTheme.secondaryColor
+                                        )
+
+                                        QuickActionCard(
+                                            title: "Fəaliyyət Planla",
+                                            icon: "calendar.badge.plus",
+                                            color: AppTheme.accentColor
+                                        )
+
+                                        QuickActionCard(
+                                            title: "Hesabat",
+                                            icon: "chart.bar.doc.horizontal.fill",
+                                            color: AppTheme.successColor
+                                        )
+                                    }
+                                    .padding(.horizontal, 20)
+                                }
+                            }
                         }
 
                         if let error = viewModel.errorMessage {
@@ -81,16 +158,14 @@ struct DashboardView: View {
                                 .foregroundColor(AppTheme.errorColor)
                                 .padding()
                         }
-
-                        Spacer(minLength: 40)
                     }
+                    .padding(.vertical)
                 }
                 .refreshable {
                     await viewModel.loadStats()
                 }
             }
-            .navigationTitle("Ana Səhifə")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarHidden(true)
             .task {
                 await viewModel.loadStats()
             }
@@ -98,33 +173,38 @@ struct DashboardView: View {
     }
 }
 
-struct StatCard: View {
+// Quick Action Card Component
+struct QuickActionCard: View {
     let title: String
-    let value: String
     let icon: String
-    let color: Color
+    var color: Color
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: icon)
-                    .font(.title2)
-                    .foregroundColor(color)
-
-                Spacer()
-            }
-
-            Text(value)
-                .font(.system(size: 32, weight: .bold))
-                .foregroundColor(AppTheme.textPrimary)
+        VStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 28))
+                .foregroundColor(.white)
+                .frame(width: 56, height: 56)
+                .background(
+                    LinearGradient(
+                        colors: [color, color.opacity(0.7)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .cornerRadius(14)
 
             Text(title)
-                .font(AppTheme.body())
-                .foregroundColor(AppTheme.textSecondary)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(AppTheme.textPrimary)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .frame(width: 100)
         }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .cardStyle()
+        .frame(width: 120, height: 120)
+        .background(AppTheme.cardBackground)
+        .cornerRadius(16)
+        .shadow(color: AppTheme.cardShadow, radius: 10, x: 0, y: 4)
     }
 }
 

@@ -9,57 +9,99 @@ struct LoginView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                AppTheme.backgroundColor.ignoresSafeArea()
+                // Soft gradient background
+                AppTheme.backgroundGradient.ignoresSafeArea()
 
-                ScrollView {
-                    VStack(spacing: 24) {
-                        // Logo
-                        Image(systemName: "building.2.fill")
-                            .font(.system(size: 80))
-                            .foregroundColor(AppTheme.primaryColor)
-                            .padding(.top, 60)
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 32) {
+                        Spacer()
+                            .frame(height: 60)
 
-                        Text("EmlakCRM")
-                            .font(AppTheme.largeTitle())
-                            .foregroundColor(AppTheme.textPrimary)
-
-                        Text("Giriş edin")
-                            .font(AppTheme.title())
-                            .foregroundColor(AppTheme.textSecondary)
-                            .padding(.bottom, 32)
-
-                        // Form
+                        // Modern Logo with gradient
                         VStack(spacing: 16) {
-                            // Email
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Email")
-                                    .font(AppTheme.headline())
-                                    .foregroundColor(AppTheme.textPrimary)
+                            ZStack {
+                                Circle()
+                                    .fill(AppTheme.primaryGradient)
+                                    .frame(width: 100, height: 100)
+                                    .shadow(color: AppTheme.primaryColor.opacity(0.3), radius: 20, x: 0, y: 10)
 
-                                TextField("email@example.com", text: $email)
-                                    .textFieldStyle(.roundedBorder)
-                                    .textContentType(.emailAddress)
-                                    .autocapitalization(.none)
-                                    .keyboardType(.emailAddress)
+                                Image(systemName: "building.2.fill")
+                                    .font(.system(size: 50))
+                                    .foregroundColor(.white)
                             }
 
-                            // Password
+                            Text("EmlakCRM")
+                                .font(.system(size: 32, weight: .bold))
+                                .foregroundColor(AppTheme.textPrimary)
+
+                            Text("Real Estate Management")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(AppTheme.textSecondary)
+                        }
+                        .padding(.bottom, 20)
+
+                        // Form Card
+                        VStack(spacing: 20) {
+                            Text("Daxil Olun")
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundColor(AppTheme.textPrimary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+
+                            // Modern Email Field
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Email")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(AppTheme.textSecondary)
+
+                                HStack {
+                                    Image(systemName: "envelope.fill")
+                                        .foregroundColor(AppTheme.textSecondary)
+                                        .frame(width: 20)
+
+                                    TextField("email@example.com", text: $email)
+                                        .textContentType(.emailAddress)
+                                        .autocapitalization(.none)
+                                        .keyboardType(.emailAddress)
+                                        .font(.system(size: 16))
+                                }
+                                .padding()
+                                .background(AppTheme.backgroundColor)
+                                .cornerRadius(12)
+                            }
+
+                            // Modern Password Field
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("Şifrə")
-                                    .font(AppTheme.headline())
-                                    .foregroundColor(AppTheme.textPrimary)
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(AppTheme.textSecondary)
 
-                                SecureField("••••••••", text: $password)
-                                    .textFieldStyle(.roundedBorder)
-                                    .textContentType(.password)
+                                HStack {
+                                    Image(systemName: "lock.fill")
+                                        .foregroundColor(AppTheme.textSecondary)
+                                        .frame(width: 20)
+
+                                    SecureField("••••••••", text: $password)
+                                        .textContentType(.password)
+                                        .font(.system(size: 16))
+                                }
+                                .padding()
+                                .background(AppTheme.backgroundColor)
+                                .cornerRadius(12)
                             }
 
                             // Error Message
                             if let error = authVM.errorMessage {
-                                Text(error)
-                                    .font(AppTheme.caption())
-                                    .foregroundColor(AppTheme.errorColor)
-                                    .padding(.vertical, 8)
+                                HStack {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .foregroundColor(AppTheme.errorColor)
+                                    Text(error)
+                                        .font(.system(size: 14))
+                                        .foregroundColor(AppTheme.errorColor)
+                                }
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(AppTheme.errorColor.opacity(0.1))
+                                .cornerRadius(12)
                             }
 
                             // Login Button
@@ -68,33 +110,55 @@ struct LoginView: View {
                                     await authVM.login(email: email, password: password)
                                 }
                             } label: {
-                                if authVM.isLoading {
-                                    ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                } else {
-                                    Text("Daxil ol")
+                                HStack {
+                                    if authVM.isLoading {
+                                        ProgressView()
+                                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                    } else {
+                                        Text("Daxil ol")
+                                            .font(.system(size: 17, weight: .semibold))
+                                        Image(systemName: "arrow.right")
+                                            .font(.system(size: 16, weight: .semibold))
+                                    }
                                 }
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 56)
+                                .background(AppTheme.primaryGradient)
+                                .cornerRadius(14)
+                                .shadow(color: AppTheme.primaryColor.opacity(0.3), radius: 15, x: 0, y: 8)
                             }
-                            .primaryButtonStyle()
                             .disabled(authVM.isLoading || email.isEmpty || password.isEmpty)
+                            .opacity((authVM.isLoading || email.isEmpty || password.isEmpty) ? 0.6 : 1.0)
 
                             // Register Link
-                            Button {
-                                showRegister = true
-                            } label: {
-                                Text("Hesabınız yoxdur? ")
-                                    .foregroundColor(AppTheme.textSecondary) +
-                                Text("Qeydiyyat")
-                                    .foregroundColor(AppTheme.primaryColor)
-                                    .fontWeight(.semibold)
+                            HStack {
+                                Text("Hesabınız yoxdur?")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(AppTheme.textSecondary)
+
+                                Button {
+                                    showRegister = true
+                                } label: {
+                                    Text("Qeydiyyatdan keçin")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(AppTheme.primaryColor)
+                                }
                             }
                             .padding(.top, 8)
                         }
-                        .padding(.horizontal, 24)
+                        .padding(28)
+                        .background(AppTheme.cardBackground)
+                        .cornerRadius(24)
+                        .shadow(color: AppTheme.cardShadow, radius: 20, x: 0, y: 10)
+                        .padding(.horizontal, 20)
+
+                        Spacer()
+                            .frame(height: 40)
                     }
                 }
             }
-            .navigationDestination(isPresented: $showRegister) {
+            .sheet(isPresented: $showRegister) {
                 RegisterView()
             }
         }
