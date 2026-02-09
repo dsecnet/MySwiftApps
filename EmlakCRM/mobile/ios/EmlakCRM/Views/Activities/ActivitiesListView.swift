@@ -190,6 +190,7 @@ struct ActivityRowView: View {
         case .meeting: return AppTheme.secondaryColor
         case .email: return AppTheme.infoColor
         case .viewing: return AppTheme.accentColor
+        case .message: return AppTheme.successColor
         case .note: return AppTheme.textSecondary
         }
     }
