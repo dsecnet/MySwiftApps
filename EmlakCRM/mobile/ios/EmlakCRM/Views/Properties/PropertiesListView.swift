@@ -11,7 +11,7 @@ struct PropertiesListView: View {
         }
         return viewModel.properties.filter {
             $0.title.localizedCaseInsensitiveContains(searchText) ||
-            $0.address.localizedCaseInsensitiveContains(searchText) ||
+            ($0.address?.localizedCaseInsensitiveContains(searchText) ?? false) ||
             $0.city.localizedCaseInsensitiveContains(searchText)
         }
     }
@@ -136,7 +136,6 @@ struct PropertyRowView: View {
         switch type {
         case .apartment: return "building.2.fill"
         case .house: return "house.fill"
-        case .villa: return "house.fill"
         case .office: return "building.fill"
         case .land: return "map.fill"
         case .commercial: return "building.columns.fill"
@@ -167,10 +166,11 @@ struct StatusBadge: View {
 
     private func colorForStatus(_ status: PropertyStatus) -> Color {
         switch status {
-        case .active: return AppTheme.successColor
-        case .pending: return AppTheme.warningColor
+        case .available: return AppTheme.successColor
+        case .reserved: return AppTheme.warningColor
         case .sold: return AppTheme.errorColor
         case .rented: return AppTheme.secondaryColor
+        case .archived: return AppTheme.textSecondary
         }
     }
 }
