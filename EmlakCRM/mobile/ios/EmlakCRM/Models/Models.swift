@@ -96,11 +96,43 @@ struct Property: Codable, Identifiable {
     let areaSqm: Double?
     let address: String?
     let city: String
+    let district: String?
     let rooms: Int?
     let bathrooms: Int?
     let floor: Int?
+
+    // Map/Location fields
+    let latitude: Double?
+    let longitude: Double?
+    let nearestMetro: String?
+    let metroDistanceM: Int?
+    let nearbyLandmarks: [Landmark]?
+
     let createdAt: Date
     let updatedAt: Date
+}
+
+// MARK: - Map Models
+struct Landmark: Codable, Identifiable {
+    var id: String { name }
+    let name: String
+    let type: String
+    let distanceM: Int
+    let distanceKm: Double?
+    let coordinates: Coordinates?
+
+    enum CodingKeys: String, CodingKey {
+        case name
+        case type
+        case distanceM = "distance_m"
+        case distanceKm = "distance_km"
+        case coordinates
+    }
+}
+
+struct Coordinates: Codable {
+    let lat: Double
+    let lng: Double
 }
 
 struct PropertyCreate: Codable {
@@ -296,4 +328,106 @@ struct PaginatedResponse<T: Codable>: Codable {
     let page: Int
     let size: Int
     let pages: Int
+}
+
+// MARK: - Map/Location Models
+struct MetroStation: Codable, Identifiable {
+    var id: String { name }
+    let name: String
+    let nameEn: String
+    let line: String
+    let lineName: String
+    let latitude: Double
+    let longitude: Double
+    let opened: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case name
+        case nameEn = "name_en"
+        case line
+        case lineName = "line_name"
+        case latitude
+        case longitude
+        case opened
+    }
+}
+
+struct MetroStationsResponse: Codable {
+    let total: Int
+    let stations: [MetroStation]
+}
+
+struct NearbyPropertiesResponse: Codable {
+    let center: LocationCoordinate
+    let radiusKm: Double
+    let total: Int
+    let properties: [PropertyWithDistance]
+
+    enum CodingKeys: String, CodingKey {
+        case center
+        case radiusKm = "radius_km"
+        case total
+        case properties
+    }
+}
+
+struct PropertyWithDistance: Codable, Identifiable {
+    let id: String
+    let title: String
+    let propertyType: PropertyType
+    let dealType: DealType
+    let price: Double
+    let areaSqm: Double?
+    let rooms: Int?
+    let district: String?
+    let address: String?
+    let latitude: Double
+    let longitude: Double
+    let nearestMetro: String?
+    let metroDistanceM: Int?
+    let images: [String]?
+    let distanceKm: Double
+    let distanceM: Int
+
+    enum CodingKeys: String, CodingKey {
+        case id, title
+        case propertyType = "property_type"
+        case dealType = "deal_type"
+        case price
+        case areaSqm = "area_sqm"
+        case rooms, district, address
+        case latitude, longitude
+        case nearestMetro = "nearest_metro"
+        case metroDistanceM = "metro_distance_m"
+        case images
+        case distanceKm = "distance_km"
+        case distanceM = "distance_m"
+    }
+}
+
+struct LocationCoordinate: Codable {
+    let latitude: Double
+    let longitude: Double
+}
+
+struct LandmarkResponse: Codable {
+    let total: Int
+    let center: LocationCoordinate?
+    let landmarks: [LandmarkFull]
+}
+
+struct LandmarkFull: Codable, Identifiable {
+    var id: String { name }
+    let name: String
+    let type: String
+    let latitude: Double
+    let longitude: Double
+    let distanceKm: Double?
+    let distanceM: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case name, type, latitude, longitude
+        case distanceKm = "distance_km"
+        case distanceM = "distance_m"
+    }
 }

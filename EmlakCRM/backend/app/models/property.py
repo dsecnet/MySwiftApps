@@ -45,8 +45,11 @@ class Property(Base):
     city = Column(String(100), default="Bakı", nullable=False)
     district = Column(String(100), nullable=True)  # Nəsimi, Yasamal
     address = Column(String(500), nullable=True)
-    latitude = Column(Float, nullable=True)
-    longitude = Column(Float, nullable=True)
+    latitude = Column(Float, nullable=True)  # GPS koordinat
+    longitude = Column(Float, nullable=True)  # GPS koordinat
+    nearest_metro = Column(String(100), nullable=True)  # Ən yaxın metro
+    metro_distance_m = Column(Integer, nullable=True)  # Metroya məsafə (metr)
+    nearby_landmarks = Column(JSON, nullable=True)  # Yaxınlıqdakı məkanlar: [{"name": "28 May", "type": "metro", "distance": 500}]
 
     # Details
     price = Column(Float, nullable=False)

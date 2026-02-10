@@ -9,6 +9,8 @@ class ClientsViewModel: ObservableObject {
     @Published var hasMore = true
 
     private let pageSize = 20
+    private let cache = CacheManager.shared
+    private let networkMonitor = NetworkMonitor.shared
 
     func loadClients() async {
         guard !isLoading else { return }
@@ -17,12 +19,32 @@ class ClientsViewModel: ObservableObject {
         errorMessage = nil
         currentPage = 1
 
+        // Check if offline
+        if !networkMonitor.isConnected {
+            if let cachedClients = cache.getCachedClients() {
+                clients = cachedClients
+                errorMessage = "Offline mode - Cached data"
+                isLoading = false
+                return
+            }
+        }
+
         do {
             let response = try await APIService.shared.getClients(page: currentPage, size: pageSize)
             clients = response.items
             hasMore = currentPage < response.pages
+
+            // Cache the results
+            cache.cacheClients(clients)
+            cache.updateLastSyncDate()
         } catch {
             errorMessage = error.localizedDescription
+
+            // Fallback to cache on error
+            if let cachedClients = cache.getCachedClients() {
+                clients = cachedClients
+                errorMessage = "Using cached data - \(error.localizedDescription)"
+            }
         }
 
         isLoading = false

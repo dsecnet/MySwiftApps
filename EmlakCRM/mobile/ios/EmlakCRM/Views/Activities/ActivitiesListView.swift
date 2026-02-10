@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ActivitiesListView: View {
     @StateObject private var viewModel = ActivitiesViewModel()
+    @StateObject private var networkMonitor = NetworkMonitor.shared
     @State private var searchText = ""
     @State private var showAddActivity = false
     @State private var filterType: ActivityType? = nil
@@ -29,6 +30,9 @@ struct ActivitiesListView: View {
                 AppTheme.backgroundGradient.ignoresSafeArea()
 
                 VStack(spacing: 0) {
+                    // Network Status Bar
+                    NetworkStatusBar()
+
                     // Filter Pills
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 12) {

@@ -9,6 +9,8 @@ class DealsViewModel: ObservableObject {
     @Published var hasMore = true
 
     private let pageSize = 20
+    private let cache = CacheManager.shared
+    private let networkMonitor = NetworkMonitor.shared
 
     var totalAmount: Double {
         deals.filter { $0.status == .completed }.reduce(0) { $0 + $1.agreedPrice }
@@ -25,12 +27,32 @@ class DealsViewModel: ObservableObject {
         errorMessage = nil
         currentPage = 1
 
+        // Check if offline
+        if !networkMonitor.isConnected {
+            if let cachedDeals = cache.getCachedDeals() {
+                deals = cachedDeals
+                errorMessage = "Offline mode - Cached data"
+                isLoading = false
+                return
+            }
+        }
+
         do {
             let response = try await APIService.shared.getDeals(page: currentPage, size: pageSize)
             deals = response.items
             hasMore = currentPage < response.pages
+
+            // Cache the results
+            cache.cacheDeals(deals)
+            cache.updateLastSyncDate()
         } catch {
             errorMessage = error.localizedDescription
+
+            // Fallback to cache on error
+            if let cachedDeals = cache.getCachedDeals() {
+                deals = cachedDeals
+                errorMessage = "Using cached data - \(error.localizedDescription)"
+            }
         }
 
         isLoading = false

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ClientsListView: View {
     @StateObject private var viewModel = ClientsViewModel()
+    @StateObject private var networkMonitor = NetworkMonitor.shared
     @State private var searchText = ""
     @State private var showAddClient = false
 
@@ -22,6 +23,9 @@ struct ClientsListView: View {
                 AppTheme.backgroundGradient.ignoresSafeArea()
 
                 VStack(spacing: 0) {
+                    // Network Status Bar
+                    NetworkStatusBar()
+
                     // Stats Header
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 12) {

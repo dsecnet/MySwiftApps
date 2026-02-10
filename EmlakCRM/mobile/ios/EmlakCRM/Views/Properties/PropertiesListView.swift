@@ -2,8 +2,10 @@ import SwiftUI
 
 struct PropertiesListView: View {
     @StateObject private var viewModel = PropertiesViewModel()
+    @StateObject private var networkMonitor = NetworkMonitor.shared
     @State private var searchText = ""
     @State private var showAddProperty = false
+    @State private var showMapView = false
     @State private var filterPropertyType: PropertyType? = nil
     @State private var filterDealType: DealType? = nil
     @State private var filterStatus: PropertyStatus? = nil
@@ -42,6 +44,9 @@ struct PropertiesListView: View {
                 AppTheme.backgroundGradient.ignoresSafeArea()
 
                 VStack(spacing: 0) {
+                    // Network Status Bar
+                    NetworkStatusBar()
+
                     // Stats Header
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 12) {
@@ -162,6 +167,16 @@ struct PropertiesListView: View {
             .navigationTitle("Əmlaklar")
             .searchable(text: $searchText, prompt: "Axtar...")
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        showMapView = true
+                    } label: {
+                        Image(systemName: "map.fill")
+                            .foregroundColor(AppTheme.primaryColor)
+                            .font(.title3)
+                    }
+                }
+
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         showAddProperty = true
@@ -177,6 +192,9 @@ struct PropertiesListView: View {
                     await viewModel.refresh()
                 }
             }
+            .fullScreenCover(isPresented: $showMapView) {
+                PropertiesMapView()
+            }
             .task {
                 await viewModel.loadProperties()
             }
@@ -189,6 +207,16 @@ struct PropertiesListView: View {
             await viewModel.refresh()
         } catch {
             print("Error deleting property: \(error)")
+        }
+    }
+
+    private func iconForPropertyType(_ type: PropertyType) -> String {
+        switch type {
+        case .apartment: return "building.2.fill"
+        case .house: return "house.fill"
+        case .office: return "building.fill"
+        case .land: return "map.fill"
+        case .commercial: return "building.columns.fill"
         }
     }
 }
@@ -224,9 +252,17 @@ struct PropertyRowView: View {
 
                     Spacer()
 
-                    Text(formatPrice(property.price))
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(AppTheme.primaryColor)
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(property.price.toCurrency())
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(AppTheme.primaryColor)
+
+                        if let area = property.areaSqm {
+                            Text("\(Int(property.price / area)) ₼/m²")
+                                .font(.system(size: 11))
+                                .foregroundColor(AppTheme.textSecondary)
+                        }
+                    }
                 }
 
                 // Location
@@ -267,7 +303,7 @@ struct PropertyRowView: View {
                             Image(systemName: "square.grid.3x3.fill")
                                 .font(.caption)
                                 .foregroundColor(AppTheme.textSecondary)
-                            Text("\(Int(area)) m²")
+                            Text(area.toArea())
                                 .font(.system(size: 12))
                                 .foregroundColor(AppTheme.textSecondary)
                         }
@@ -285,6 +321,11 @@ struct PropertyRowView: View {
                     }
 
                     Spacer()
+
+                    // Time ago
+                    Text(property.createdAt.timeAgo())
+                        .font(.system(size: 10))
+                        .foregroundColor(AppTheme.textSecondary.opacity(0.7))
                 }
             }
             .padding()
@@ -292,24 +333,6 @@ struct PropertyRowView: View {
         .background(AppTheme.cardBackground)
         .cornerRadius(AppTheme.cornerRadius)
         .shadow(color: AppTheme.shadowColor, radius: AppTheme.shadowRadius, x: 0, y: 2)
-    }
-
-    private func iconForPropertyType(_ type: PropertyType) -> String {
-        switch type {
-        case .apartment: return "building.2.fill"
-        case .house: return "house.fill"
-        case .office: return "building.fill"
-        case .land: return "map.fill"
-        case .commercial: return "building.columns.fill"
-        }
-    }
-
-    private func formatPrice(_ price: Double) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.currencyCode = "AZN"
-        formatter.maximumFractionDigits = 0
-        return formatter.string(from: NSNumber(value: price)) ?? "\(Int(price)) ₼"
     }
 
     private func iconForPropertyType(_ type: PropertyType) -> String {

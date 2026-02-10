@@ -9,6 +9,7 @@ enum DealSortOption: String, CaseIterable {
 
 struct DealsListView: View {
     @StateObject private var viewModel = DealsViewModel()
+    @StateObject private var networkMonitor = NetworkMonitor.shared
     @State private var searchText = ""
     @State private var showAddDeal = false
     @State private var filterStatus: DealStatus? = nil
@@ -49,6 +50,9 @@ struct DealsListView: View {
                 AppTheme.backgroundGradient.ignoresSafeArea()
 
                 VStack(spacing: 0) {
+                    // Network Status Bar
+                    NetworkStatusBar()
+
                     // Stats Header
                     HStack(spacing: 16) {
                         DealStatCard(

@@ -9,6 +9,8 @@ class ActivitiesViewModel: ObservableObject {
     @Published var hasMore = true
 
     private let pageSize = 20
+    private let cache = CacheManager.shared
+    private let networkMonitor = NetworkMonitor.shared
 
     func loadActivities() async {
         guard !isLoading else { return }
@@ -17,12 +19,32 @@ class ActivitiesViewModel: ObservableObject {
         errorMessage = nil
         currentPage = 1
 
+        // Check if offline
+        if !networkMonitor.isConnected {
+            if let cachedActivities = cache.getCachedActivities() {
+                activities = cachedActivities
+                errorMessage = "Offline mode - Cached data"
+                isLoading = false
+                return
+            }
+        }
+
         do {
             let response = try await APIService.shared.getActivities(page: currentPage, size: pageSize)
             activities = response.items
             hasMore = currentPage < response.pages
+
+            // Cache the results
+            cache.cacheActivities(activities)
+            cache.updateLastSyncDate()
         } catch {
             errorMessage = error.localizedDescription
+
+            // Fallback to cache on error
+            if let cachedActivities = cache.getCachedActivities() {
+                activities = cachedActivities
+                errorMessage = "Using cached data - \(error.localizedDescription)"
+            }
         }
 
         isLoading = false

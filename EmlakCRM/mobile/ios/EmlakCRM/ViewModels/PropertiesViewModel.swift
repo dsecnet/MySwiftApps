@@ -9,9 +9,23 @@ class PropertiesViewModel: ObservableObject {
     @Published var hasMore = true
 
     private let pageSize = 20
+    private let cache = CacheManager.shared
+    private let networkMonitor = NetworkMonitor.shared
 
     func loadProperties() async {
         guard !isLoading else { return }
+
+        // Load from cache first if offline
+        if !networkMonitor.isConnected {
+            if let cachedProperties = cache.getCachedProperties() {
+                properties = cachedProperties
+                errorMessage = "Offline mode - Cached data"
+                return
+            } else {
+                errorMessage = "İnternet əlaqəsi yoxdur"
+                return
+            }
+        }
 
         isLoading = true
         errorMessage = nil
@@ -21,8 +35,18 @@ class PropertiesViewModel: ObservableObject {
             let response = try await APIService.shared.getProperties(page: currentPage, size: pageSize)
             properties = response.items
             hasMore = currentPage < response.pages
+
+            // Cache the results
+            cache.cacheProperties(properties)
+            cache.updateLastSyncDate()
         } catch {
             errorMessage = error.localizedDescription
+
+            // Fallback to cache on error
+            if let cachedProperties = cache.getCachedProperties() {
+                properties = cachedProperties
+                errorMessage = "Xəta baş verdi. Cached data göstərilir."
+            }
         }
 
         isLoading = false

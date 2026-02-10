@@ -60,7 +60,8 @@ struct AddClientView: View {
                             VStack(spacing: 12) {
                                 ClientTextField(icon: "person.fill", placeholder: "Ad Soyad *", text: $name)
 
-                                ClientTextField(icon: "envelope.fill", placeholder: "Email", text: $email, keyboardType: .emailAddress, autocapitalization: .none)
+                                ClientTextField(icon: "envelope.fill", placeholder: "Email", text: $email, keyboardType: .emailAddress)
+                                    .textInputAutocapitalization(.never)
 
                                 ClientTextField(icon: "phone.fill", placeholder: "Telefon", text: $phone, keyboardType: .phonePad)
                             }
@@ -272,7 +273,6 @@ struct ClientTextField: View {
     var axis: Axis = .horizontal
     var lineLimit: ClosedRange<Int>? = nil
     var keyboardType: UIKeyboardType = .default
-    var autocapitalization: TextInputAutocapitalization = .sentences
 
     var body: some View {
         HStack(spacing: 12) {
@@ -282,12 +282,10 @@ struct ClientTextField: View {
 
             if axis == .vertical {
                 TextField(placeholder, text: $text, axis: .vertical)
-                    .textInputAutocapitalization(autocapitalization)
                     .lineLimit(lineLimit ?? 1...10)
             } else {
                 TextField(placeholder, text: $text)
                     .keyboardType(keyboardType)
-                    .textInputAutocapitalization(autocapitalization)
             }
         }
         .padding()
