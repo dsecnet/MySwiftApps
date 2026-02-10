@@ -1,10 +1,19 @@
 import SwiftUI
 
+enum DealSortOption: String, CaseIterable {
+    case dateNewest = "Tarix (Yeni)"
+    case dateOldest = "Tarix (Köhnə)"
+    case priceHighest = "Qiymət (Yüksək)"
+    case priceLowest = "Qiymət (Aşağı)"
+}
+
 struct DealsListView: View {
     @StateObject private var viewModel = DealsViewModel()
     @State private var searchText = ""
     @State private var showAddDeal = false
     @State private var filterStatus: DealStatus? = nil
+    @State private var sortOption: DealSortOption = .dateNewest
+    @State private var showSortMenu = false
 
     var filteredDeals: [Deal] {
         var filtered = viewModel.deals
@@ -17,6 +26,18 @@ struct DealsListView: View {
             filtered = filtered.filter {
                 ($0.notes?.localizedCaseInsensitiveContains(searchText) ?? false)
             }
+        }
+
+        // Apply sorting
+        switch sortOption {
+        case .dateNewest:
+            filtered = filtered.sorted { $0.createdAt > $1.createdAt }
+        case .dateOldest:
+            filtered = filtered.sorted { $0.createdAt < $1.createdAt }
+        case .priceHighest:
+            filtered = filtered.sorted { $0.agreedPrice > $1.agreedPrice }
+        case .priceLowest:
+            filtered = filtered.sorted { $0.agreedPrice < $1.agreedPrice }
         }
 
         return filtered
@@ -53,7 +74,7 @@ struct DealsListView: View {
                                 filterStatus = nil
                             }
 
-                            ForEach([DealStatus.pending, .active, .won, .lost], id: \.self) { status in
+                            ForEach([DealStatus.pending, .inProgress, .completed, .cancelled], id: \.self) { status in
                                 FilterPill(
                                     title: status.displayName,
                                     isSelected: filterStatus == status
@@ -87,6 +108,15 @@ struct DealsListView: View {
                                         DealRowView(deal: deal)
                                     }
                                     .buttonStyle(PlainButtonStyle())
+                                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                        Button(role: .destructive) {
+                                            Task {
+                                                await deleteDeal(deal)
+                                            }
+                                        } label: {
+                                            Label("Sil", systemImage: "trash")
+                                        }
+                                    }
                                 }
 
                                 if viewModel.hasMore {
@@ -108,6 +138,31 @@ struct DealsListView: View {
             .navigationTitle("Sövdələşmələr")
             .searchable(text: $searchText, prompt: "Axtar...")
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Menu {
+                        ForEach(DealSortOption.allCases, id: \.self) { option in
+                            Button {
+                                sortOption = option
+                            } label: {
+                                HStack {
+                                    Text(option.rawValue)
+                                    if sortOption == option {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "arrow.up.arrow.down.circle.fill")
+                                .foregroundColor(AppTheme.primaryColor)
+                            Text("Sırala")
+                                .font(.system(size: 14))
+                                .foregroundColor(AppTheme.primaryColor)
+                        }
+                    }
+                }
+
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         showAddDeal = true
@@ -135,6 +190,15 @@ struct DealsListView: View {
         formatter.currencyCode = "AZN"
         formatter.maximumFractionDigits = 0
         return formatter.string(from: NSNumber(value: price)) ?? "\(Int(price)) ₼"
+    }
+
+    private func deleteDeal(_ deal: Deal) async {
+        do {
+            try await APIService.shared.deleteDeal(id: deal.id)
+            await viewModel.refresh()
+        } catch {
+            print("Error deleting deal: \(error)")
+        }
     }
 }
 
@@ -176,15 +240,13 @@ struct DealRowView: View {
 
                 Spacer()
 
-                if let closedAt = deal.closedAt {
-                    HStack(spacing: 4) {
-                        Image(systemName: "calendar")
-                            .font(.caption)
-                        Text(formatDate(closedAt))
-                            .font(AppTheme.caption())
-                    }
-                    .foregroundColor(AppTheme.textSecondary)
+                HStack(spacing: 4) {
+                    Image(systemName: "calendar")
+                        .font(.caption)
+                    Text(formatDate(deal.createdAt))
+                        .font(AppTheme.caption())
                 }
+                .foregroundColor(AppTheme.textSecondary)
             }
         }
         .padding()
@@ -223,9 +285,9 @@ struct DealStatusBadge: View {
     private func colorForStatus(_ status: DealStatus) -> Color {
         switch status {
         case .pending: return AppTheme.warningColor
-        case .active: return AppTheme.primaryColor
-        case .won: return AppTheme.successColor
-        case .lost: return AppTheme.errorColor
+        case .inProgress: return AppTheme.primaryColor
+        case .completed: return AppTheme.successColor
+        case .cancelled: return AppTheme.errorColor
         }
     }
 }

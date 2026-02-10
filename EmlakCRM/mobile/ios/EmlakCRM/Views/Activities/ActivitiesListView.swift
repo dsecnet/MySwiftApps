@@ -71,6 +71,26 @@ struct ActivitiesListView: View {
                                         ActivityRowView(activity: activity, viewModel: viewModel)
                                     }
                                     .buttonStyle(PlainButtonStyle())
+                                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                        Button(role: .destructive) {
+                                            Task {
+                                                await deleteActivity(activity)
+                                            }
+                                        } label: {
+                                            Label("Sil", systemImage: "trash")
+                                        }
+
+                                        if activity.completedAt == nil {
+                                            Button {
+                                                Task {
+                                                    await viewModel.completeActivity(id: activity.id)
+                                                }
+                                            } label: {
+                                                Label("Tamamla", systemImage: "checkmark")
+                                            }
+                                            .tint(.green)
+                                        }
+                                    }
                                 }
 
                                 if viewModel.hasMore {
@@ -110,6 +130,15 @@ struct ActivitiesListView: View {
             .task {
                 await viewModel.loadActivities()
             }
+        }
+    }
+
+    private func deleteActivity(_ activity: Activity) async {
+        do {
+            try await APIService.shared.deleteActivity(id: activity.id)
+            await viewModel.refresh()
+        } catch {
+            print("Error deleting activity: \(error)")
         }
     }
 }

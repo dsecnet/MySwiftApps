@@ -3,126 +3,265 @@ import SwiftUI
 struct ClientDetailView: View {
     let client: Client
     @Environment(\.dismiss) var dismiss
+    @State private var showEditSheet = false
+    @State private var showDeleteAlert = false
+    @State private var isDeleting = false
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                // Header Card
-                VStack(spacing: 16) {
-                    // Avatar
-                    ZStack {
-                        Circle()
-                            .fill(colorForClientType(client.clientType).opacity(0.2))
-                            .frame(width: 80, height: 80)
+            VStack(alignment: .leading, spacing: 16) {
+                // Hero Header with Gradient
+                ZStack(alignment: .bottom) {
+                    // Gradient Background
+                    LinearGradient(
+                        colors: [colorForClientType(client.clientType), colorForClientType(client.clientType).opacity(0.7)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    .frame(height: 200)
 
-                        Text(client.name.prefix(1).uppercased())
-                            .font(.system(size: 36, weight: .bold))
-                            .foregroundColor(colorForClientType(client.clientType))
+                    // Avatar and Info
+                    VStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(.white)
+                                .frame(width: 100, height: 100)
+                                .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+
+                            Text(client.name.prefix(1).uppercased())
+                                .font(.system(size: 42, weight: .bold))
+                                .foregroundColor(colorForClientType(client.clientType))
+                        }
+
+                        Text(client.name)
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
+
+                        HStack(spacing: 12) {
+                            Text(client.clientType.displayName)
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(.white.opacity(0.25))
+                                .cornerRadius(10)
+
+                            Text(client.status.displayName)
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(.white.opacity(0.25))
+                                .cornerRadius(10)
+                        }
                     }
-
-                    Text(client.name)
-                        .font(AppTheme.title())
-                        .foregroundColor(AppTheme.textPrimary)
-
-                    HStack(spacing: 12) {
-                        ClientTypeBadge(type: client.clientType)
-                        ClientStatusBadge(status: client.status)
-                    }
+                    .padding(.bottom, 20)
                 }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .cardStyle()
 
                 // Contact Info
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("Əlaqə Məlumatları")
-                        .font(AppTheme.headline())
-                        .foregroundColor(AppTheme.textPrimary)
-
-                    if let email = client.email {
-                        ContactRow(icon: "envelope.fill", label: "Email", value: email)
+                    HStack {
+                        Image(systemName: "person.circle.fill")
+                            .foregroundColor(AppTheme.primaryColor)
+                        Text("Əlaqə Məlumatları")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundColor(AppTheme.textPrimary)
                     }
 
-                    if let phone = client.phone {
-                        ContactRow(icon: "phone.fill", label: "Telefon", value: phone)
-                    }
+                    VStack(spacing: 12) {
+                        if let email = client.email {
+                            HStack(spacing: 12) {
+                                Image(systemName: "envelope.fill")
+                                    .foregroundColor(AppTheme.primaryColor)
+                                    .frame(width: 32, height: 32)
+                                    .background(AppTheme.primaryColor.opacity(0.15))
+                                    .cornerRadius(8)
 
-                    if client.email == nil && client.phone == nil {
-                        Text("Əlaqə məlumatı yoxdur")
-                            .font(AppTheme.body())
-                            .foregroundColor(AppTheme.textSecondary)
-                            .italic()
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Email")
+                                        .font(.system(size: 13))
+                                        .foregroundColor(AppTheme.textSecondary)
+                                    Text(email)
+                                        .font(.system(size: 15, weight: .medium))
+                                        .foregroundColor(AppTheme.textPrimary)
+                                }
+
+                                Spacer()
+                            }
+                        }
+
+                        if let phone = client.phone {
+                            HStack(spacing: 12) {
+                                Image(systemName: "phone.fill")
+                                    .foregroundColor(AppTheme.successColor)
+                                    .frame(width: 32, height: 32)
+                                    .background(AppTheme.successColor.opacity(0.15))
+                                    .cornerRadius(8)
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Telefon")
+                                        .font(.system(size: 13))
+                                        .foregroundColor(AppTheme.textSecondary)
+                                    Text(phone)
+                                        .font(.system(size: 15, weight: .medium))
+                                        .foregroundColor(AppTheme.textPrimary)
+                                }
+
+                                Spacer()
+                            }
+                        }
+
+                        if client.email == nil && client.phone == nil {
+                            Text("Əlaqə məlumatı yoxdur")
+                                .font(AppTheme.body())
+                                .foregroundColor(AppTheme.textSecondary)
+                                .italic()
+                        }
                     }
                 }
                 .padding()
-                .cardStyle()
+                .background(AppTheme.cardBackground)
+                .cornerRadius(AppTheme.cornerRadius)
+                .shadow(color: AppTheme.shadowColor, radius: AppTheme.shadowRadius, x: 0, y: 2)
 
                 // Source
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Mənbə")
-                        .font(AppTheme.headline())
-                        .foregroundColor(AppTheme.textPrimary)
-
                     HStack {
-                        Image(systemName: iconForSource(client.source))
+                        Image(systemName: "link.circle.fill")
                             .foregroundColor(AppTheme.primaryColor)
+                        Text("Mənbə")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundColor(AppTheme.textPrimary)
+                    }
+
+                    HStack(spacing: 12) {
+                        Image(systemName: iconForSource(client.source))
+                            .foregroundColor(AppTheme.secondaryColor)
+                            .frame(width: 32, height: 32)
+                            .background(AppTheme.secondaryColor.opacity(0.15))
+                            .cornerRadius(8)
 
                         Text(client.source.displayName)
-                            .font(AppTheme.body())
+                            .font(.system(size: 15))
                             .foregroundColor(AppTheme.textSecondary)
+
+                        Spacer()
                     }
                 }
                 .padding()
-                .cardStyle()
+                .background(AppTheme.cardBackground)
+                .cornerRadius(AppTheme.cornerRadius)
+                .shadow(color: AppTheme.shadowColor, radius: AppTheme.shadowRadius, x: 0, y: 2)
 
                 // Notes
                 if let notes = client.notes, !notes.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Qeydlər")
-                            .font(AppTheme.headline())
-                            .foregroundColor(AppTheme.textPrimary)
+                        HStack {
+                            Image(systemName: "note.text")
+                                .foregroundColor(AppTheme.primaryColor)
+                            Text("Qeydlər")
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundColor(AppTheme.textPrimary)
+                        }
 
                         Text(notes)
                             .font(AppTheme.body())
                             .foregroundColor(AppTheme.textSecondary)
+                            .lineSpacing(4)
                     }
                     .padding()
-                    .cardStyle()
+                    .background(AppTheme.cardBackground)
+                    .cornerRadius(AppTheme.cornerRadius)
+                    .shadow(color: AppTheme.shadowColor, radius: AppTheme.shadowRadius, x: 0, y: 2)
                 }
 
                 // Dates
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Tarixlər")
-                        .font(AppTheme.headline())
-                        .foregroundColor(AppTheme.textPrimary)
+                    HStack {
+                        Image(systemName: "calendar.circle.fill")
+                            .foregroundColor(AppTheme.primaryColor)
+                        Text("Tarixlər")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundColor(AppTheme.textPrimary)
+                    }
 
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(spacing: 10) {
                         HStack {
                             Text("Yaradılma:")
+                                .font(.system(size: 15))
                                 .foregroundColor(AppTheme.textSecondary)
                             Spacer()
                             Text(formatDate(client.createdAt))
+                                .font(.system(size: 15, weight: .medium))
                                 .foregroundColor(AppTheme.textPrimary)
                         }
 
+                        Divider()
+
                         HStack {
                             Text("Yenilənmə:")
+                                .font(.system(size: 15))
                                 .foregroundColor(AppTheme.textSecondary)
                             Spacer()
                             Text(formatDate(client.updatedAt))
+                                .font(.system(size: 15, weight: .medium))
                                 .foregroundColor(AppTheme.textPrimary)
                         }
                     }
-                    .font(AppTheme.body())
                 }
                 .padding()
-                .cardStyle()
+                .background(AppTheme.cardBackground)
+                .cornerRadius(AppTheme.cornerRadius)
+                .shadow(color: AppTheme.shadowColor, radius: AppTheme.shadowRadius, x: 0, y: 2)
             }
             .padding()
         }
-        .background(AppTheme.backgroundColor)
+        .background(AppTheme.backgroundGradient)
         .navigationTitle("Müştəri Detalları")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    Button {
+                        showEditSheet = true
+                    } label: {
+                        Label("Redaktə et", systemImage: "pencil")
+                    }
+
+                    Button(role: .destructive) {
+                        showDeleteAlert = true
+                    } label: {
+                        Label("Sil", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle.fill")
+                        .font(.title3)
+                        .foregroundColor(colorForClientType(client.clientType))
+                }
+            }
+        }
+        .alert("Müştərini silmək istədiyinizdən əminsiniz?", isPresented: $showDeleteAlert) {
+            Button("Ləğv et", role: .cancel) { }
+            Button("Sil", role: .destructive) {
+                Task {
+                    await deleteClient()
+                }
+            }
+        } message: {
+            Text("Bu əməliyyat geri qaytarıla bilməz.")
+        }
+    }
+
+    private func deleteClient() async {
+        isDeleting = true
+        do {
+            try await APIService.shared.deleteClient(id: client.id)
+            dismiss()
+        } catch {
+            print("Error deleting client: \(error)")
+        }
+        isDeleting = false
     }
 
     private func colorForClientType(_ type: ClientType) -> Color {

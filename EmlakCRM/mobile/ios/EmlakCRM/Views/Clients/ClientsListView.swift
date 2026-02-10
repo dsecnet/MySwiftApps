@@ -19,32 +19,80 @@ struct ClientsListView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                AppTheme.backgroundColor.ignoresSafeArea()
+                AppTheme.backgroundGradient.ignoresSafeArea()
 
-                if viewModel.isLoading && viewModel.clients.isEmpty {
-                    ProgressView()
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 12) {
-                            ForEach(filteredClients) { client in
-                                NavigationLink(destination: ClientDetailView(client: client)) {
-                                    ClientRowView(client: client)
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            }
+                VStack(spacing: 0) {
+                    // Stats Header
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 12) {
+                            ClientStatCard(
+                                title: "Toplam",
+                                value: "\(viewModel.clients.count)",
+                                icon: "person.3.fill",
+                                color: AppTheme.primaryColor
+                            )
 
-                            if viewModel.hasMore {
-                                ProgressView()
-                                    .padding()
-                                    .task {
-                                        await viewModel.loadMore()
-                                    }
-                            }
+                            ClientStatCard(
+                                title: "Aktiv",
+                                value: "\(viewModel.clients.filter { $0.status == .active }.count)",
+                                icon: "checkmark.circle.fill",
+                                color: AppTheme.successColor
+                            )
+
+                            ClientStatCard(
+                                title: "Potensial",
+                                value: "\(viewModel.clients.filter { $0.status == .potential }.count)",
+                                icon: "star.fill",
+                                color: AppTheme.warningColor
+                            )
                         }
                         .padding()
                     }
-                    .refreshable {
-                        await viewModel.refresh()
+
+                    if viewModel.isLoading && viewModel.clients.isEmpty {
+                        Spacer()
+                        ProgressView()
+                        Spacer()
+                    } else if filteredClients.isEmpty {
+                        Spacer()
+                        EmptyStateView(
+                            icon: "person.3.fill",
+                            title: "Müştəri yoxdur",
+                            message: "Yeni müştəri əlavə edin"
+                        )
+                        Spacer()
+                    } else {
+                        ScrollView {
+                            LazyVStack(spacing: 12) {
+                                ForEach(filteredClients) { client in
+                                    NavigationLink(destination: ClientDetailView(client: client)) {
+                                        ClientRowView(client: client)
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                        Button(role: .destructive) {
+                                            Task {
+                                                await deleteClient(client)
+                                            }
+                                        } label: {
+                                            Label("Sil", systemImage: "trash")
+                                        }
+                                    }
+                                }
+
+                                if viewModel.hasMore {
+                                    ProgressView()
+                                        .padding()
+                                        .task {
+                                            await viewModel.loadMore()
+                                        }
+                                }
+                            }
+                            .padding()
+                        }
+                        .refreshable {
+                            await viewModel.refresh()
+                        }
                     }
                 }
             }
@@ -55,7 +103,9 @@ struct ClientsListView: View {
                     Button {
                         showAddClient = true
                     } label: {
-                        Image(systemName: "plus")
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundStyle(AppTheme.primaryGradient)
+                            .font(.title2)
                     }
                 }
             }
@@ -69,64 +119,91 @@ struct ClientsListView: View {
             }
         }
     }
+
+    private func deleteClient(_ client: Client) async {
+        do {
+            try await APIService.shared.deleteClient(id: client.id)
+            await viewModel.refresh()
+        } catch {
+            print("Error deleting client: \(error)")
+        }
+    }
 }
 
 struct ClientRowView: View {
     let client: Client
 
     var body: some View {
-        HStack(spacing: 12) {
-            // Avatar
-            ZStack {
-                Circle()
-                    .fill(colorForClientType(client.clientType).opacity(0.2))
-                    .frame(width: 50, height: 50)
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                // Modern Avatar with gradient
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [colorForClientType(client.clientType), colorForClientType(client.clientType).opacity(0.6)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 60, height: 60)
 
-                Text(client.name.prefix(1).uppercased())
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundColor(colorForClientType(client.clientType))
+                    Text(client.name.prefix(1).uppercased())
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.white)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(client.name)
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(AppTheme.textPrimary)
+
+                    HStack(spacing: 8) {
+                        ClientTypeBadge(type: client.clientType)
+                        ClientStatusBadge(status: client.status)
+                    }
+                }
+
+                Spacer()
             }
+            .padding()
 
-            VStack(alignment: .leading, spacing: 6) {
-                Text(client.name)
-                    .font(AppTheme.headline())
-                    .foregroundColor(AppTheme.textPrimary)
+            Divider()
+                .padding(.horizontal)
 
+            VStack(spacing: 8) {
                 if let email = client.email {
-                    HStack(spacing: 4) {
+                    HStack(spacing: 8) {
                         Image(systemName: "envelope.fill")
                             .font(.caption)
+                            .foregroundColor(AppTheme.primaryColor)
+                            .frame(width: 20)
                         Text(email)
                             .font(AppTheme.caption())
+                            .foregroundColor(AppTheme.textSecondary)
+                        Spacer()
                     }
-                    .foregroundColor(AppTheme.textSecondary)
                 }
 
                 if let phone = client.phone {
-                    HStack(spacing: 4) {
+                    HStack(spacing: 8) {
                         Image(systemName: "phone.fill")
                             .font(.caption)
+                            .foregroundColor(AppTheme.primaryColor)
+                            .frame(width: 20)
                         Text(phone)
                             .font(AppTheme.caption())
+                            .foregroundColor(AppTheme.textSecondary)
+                        Spacer()
                     }
-                    .foregroundColor(AppTheme.textSecondary)
-                }
-
-                HStack(spacing: 8) {
-                    ClientTypeBadge(type: client.clientType)
-                    ClientStatusBadge(status: client.status)
                 }
             }
-
-            Spacer()
-
-            Image(systemName: "chevron.right")
-                .foregroundColor(AppTheme.textSecondary)
-                .font(.caption)
+            .padding()
+            .padding(.top, -8)
         }
-        .padding()
-        .cardStyle()
+        .background(AppTheme.cardBackground)
+        .cornerRadius(AppTheme.cornerRadius)
+        .shadow(color: AppTheme.shadowColor, radius: AppTheme.shadowRadius, x: 0, y: 2)
     }
 
     private func colorForClientType(_ type: ClientType) -> Color {
@@ -144,12 +221,12 @@ struct ClientTypeBadge: View {
 
     var body: some View {
         Text(type.displayName)
-            .font(.system(size: 11, weight: .medium))
+            .font(.system(size: 11, weight: .semibold))
             .foregroundColor(colorForType(type))
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
             .background(colorForType(type).opacity(0.15))
-            .cornerRadius(6)
+            .cornerRadius(8)
     }
 
     private func colorForType(_ type: ClientType) -> Color {
@@ -167,12 +244,12 @@ struct ClientStatusBadge: View {
 
     var body: some View {
         Text(status.displayName)
-            .font(.system(size: 11, weight: .medium))
+            .font(.system(size: 11, weight: .semibold))
             .foregroundColor(.white)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
             .background(colorForStatus(status))
-            .cornerRadius(6)
+            .cornerRadius(8)
     }
 
     private func colorForStatus(_ status: ClientStatus) -> Color {
@@ -181,6 +258,38 @@ struct ClientStatusBadge: View {
         case .inactive: return AppTheme.textSecondary
         case .potential: return AppTheme.warningColor
         }
+    }
+}
+
+struct ClientStatCard: View {
+    let title: String
+    let value: String
+    let icon: String
+    let color: Color
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundColor(color)
+                .frame(width: 44, height: 44)
+                .background(color.opacity(0.15))
+                .cornerRadius(12)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(value)
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(AppTheme.textPrimary)
+
+                Text(title)
+                    .font(AppTheme.caption())
+                    .foregroundColor(AppTheme.textSecondary)
+            }
+        }
+        .padding()
+        .background(AppTheme.cardBackground)
+        .cornerRadius(AppTheme.cornerRadius)
+        .shadow(color: AppTheme.shadowColor, radius: AppTheme.shadowRadius, x: 0, y: 2)
     }
 }
 

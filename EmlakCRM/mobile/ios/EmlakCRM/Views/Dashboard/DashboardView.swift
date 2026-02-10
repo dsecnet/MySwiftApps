@@ -3,6 +3,10 @@ import SwiftUI
 struct DashboardView: View {
     @EnvironmentObject var authVM: AuthViewModel
     @StateObject private var viewModel = DashboardViewModel()
+    @State private var showSettings = false
+    @State private var showAddProperty = false
+    @State private var showAddClient = false
+    @State private var showAddActivity = false
 
     var body: some View {
         NavigationStack {
@@ -40,9 +44,9 @@ struct DashboardView: View {
                                 }
 
                                 Button {
-                                    authVM.logout()
+                                    showSettings = true
                                 } label: {
-                                    Image(systemName: "person.circle.fill")
+                                    Image(systemName: "gearshape.fill")
                                         .font(.system(size: 20))
                                         .foregroundColor(AppTheme.primaryColor)
                                         .frame(width: 44, height: 44)
@@ -123,29 +127,43 @@ struct DashboardView: View {
 
                                 ScrollView(.horizontal, showsIndicators: false) {
                                     HStack(spacing: 12) {
-                                        QuickActionCard(
-                                            title: "Əmlak Əlavə Et",
-                                            icon: "plus.square.fill",
-                                            color: AppTheme.primaryColor
-                                        )
+                                        Button {
+                                            showAddProperty = true
+                                        } label: {
+                                            QuickActionCard(
+                                                title: "Əmlak Əlavə Et",
+                                                icon: "plus.square.fill",
+                                                color: AppTheme.primaryColor
+                                            )
+                                        }
 
-                                        QuickActionCard(
-                                            title: "Müştəri Əlavə Et",
-                                            icon: "person.crop.circle.badge.plus",
-                                            color: AppTheme.secondaryColor
-                                        )
+                                        Button {
+                                            showAddClient = true
+                                        } label: {
+                                            QuickActionCard(
+                                                title: "Müştəri Əlavə Et",
+                                                icon: "person.crop.circle.badge.plus",
+                                                color: AppTheme.secondaryColor
+                                            )
+                                        }
 
-                                        QuickActionCard(
-                                            title: "Fəaliyyət Planla",
-                                            icon: "calendar.badge.plus",
-                                            color: AppTheme.accentColor
-                                        )
+                                        Button {
+                                            showAddActivity = true
+                                        } label: {
+                                            QuickActionCard(
+                                                title: "Fəaliyyət Planla",
+                                                icon: "calendar.badge.plus",
+                                                color: AppTheme.accentColor
+                                            )
+                                        }
 
-                                        QuickActionCard(
-                                            title: "Hesabat",
-                                            icon: "chart.bar.doc.horizontal.fill",
-                                            color: AppTheme.successColor
-                                        )
+                                        NavigationLink(destination: Text("Hesabatlar").font(.largeTitle)) {
+                                            QuickActionCard(
+                                                title: "Hesabat",
+                                                icon: "chart.bar.doc.horizontal.fill",
+                                                color: AppTheme.successColor
+                                            )
+                                        }
                                     }
                                     .padding(.horizontal, 20)
                                 }
@@ -168,6 +186,24 @@ struct DashboardView: View {
             .navigationBarHidden(true)
             .task {
                 await viewModel.loadStats()
+            }
+            .sheet(isPresented: $showSettings) {
+                SettingsView()
+            }
+            .sheet(isPresented: $showAddProperty) {
+                AddPropertyView {
+                    await viewModel.loadStats()
+                }
+            }
+            .sheet(isPresented: $showAddClient) {
+                AddClientView {
+                    await viewModel.loadStats()
+                }
+            }
+            .sheet(isPresented: $showAddActivity) {
+                AddActivityView {
+                    await viewModel.loadStats()
+                }
             }
         }
     }

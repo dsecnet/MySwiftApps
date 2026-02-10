@@ -23,106 +23,167 @@ struct AddPropertyView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                AppTheme.backgroundColor.ignoresSafeArea()
+                AppTheme.backgroundGradient.ignoresSafeArea()
 
                 ScrollView {
                     VStack(spacing: 20) {
+                        // Header Icon
+                        VStack(spacing: 16) {
+                            ZStack {
+                                Circle()
+                                    .fill(AppTheme.primaryGradient)
+                                    .frame(width: 80, height: 80)
+                                    .shadow(color: AppTheme.primaryColor.opacity(0.4), radius: 20, x: 0, y: 10)
+
+                                Image(systemName: "building.2.fill")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.white)
+                            }
+
+                            Text("Yeni Əmlak")
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundColor(AppTheme.textPrimary)
+                        }
+                        .padding(.top, 20)
+
                         // Basic Info
                         VStack(alignment: .leading, spacing: 16) {
-                            Text("Əsas Məlumat")
-                                .font(AppTheme.headline())
-                                .foregroundColor(AppTheme.textPrimary)
-
-                            TextField("Başlıq", text: $title)
-                                .textFieldStyle(.roundedBorder)
-
-                            TextField("Təsvir", text: $description, axis: .vertical)
-                                .textFieldStyle(.roundedBorder)
-                                .lineLimit(3...6)
-
-                            Picker("Əmlak növü", selection: $propertyType) {
-                                ForEach(PropertyType.allCases, id: \.self) { type in
-                                    Text(type.displayName).tag(type)
-                                }
+                            HStack(spacing: 8) {
+                                Image(systemName: "info.circle.fill")
+                                    .foregroundColor(AppTheme.primaryColor)
+                                Text("Əsas Məlumat")
+                                    .font(AppTheme.headline())
+                                    .foregroundColor(AppTheme.textPrimary)
                             }
-                            .pickerStyle(.segmented)
 
-                            Picker("Sövdələşmə növü", selection: $dealType) {
-                                ForEach([DealType.sale, DealType.rent], id: \.self) { type in
-                                    Text(type.displayName).tag(type)
-                                }
-                            }
-                            .pickerStyle(.segmented)
+                            VStack(spacing: 12) {
+                                ModernTextField(icon: "tag.fill", placeholder: "Başlıq *", text: $title)
 
-                            Picker("Status", selection: $status) {
-                                ForEach([PropertyStatus.available, PropertyStatus.reserved], id: \.self) { s in
-                                    Text(s.displayName).tag(s)
-                                }
+                                ModernTextField(icon: "text.alignleft", placeholder: "Təsvir", text: $description, axis: .vertical, lineLimit: 3...6)
                             }
-                            .pickerStyle(.segmented)
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Əmlak növü")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(AppTheme.textSecondary)
+
+                                Picker("Əmlak növü", selection: $propertyType) {
+                                    ForEach(PropertyType.allCases, id: \.self) { type in
+                                        Text(type.displayName).tag(type)
+                                    }
+                                }
+                                .pickerStyle(.segmented)
+                            }
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Sövdələşmə növü")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(AppTheme.textSecondary)
+
+                                Picker("Sövdələşmə növü", selection: $dealType) {
+                                    ForEach([DealType.sale, DealType.rent], id: \.self) { type in
+                                        Text(type.displayName).tag(type)
+                                    }
+                                }
+                                .pickerStyle(.segmented)
+                            }
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Status")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(AppTheme.textSecondary)
+
+                                Picker("Status", selection: $status) {
+                                    ForEach([PropertyStatus.available, PropertyStatus.reserved], id: \.self) { s in
+                                        Text(s.displayName).tag(s)
+                                    }
+                                }
+                                .pickerStyle(.segmented)
+                            }
                         }
                         .padding()
-                        .cardStyle()
+                        .background(AppTheme.cardBackground)
+                        .cornerRadius(AppTheme.cornerRadius)
+                        .shadow(color: AppTheme.shadowColor, radius: AppTheme.shadowRadius, x: 0, y: 4)
 
                         // Price & Area
                         VStack(alignment: .leading, spacing: 16) {
-                            Text("Qiymət və Sahə")
-                                .font(AppTheme.headline())
-                                .foregroundColor(AppTheme.textPrimary)
+                            HStack(spacing: 8) {
+                                Image(systemName: "dollarsign.circle.fill")
+                                    .foregroundColor(AppTheme.successColor)
+                                Text("Qiymət və Sahə")
+                                    .font(AppTheme.headline())
+                                    .foregroundColor(AppTheme.textPrimary)
+                            }
 
-                            TextField("Qiymət (₼)", text: $price)
-                                .textFieldStyle(.roundedBorder)
-                                .keyboardType(.numberPad)
+                            VStack(spacing: 12) {
+                                ModernTextField(icon: "manat.sign.circle.fill", placeholder: "Qiymət (₼) *", text: $price, keyboardType: .decimalPad)
 
-                            TextField("Sahə (m²)", text: $area)
-                                .textFieldStyle(.roundedBorder)
-                                .keyboardType(.numberPad)
+                                ModernTextField(icon: "square.fill", placeholder: "Sahə (m²) *", text: $area, keyboardType: .decimalPad)
+                            }
                         }
                         .padding()
-                        .cardStyle()
+                        .background(AppTheme.cardBackground)
+                        .cornerRadius(AppTheme.cornerRadius)
+                        .shadow(color: AppTheme.shadowColor, radius: AppTheme.shadowRadius, x: 0, y: 4)
 
                         // Location
                         VStack(alignment: .leading, spacing: 16) {
-                            Text("Ünvan")
-                                .font(AppTheme.headline())
-                                .foregroundColor(AppTheme.textPrimary)
+                            HStack(spacing: 8) {
+                                Image(systemName: "location.circle.fill")
+                                    .foregroundColor(AppTheme.infoColor)
+                                Text("Ünvan")
+                                    .font(AppTheme.headline())
+                                    .foregroundColor(AppTheme.textPrimary)
+                            }
 
-                            TextField("Ünvan", text: $address)
-                                .textFieldStyle(.roundedBorder)
+                            VStack(spacing: 12) {
+                                ModernTextField(icon: "map.fill", placeholder: "Ünvan *", text: $address)
 
-                            TextField("Şəhər", text: $city)
-                                .textFieldStyle(.roundedBorder)
+                                ModernTextField(icon: "building.2.fill", placeholder: "Şəhər *", text: $city)
+                            }
                         }
                         .padding()
-                        .cardStyle()
+                        .background(AppTheme.cardBackground)
+                        .cornerRadius(AppTheme.cornerRadius)
+                        .shadow(color: AppTheme.shadowColor, radius: AppTheme.shadowRadius, x: 0, y: 4)
 
                         // Additional Info
                         VStack(alignment: .leading, spacing: 16) {
-                            Text("Əlavə Məlumat (İstəyə görə)")
-                                .font(AppTheme.headline())
-                                .foregroundColor(AppTheme.textPrimary)
+                            HStack(spacing: 8) {
+                                Image(systemName: "list.bullet.circle.fill")
+                                    .foregroundColor(AppTheme.accentColor)
+                                Text("Əlavə Məlumat")
+                                    .font(AppTheme.headline())
+                                    .foregroundColor(AppTheme.textPrimary)
+                            }
 
-                            TextField("Otaq sayı", text: $rooms)
-                                .textFieldStyle(.roundedBorder)
-                                .keyboardType(.numberPad)
+                            VStack(spacing: 12) {
+                                ModernTextField(icon: "door.left.hand.open", placeholder: "Otaq sayı", text: $rooms, keyboardType: .numberPad)
 
-                            TextField("Vanna otağı sayı", text: $bathrooms)
-                                .textFieldStyle(.roundedBorder)
-                                .keyboardType(.numberPad)
+                                ModernTextField(icon: "shower.fill", placeholder: "Vanna otağı sayı", text: $bathrooms, keyboardType: .numberPad)
 
-                            TextField("Mərtəbə", text: $floor)
-                                .textFieldStyle(.roundedBorder)
-                                .keyboardType(.numberPad)
+                                ModernTextField(icon: "building.columns.fill", placeholder: "Mərtəbə", text: $floor, keyboardType: .numberPad)
+                            }
                         }
                         .padding()
-                        .cardStyle()
+                        .background(AppTheme.cardBackground)
+                        .cornerRadius(AppTheme.cornerRadius)
+                        .shadow(color: AppTheme.shadowColor, radius: AppTheme.shadowRadius, x: 0, y: 4)
 
                         // Error Message
                         if let error = errorMessage {
-                            Text(error)
-                                .font(AppTheme.caption())
-                                .foregroundColor(AppTheme.errorColor)
-                                .padding()
+                            HStack(spacing: 8) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundColor(AppTheme.errorColor)
+                                Text(error)
+                                    .font(AppTheme.caption())
+                                    .foregroundColor(AppTheme.errorColor)
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(AppTheme.errorColor.opacity(0.1))
+                            .cornerRadius(12)
                         }
 
                         // Save Button
@@ -131,26 +192,42 @@ struct AddPropertyView: View {
                                 await createProperty()
                             }
                         } label: {
-                            if isLoading {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            } else {
-                                Text("Əlavə et")
+                            HStack {
+                                if isLoading {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                } else {
+                                    Image(systemName: "checkmark.circle.fill")
+                                    Text("Əlavə et")
+                                        .font(.system(size: 17, weight: .semibold))
+                                }
                             }
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(AppTheme.primaryGradient)
+                            .cornerRadius(12)
+                            .shadow(color: AppTheme.primaryColor.opacity(0.3), radius: 8, x: 0, y: 4)
                         }
-                        .primaryButtonStyle()
                         .disabled(isLoading || !isFormValid)
+                        .opacity((isLoading || !isFormValid) ? 0.6 : 1.0)
                         .padding(.horizontal)
+                        .padding(.top, 8)
                     }
                     .padding()
                 }
             }
-            .navigationTitle("Yeni Əmlak")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Ləğv et") {
+                    Button {
                         dismiss()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "xmark.circle.fill")
+                            Text("Ləğv et")
+                        }
+                        .foregroundColor(AppTheme.errorColor)
                     }
                 }
             }
@@ -200,6 +277,36 @@ struct AddPropertyView: View {
         }
 
         isLoading = false
+    }
+}
+
+struct ModernTextField: View {
+    let icon: String
+    let placeholder: String
+    @Binding var text: String
+    var axis: Axis = .horizontal
+    var lineLimit: ClosedRange<Int>? = nil
+    var keyboardType: UIKeyboardType = .default
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .foregroundColor(AppTheme.textSecondary)
+                .frame(width: 20)
+
+            if axis == .vertical {
+                TextField(placeholder, text: $text, axis: .vertical)
+                    .textContentType(.none)
+                    .lineLimit(lineLimit ?? 1...10)
+            } else {
+                TextField(placeholder, text: $text)
+                    .keyboardType(keyboardType)
+                    .textContentType(.none)
+            }
+        }
+        .padding()
+        .background(AppTheme.backgroundColor)
+        .cornerRadius(12)
     }
 }
 
