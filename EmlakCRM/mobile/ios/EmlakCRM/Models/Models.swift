@@ -319,6 +319,28 @@ struct DashboardStats: Codable {
     let totalClients: Int
     let totalActivities: Int
     let totalDeals: Int
+    let propertiesForSale: Int?
+    let propertiesForRent: Int?
+    let propertiesSold: Int?
+    let clientsActive: Int?
+    let clientsLeads: Int?
+    let activitiesToday: Int?
+    let activitiesThisWeek: Int?
+    let dealsInProgress: Int?
+    let dealsCompleted: Int?
+}
+
+struct RecentActivity: Codable, Identifiable {
+    let id: String
+    let type: String
+    let title: String
+    let description: String
+    let createdAt: Date
+}
+
+struct DashboardResponse: Codable {
+    let stats: DashboardStats
+    let recentActivities: [RecentActivity]
 }
 
 // MARK: - Pagination
@@ -430,4 +452,72 @@ struct LandmarkFull: Codable, Identifiable {
         case distanceKm = "distance_km"
         case distanceM = "distance_m"
     }
+}
+
+// MARK: - Mortgage Models
+struct MortgageResult: Codable {
+    let propertyPrice: Double
+    let downPayment: Double
+    let loanAmount: Double
+    let monthlyPayment: Double
+    let totalPayment: Double
+    let totalInterest: Double
+    let rate: Double
+    let termYears: Int
+    let bank: String?
+}
+
+struct BankInfo: Codable {
+    let name: String
+    let monthlyPayment: Double
+    let rate: Double
+    let totalPayment: Double
+    let totalInterest: Double
+}
+
+struct BankComparisonResponse: Codable {
+    let total: Int
+    let propertyPrice: Double
+    let downPaymentPercent: Double
+    let termYears: Int
+    let currency: String
+    let banks: [BankInfo]
+}
+
+struct BankDetails: Codable {
+    let name: String
+    let rateAzn: Double
+    let rateUsd: Double
+    let minDownPayment: Int
+    let maxTermYears: Int
+}
+
+struct BanksResponse: Codable {
+    let banks: [String: BankDetails]
+}
+
+struct PaymentScheduleEntry: Codable {
+    let month: Int
+    let date: String
+    let payment: Double
+    let principal: Double
+    let interest: Double
+    let balance: Double
+}
+
+struct PaymentScheduleResponse: Codable {
+    let loanAmount: Double
+    let annualRate: Double
+    let termYears: Int
+    let schedule: [PaymentScheduleEntry]
+}
+
+struct AffordabilityResult: Codable {
+    let monthlyIncome: Double
+    let monthlyExpenses: Double
+    let availableMonthly: Double
+    let maxMonthlyPayment: Double
+    let recommendedPropertyPrice: Double
+    let recommendedDownPayment: Double
+    let recommendedLoan: Double
 }

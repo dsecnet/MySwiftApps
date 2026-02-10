@@ -6,22 +6,24 @@ struct PropertiesMapView: View {
     @StateObject private var mapViewModel = MapViewModel()
     @State private var showFilters = false
     @State private var selectedProperty: PropertyWithDistance?
+    @Environment(\.dismiss) var dismiss
 
     var body: some View {
         ZStack {
             // Map
-            Map(coordinateRegion: $mapViewModel.region,
-                annotationItems: mapViewModel.nearbyProperties) { property in
-                MapAnnotation(coordinate: CLLocationCoordinate2D(
-                    latitude: property.latitude,
-                    longitude: property.longitude
-                )) {
-                    PropertyMapPin(
-                        property: property,
-                        isSelected: selectedProperty?.id == property.id
-                    )
-                    .onTapGesture {
-                        selectedProperty = property
+            Map(position: $mapViewModel.cameraPosition) {
+                ForEach(mapViewModel.nearbyProperties) { property in
+                    Annotation(property.title, coordinate: CLLocationCoordinate2D(
+                        latitude: property.latitude,
+                        longitude: property.longitude
+                    )) {
+                        PropertyMapPin(
+                            property: property,
+                            isSelected: selectedProperty?.id == property.id
+                        )
+                        .onTapGesture {
+                            selectedProperty = property
+                        }
                     }
                 }
             }
@@ -31,7 +33,7 @@ struct PropertiesMapView: View {
             VStack {
                 HStack {
                     Button {
-                        // Back
+                        dismiss()
                     } label: {
                         Image(systemName: "chevron.left")
                             .font(.title3)
@@ -285,6 +287,11 @@ class MapViewModel: ObservableObject {
         center: CLLocationCoordinate2D.bakuCenter,
         span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
     )
+
+    @Published var cameraPosition: MapCameraPosition = .region(MKCoordinateRegion(
+        center: CLLocationCoordinate2D.bakuCenter,
+        span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+    ))
 
     @Published var nearbyProperties: [PropertyWithDistance] = []
     @Published var isLoading = false

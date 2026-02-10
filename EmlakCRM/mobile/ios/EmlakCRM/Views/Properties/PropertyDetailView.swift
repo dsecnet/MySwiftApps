@@ -7,6 +7,7 @@ struct PropertyDetailView: View {
     @State private var showDeleteAlert = false
     @State private var isDeleting = false
     @State private var showShareSheet = false
+    @State private var showWhatsAppSheet = false
 
     var body: some View {
         ScrollView {
@@ -187,10 +188,18 @@ struct PropertyDetailView: View {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Menu {
                     Button {
+                        showWhatsAppSheet = true
+                    } label: {
+                        Label("WhatsApp ilə paylaş", systemImage: "message.fill")
+                    }
+
+                    Button {
                         showShareSheet = true
                     } label: {
                         Label("Paylaş", systemImage: "square.and.arrow.up")
                     }
+
+                    Divider()
 
                     Button {
                         showEditSheet = true
@@ -211,6 +220,9 @@ struct PropertyDetailView: View {
             }
         }
         .shareSheet(isPresented: $showShareSheet, items: [ShareHelper.shareProperty(property)])
+        .sheet(isPresented: $showWhatsAppSheet) {
+            WhatsAppShareSheet(property: property)
+        }
         .alert("Əmlakı silmək istədiyinizdən əminsiniz?", isPresented: $showDeleteAlert) {
             Button("Ləğv et", role: .cancel) { }
             Button("Sil", role: .destructive) {
@@ -326,9 +338,15 @@ struct InfoItem: View {
             areaSqm: 85,
             address: "Nizami küçəsi 123",
             city: "Bakı",
+            district: "Nəsimi",
             rooms: 3,
             bathrooms: 2,
             floor: 5,
+            latitude: 40.4093,
+            longitude: 49.8671,
+            nearestMetro: "28 May",
+            metroDistanceM: 350,
+            nearbyLandmarks: nil,
             createdAt: Date(),
             updatedAt: Date()
         ))

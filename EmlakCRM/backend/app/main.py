@@ -38,7 +38,7 @@ async def health_check():
 # MARK: - Routers
 # ============================================================
 
-from app.routers import auth, properties, clients, activities, deals, dashboard, map as map_router
+from app.routers import auth, properties, clients, activities, deals, dashboard, map as map_router, whatsapp, mortgage
 
 app.include_router(auth.router)
 app.include_router(properties.router)
@@ -47,3 +47,5 @@ app.include_router(activities.router)
 app.include_router(deals.router)
 app.include_router(dashboard.router)
 app.include_router(map_router.router)
+app.include_router(whatsapp.router)
+app.include_router(mortgage.router)

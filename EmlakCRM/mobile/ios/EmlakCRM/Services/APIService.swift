@@ -195,8 +195,8 @@ class APIService {
     }
 
     // MARK: - Dashboard
-    func getDashboardStats() async throws -> DashboardStats {
-        return try await request(endpoint: "/dashboard/stats")
+    func getDashboardStats() async throws -> DashboardResponse {
+        return try await request(endpoint: "/dashboard/")
     }
 }
 

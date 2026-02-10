@@ -14,14 +14,14 @@ class MapService {
         radiusKm: Double = 2.0,
         limit: Int = 50
     ) async throws -> NearbyPropertiesResponse {
-        guard let token = KeychainHelper.getToken() else {
-            throw APIError.unauthorized
+        guard let token = UserDefaults.standard.string(forKey: "accessToken") else {
+            throw MapAPIError.unauthorized
         }
 
         let urlString = "\(baseURL)/map/properties/nearby?latitude=\(latitude)&longitude=\(longitude)&radius_km=\(radiusKm)&limit=\(limit)"
 
         guard let url = URL(string: urlString) else {
-            throw APIError.invalidURL
+            throw MapAPIError.invalidURL
         }
 
         var request = URLRequest(url: url)
@@ -32,11 +32,11 @@ class MapService {
         let (data, response) = try await URLSession.shared.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.invalidResponse
+            throw MapAPIError.invalidResponse
         }
 
         guard httpResponse.statusCode == 200 else {
-            throw APIError.serverError(httpResponse.statusCode)
+            throw MapAPIError.serverError(httpResponse.statusCode)
         }
 
         let decoder = JSONDecoder()
@@ -52,15 +52,15 @@ class MapService {
         radiusKm: Double = 1.5,
         limit: Int = 50
     ) async throws -> NearbyPropertiesResponse {
-        guard let token = KeychainHelper.getToken() else {
-            throw APIError.unauthorized
+        guard let token = UserDefaults.standard.string(forKey: "accessToken") else {
+            throw MapAPIError.unauthorized
         }
 
         let encodedMetro = metroName.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? metroName
         let urlString = "\(baseURL)/map/properties/by-metro?metro_name=\(encodedMetro)&radius_km=\(radiusKm)&limit=\(limit)"
 
         guard let url = URL(string: urlString) else {
-            throw APIError.invalidURL
+            throw MapAPIError.invalidURL
         }
 
         var request = URLRequest(url: url)
@@ -70,11 +70,11 @@ class MapService {
         let (data, response) = try await URLSession.shared.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.invalidResponse
+            throw MapAPIError.invalidResponse
         }
 
         guard httpResponse.statusCode == 200 else {
-            throw APIError.serverError(httpResponse.statusCode)
+            throw MapAPIError.serverError(httpResponse.statusCode)
         }
 
         let decoder = JSONDecoder()
@@ -86,12 +86,12 @@ class MapService {
 
     // MARK: - Metro Stations
     func getMetroStations() async throws -> [MetroStation] {
-        guard let token = KeychainHelper.getToken() else {
-            throw APIError.unauthorized
+        guard let token = UserDefaults.standard.string(forKey: "accessToken") else {
+            throw MapAPIError.unauthorized
         }
 
         guard let url = URL(string: "\(baseURL)/map/metro/stations") else {
-            throw APIError.invalidURL
+            throw MapAPIError.invalidURL
         }
 
         var request = URLRequest(url: url)
@@ -101,11 +101,11 @@ class MapService {
         let (data, response) = try await URLSession.shared.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.invalidResponse
+            throw MapAPIError.invalidResponse
         }
 
         guard httpResponse.statusCode == 200 else {
-            throw APIError.serverError(httpResponse.statusCode)
+            throw MapAPIError.serverError(httpResponse.statusCode)
         }
 
         let decoder = JSONDecoder()
@@ -120,8 +120,8 @@ class MapService {
         latitude: Double? = nil,
         longitude: Double? = nil
     ) async throws -> [LandmarkFull] {
-        guard let token = KeychainHelper.getToken() else {
-            throw APIError.unauthorized
+        guard let token = UserDefaults.standard.string(forKey: "accessToken") else {
+            throw MapAPIError.unauthorized
         }
 
         var urlString = "\(baseURL)/map/landmarks"
@@ -130,7 +130,7 @@ class MapService {
         }
 
         guard let url = URL(string: urlString) else {
-            throw APIError.invalidURL
+            throw MapAPIError.invalidURL
         }
 
         var request = URLRequest(url: url)
@@ -140,11 +140,11 @@ class MapService {
         let (data, response) = try await URLSession.shared.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.invalidResponse
+            throw MapAPIError.invalidResponse
         }
 
         guard httpResponse.statusCode == 200 else {
-            throw APIError.serverError(httpResponse.statusCode)
+            throw MapAPIError.serverError(httpResponse.statusCode)
         }
 
         let decoder = JSONDecoder()
@@ -156,12 +156,12 @@ class MapService {
 
     // MARK: - Enrich Property Location
     func enrichPropertyLocation(propertyId: String) async throws {
-        guard let token = KeychainHelper.getToken() else {
-            throw APIError.unauthorized
+        guard let token = UserDefaults.standard.string(forKey: "accessToken") else {
+            throw MapAPIError.unauthorized
         }
 
         guard let url = URL(string: "\(baseURL)/map/property/\(propertyId)/enrich") else {
-            throw APIError.invalidURL
+            throw MapAPIError.invalidURL
         }
 
         var request = URLRequest(url: url)
@@ -172,11 +172,11 @@ class MapService {
         let (_, response) = try await URLSession.shared.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.invalidResponse
+            throw MapAPIError.invalidResponse
         }
 
         guard httpResponse.statusCode == 200 else {
-            throw APIError.serverError(httpResponse.statusCode)
+            throw MapAPIError.serverError(httpResponse.statusCode)
         }
     }
 
@@ -192,8 +192,8 @@ class MapService {
         minRooms: Int? = nil,
         limit: Int = 50
     ) async throws -> NearbyPropertiesResponse {
-        guard let token = KeychainHelper.getToken() else {
-            throw APIError.unauthorized
+        guard let token = UserDefaults.standard.string(forKey: "accessToken") else {
+            throw MapAPIError.unauthorized
         }
 
         var urlString = "\(baseURL)/map/search/radius?latitude=\(latitude)&longitude=\(longitude)&radius_km=\(radiusKm)&limit=\(limit)"
@@ -215,7 +215,7 @@ class MapService {
         }
 
         guard let url = URL(string: urlString) else {
-            throw APIError.invalidURL
+            throw MapAPIError.invalidURL
         }
 
         var request = URLRequest(url: url)
@@ -225,11 +225,11 @@ class MapService {
         let (data, response) = try await URLSession.shared.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.invalidResponse
+            throw MapAPIError.invalidResponse
         }
 
         guard httpResponse.statusCode == 200 else {
-            throw APIError.serverError(httpResponse.statusCode)
+            throw MapAPIError.serverError(httpResponse.statusCode)
         }
 
         let decoder = JSONDecoder()
@@ -251,7 +251,7 @@ extension CLLocationCoordinate2D {
     }
 }
 
-enum APIError: Error {
+enum MapAPIError: Error {
     case invalidURL
     case unauthorized
     case invalidResponse

@@ -32,6 +32,12 @@
 		791954402F39E3050061D348 /* DealsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791954412F39E3050061D348 /* DealsListView.swift */; };
 		791954422F39E3060061D348 /* DealDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791954432F39E3060061D348 /* DealDetailView.swift */; };
 		791954442F39E3070061D348 /* AddDealView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791954452F39E3070061D348 /* AddDealView.swift */; };
+		7950E96E2F3BCB3E00A15316 /* MortgageCalculatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7950E96D2F3BCB3E00A15316 /* MortgageCalculatorView.swift */; };
+		7950E9772F3BCC5000A15316 /* MapService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7950E9722F3BCC0000A15316 /* MapService.swift */; };
+		7950E9782F3BCC6000A15316 /* WhatsAppService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7950E9732F3BCC1000A15316 /* WhatsAppService.swift */; };
+		7950E9792F3BCC7000A15316 /* MortgageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7950E9742F3BCC2000A15316 /* MortgageService.swift */; };
+		7950E97A2F3BCC8000A15316 /* PropertiesMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7950E9752F3BCC3000A15316 /* PropertiesMapView.swift */; };
+		7950E97B2F3BCC9000A15316 /* WhatsAppShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7950E9762F3BCC4000A15316 /* WhatsAppShareSheet.swift */; };
 		79E8827A2F3B16B500EBA611 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79E882792F3B16B500EBA611 /* NetworkMonitor.swift */; };
 		79E8827B2F3B16B500EBA611 /* CacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79E882772F3B16B500EBA611 /* CacheManager.swift */; };
 		79E8827C2F3B16B500EBA611 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79E882782F3B16B500EBA611 /* ImagePicker.swift */; };
@@ -70,6 +76,12 @@
 		791954412F39E3050061D348 /* DealsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DealsListView.swift; sourceTree = "<group>"; };
 		791954432F39E3060061D348 /* DealDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DealDetailView.swift; sourceTree = "<group>"; };
 		791954452F39E3070061D348 /* AddDealView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddDealView.swift; sourceTree = "<group>"; };
+		7950E96D2F3BCB3E00A15316 /* MortgageCalculatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MortgageCalculatorView.swift; sourceTree = "<group>"; };
+		7950E9722F3BCC0000A15316 /* MapService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapService.swift; sourceTree = "<group>"; };
+		7950E9732F3BCC1000A15316 /* WhatsAppService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsAppService.swift; sourceTree = "<group>"; };
+		7950E9742F3BCC2000A15316 /* MortgageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MortgageService.swift; sourceTree = "<group>"; };
+		7950E9752F3BCC3000A15316 /* PropertiesMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertiesMapView.swift; sourceTree = "<group>"; };
+		7950E9762F3BCC4000A15316 /* WhatsAppShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsAppShareSheet.swift; sourceTree = "<group>"; };
 		79E882772F3B16B500EBA611 /* CacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheManager.swift; sourceTree = "<group>"; };
 		79E882782F3B16B500EBA611 /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		79E882792F3B16B500EBA611 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
@@ -107,6 +119,9 @@
 			isa = PBXGroup;
 			children = (
 				7919540D2F39DFF70061D348 /* APIService.swift */,
+				7950E9722F3BCC0000A15316 /* MapService.swift */,
+				7950E9732F3BCC1000A15316 /* WhatsAppService.swift */,
+				7950E9742F3BCC2000A15316 /* MortgageService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -170,6 +185,7 @@
 				791954292F39E1010061D348 /* PropertiesListView.swift */,
 				7919542B2F39E1020061D348 /* PropertyDetailView.swift */,
 				7919542D2F39E1030061D348 /* AddPropertyView.swift */,
+				7950E9752F3BCC3000A15316 /* PropertiesMapView.swift */,
 			);
 			path = Properties;
 			sourceTree = "<group>";
@@ -186,8 +202,26 @@
 				7919541A2F39DFF70061D348 /* Properties */,
 				791954462F39E3080061D348 /* Activities */,
 				791954472F39E3090061D348 /* Deals */,
+				7950E9702F3BCB5000A15316 /* Mortgage */,
+				7950E9712F3BCB6000A15316 /* WhatsApp */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		7950E9702F3BCB5000A15316 /* Mortgage */ = {
+			isa = PBXGroup;
+			children = (
+				7950E96D2F3BCB3E00A15316 /* MortgageCalculatorView.swift */,
+			);
+			path = Mortgage;
+			sourceTree = "<group>";
+		};
+		7950E9712F3BCB6000A15316 /* WhatsApp */ = {
+			isa = PBXGroup;
+			children = (
+				7950E9762F3BCC4000A15316 /* WhatsAppShareSheet.swift */,
+			);
+			path = WhatsApp;
 			sourceTree = "<group>";
 		};
 		791954462F39E3080061D348 /* Activities */ = {
@@ -325,6 +359,12 @@
 				791954242F39E0010061D348 /* MainTabView.swift in Sources */,
 				791954262F39E1000061D348 /* PropertiesViewModel.swift in Sources */,
 				791954282F39E1010061D348 /* PropertiesListView.swift in Sources */,
+				7950E96E2F3BCB3E00A15316 /* MortgageCalculatorView.swift in Sources */,
+				7950E9772F3BCC5000A15316 /* MapService.swift in Sources */,
+				7950E9782F3BCC6000A15316 /* WhatsAppService.swift in Sources */,
+				7950E9792F3BCC7000A15316 /* MortgageService.swift in Sources */,
+				7950E97A2F3BCC8000A15316 /* PropertiesMapView.swift in Sources */,
+				7950E97B2F3BCC9000A15316 /* WhatsAppShareSheet.swift in Sources */,
 				7919542A2F39E1020061D348 /* PropertyDetailView.swift in Sources */,
 				7919542C2F39E1030061D348 /* AddPropertyView.swift in Sources */,
 				7919542E2F39E2000061D348 /* ClientsViewModel.swift in Sources */,

@@ -3,23 +3,26 @@ import SwiftUI
 struct DashboardView: View {
     @EnvironmentObject var authVM: AuthViewModel
     @StateObject private var viewModel = DashboardViewModel()
-    // @StateObject private var networkMonitor = NetworkMonitor.shared // TODO: Add NetworkMonitor.swift to Xcode project
+    @StateObject private var networkMonitor = NetworkMonitor.shared
     @State private var showSettings = false
     @State private var showAddProperty = false
     @State private var showAddClient = false
     @State private var showAddActivity = false
     @State private var showUniversalSearch = false
+    @State private var showMortgageCalculator = false
     
     var body: some View {
         NavigationStack {
             ZStack {
                 AppTheme.backgroundGradient.ignoresSafeArea()
                 
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 24) {
-                        // TODO: Add NetworkStatusBar() after adding NetworkMonitor.swift to Xcode project
+                VStack(spacing: 0) {
+                    // Network Status Bar
+                    NetworkStatusBar()
 
-                        // Modern Header
+                    ScrollView(showsIndicators: false) {
+                        VStack(spacing: 24) {
+                            // Modern Header
                             HStack(alignment: .center) {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("Xoş gəlmisiniz,")
@@ -180,6 +183,16 @@ struct DashboardView: View {
                                                     color: AppTheme.successColor
                                                 )
                                             }
+
+                                            Button {
+                                                showMortgageCalculator = true
+                                            } label: {
+                                                QuickActionCard(
+                                                    title: "Mortgage Kalkulyator",
+                                                    icon: "calculator.fill",
+                                                    color: .orange
+                                                )
+                                            }
                                         }
                                         .padding(.horizontal, 20)
                                     }
@@ -197,6 +210,7 @@ struct DashboardView: View {
                     }
                     .refreshable {
                         await viewModel.loadStats()
+                    }
                     }
                 }
                 .navigationBarHidden(true)
@@ -223,6 +237,9 @@ struct DashboardView: View {
                 }
                 .fullScreenCover(isPresented: $showUniversalSearch) {
                     UniversalSearchView()
+                }
+                .sheet(isPresented: $showMortgageCalculator) {
+                    MortgageCalculatorView()
                 }
             }
         }
