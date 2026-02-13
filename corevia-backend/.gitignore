@@ -1,7 +1,39 @@
-venv/
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Environment
 .env
+.env.local
+.env.production
+
+# Database
 *.db
-firebase-credentials.json
+*.sqlite3
+
+# Logs
+*.log
+backend.log
+
+# Uploads
+uploads/*
+!uploads/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Alembic
+alembic/versions/*.pyc

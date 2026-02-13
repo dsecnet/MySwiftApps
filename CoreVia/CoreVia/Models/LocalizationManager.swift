@@ -139,6 +139,8 @@ class LocalizationManager: ObservableObject {
         "tab_profile": [.az: "Profil", .en: "Profile", .ru: "Профиль"],
         "tab_plans": [.az: "Planlar", .en: "Plans", .ru: "Планы"],
         "tab_meal_plans": [.az: "Qida Planı", .en: "Meal Plans", .ru: "Питание"],
+        "tab_more": [.az: "Daha çox", .en: "More", .ru: "Ещё"],
+        "profile_subtitle": [.az: "Hesab və parametrlər", .en: "Account and settings", .ru: "Аккаунт и настройки"],
 
         // ============================================================
         // MARK: - Home
@@ -410,6 +412,29 @@ class LocalizationManager: ObservableObject {
         "profile_add_food": [.az: "Qida \u{018F}lav\u{0259} Et", .en: "Add Food", .ru: "Добавить еду"],
         "profile_today_highlights": [.az: "Bug\u{00FC}n\u{00FC}n N\u{0259}tic\u{0259}l\u{0259}ri", .en: "Today's Highlights", .ru: "Результаты дня"],
         "premium_active_badge": [.az: "Aktiv", .en: "Active", .ru: "Активен"],
+        "premium_active_desc": [.az: "Bütün premium funksiyalara tam giriş", .en: "Full access to all premium features", .ru: "Полный доступ ко всем премиум функциям"],
+        "premium_plan": [.az: "Plan", .en: "Plan", .ru: "План"],
+        "premium_price": [.az: "Qiymət", .en: "Price", .ru: "Цена"],
+        "premium_cancel_button": [.az: "Premium-i ləğv et", .en: "Cancel Premium", .ru: "Отменить Премиум"],
+        "premium_unlock": [.az: "Premium ilə Açın", .en: "Unlock with Premium", .ru: "Откройте с Премиум"],
+        "premium_unlock_desc": [.az: "Bütün funksiyalara giriş əldə edin", .en: "Get access to all features", .ru: "Получите доступ ко всем функциям"],
+        "premium_trial_info": [.az: "İstədiyiniz vaxt ləğv edə bilərsiniz", .en: "Cancel anytime", .ru: "Отмена в любое время"],
+        "premium_activate_dev": [.az: "Aktivləşdir (Test)", .en: "Activate (Test)", .ru: "Активировать (Тест)"],
+        "premium_coming_soon": [.az: "App Store ilə ödəniş tezliklə əlavə olunacaq", .en: "App Store payment coming soon", .ru: "Оплата через App Store скоро"],
+        "premium_feature_activities": [.az: "GPS Marşrut İzləmə", .en: "GPS Route Tracking", .ru: "GPS трекинг маршрутов"],
+        "premium_feature_activities_desc": [.az: "Qaçış, gəzinti və velosiped izləməsi", .en: "Running, walking and cycling tracking", .ru: "Отслеживание бега, ходьбы и велосипеда"],
+        "premium_feature_chat": [.az: "AI Trainer Chat", .en: "AI Trainer Chat", .ru: "AI чат с тренером"],
+        "premium_feature_chat_desc": [.az: "Süni intellekt trenerinizlə söhbət edin", .en: "Chat with your AI trainer", .ru: "Общайтесь с AI тренером"],
+        "premium_feature_food": [.az: "Şəkillə Qida Analizi", .en: "Photo Food Analysis", .ru: "Анализ еды по фото"],
+        "premium_feature_food_desc": [.az: "Şəkil çəkin, kalori avtomatik hesablansın", .en: "Take a photo, get automatic calorie count", .ru: "Сфотографируйте, получите автоматический подсчет калорий"],
+        "premium_feature_trainer": [.az: "Professional Trainerlər", .en: "Professional Trainers", .ru: "Профессиональные тренеры"],
+        "premium_feature_trainer_desc": [.az: "Yaxşı trainerlərlə işləyin", .en: "Work with the best trainers", .ru: "Работайте с лучшими тренерами"],
+        "premium_feature_stats": [.az: "Detallı Statistika", .en: "Detailed Statistics", .ru: "Детальная статистика"],
+        "premium_feature_stats_desc": [.az: "Haftalıq və aylıq inkişaf hesabatları", .en: "Weekly and monthly progress reports", .ru: "Еженедельные и ежемесячные отчеты"],
+        "premium_feature_ai": [.az: "AI Tövsiyələri", .en: "AI Recommendations", .ru: "AI рекомендации"],
+        "premium_feature_ai_desc": [.az: "Süni intellekt əsaslı fərdi planlar", .en: "AI-based personalized plans", .ru: "Персонализированные планы на основе AI"],
+        "premium_required": [.az: "Premium Lazımdır", .en: "Premium Required", .ru: "Требуется Премиум"],
+        "common_unknown_error": [.az: "Naməlum xəta", .en: "Unknown error", .ru: "Неизвестная ошибка"],
 
         // Premium Feature satırları
         "premium_feat_ai_calorie": [.az: "AI Kalori Analizi", .en: "AI Calorie Analysis", .ru: "AI анализ калорий"],
@@ -493,7 +518,12 @@ class LocalizationManager: ObservableObject {
         // MARK: - Teachers Detail (Müəllim detalları)
         // ============================================================
         "teacher_join": [.az: "Müəllimlə Qoşul", .en: "Join Teacher", .ru: "Присоединиться"],
+        "teacher_join_button": [.az: "Müəllimə Qoşul", .en: "Join Teacher", .ru: "Присоединиться к тренеру"],
         "teacher_already_joined": [.az: "Bu müəllimə qoşulmusunuz", .en: "You are already joined", .ru: "Вы уже присоединились"],
+        "teacher_leave_button": [.az: "Ayrıl", .en: "Leave", .ru: "Покинуть"],
+        "teacher_send_message": [.az: "Mesaj Göndər", .en: "Send Message", .ru: "Отправить сообщение"],
+        "my_trainer": [.az: "Mənim Müəllimim", .en: "My Trainer", .ru: "Мой Тренер"],
+        "trainer_personal_trainer": [.az: "Şəxsi Məşqçi", .en: "Personal Trainer", .ru: "Персональный тренер"],
         "teacher_assign_success_title": [.az: "Uğurlu!", .en: "Success!", .ru: "Успешно!"],
         "teacher_assign_success_msg": [.az: "müəllim olaraq təyin olundu!", .en: "assigned as your teacher!", .ru: "назначен(а) вашим тренером!"],
         "teacher_ok": [.az: "Tamam", .en: "OK", .ru: "ОК"],
@@ -740,11 +770,14 @@ class LocalizationManager: ObservableObject {
         "chat_title": [.az: "Mesajlar", .en: "Messages", .ru: "Сообщения"],
         "chat_empty": [.az: "Mesaj yoxdur", .en: "No messages", .ru: "Нет сообщений"],
         "chat_empty_desc": [.az: "Müəlliminizlə söhbət başlayın", .en: "Start chatting with your trainer", .ru: "Начните общение с тренером"],
+        "chat_no_messages": [.az: "Hələ mesaj yoxdur", .en: "No messages yet", .ru: "Пока нет сообщений"],
+        "chat_start_conversation": [.az: "İlk mesajı göndərin", .en: "Send the first message", .ru: "Отправьте первое сообщение"],
         "chat_type_message": [.az: "Mesaj yazın...", .en: "Type a message...", .ru: "Напишите сообщение..."],
         "chat_remaining": [.az: "Qalan mesaj", .en: "Messages left", .ru: "Осталось сообщений"],
         "chat_premium_required": [.az: "Premium lazımdır", .en: "Premium Required", .ru: "Требуется Премиум"],
         "chat_premium_desc": [.az: "Mesajlaşma funksiyası yalnız Premium istifadəçilər üçündür", .en: "Messaging is only available for Premium users", .ru: "Обмен сообщениями доступен только для Премиум"],
         "chat_limit_reached": [.az: "Günlük mesaj limitinə çatdınız", .en: "Daily message limit reached", .ru: "Дневной лимит сообщений исчерпан"],
+        "message_sent_success": [.az: "Mesaj göndərildi", .en: "Message sent", .ru: "Сообщение отправлено"],
 
         // ============================================================
         // MARK: - Content (Məzmun)

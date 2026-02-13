@@ -73,7 +73,7 @@ struct FoodView: View {
                     )
                     .frame(width: 180, height: 180)
                     .rotationEffect(.degrees(-90))
-                    .animation(.spring(response: 0.6), value: foodManager.todayProgress)
+                    .animation(.spring(), value: foodManager.todayProgress)
                 
                 VStack(spacing: 4) {
                     Text("\(foodManager.todayTotalCalories)")
@@ -206,7 +206,6 @@ struct FoodView: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
                             .stroke(mealType.color.opacity(0.3), lineWidth: 1)
-                            .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [5]))
                     )
                 }
             } else {
@@ -532,8 +531,8 @@ struct FoodDetailView: View {
                         }
                         
                         VStack(spacing: 8) {
-                            InfoRow(icon: "calendar", label: LocalizationManager.shared.localized("food_meal_type"), value: entry.mealType.localizedName)
-                            InfoRow(icon: "clock", label: LocalizationManager.shared.localized("food_time"), value: entry.formattedDate)
+                            FoodInfoRow(icon: "calendar", label: LocalizationManager.shared.localized("food_meal_type"), value: entry.mealType.localizedName)
+                            FoodInfoRow(icon: "clock", label: LocalizationManager.shared.localized("food_time"), value: entry.formattedDate)
                         }
                     }
                     .padding()
@@ -579,11 +578,11 @@ struct DetailMacroCard: View {
     }
 }
 
-struct InfoRow: View {
+struct FoodInfoRow: View {
     let icon: String
     let label: String
     let value: String
-    
+
     var body: some View {
         HStack {
             Image(systemName: icon)
@@ -604,6 +603,6 @@ struct InfoRow: View {
     }
 }
 
-#Preview {
-    FoodView()
-}
+// #Preview { // iOS 17+ only
+//     FoodView()
+// }

@@ -80,7 +80,7 @@ struct RegisterView: View {
     private var headerView: some View {
         HStack {
             Button {
-                withAnimation(.spring(response: 0.4)) {
+                withAnimation(.spring()) {
                     showRegister = false
                 }
             } label: {
@@ -135,7 +135,7 @@ struct RegisterView: View {
     
     private func userTypeButton(for type: UserType) -> some View {
         Button {
-            withAnimation(.spring(response: 0.3)) {
+            withAnimation(.spring()) {
                 userType = type
             }
         } label: {
@@ -394,7 +394,7 @@ struct RegisterView: View {
             await MainActor.run {
                 isLoading = false
                 if success {
-                    withAnimation(.spring(response: 0.4)) {
+                    withAnimation(.spring()) {
                         showRegister = false
                     }
                 } else {
@@ -477,7 +477,7 @@ struct SecureFieldCompact: View {
             .font(.system(size: 14))
             
             Button {
-                withAnimation(.spring(response: 0.3)) {
+                withAnimation(.spring()) {
                     isVisible.toggle()
                 }
             } label: {
@@ -497,6 +497,6 @@ struct SecureFieldCompact: View {
     }
 }
 
-#Preview {
-    RegisterView(showRegister: .constant(true))
-}
+// #Preview { // iOS 17+ only
+//     RegisterView(showRegister: .constant(true))
+// }

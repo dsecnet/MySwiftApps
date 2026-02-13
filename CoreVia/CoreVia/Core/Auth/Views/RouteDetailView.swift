@@ -14,6 +14,8 @@ struct RouteDetailView: View {
     @ObservedObject private var loc = LocalizationManager.shared
     @Environment(\.dismiss) private var dismiss
 
+    @State private var region: MKCoordinateRegion = MKCoordinateRegion()
+
     private var coordinates: [CLLocationCoordinate2D] {
         parseCoordinates()
     }
@@ -67,36 +69,7 @@ struct RouteDetailView: View {
     private var mapSection: some View {
         Group {
             if !coordinates.isEmpty {
-                Map {
-                    MapPolyline(coordinates: coordinates)
-                        .stroke(AppTheme.Colors.accent, lineWidth: 4)
-
-                    if let first = coordinates.first {
-                        Annotation("", coordinate: first) {
-                            ZStack {
-                                Circle()
-                                    .fill(AppTheme.Colors.success)
-                                    .frame(width: 16, height: 16)
-                                Circle()
-                                    .stroke(Color.white, lineWidth: 3)
-                                    .frame(width: 16, height: 16)
-                            }
-                        }
-                    }
-
-                    if let last = coordinates.last, coordinates.count > 1 {
-                        Annotation("", coordinate: last) {
-                            ZStack {
-                                Circle()
-                                    .fill(AppTheme.Colors.accent)
-                                    .frame(width: 16, height: 16)
-                                Circle()
-                                    .stroke(Color.white, lineWidth: 3)
-                                    .frame(width: 16, height: 16)
-                            }
-                        }
-                    }
-                }
+                RouteMapView(coordinates: coordinates, region: mapRegion)
                 .frame(height: 300)
                 .clipShape(RoundedRectangle(cornerRadius: 16))
 
@@ -329,34 +302,127 @@ struct RouteStatCard: View {
     }
 }
 
-#Preview {
-    NavigationStack {
-        RouteDetailView(route: RouteResponse(
-            id: "preview-1",
-            userId: "user-1",
-            workoutId: nil,
-            name: nil,
-            activityType: "running",
-            startLatitude: 40.4093,
-            startLongitude: 49.8671,
-            endLatitude: 40.4120,
-            endLongitude: 49.8700,
-            coordinatesJson: nil,
-            distanceKm: 3.45,
-            durationSeconds: 1230,
-            avgPace: 5.9,
-            maxPace: 4.8,
-            avgSpeedKmh: 10.1,
-            maxSpeedKmh: 12.5,
-            elevationGain: 45,
-            elevationLoss: 38,
-            caloriesBurned: 287,
-            staticMapUrl: nil,
-            isAssigned: false,
-            isCompleted: true,
-            startedAt: Date(),
-            finishedAt: Date(),
-            createdAt: Date()
-        ))
+// #Preview { // iOS 17+ only
+//     NavigationStack {
+//         RouteDetailView(route: RouteResponse(
+//             id: "preview-1",
+//             userId: "user-1",
+//             workoutId: nil,
+//             name: nil,
+//             activityType: "running",
+//             startLatitude: 40.4093,
+//             startLongitude: 49.8671,
+//             endLatitude: 40.4120,
+//             endLongitude: 49.8700,
+//             coordinatesJson: nil,
+//             distanceKm: 3.45,
+//             durationSeconds: 1230,
+//             avgPace: 5.9,
+//             maxPace: 4.8,
+//             avgSpeedKmh: 10.1,
+//             maxSpeedKmh: 12.5,
+//             elevationGain: 45,
+//             elevationLoss: 38,
+//             caloriesBurned: 287,
+//             staticMapUrl: nil,
+//             isAssigned: false,
+//             isCompleted: true,
+//             startedAt: Date(),
+//             finishedAt: Date(),
+//             createdAt: Date()
+//         ))
+//     }
+// }
+
+// MARK: - iOS 16 Compatible Route Map View
+struct RouteMapView: UIViewRepresentable {
+    let coordinates: [CLLocationCoordinate2D]
+    let region: MKCoordinateRegion
+
+    func makeUIView(context: Context) -> MKMapView {
+        let mapView = MKMapView()
+        mapView.delegate = context.coordinator
+        return mapView
+    }
+
+    func updateUIView(_ mapView: MKMapView, context: Context) {
+        mapView.setRegion(region, animated: true)
+
+        // Remove old overlays
+        mapView.removeOverlays(mapView.overlays)
+
+        // Add polyline
+        if coordinates.count > 1 {
+            let polyline = MKPolyline(coordinates: coordinates, count: coordinates.count)
+            mapView.addOverlay(polyline)
+        }
+
+        // Remove old annotations
+        mapView.removeAnnotations(mapView.annotations)
+
+        // Add start marker
+        if let first = coordinates.first {
+            let annotation = MKPointAnnotation()
+            annotation.coordinate = first
+            annotation.title = "Start"
+            mapView.addAnnotation(annotation)
+        }
+
+        // Add end marker
+        if let last = coordinates.last, coordinates.count > 1 {
+            let annotation = MKPointAnnotation()
+            annotation.coordinate = last
+            annotation.title = "End"
+            mapView.addAnnotation(annotation)
+        }
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    class Coordinator: NSObject, MKMapViewDelegate {
+        func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+            if let polyline = overlay as? MKPolyline {
+                let renderer = MKPolylineRenderer(polyline: polyline)
+                renderer.strokeColor = UIColor.systemRed
+                renderer.lineWidth = 4
+                return renderer
+            }
+            return MKOverlayRenderer(overlay: overlay)
+        }
+
+        func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+            let identifier = "RouteMarker"
+            var view = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
+
+            if view == nil {
+                view = MKAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+            } else {
+                view?.annotation = annotation
+            }
+
+            // Custom marker view
+            let markerView = UIView(frame: CGRect(x: 0, y: 0, width: 20, height: 20))
+            markerView.backgroundColor = .clear
+
+            let circle = UIView(frame: CGRect(x: 2, y: 2, width: 16, height: 16))
+            circle.layer.cornerRadius = 8
+            circle.backgroundColor = annotation.title == "Start" ? UIColor.systemGreen : UIColor.systemRed
+            circle.layer.borderColor = UIColor.white.cgColor
+            circle.layer.borderWidth = 3
+
+            markerView.addSubview(circle)
+
+            UIGraphicsBeginImageContextWithOptions(markerView.bounds.size, false, 0)
+            markerView.layer.render(in: UIGraphicsGetCurrentContext()!)
+            let image = UIGraphicsGetImageFromCurrentImageContext()
+            UIGraphicsEndImageContext()
+
+            view?.image = image
+            view?.centerOffset = CGPoint(x: 0, y: -10)
+
+            return view
+        }
     }
 }

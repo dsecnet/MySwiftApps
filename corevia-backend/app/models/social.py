@@ -20,7 +20,7 @@ class Post(Base):
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id: Mapped[str] = mapped_column(String, ForeignKey("users.id"), nullable=False, index=True)
-    post_type: Mapped[PostType] = mapped_column(SAEnum(PostType), nullable=False)
+    post_type: Mapped[str] = mapped_column(String(50), nullable=False)  # Changed from Enum to String
     content: Mapped[str] = mapped_column(Text, nullable=True)
     image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 

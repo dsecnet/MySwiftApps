@@ -56,6 +56,7 @@ struct SocialFeedView: View {
     private var feedListView: some View {
         ScrollView {
             LazyVStack(spacing: 16) {
+                // Social Posts
                 ForEach(viewModel.posts) { post in
                     PostCardView(
                         post: post,
@@ -93,28 +94,16 @@ struct SocialFeedView: View {
         VStack(spacing: 16) {
             Image(systemName: "bubble.left.and.bubble.right")
                 .font(.system(size: 70))
-                .foregroundColor(.gray)
+                .foregroundColor(.secondary)
 
             Text(loc.localized("social_no_posts"))
                 .font(.title3)
                 .fontWeight(.semibold)
+                .foregroundColor(.primary)
 
             Text(loc.localized("social_start_sharing"))
                 .font(.subheadline)
-                .foregroundColor(.gray)
-
-            Button {
-                showCreatePost = true
-            } label: {
-                Text(loc.localized("social_create_post"))
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 12)
-                    .background(Color("PrimaryColor"))
-                    .cornerRadius(20)
-            }
-            .padding(.top)
+                .foregroundColor(.secondary)
         }
         .padding()
     }
@@ -134,6 +123,6 @@ struct SocialFeedView: View {
     }
 }
 
-#Preview {
-    SocialFeedView()
-}
+// #Preview { // iOS 17+ only
+//     SocialFeedView()
+// }

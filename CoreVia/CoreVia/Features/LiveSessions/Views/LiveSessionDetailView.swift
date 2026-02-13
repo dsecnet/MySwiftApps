@@ -293,8 +293,8 @@ struct InfoCell: View {
     }
 }
 
-#Preview {
-    NavigationStack {
-        LiveSessionDetailView(sessionId: "123")
-    }
-}
+// #Preview { // iOS 17+ only
+//     NavigationStack {
+//         LiveSessionDetailView(sessionId: "123")
+//     }
+// }

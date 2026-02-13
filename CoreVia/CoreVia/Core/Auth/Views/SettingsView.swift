@@ -24,7 +24,7 @@ struct NotificationsSettingsView: View {
                                 Text(loc.localized("settings_notifications"))
                             }
                         }
-                        .onChange(of: settings.notificationsEnabled) { _, newValue in
+                        .onChange(of: settings.notificationsEnabled) { newValue in
                             if newValue {
                                 settings.requestNotificationPermission { granted in
                                     if !granted {
@@ -126,7 +126,7 @@ struct SecuritySettingsView: View {
                                 }
                             }
                         }
-                        .onChange(of: settings.faceIDEnabled) { _, newValue in
+                        .onChange(of: settings.faceIDEnabled) { newValue in
                             if newValue {
                                 testBiometric()
                             }
@@ -360,7 +360,7 @@ struct PinCodeField: View {
                     .keyboardType(.numberPad)
                     .foregroundColor(.clear)
                     .accentColor(.clear)
-                    .onChange(of: text) { _, newValue in
+                    .onChange(of: text) { newValue in
                         if newValue.count > 4 {
                             text = String(newValue.prefix(4))
                         }
@@ -439,11 +439,11 @@ struct AboutView: View {
                                 .font(.system(size: 20, weight: .bold))
                                 .foregroundColor(AppTheme.Colors.primaryText)
                             
-                            FeatureRow(icon: "figure.strengthtraining.traditional", title: loc.localized("about_workout_tracking"), color: AppTheme.Colors.accent)
-                            FeatureRow(icon: "fork.knife", title: loc.localized("about_food_tracking"), color: AppTheme.Colors.accent)
-                            FeatureRow(icon: "person.2.fill", title: loc.localized("about_teacher_system"), color: AppTheme.Colors.accent)
-                            FeatureRow(icon: "chart.bar.fill", title: loc.localized("about_statistics"), color: AppTheme.Colors.accent)
-                            FeatureRow(icon: "bell.fill", title: loc.localized("about_reminders"), color: AppTheme.Colors.accent)
+                            AboutFeatureRow(icon: "figure.strengthtraining.traditional", title: loc.localized("about_workout_tracking"), color: AppTheme.Colors.accent)
+                            AboutFeatureRow(icon: "fork.knife", title: loc.localized("about_food_tracking"), color: AppTheme.Colors.accent)
+                            AboutFeatureRow(icon: "person.2.fill", title: loc.localized("about_teacher_system"), color: AppTheme.Colors.accent)
+                            AboutFeatureRow(icon: "chart.bar.fill", title: loc.localized("about_statistics"), color: AppTheme.Colors.accent)
+                            AboutFeatureRow(icon: "bell.fill", title: loc.localized("about_reminders"), color: AppTheme.Colors.accent)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding()
@@ -487,23 +487,23 @@ struct AboutView: View {
     }
 }
 
-struct FeatureRow: View {
+struct AboutFeatureRow: View {
     let icon: String
     let title: String
     let color: Color
-    
+
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 20))
                 .foregroundColor(color)
                 .frame(width: 30)
-            
+
             Text(title)
                 .foregroundColor(AppTheme.Colors.primaryText)
-            
+
             Spacer()
-            
+
             Image(systemName: "checkmark.circle.fill")
                 .foregroundColor(AppTheme.Colors.success)
         }
@@ -542,132 +542,15 @@ struct AboutLinkButton: View {
     }
 }
 
-// MARK: - Premium View (Coming Soon)
-struct PremiumView: View {
-
-    @Environment(\.dismiss) var dismiss
-    @ObservedObject private var loc = LocalizationManager.shared
-    @State private var animateGradient = false
-    @State private var heroScale: CGFloat = 0.5
-    @State private var heroOpacity: Double = 0
-
-    var body: some View {
-        ZStack {
-            // Animated gradient background
-            LinearGradient(
-                colors: animateGradient
-                    ? [Color(red: 0.05, green: 0.02, blue: 0.15), AppTheme.Colors.premiumGradientStart.opacity(0.4), Color(red: 0.02, green: 0.05, blue: 0.12)]
-                    : [Color(red: 0.02, green: 0.05, blue: 0.12), AppTheme.Colors.premiumGradientEnd.opacity(0.3), Color(red: 0.05, green: 0.02, blue: 0.15)],
-                startPoint: animateGradient ? .topLeading : .bottomLeading,
-                endPoint: animateGradient ? .bottomTrailing : .topTrailing
-            )
-            .ignoresSafeArea()
-            .onAppear {
-                withAnimation(.easeInOut(duration: 5).repeatForever(autoreverses: true)) {
-                    animateGradient.toggle()
-                }
-                withAnimation(.spring(response: 0.8, dampingFraction: 0.6)) {
-                    heroScale = 1.0
-                    heroOpacity = 1.0
-                }
-            }
-
-            VStack(spacing: 32) {
-                // Close button
-                HStack {
-                    Spacer()
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 30))
-                            .foregroundStyle(.white.opacity(0.6))
-                    }
-                }
-                .padding(.top, 12)
-
-                Spacer()
-
-                // Hero icon
-                ZStack {
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [AppTheme.Colors.premiumGradientStart.opacity(0.5), AppTheme.Colors.premiumGradientEnd.opacity(0.2), Color.clear],
-                                center: .center,
-                                startRadius: 10,
-                                endRadius: 90
-                            )
-                        )
-                        .frame(width: 180, height: 180)
-                        .blur(radius: 25)
-
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 80))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [AppTheme.Colors.premiumGradientStart, AppTheme.Colors.premiumGradientEnd],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                }
-                .scaleEffect(heroScale)
-                .opacity(heroOpacity)
-
-                // Coming Soon Text
-                VStack(spacing: 16) {
-                    Text("Premium")
-                        .font(.system(size: 48, weight: .black))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [.white, AppTheme.Colors.premiumGradientStart.opacity(0.9), .white],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-
-                    Text("COMING SOON")
-                        .font(.system(size: 20, weight: .bold))
-                        .tracking(4)
-                        .foregroundColor(AppTheme.Colors.premiumGradientStart)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.white.opacity(0.08))
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(AppTheme.Colors.premiumGradientStart.opacity(0.3), lineWidth: 1)
-                        )
-
-                    Text("Tezliklə yeni premium xüsusiyyətlər əlavə olunacaq...")
-                        .font(.system(size: 15))
-                        .foregroundColor(.white.opacity(0.6))
-                        .multilineTextAlignment(.center)
-                        .padding(.top, 8)
-                }
-
-                Spacer()
-            }
-            .padding(.horizontal, 24)
-        }
-    }
-}
-
-#Preview("Notifications") {
-    NotificationsSettingsView()
-}
-
-#Preview("Security") {
-    SecuritySettingsView()
-}
-
-#Preview("About") {
-    AboutView()
-}
-
-#Preview("Premium") {
-    PremiumView()
-}
+// #Preview("Notifications") { // iOS 17+ only
+//     NotificationsSettingsView()
+// }
+//
+// #Preview("Security") { // iOS 17+ only
+//     SecuritySettingsView()
+// }
+//
+// #Preview("About") { // iOS 17+ only
+//     AboutView()
+// }
+// 

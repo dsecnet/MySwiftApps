@@ -256,8 +256,8 @@ class CommentsViewModel: ObservableObject {
     }
 }
 
-#Preview {
-    NavigationStack {
-        CommentsView(postId: "123")
-    }
-}
+// #Preview { // iOS 17+ only
+//     NavigationStack {
+//         CommentsView(postId: "123")
+//     }
+// }

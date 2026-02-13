@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Post Card Component
 struct PostCardView: View {
+    @Environment(\.colorScheme) var colorScheme
     let post: SocialPost
     let onLike: () -> Void
     let onDelete: () -> Void
@@ -15,7 +16,7 @@ struct PostCardView: View {
             HStack(spacing: 12) {
                 // Profile Image
                 Circle()
-                    .fill(Color.gray.opacity(0.3))
+                    .fill(Color("PrimaryColor").opacity(0.7))
                     .frame(width: 40, height: 40)
                     .overlay {
                         if let author = post.author {
@@ -29,10 +30,11 @@ struct PostCardView: View {
                     Text(post.author?.name ?? "Unknown")
                         .font(.subheadline)
                         .fontWeight(.semibold)
+                        .foregroundColor(.primary)
 
                     Text(post.createdAt.timeAgo())
                         .font(.caption)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                 }
 
                 Spacer()
@@ -57,22 +59,44 @@ struct PostCardView: View {
             if let content = post.content, !content.isEmpty {
                 Text(content)
                     .font(.body)
+                    .foregroundColor(.primary)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
             // Post Image (if exists)
-            if let imageUrl = post.imageUrl, let url = URL(string: imageUrl) {
-                AsyncImage(url: url) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                } placeholder: {
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.2))
+            if let imageUrl = post.imageUrl {
+                let fullImageUrl = imageUrl.hasPrefix("http")
+                    ? imageUrl
+                    : "\(APIService.shared.baseURL)\(imageUrl)"
+
+                if let url = URL(string: fullImageUrl) {
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .empty:
+                            Rectangle()
+                                .fill(Color.gray.opacity(0.2))
+                                .overlay {
+                                    ProgressView()
+                                }
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFill()
+                        case .failure:
+                            Rectangle()
+                                .fill(Color.gray.opacity(0.2))
+                                .overlay {
+                                    Image(systemName: "photo.fill")
+                                        .foregroundColor(.gray)
+                                }
+                        @unknown default:
+                            EmptyView()
+                        }
+                    }
+                    .frame(maxHeight: 300)
+                    .cornerRadius(12)
+                    .clipped()
                 }
-                .frame(maxHeight: 300)
-                .cornerRadius(12)
-                .clipped()
             }
 
             // Engagement Row
@@ -83,11 +107,11 @@ struct PostCardView: View {
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: post.isLiked ? "heart.fill" : "heart")
-                            .foregroundColor(post.isLiked ? .red : .gray)
+                            .foregroundColor(post.isLiked ? .red : .secondary)
 
                         Text("\(post.likesCount)")
                             .font(.subheadline)
-                            .foregroundColor(.gray)
+                            .foregroundColor(.secondary)
                     }
                 }
 
@@ -97,18 +121,29 @@ struct PostCardView: View {
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "bubble.left")
-                            .foregroundColor(.gray)
+                            .foregroundColor(.secondary)
 
                         Text("\(post.commentsCount)")
                             .font(.subheadline)
-                            .foregroundColor(.gray)
+                            .foregroundColor(.secondary)
                     }
                 }
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(
+            colorScheme == .dark
+                ? Color(.systemGray6)
+                : Color(.systemBackground)
+        )
         .cornerRadius(16)
-        .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 2)
+        .shadow(
+            color: colorScheme == .dark
+                ? Color.white.opacity(0.05)
+                : Color.black.opacity(0.08),
+            radius: 8,
+            x: 0,
+            y: 2
+        )
     }
 }

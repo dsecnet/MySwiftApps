@@ -47,9 +47,9 @@ class APIService {
 
     // Backend URL - development və production üçün ayrı
     #if DEBUG
-    let baseURL = "http://localhost:8000"  // Development
+    let baseURL = "http://localhost:8000"  // Development (local)
     #else
-    let baseURL = "https://api.corevia.az"  // Production (HTTPS)
+    let baseURL = "https://api.corevia.life"  // Production (cloud)
     #endif
 
     private let session: URLSession

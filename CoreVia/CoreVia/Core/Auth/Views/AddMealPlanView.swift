@@ -59,7 +59,7 @@ struct AddMealPlanView: View {
                                         type: type,
                                         isSelected: selectedPlanType == type
                                     ) {
-                                        withAnimation(.spring(response: 0.3)) {
+                                        withAnimation(.spring()) {
                                             selectedPlanType = type
                                         }
                                     }
@@ -98,7 +98,7 @@ struct AddMealPlanView: View {
                                     student: student,
                                     isSelected: selectedStudent == student.name
                                 ) {
-                                    withAnimation(.spring(response: 0.3)) {
+                                    withAnimation(.spring()) {
                                         if selectedStudent == student.name {
                                             selectedStudent = nil
                                         } else {

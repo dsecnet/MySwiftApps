@@ -359,6 +359,6 @@ class LiveSessionListViewModel: ObservableObject {
     }
 }
 
-#Preview {
-    LiveSessionListView()
-}
+// #Preview { // iOS 17+ only
+//     LiveSessionListView()
+// }

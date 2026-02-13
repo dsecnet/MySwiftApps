@@ -316,6 +316,6 @@ struct WeekStatItem: View {
     }
 }
 
-#Preview {
-    HomeView()
-}
+// #Preview { // iOS 17+ only
+//     HomeView()
+// }

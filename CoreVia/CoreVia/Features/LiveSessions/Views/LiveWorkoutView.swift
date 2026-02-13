@@ -395,6 +395,6 @@ struct FormFeedbackView: View {
     }
 }
 
-#Preview {
-    LiveWorkoutView(sessionId: "123")
-}
+// #Preview { // iOS 17+ only
+//     LiveWorkoutView(sessionId: "123")
+// }

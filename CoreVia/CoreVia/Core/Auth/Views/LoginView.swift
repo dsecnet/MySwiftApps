@@ -29,7 +29,7 @@ struct LoginView: View {
                     HStack(spacing: 8) {
                         ForEach(AppLanguage.allCases, id: \.self) { language in
                             Button {
-                                withAnimation(.spring(response: 0.3)) {
+                                withAnimation(.spring()) {
                                     loc.currentLanguage = language
                                 }
                             } label: {
@@ -102,7 +102,7 @@ struct LoginView: View {
                         HStack(spacing: 12) {
                             // Tələbə Button
                             Button {
-                                withAnimation(.spring(response: 0.3)) {
+                                withAnimation(.spring()) {
                                     selectedUserType = .client
                                 }
                             } label: {
@@ -125,7 +125,7 @@ struct LoginView: View {
 
                             // Müəllim Button
                             Button {
-                                withAnimation(.spring(response: 0.3)) {
+                                withAnimation(.spring()) {
                                     selectedUserType = .trainer
                                 }
                             } label: {
@@ -203,7 +203,7 @@ struct LoginView: View {
                                 .textContentType(.password)
 
                                 Button {
-                                    withAnimation(.spring(response: 0.3)) {
+                                    withAnimation(.spring()) {
                                         isPasswordVisible.toggle()
                                     }
                                 } label: {
@@ -324,7 +324,7 @@ struct LoginView: View {
                             .foregroundColor(AppTheme.Colors.secondaryText)
 
                         Button {
-                            withAnimation(.spring(response: 0.4)) {
+                            withAnimation(.spring()) {
                                 showRegister = true
                             }
                         } label: {
@@ -404,6 +404,6 @@ struct LoginView: View {
     }
 }
 
-#Preview {
-    LoginView(isLoggedIn: .constant(false), showRegister: .constant(false))
-}
+// #Preview { // iOS 17+ only
+//     LoginView(isLoggedIn: .constant(false), showRegister: .constant(false))
+// }

@@ -80,6 +80,12 @@ class TrainerManager: ObservableObject {
         }
     }
 
+    // Alias funksiya - leaveTrainer = unassignTrainer
+    @MainActor
+    func leaveTrainer() async -> Bool {
+        return await unassignTrainer()
+    }
+
     // MARK: - Bagli trainer melumati getir
 
     @MainActor

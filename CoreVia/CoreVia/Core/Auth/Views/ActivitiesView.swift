@@ -167,7 +167,7 @@ struct ActivitiesView: View {
         } message: {
             Text("Marsrut izlemek ucun lokasiya icazesi verin.")
         }
-        .onChange(of: locationManager.authorizationStatus) { _, newStatus in
+        .onChange(of: locationManager.authorizationStatus) { newStatus in
             if let pending = pendingActivityType,
                (newStatus == .authorizedWhenInUse || newStatus == .authorizedAlways) {
                 pendingActivityType = nil
@@ -545,7 +545,7 @@ struct StartActivitySheet: View {
             HStack(spacing: 16) {
                 ForEach(ActivityType.allCases, id: \.self) { type in
                     Button {
-                        withAnimation(.spring(response: 0.3)) {
+                        withAnimation(.spring()) {
                             selectedType = type
                         }
                     } label: {
@@ -708,8 +708,8 @@ struct RouteActivityCard: View {
     }
 }
 
-#Preview {
-    NavigationStack {
-        ActivitiesView()
-    }
-}
+// #Preview { // iOS 17+ only
+//     NavigationStack {
+//         ActivitiesView()
+//     }
+

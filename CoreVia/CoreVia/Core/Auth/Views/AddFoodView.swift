@@ -88,28 +88,28 @@ struct AddFoodView: View {
                 .sheet(isPresented: $showPremium) {
                     PremiumView()
                 }
-                .onChange(of: capturedImage) { _, newImage in
+                .onChange(of: capturedImage) { newImage in
                     if newImage != nil {
                         startMockAnalysis()
                     }
                 }
-                .onChange(of: calories) { _, val in
+                .onChange(of: calories) { val in
                     calories = val.filter { $0.isNumber }
                     if let n = Int(calories), n > 10000 { calories = "10000" }
                 }
-                .onChange(of: protein) { _, val in
+                .onChange(of: protein) { val in
                     protein = val.filter { $0.isNumber || $0 == "." }
                     if let n = Double(protein), n > 1000 { protein = "1000" }
                 }
-                .onChange(of: carbs) { _, val in
+                .onChange(of: carbs) { val in
                     carbs = val.filter { $0.isNumber || $0 == "." }
                     if let n = Double(carbs), n > 1000 { carbs = "1000" }
                 }
-                .onChange(of: fats) { _, val in
+                .onChange(of: fats) { val in
                     fats = val.filter { $0.isNumber || $0 == "." }
                     if let n = Double(fats), n > 1000 { fats = "1000" }
                 }
-                .onChange(of: notes) { _, val in
+                .onChange(of: notes) { val in
                     if val.count > 1000 { notes = String(val.prefix(1000)) }
                 }
         }
@@ -402,7 +402,7 @@ struct AddFoodView: View {
                         type: type,
                         isSelected: selectedMealType == type
                     ) {
-                        withAnimation(.spring(response: 0.3)) {
+                        withAnimation(.spring()) {
                             selectedMealType = type
                         }
                     }
@@ -706,6 +706,6 @@ struct MacroInputField: View {
     }
 }
 
-#Preview {
-    AddFoodView()
-}
+// #Preview { // iOS 17+ only
+//     AddFoodView()
+// }

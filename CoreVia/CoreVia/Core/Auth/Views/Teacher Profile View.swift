@@ -43,7 +43,9 @@ struct TrainerProfileView: View {
                     settingsSection
                     logoutButton
                 }
-                .padding()
+                .padding(.horizontal)
+                .padding(.top, 8)
+                .padding(.bottom, 100)
             }
         }
         .onAppear {
@@ -782,6 +784,6 @@ struct StudentRow: View {
     }
 }
 
-#Preview {
-    TrainerProfileView(isLoggedIn: .constant(true))
-}
+// #Preview { // iOS 17+ only
+//     TrainerProfileView(isLoggedIn: .constant(true))
+// }

@@ -24,6 +24,6 @@ struct ProfileView: View {
     }
 }
 
-#Preview {
-    ProfileView(isLoggedIn: .constant(true))
-}
+// #Preview { // iOS 17+ only
+//     ProfileView(isLoggedIn: .constant(true))
+// }

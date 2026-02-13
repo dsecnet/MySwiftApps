@@ -232,6 +232,6 @@ struct ProductCard: View {
     }
 }
 
-#Preview {
-    MarketplaceView()
-}
+// #Preview { // iOS 17+ only
+//     MarketplaceView()
+// }

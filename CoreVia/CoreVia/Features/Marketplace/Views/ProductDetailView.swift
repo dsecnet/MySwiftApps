@@ -366,8 +366,8 @@ struct ReviewRow: View {
     }
 }
 
-#Preview {
-    NavigationStack {
-        ProductDetailView(productId: "123")
-    }
-}
+// #Preview { // iOS 17+ only
+//     NavigationStack {
+//         ProductDetailView(productId: "123")
+//     }
+// }

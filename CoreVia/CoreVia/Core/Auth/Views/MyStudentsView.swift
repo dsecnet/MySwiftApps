@@ -61,7 +61,7 @@ struct MyStudentsView: View {
                         LazyVStack(spacing: 16) {
                             ForEach(filteredStudents) { student in
                                 MyStudentCard(student: student) {
-                                    withAnimation(.spring(response: 0.4)) {
+                                    withAnimation(.spring()) {
                                         selectedStudent = student
                                     }
                                 }
@@ -259,7 +259,7 @@ struct MyStudentCard: View {
             .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
         }
         .scaleEffect(isPressed ? 0.97 : 1.0)
-        .animation(.spring(response: 0.3), value: isPressed)
+        .animation(.spring(), value: isPressed)
         .buttonStyle(PlainButtonStyle())
         .simultaneousGesture(
             DragGesture(minimumDistance: 0)
@@ -654,6 +654,6 @@ struct AssignedPlanRow: View {
     }
 }
 
-#Preview {
-    MyStudentsView()
-}
+// #Preview { // iOS 17+ only
+//     MyStudentsView()
+// }

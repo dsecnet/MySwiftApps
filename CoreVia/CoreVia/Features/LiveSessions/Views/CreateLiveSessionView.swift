@@ -125,6 +125,6 @@ struct CreateLiveSessionView: View {
     }
 }
 
-#Preview {
-    CreateLiveSessionView()
-}
+// #Preview { // iOS 17+ only
+//     CreateLiveSessionView()
+// }

@@ -237,7 +237,7 @@ struct WriteReviewSheet: View {
                         HStack(spacing: 12) {
                             ForEach(1...5, id: \.self) { star in
                                 Button {
-                                    withAnimation(.spring(response: 0.3)) {
+                                    withAnimation(.spring()) {
                                         selectedRating = star
                                     }
                                 } label: {

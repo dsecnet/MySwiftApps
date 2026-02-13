@@ -52,7 +52,7 @@ struct EditClientProfileView: View {
                             text: $age,
                             keyboardType: .numberPad
                         )
-                        .onChange(of: age) { _, val in
+                        .onChange(of: age) { val in
                             age = val.filter { $0.isNumber }
                             if let n = Int(age), n > 120 { age = "120" }
                         }
@@ -63,7 +63,7 @@ struct EditClientProfileView: View {
                             text: $weight,
                             keyboardType: .decimalPad
                         )
-                        .onChange(of: weight) { _, val in
+                        .onChange(of: weight) { val in
                             weight = val.filter { $0.isNumber || $0 == "." }
                             if let n = Double(weight), n > 500 { weight = "500" }
                         }
@@ -74,7 +74,7 @@ struct EditClientProfileView: View {
                             text: $height,
                             keyboardType: .numberPad
                         )
-                        .onChange(of: height) { _, val in
+                        .onChange(of: height) { val in
                             height = val.filter { $0.isNumber }
                             if let n = Int(height), n > 300 { height = "300" }
                         }
@@ -229,7 +229,7 @@ struct EditTrainerProfileView: View {
                             text: $experience,
                             keyboardType: .numberPad
                         )
-                        .onChange(of: experience) { _, val in
+                        .onChange(of: experience) { val in
                             experience = val.filter { $0.isNumber }
                             if let n = Int(experience), n > 60 { experience = "60" }
                         }
@@ -252,7 +252,7 @@ struct EditTrainerProfileView: View {
                                     .scrollContentBackground(.hidden)
                                     .frame(height: 100)
                                     .padding(8)
-                                    .onChange(of: bio) { _, val in
+                                    .onChange(of: bio) { val in
                                         if val.count > 1000 { bio = String(val.prefix(1000)) }
                                     }
                             }
@@ -266,7 +266,7 @@ struct EditTrainerProfileView: View {
                             text: $pricePerSession,
                             keyboardType: .decimalPad
                         )
-                        .onChange(of: pricePerSession) { _, val in
+                        .onChange(of: pricePerSession) { val in
                             pricePerSession = val.filter { $0.isNumber || $0 == "." }
                             if let n = Double(pricePerSession), n > 10000 { pricePerSession = "10000" }
                         }
@@ -400,10 +400,10 @@ struct SpecialtyRow: View {
     }
 }
 
-#Preview("Client") {
-    EditClientProfileView()
-}
-
-#Preview("Trainer") {
-    EditTrainerProfileView()
-}
+// #Preview("Client") { // iOS 17+ only
+//     EditClientProfileView()
+// }
+//
+// #Preview("Trainer") { // iOS 17+ only
+//     EditTrainerProfileView()
+// }

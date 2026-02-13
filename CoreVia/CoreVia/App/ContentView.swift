@@ -42,7 +42,7 @@ struct ContentView: View {
                 }
             }
         }
-        .onChange(of: authManager.isLoggedIn) { _, loggedIn in
+        .onChange(of: authManager.isLoggedIn) { loggedIn in
             if loggedIn {
                 Task { await onboardingManager.checkStatus() }
             }
@@ -85,102 +85,77 @@ struct MainTabView: View {
     }
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-
-            // MARK: - Tab 0: Home / Trainer Dashboard
-            NavigationStack {
-                if isTrainer {
-                    TrainerHomeView()
-                        .navigationTitle("")
-                } else {
-                    HomeView()
-                        .navigationTitle("")
+        ZStack(alignment: .bottom) {
+            // Content
+            Group {
+                switch selectedTab {
+                case 0:
+                    NavigationStack {
+                        if isTrainer {
+                            TrainerHomeView()
+                                .navigationTitle("")
+                        } else {
+                            HomeView()
+                                .navigationTitle("")
+                        }
+                    }
+                case 1:
+                    NavigationStack {
+                        if isTrainer {
+                            TrainingPlanView()
+                                .navigationTitle("")
+                        } else {
+                            WorkoutView()
+                                .navigationTitle("")
+                        }
+                    }
+                case 2:
+                    NavigationStack {
+                        if isTrainer {
+                            MealPlanView()
+                                .navigationTitle("")
+                        } else {
+                            FoodView()
+                                .navigationTitle("")
+                        }
+                    }
+                case 3:
+                    NavigationStack {
+                        ConversationsView()
+                            .navigationTitle("")
+                    }
+                case 4:
+                    NavigationStack {
+                        if isTrainer {
+                            TrainerContentView()
+                                .navigationTitle("")
+                        } else {
+                            ActivitiesView()
+                                .navigationTitle("")
+                        }
+                    }
+                case 5:
+                    NavigationStack {
+                        ProfileView(isLoggedIn: $isLoggedIn)
+                            .navigationTitle(loc.localized("tab_profile"))
+                    }
+                default:
+                    NavigationStack {
+                        if isTrainer {
+                            TrainerHomeView()
+                                .navigationTitle("")
+                        } else {
+                            HomeView()
+                                .navigationTitle("")
+                        }
+                    }
                 }
             }
-            .tabItem {
-                Label(loc.localized("tab_home"), systemImage: "house.fill")
-            }
-            .tag(0)
 
-            // MARK: - Tab 1: Workout / Training Plans
-            NavigationStack {
-                if isTrainer {
-                    TrainingPlanView()
-                        .navigationTitle("")
-                } else {
-                    WorkoutView()
-                        .navigationTitle("")
-                }
-            }
-            .tabItem {
-                Label(
-                    isTrainer ? loc.localized("tab_plans") : loc.localized("tab_workout"),
-                    systemImage: "figure.strengthtraining.traditional"
-                )
-            }
-            .tag(1)
-
-            // MARK: - Tab 2: Food / Meal Plans
-            NavigationStack {
-                if isTrainer {
-                    MealPlanView()
-                        .navigationTitle("")
-                } else {
-                    FoodView()
-                        .navigationTitle("")
-                }
-            }
-            .tabItem {
-                Label(
-                    isTrainer ? loc.localized("tab_meal_plans") : loc.localized("tab_food"),
-                    systemImage: "fork.knife"
-                )
-            }
-            .tag(2)
-
-            // MARK: - Tab 3: Chat (both trainer & client)
-            NavigationStack {
-                ConversationsView()
-                    .navigationTitle("")
-            }
-            .tabItem {
-                Label(loc.localized("chat_title"), systemImage: "bubble.left.and.bubble.right")
-            }
-            .tag(3)
-
-            // MARK: - Tab 4: Activities (client) / Content (trainer)
-            if !isTrainer {
-                NavigationStack {
-                    ActivitiesView()
-                        .navigationTitle("")
-                }
-                .tabItem {
-                    Label(loc.localized("activities_title"), systemImage: "figure.run")
-                }
-                .tag(4)
-            }
-
-            if isTrainer {
-                NavigationStack {
-                    TrainerContentView()
-                        .navigationTitle("")
-                }
-                .tabItem {
-                    Label(loc.localized("content_title"), systemImage: "doc.richtext")
-                }
-                .tag(4)
-            }
-
-            // MARK: - Tab 5: Profile
-            NavigationStack {
-                ProfileView(isLoggedIn: $isLoggedIn)
-                    .navigationTitle(loc.localized("tab_profile"))
-            }
-            .tabItem {
-                Label(loc.localized("tab_profile"), systemImage: "person.fill")
-            }
-            .tag(5)
+            // Custom Tab Bar
+            CustomTabBar(selectedTab: $selectedTab, isTrainer: isTrainer)
         }
+        .ignoresSafeArea(.keyboard)
     }
 }
 
@@ -212,6 +187,6 @@ struct PlaceholderView: View {
     }
 }
 
-#Preview {
-    ContentView()
-}
+// #Preview { // iOS 17+ only
+//     ContentView()
+// }

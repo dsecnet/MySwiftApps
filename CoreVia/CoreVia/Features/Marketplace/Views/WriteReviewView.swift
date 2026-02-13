@@ -140,8 +140,8 @@ class WriteReviewViewModel: ObservableObject {
     }
 }
 
-#Preview {
-    WriteReviewView(productId: "123") {
-        print("Review submitted")
-    }
-}
+// #Preview { // iOS 17+ only
+//     WriteReviewView(productId: "123") {
+//         print("Review submitted")
+//     }
+// }

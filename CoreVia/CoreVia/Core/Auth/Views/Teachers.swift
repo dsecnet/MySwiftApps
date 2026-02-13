@@ -364,14 +364,24 @@ struct TrainerDetailView: View {
     @ObservedObject private var loc = LocalizationManager.shared
     @ObservedObject private var settingsManager = SettingsManager.shared
     @ObservedObject private var trainerManager = TrainerManager.shared
+    @ObservedObject private var chatManager = ChatManager.shared
 
     @State private var showPremium = false
     @State private var isAssigning = false
     @State private var showAssignSuccess = false
     @State private var showError = false
+    @State private var isLeaving = false
+    @State private var showLeaveConfirm = false
+    @State private var messageText = ""
+    @State private var isSendingMessage = false
+    @State private var showMessageSuccess = false
 
     var isAlreadyAssigned: Bool {
         AuthManager.shared.currentUser?.trainerId == trainer.id
+    }
+
+    var canSendMessage: Bool {
+        isAlreadyAssigned && (settingsManager.isPremium || AuthManager.shared.currentUser?.userType == "trainer")
     }
 
     var body: some View {
@@ -379,30 +389,38 @@ struct TrainerDetailView: View {
             ZStack {
                 AppTheme.Colors.background.ignoresSafeArea()
 
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 24) {
-                        profilePhotoSection
-                        nameAndSpecSection
-                        specialtyTagsSection
-                        statsCardsSection
+                VStack(spacing: 0) {
+                    ScrollView(showsIndicators: false) {
+                        VStack(spacing: 24) {
+                            profilePhotoSection
+                            nameAndSpecSection
+                            specialtyTagsSection
+                            statsCardsSection
 
-                        if let bio = trainer.bio, !bio.isEmpty {
-                            bioSection(bio: bio)
+                            if let bio = trainer.bio, !bio.isEmpty {
+                                bioSection(bio: bio)
+                            }
+
+                            if let instagram = trainer.instagramHandle, !instagram.isEmpty {
+                                instagramSection(handle: instagram)
+                            }
+
+                            // Reviews Section
+                            ReviewsSection(trainerId: trainer.id)
+
+                            // Trainer Content Section
+                            StudentContentView(trainerId: trainer.id)
+
+                            actionButtons
                         }
-
-                        if let instagram = trainer.instagramHandle, !instagram.isEmpty {
-                            instagramSection(handle: instagram)
-                        }
-
-                        // Reviews Section
-                        ReviewsSection(trainerId: trainer.id)
-
-                        // Trainer Content Section
-                        StudentContentView(trainerId: trainer.id)
-
-                        actionButtons
+                        .padding()
+                        .padding(.bottom, canSendMessage ? 80 : 0)
                     }
-                    .padding()
+
+                    // Message Input (görünür yalnız join olubsa)
+                    if canSendMessage {
+                        messageInputBar
+                    }
                 }
             }
             .navigationTitle(loc.localized("teacher_profile"))
@@ -429,6 +447,89 @@ struct TrainerDetailView: View {
                 Button(loc.localized("teacher_ok"), role: .cancel) {}
             } message: {
                 Text(trainerManager.errorMessage ?? loc.localized("teacher_unknown_error"))
+            }
+            .alert(loc.localized("teacher_leave_button"), isPresented: $showLeaveConfirm) {
+                Button(loc.localized("common_cancel"), role: .cancel) {}
+                Button(loc.localized("teacher_leave_button"), role: .destructive) {
+                    Task {
+                        isLeaving = true
+                        let success = await trainerManager.leaveTrainer()
+                        isLeaving = false
+                        if success {
+                            dismiss()
+                        } else {
+                            showError = true
+                        }
+                    }
+                }
+            } message: {
+                Text("Bu müəllimdən ayrılmaq istədiyinizdən əminsiniz?")
+            }
+            .alert(loc.localized("common_success"), isPresented: $showMessageSuccess) {
+                Button(loc.localized("teacher_ok"), role: .cancel) {}
+            } message: {
+                Text(loc.localized("message_sent_success"))
+            }
+        }
+    }
+
+    // MARK: - Message Input Bar
+    private var messageInputBar: some View {
+        VStack(spacing: 0) {
+            Divider()
+                .background(AppTheme.Colors.separator)
+
+            HStack(spacing: 12) {
+                TextField(loc.localized("chat_type_message"), text: $messageText)
+                    .textFieldStyle(.plain)
+                    .padding(12)
+                    .background(AppTheme.Colors.secondaryBackground)
+                    .cornerRadius(22)
+                    .foregroundColor(AppTheme.Colors.primaryText)
+
+                Button {
+                    sendMessage()
+                } label: {
+                    ZStack {
+                        Circle()
+                            .fill(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? AppTheme.Colors.tertiaryText.opacity(0.3) : AppTheme.Colors.accent)
+                            .frame(width: 44, height: 44)
+
+                        if isSendingMessage {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        } else {
+                            Image(systemName: "paperplane.fill")
+                                .font(.system(size: 18))
+                                .foregroundColor(.white)
+                        }
+                    }
+                }
+                .disabled(messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSendingMessage)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(AppTheme.Colors.background)
+        }
+    }
+
+    // MARK: - Send Message Action
+    private func sendMessage() {
+        let text = messageText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+
+        messageText = ""
+        isSendingMessage = true
+
+        Task {
+            let success = await chatManager.sendMessage(receiverId: trainer.id, message: text)
+            await MainActor.run {
+                isSendingMessage = false
+                if success {
+                    showMessageSuccess = true
+                } else {
+                    showError = true
+                }
             }
         }
     }
@@ -590,6 +691,7 @@ struct TrainerDetailView: View {
     private var actionButtons: some View {
         VStack(spacing: 12) {
             if isAlreadyAssigned {
+                // Already joined - show status + leave button
                 HStack(spacing: 8) {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(AppTheme.Colors.success)
@@ -605,24 +707,57 @@ struct TrainerDetailView: View {
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(AppTheme.Colors.success.opacity(0.3), lineWidth: 1)
                 )
-            } else if settingsManager.isPremium {
-                // Premium temporarily disabled - show coming soon
-                Button {
-                    // Disabled - do nothing
-                } label: {
-                    VStack(spacing: 10) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "sparkles")
-                            Text("COMING SOON")
-                                .font(.system(size: 14, weight: .bold))
-                                .tracking(2)
-                        }
-                        .foregroundColor(.white)
 
-                        Text("Müəllim abunəliyi tezliklə aktiv olacaq")
-                            .font(.system(size: 12))
-                            .foregroundColor(.white.opacity(0.7))
+                // Leave Button
+                Button {
+                    showLeaveConfirm = true
+                } label: {
+                    HStack(spacing: 8) {
+                        if isLeaving {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: AppTheme.Colors.error))
+                        } else {
+                            Image(systemName: "xmark.circle")
+                            Text(loc.localized("teacher_leave_button"))
+                                .font(.system(size: 16, weight: .semibold))
+                        }
                     }
+                    .foregroundColor(AppTheme.Colors.error)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(AppTheme.Colors.secondaryBackground)
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(AppTheme.Colors.error.opacity(0.3), lineWidth: 1)
+                    )
+                }
+                .disabled(isLeaving)
+            } else if settingsManager.isPremium {
+                // Premium user - can join trainer
+                Button {
+                    Task {
+                        isAssigning = true
+                        let success = await trainerManager.assignTrainer(trainerId: trainer.id)
+                        isAssigning = false
+                        if success {
+                            showAssignSuccess = true
+                        } else {
+                            showError = true
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 8) {
+                        if isAssigning {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        } else {
+                            Image(systemName: "checkmark.circle.fill")
+                            Text(loc.localized("teacher_join_button"))
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                    }
+                    .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(
@@ -633,20 +768,19 @@ struct TrainerDetailView: View {
                         )
                     )
                     .cornerRadius(12)
-                    .opacity(0.6)
                 }
-                .disabled(true)
+                .disabled(isAssigning)
             } else {
-                // Non-premium users - show coming soon
+                // Non-premium users - show premium required
                 Button {
-                    // Disabled - do nothing
+                    showPremium = true
                 } label: {
                     VStack(spacing: 10) {
                         HStack(spacing: 8) {
-                            Image(systemName: "sparkles")
-                            Text("COMING SOON")
+                            Image(systemName: "crown.fill")
+                            Text(loc.localized("premium_required"))
                                 .font(.system(size: 14, weight: .bold))
-                                .tracking(2)
+                                .tracking(1)
                         }
                         .foregroundColor(.white)
 
@@ -742,8 +876,8 @@ struct DetailStatCard: View {
     }
 }
 
-#Preview {
-    NavigationStack {
-        TeachersView()
-    }
-}
+// #Preview { // iOS 17+ only
+//     NavigationStack {
+//         TeachersView()
+//     }
+// }

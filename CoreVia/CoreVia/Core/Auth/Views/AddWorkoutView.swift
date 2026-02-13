@@ -55,7 +55,7 @@ struct AddWorkoutView: View {
                                             category: category,
                                             isSelected: selectedCategory == category
                                         ) {
-                                            withAnimation(.spring(response: 0.3)) {
+                                            withAnimation(.spring()) {
                                                 selectedCategory = category
                                             }
                                         }
@@ -191,11 +191,11 @@ struct AddWorkoutView: View {
             }
             .navigationTitle(loc.localized("workout_new"))
             .navigationBarTitleDisplayMode(.inline)
-            .onChange(of: caloriesBurned) { _, val in
+            .onChange(of: caloriesBurned) { val in
                 caloriesBurned = val.filter { $0.isNumber }
                 if let n = Int(caloriesBurned), n > 10000 { caloriesBurned = "10000" }
             }
-            .onChange(of: notes) { _, val in
+            .onChange(of: notes) { val in
                 if val.count > 1000 { notes = String(val.prefix(1000)) }
             }
             .toolbar {
@@ -275,6 +275,6 @@ struct CategoryButton: View {
     }
 }
 
-#Preview {
-    AddWorkoutView()
-}
+// #Preview { // iOS 17+ only
+//     AddWorkoutView()
+// }

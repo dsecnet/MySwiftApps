@@ -123,7 +123,7 @@ struct CreatePostView: View {
                     LoadingOverlay()
                 }
             }
-            .onChange(of: viewModel.selectedPhotoItem) { _, newItem in
+            .onChange(of: viewModel.selectedPhotoItem) { newItem in
                 Task {
                     await viewModel.loadImage(from: newItem)
                 }
@@ -197,36 +197,13 @@ class CreatePostViewModel: ObservableObject {
             throw NSError(domain: "CreatePost", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to compress image"])
         }
 
-        // Create multipart form data
-        let boundary = UUID().uuidString
-        var body = Data()
-
-        // Add image data
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"post_image.jpg\"\r\n".data(using: .utf8)!)
-        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
-        body.append(imageData)
-        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
-
-        // Upload
-        guard let url = URL(string: "\(APIService.shared.baseURL)/api/v1/social/posts/\(postId)/image") else { return }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-
-        if let token = UserDefaults.standard.string(forKey: "accessToken") {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
-
-        request.httpBody = body
-
-        let (_, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            throw NSError(domain: "CreatePost", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to upload image"])
-        }
+        // Use APIService uploadImage method
+        _ = try await APIService.shared.uploadImage(
+            endpoint: "/api/v1/social/posts/\(postId)/image",
+            imageData: imageData,
+            fieldName: "file",
+            fileName: "post_image.jpg"
+        )
     }
 }
 
@@ -248,6 +225,6 @@ struct LoadingOverlay: View {
     }
 }
 
-#Preview {
-    CreatePostView()
-}
+// #Preview { // iOS 17+ only
+//     CreatePostView()
+// }

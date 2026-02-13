@@ -33,11 +33,10 @@ struct ClientProfileView: View {
             AppTheme.Colors.background.ignoresSafeArea()
 
             ScrollView(showsIndicators: false) {
-                VStack(spacing: 20) {
+                VStack(spacing: 16) {
                     profileHeader
                     profileCompletionSection
                     if !settingsManager.isPremium { premiumBanner }
-                    quickActionsSection
                     todayHighlightsSection
                     weeklyProgressSection
                     teachersSection
@@ -46,7 +45,9 @@ struct ClientProfileView: View {
                     settingsSection
                     logoutButton
                 }
-                .padding()
+                .padding(.horizontal)
+                .padding(.top, 8)
+                .padding(.bottom, 100)
             }
         }
         .sheet(isPresented: $showImagePicker) {
@@ -119,7 +120,7 @@ struct ClientProfileView: View {
 
     // MARK: - Profile Header
     private var profileHeader: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 8) {
             ZStack(alignment: .bottomTrailing) {
                 ZStack {
                     Circle()
@@ -180,7 +181,7 @@ struct ClientProfileView: View {
                 }
             }
 
-            VStack(spacing: 6) {
+            VStack(spacing: 2) {
                 HStack(spacing: 8) {
                     Text(profileManager.userProfile.name)
                         .font(.system(size: 22, weight: .bold))
@@ -324,118 +325,6 @@ struct ClientProfileView: View {
         }
     }
 
-    // MARK: - Quick Actions
-    private var quickActionsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(loc.localized("profile_quick_actions"))
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(AppTheme.Colors.primaryText)
-
-            VStack(spacing: 12) {
-                // Row 1: Yeni Idman + Qida Elave Et
-                HStack(spacing: 12) {
-                    Button { showAddWorkout = true } label: {
-                        VStack(alignment: .leading, spacing: 10) {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.white.opacity(0.2))
-                                    .frame(width: 40, height: 40)
-                                Image(systemName: "figure.strengthtraining.traditional")
-                                    .font(.system(size: 18))
-                                    .foregroundColor(.white)
-                            }
-                            Text(loc.localized("profile_new_workout"))
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundColor(.white)
-                            Text("\(workoutManager.todayWorkouts.count) \(loc.localized("profile_today"))")
-                                .font(.system(size: 11))
-                                .foregroundColor(.white.opacity(0.7))
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(14)
-                        .background(
-                            LinearGradient(
-                                colors: [AppTheme.Colors.accent, AppTheme.Colors.accent.opacity(0.8)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .cornerRadius(16)
-                        .shadow(color: AppTheme.Colors.accent.opacity(0.3), radius: 8, x: 0, y: 4)
-                    }
-
-                    Button { showAddFood = true } label: {
-                        VStack(alignment: .leading, spacing: 10) {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.white.opacity(0.2))
-                                    .frame(width: 40, height: 40)
-                                Image(systemName: "fork.knife")
-                                    .font(.system(size: 18))
-                                    .foregroundColor(.white)
-                            }
-                            Text(loc.localized("profile_add_food"))
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundColor(.white)
-                            Text("\(foodManager.todayTotalCalories) \(loc.localized("unit_kcal"))")
-                                .font(.system(size: 11))
-                                .foregroundColor(.white.opacity(0.7))
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(14)
-                        .background(
-                            LinearGradient(
-                                colors: [AppTheme.Colors.success, AppTheme.Colors.success.opacity(0.8)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .cornerRadius(16)
-                        .shadow(color: AppTheme.Colors.success.opacity(0.3), radius: 8, x: 0, y: 4)
-                    }
-                }
-
-                // Row 2: Herekete Basla (premium only)
-                if settingsManager.isPremium {
-                    NavigationLink(destination: ActivitiesView()) {
-                        HStack(spacing: 14) {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.white.opacity(0.2))
-                                    .frame(width: 40, height: 40)
-                                Image(systemName: "figure.run")
-                                    .font(.system(size: 18))
-                                    .foregroundColor(.white)
-                            }
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(loc.localized("profile_start_activity"))
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(.white)
-                                Text(loc.localized("profile_gps_desc"))
-                                    .font(.system(size: 11))
-                                    .foregroundColor(.white.opacity(0.7))
-                            }
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.white.opacity(0.7))
-                                .font(.system(size: 13))
-                        }
-                        .padding(14)
-                        .background(
-                            LinearGradient(
-                                colors: [AppTheme.Colors.accent, AppTheme.Colors.accentDark],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .cornerRadius(16)
-                        .shadow(color: AppTheme.Colors.accent.opacity(0.3), radius: 8, x: 0, y: 4)
-                    }
-                }
-            }
-        }
-    }
-
     // MARK: - Today Highlights (horizontal scroll)
     private var todayHighlightsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -555,29 +444,6 @@ struct ClientProfileView: View {
                     RoundedRectangle(cornerRadius: 14)
                         .stroke(AppTheme.Colors.success.opacity(0.2), lineWidth: 1)
                 )
-
-                // Message Trainer button
-                NavigationLink(destination: ChatDetailView(
-                    userId: trainer.id,
-                    userName: trainer.name,
-                    userProfileImage: trainer.profileImageUrl
-                )) {
-                    HStack(spacing: 12) {
-                        Image(systemName: "message.fill")
-                            .font(.system(size: 16))
-                            .foregroundColor(AppTheme.Colors.accent)
-                        Text(loc.localized("profile_message_trainer"))
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(AppTheme.Colors.accent)
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .foregroundColor(AppTheme.Colors.tertiaryText)
-                            .font(.system(size: 13))
-                    }
-                    .padding(12)
-                    .background(AppTheme.Colors.accent.opacity(0.08))
-                    .cornerRadius(12)
-                }
             }
 
             // Butun muellimlere bax linki
@@ -987,8 +853,8 @@ struct StatRow: View {
     }
 }
 
-#Preview {
-    NavigationStack {
-        ClientProfileView(isLoggedIn: .constant(true))
-    }
-}
+// #Preview { // iOS 17+ only
+//     NavigationStack {
+//         ClientProfileView(isLoggedIn: .constant(true))
+//     }
+// }

@@ -317,6 +317,6 @@ struct SummaryAnalyticsStatCard: View {
     }
 }
 
-#Preview {
-    AnalyticsDashboardView()
-}
+// #Preview { // iOS 17+ only
+//     AnalyticsDashboardView()
+// }

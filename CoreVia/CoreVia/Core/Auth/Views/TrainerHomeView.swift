@@ -421,6 +421,6 @@ struct DashboardQuickAction: View {
     }
 }
 
-#Preview {
-    TrainerHomeView()
-}
+// #Preview { // iOS 17+ only
+//     TrainerHomeView()
+// }

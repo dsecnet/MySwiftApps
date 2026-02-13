@@ -226,6 +226,6 @@ struct WorkoutCard: View {
     }
 }
 
-#Preview {
-    WorkoutView()
-}
+// #Preview { // iOS 17+ only
+//     WorkoutView()
+// }

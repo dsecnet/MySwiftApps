@@ -190,7 +190,7 @@ struct TrainerVerificationView: View {
                     .cornerRadius(16)
                 }
             }
-            .onChange(of: photoPickerItem) { _, newValue in
+            .onChange(of: photoPickerItem) { newValue in
                 Task {
                     if let data = try? await newValue?.loadTransferable(type: Data.self),
                        let uiImage = UIImage(data: data) {
@@ -241,7 +241,7 @@ struct TrainerVerificationView: View {
                 HStack(spacing: 10) {
                     ForEach(specializations, id: \.self) { spec in
                         Button {
-                            withAnimation(.spring(response: 0.3)) {
+                            withAnimation(.spring()) {
                                 selectedSpecialization = spec
                             }
                         } label: {
@@ -555,7 +555,7 @@ struct TrainerVerificationView: View {
                     resultMessage = response.message
                     resultScore = response.verificationScore ?? 0
 
-                    withAnimation(.spring(response: 0.5)) {
+                    withAnimation(.spring()) {
                         showResult = true
                     }
                 }
@@ -586,6 +586,6 @@ struct TrainerVerificationView: View {
     }
 }
 
-#Preview {
-    TrainerVerificationView()
-}
+// #Preview { // iOS 17+ only
+//     TrainerVerificationView()
+// }
