@@ -1,90 +1,11 @@
-INFO:     Will watch for changes in these directories: ['/Users/vusaldadashov/Desktop/ConsoleApp/corevia-backend']
-INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     Started reloader process [90355] using StatReload
 ANTHROPIC_API_KEY not found, using mock data
-INFO:     Started server process [90366]
+INFO:     Started server process [27745]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-2026-02-14 11:57:04,955 INFO sqlalchemy.engine.Engine select pg_catalog.version()
-2026-02-14 11:57:04,955 INFO sqlalchemy.engine.Engine [raw sql] ()
-2026-02-14 11:57:04,963 INFO sqlalchemy.engine.Engine select current_schema()
-2026-02-14 11:57:04,963 INFO sqlalchemy.engine.Engine [raw sql] ()
-2026-02-14 11:57:04,967 INFO sqlalchemy.engine.Engine show standard_conforming_strings
-2026-02-14 11:57:04,967 INFO sqlalchemy.engine.Engine [raw sql] ()
-2026-02-14 11:57:04,968 INFO sqlalchemy.engine.Engine BEGIN (implicit)
-2026-02-14 11:57:05,000 INFO sqlalchemy.engine.Engine SELECT users.id, users.name, users.email, users.hashed_password, users.user_type, users.profile_image_url, users.is_active, users.created_at, users.updated_at, users.age, users.weight, users.height, users.goal, users.trainer_id, users.specialization, users.experience, users.rating, users.price_per_session, users.bio, users.verification_status, users.certificate_image_url, users.instagram_handle, users.verification_photo_url, users.verification_score, users.verification_attempts, users.last_verification_attempt, users.is_premium, users.is_admin 
-FROM users 
-WHERE users.email = $1::VARCHAR
-2026-02-14 11:57:05,000 INFO sqlalchemy.engine.Engine [generated in 0.00017s] ('test@corevia.life',)
-2026-02-14 11:57:05,017 INFO sqlalchemy.engine.Engine SELECT otp_codes.id, otp_codes.phone_number, otp_codes.code, otp_codes.purpose, otp_codes.is_used, otp_codes.expires_at, otp_codes.created_at, otp_codes.attempts 
-FROM otp_codes 
-WHERE otp_codes.phone_number = $1::VARCHAR AND otp_codes.created_at >= $2::TIMESTAMP WITH TIME ZONE
-2026-02-14 11:57:05,017 INFO sqlalchemy.engine.Engine [generated in 0.00016s] ('+994559412091', datetime.datetime(2026, 2, 14, 7, 52, 5, 16033))
-2026-02-14 11:57:05,019 INFO sqlalchemy.engine.Engine INSERT INTO otp_codes (id, phone_number, code, purpose, is_used, expires_at, attempts) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::BOOLEAN, $6::TIMESTAMP WITH TIME ZONE, $7::INTEGER) RETURNING otp_codes.created_at
-2026-02-14 11:57:05,019 INFO sqlalchemy.engine.Engine [generated in 0.00014s] ('41aeddcd-1f7e-4473-b627-66a88bb30cb0', '+994559412091', '611607', 'forgot_password', False, datetime.datetime(2026, 2, 14, 8, 7, 5, 18100), 0)
-2026-02-14 11:57:05,020 INFO sqlalchemy.engine.Engine COMMIT
-INFO:     127.0.0.1:63361 - "POST /api/v1/auth/forgot-password HTTP/1.1" 200 OK
-2026-02-14 12:00:00,007 INFO sqlalchemy.engine.Engine BEGIN (implicit)
-2026-02-14 12:00:00,011 INFO sqlalchemy.engine.Engine SELECT user_settings.id, user_settings.user_id, user_settings.notifications_enabled, user_settings.workout_reminders, user_settings.meal_reminders, user_settings.weekly_reports 
-FROM user_settings 
-WHERE user_settings.notifications_enabled = true AND user_settings.meal_reminders = true
-2026-02-14 12:00:00,011 INFO sqlalchemy.engine.Engine [generated in 0.00018s] ()
-2026-02-14 12:00:00,014 INFO sqlalchemy.engine.Engine SELECT food_entries.id 
-FROM food_entries 
-WHERE food_entries.user_id = $1::VARCHAR AND food_entries.date >= $2::TIMESTAMP WITHOUT TIME ZONE 
- LIMIT $3::INTEGER
-2026-02-14 12:00:00,014 INFO sqlalchemy.engine.Engine [generated in 0.00008s] ('2c9f10c0-4366-4ae3-b21e-fc5389e10795', datetime.datetime(2026, 2, 14, 0, 0), 1)
-2026-02-14 12:00:00,019 INFO sqlalchemy.engine.Engine INSERT INTO notifications (id, user_id, title, body, notification_type, data, is_read, is_sent, created_at) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR, $7::BOOLEAN, $8::BOOLEAN, $9::TIMESTAMP WITHOUT TIME ZONE)
-2026-02-14 12:00:00,020 INFO sqlalchemy.engine.Engine [generated in 0.00161s] ('9d731d8b-6f47-4326-ab18-97267ec3e49d', '2c9f10c0-4366-4ae3-b21e-fc5389e10795', 'Yemək vaxtını unutma! 🍎', 'Qida qeydini yaz ki, günlük kalori hədəfinə çatasan.', 'meal_reminder', None, False, False, datetime.datetime(2026, 2, 14, 8, 0, 0, 19844))
-2026-02-14 12:00:00,025 INFO sqlalchemy.engine.Engine SELECT device_tokens.fcm_token 
-FROM device_tokens 
-WHERE device_tokens.user_id = $1::VARCHAR AND device_tokens.is_active = true
-2026-02-14 12:00:00,025 INFO sqlalchemy.engine.Engine [generated in 0.00008s] ('2c9f10c0-4366-4ae3-b21e-fc5389e10795',)
-2026-02-14 12:00:00,026 INFO sqlalchemy.engine.Engine SELECT food_entries.id 
-FROM food_entries 
-WHERE food_entries.user_id = $1::VARCHAR AND food_entries.date >= $2::TIMESTAMP WITHOUT TIME ZONE 
- LIMIT $3::INTEGER
-2026-02-14 12:00:00,026 INFO sqlalchemy.engine.Engine [cached since 0.01171s ago] ('ec48cbe8-f17a-41ca-8545-ca825f496730', datetime.datetime(2026, 2, 14, 0, 0), 1)
-2026-02-14 12:00:00,026 INFO sqlalchemy.engine.Engine INSERT INTO notifications (id, user_id, title, body, notification_type, data, is_read, is_sent, created_at) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR, $7::BOOLEAN, $8::BOOLEAN, $9::TIMESTAMP WITHOUT TIME ZONE)
-2026-02-14 12:00:00,026 INFO sqlalchemy.engine.Engine [cached since 0.008233s ago] ('5a5aecd1-2990-4eec-bb81-ec8bafff6e25', 'ec48cbe8-f17a-41ca-8545-ca825f496730', 'Yemək vaxtını unutma! 🍎', 'Qida qeydini yaz ki, günlük kalori hədəfinə çatasan.', 'meal_reminder', None, False, False, datetime.datetime(2026, 2, 14, 8, 0, 0, 26613))
-2026-02-14 12:00:00,027 INFO sqlalchemy.engine.Engine SELECT device_tokens.fcm_token 
-FROM device_tokens 
-WHERE device_tokens.user_id = $1::VARCHAR AND device_tokens.is_active = true
-2026-02-14 12:00:00,027 INFO sqlalchemy.engine.Engine [cached since 0.001909s ago] ('ec48cbe8-f17a-41ca-8545-ca825f496730',)
-2026-02-14 12:00:00,027 INFO sqlalchemy.engine.Engine SELECT food_entries.id 
-FROM food_entries 
-WHERE food_entries.user_id = $1::VARCHAR AND food_entries.date >= $2::TIMESTAMP WITHOUT TIME ZONE 
- LIMIT $3::INTEGER
-2026-02-14 12:00:00,027 INFO sqlalchemy.engine.Engine [cached since 0.01309s ago] ('61efc4e5-4274-4d70-b212-0f8c2b957835', datetime.datetime(2026, 2, 14, 0, 0), 1)
-2026-02-14 12:00:00,027 INFO sqlalchemy.engine.Engine INSERT INTO notifications (id, user_id, title, body, notification_type, data, is_read, is_sent, created_at) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR, $7::BOOLEAN, $8::BOOLEAN, $9::TIMESTAMP WITHOUT TIME ZONE)
-2026-02-14 12:00:00,027 INFO sqlalchemy.engine.Engine [cached since 0.009549s ago] ('122912bc-8e82-45b6-8af6-e6925159220e', '61efc4e5-4274-4d70-b212-0f8c2b957835', 'Yemək vaxtını unutma! 🍎', 'Qida qeydini yaz ki, günlük kalori hədəfinə çatasan.', 'meal_reminder', None, False, False, datetime.datetime(2026, 2, 14, 8, 0, 0, 27932))
-2026-02-14 12:00:00,028 INFO sqlalchemy.engine.Engine SELECT device_tokens.fcm_token 
-FROM device_tokens 
-WHERE device_tokens.user_id = $1::VARCHAR AND device_tokens.is_active = true
-2026-02-14 12:00:00,028 INFO sqlalchemy.engine.Engine [cached since 0.003121s ago] ('61efc4e5-4274-4d70-b212-0f8c2b957835',)
-2026-02-14 12:00:00,028 INFO sqlalchemy.engine.Engine SELECT food_entries.id 
-FROM food_entries 
-WHERE food_entries.user_id = $1::VARCHAR AND food_entries.date >= $2::TIMESTAMP WITHOUT TIME ZONE 
- LIMIT $3::INTEGER
-2026-02-14 12:00:00,028 INFO sqlalchemy.engine.Engine [cached since 0.01426s ago] ('09bdf0f3-afee-4e5e-9da7-4de87e9c5975', datetime.datetime(2026, 2, 14, 0, 0), 1)
-2026-02-14 12:00:00,029 INFO sqlalchemy.engine.Engine INSERT INTO notifications (id, user_id, title, body, notification_type, data, is_read, is_sent, created_at) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR, $7::BOOLEAN, $8::BOOLEAN, $9::TIMESTAMP WITHOUT TIME ZONE)
-2026-02-14 12:00:00,029 INFO sqlalchemy.engine.Engine [cached since 0.01071s ago] ('4f976bfb-3566-4508-9588-9f8bf8937eb5', '09bdf0f3-afee-4e5e-9da7-4de87e9c5975', 'Yemək vaxtını unutma! 🍎', 'Qida qeydini yaz ki, günlük kalori hədəfinə çatasan.', 'meal_reminder', None, False, False, datetime.datetime(2026, 2, 14, 8, 0, 0, 29086))
-2026-02-14 12:00:00,029 INFO sqlalchemy.engine.Engine SELECT device_tokens.fcm_token 
-FROM device_tokens 
-WHERE device_tokens.user_id = $1::VARCHAR AND device_tokens.is_active = true
-2026-02-14 12:00:00,029 INFO sqlalchemy.engine.Engine [cached since 0.004185s ago] ('09bdf0f3-afee-4e5e-9da7-4de87e9c5975',)
-2026-02-14 12:00:00,029 INFO sqlalchemy.engine.Engine COMMIT
-2026-02-14 12:07:17,768 INFO sqlalchemy.engine.Engine BEGIN (implicit)
-2026-02-14 12:07:17,770 INFO sqlalchemy.engine.Engine SELECT users.id, users.name, users.email, users.hashed_password, users.user_type, users.profile_image_url, users.is_active, users.created_at, users.updated_at, users.age, users.weight, users.height, users.goal, users.trainer_id, users.specialization, users.experience, users.rating, users.price_per_session, users.bio, users.verification_status, users.certificate_image_url, users.instagram_handle, users.verification_photo_url, users.verification_score, users.verification_attempts, users.last_verification_attempt, users.is_premium, users.is_admin 
-FROM users 
-WHERE users.email = $1::VARCHAR
-2026-02-14 12:07:17,770 INFO sqlalchemy.engine.Engine [cached since 612.9s ago] ('test_student@corevia.com',)
-2026-02-14 12:07:17,786 INFO sqlalchemy.engine.Engine SELECT otp_codes.id, otp_codes.phone_number, otp_codes.code, otp_codes.purpose, otp_codes.is_used, otp_codes.expires_at, otp_codes.created_at, otp_codes.attempts 
-FROM otp_codes 
-WHERE otp_codes.phone_number = $1::VARCHAR AND otp_codes.created_at >= $2::TIMESTAMP WITH TIME ZONE
-2026-02-14 12:07:17,786 INFO sqlalchemy.engine.Engine [cached since 612.9s ago] ('+994559412091', datetime.datetime(2026, 2, 14, 8, 2, 17, 786056))
-2026-02-14 12:07:17,788 INFO sqlalchemy.engine.Engine INSERT INTO otp_codes (id, phone_number, code, purpose, is_used, expires_at, attempts) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::BOOLEAN, $6::TIMESTAMP WITH TIME ZONE, $7::INTEGER) RETURNING otp_codes.created_at
-2026-02-14 12:07:17,788 INFO sqlalchemy.engine.Engine [cached since 612.9s ago] ('edfd611f-3420-41e2-a345-3f08768e4c0d', '+994559412091', '957773', 'forgot_password', False, datetime.datetime(2026, 2, 14, 8, 17, 17, 787676), 0)
-2026-02-14 12:07:17,790 INFO sqlalchemy.engine.Engine COMMIT
-INFO:     127.0.0.1:63397 - "POST /api/v1/auth/forgot-password HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64277 - "GET / HTTP/1.1" 200 OK
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:65218 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65286 - "POST /auth/login HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:65290 - "POST /auth/login HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:65302 - "POST /auth/login HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:65305 - "POST /auth/login HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:65310 - "POST /auth/login HTTP/1.1" 404 Not Found

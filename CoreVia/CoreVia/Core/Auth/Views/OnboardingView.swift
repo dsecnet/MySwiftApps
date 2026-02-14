@@ -14,7 +14,6 @@ struct OnboardingView: View {
     @State private var selectedLevel: String = ""
     @State private var selectedTrainerType: String? = nil
     @State private var isSubmitting = false
-    @Binding var isCompleted: Bool
 
     var body: some View {
         ZStack {
@@ -215,15 +214,14 @@ struct OnboardingView: View {
     private func submitOnboarding() {
         isSubmitting = true
         Task {
-            let success = await onboardingManager.complete(
+            _ = await onboardingManager.complete(
                 goal: selectedGoal,
                 level: selectedLevel,
                 trainerType: selectedTrainerType
             )
             isSubmitting = false
-            if success {
-                isCompleted = true
-            }
+            // onboardingManager.isCompleted avtomatik true olacaq
+            // ContentView özü yenilənəcək
         }
     }
 }

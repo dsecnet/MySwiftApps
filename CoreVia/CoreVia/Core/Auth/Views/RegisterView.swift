@@ -17,6 +17,10 @@ struct RegisterView: View {
     @State private var errorMessage: String = ""
     @State private var acceptTerms: Bool = false
 
+    // OTP Step
+    @State private var currentStep: Int = 1 // 1: Form, 2: OTP Verification
+    @State private var otpCode: String = ""
+
     @ObservedObject private var loc = LocalizationManager.shared
 
     enum UserType: String, CaseIterable {
@@ -57,16 +61,22 @@ struct RegisterView: View {
                 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 24) {
-                        titleSection
-                        userTypeSelection
-                        inputFields
-                        termsCheckbox
-                        
-                        if showError {
-                            errorView
+                        if currentStep == 1 {
+                            // Step 1: Form
+                            titleSection
+                            userTypeSelection
+                            inputFields
+                            termsCheckbox
+
+                            if showError {
+                                errorView
+                            }
+
+                            sendOTPButton
+                        } else {
+                            // Step 2: OTP Verification
+                            otpVerificationSection
                         }
-                        
-                        registerButton
                     }
                 }
             }
@@ -419,6 +429,211 @@ struct RegisterView: View {
     
     private func hideKeyboard() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+
+    // MARK: - OTP Actions
+
+    private var sendOTPButton: some View {
+        Button {
+            sendOTPAction()
+        } label: {
+            HStack(spacing: 10) {
+                if isLoading {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                } else {
+                    Text("OTP Göndər")
+                        .font(.system(size: 16, weight: .bold))
+
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 14, weight: .bold))
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(
+                LinearGradient(
+                    colors: [AppTheme.Colors.accent, AppTheme.Colors.accent.opacity(0.8)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+            .foregroundColor(.white)
+            .cornerRadius(12)
+            .shadow(color: AppTheme.Colors.accent.opacity(0.4), radius: 8, x: 0, y: 4)
+        }
+        .disabled(isLoading || !isFormValid)
+        .opacity(isFormValid ? 1.0 : 0.5)
+        .padding(.horizontal, 20)
+        .padding(.bottom, 30)
+    }
+
+    private var otpVerificationSection: some View {
+        VStack(spacing: 24) {
+            VStack(spacing: 12) {
+                Text("OTP Kodu")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(AppTheme.Colors.primaryText)
+
+                Text("\(email) ünvanına göndərilən 6 rəqəmli kodu daxil edin")
+                    .font(.system(size: 14))
+                    .foregroundColor(AppTheme.Colors.secondaryText)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 30)
+            }
+            .padding(.top, 40)
+
+            // OTP Input
+            TextField("000000", text: $otpCode)
+                .font(.system(size: 28, weight: .bold, design: .monospaced))
+                .multilineTextAlignment(.center)
+                .keyboardType(.numberPad)
+                .padding()
+                .background(AppTheme.Colors.secondaryBackground)
+                .cornerRadius(12)
+                .padding(.horizontal, 40)
+                .onChange(of: otpCode) { newValue in
+                    otpCode = String(newValue.prefix(6).filter { $0.isNumber })
+                }
+
+            if showError {
+                errorView
+            }
+
+            // Verify Button
+            Button {
+                verifyOTPAndRegister()
+            } label: {
+                HStack {
+                    if isLoading {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    } else {
+                        Text("Təsdiq Et və Qeydiyyatdan Keç")
+                            .font(.system(size: 16, weight: .bold))
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(
+                    LinearGradient(
+                        colors: [AppTheme.Colors.accent, AppTheme.Colors.accent.opacity(0.8)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .foregroundColor(.white)
+                .cornerRadius(12)
+            }
+            .disabled(isLoading || otpCode.count != 6)
+            .opacity(otpCode.count == 6 ? 1.0 : 0.5)
+            .padding(.horizontal, 20)
+
+            // Resend OTP
+            Button {
+                sendOTPAction()
+            } label: {
+                Text("OTP-ni yenidən göndər")
+                    .font(.system(size: 14))
+                    .foregroundColor(AppTheme.Colors.accent)
+            }
+
+            Spacer()
+        }
+    }
+
+    private func sendOTPAction() {
+        guard isFormValid else {
+            showErrorMessage("Bütün sahələri düzgün doldurun")
+            return
+        }
+
+        isLoading = true
+        showError = false
+
+        Task {
+            do {
+                // Step 1: Request OTP
+                let url = URL(string: "\(APIService.shared.baseURL)/auth/register-request")!
+                var request = URLRequest(url: url)
+                request.httpMethod = "POST"
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+                let body: [String: String] = ["email": email.trimmingCharacters(in: .whitespaces).lowercased()]
+                request.httpBody = try JSONEncoder().encode(body)
+
+                let (data, response) = try await URLSession.shared.data(for: request)
+
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    throw NSError(domain: "Invalid response", code: 0)
+                }
+
+                if httpResponse.statusCode == 200 {
+                    await MainActor.run {
+                        isLoading = false
+                        withAnimation {
+                            currentStep = 2
+                        }
+                    }
+                } else {
+                    let errorResponse = try? JSONDecoder().decode([String: String].self, from: data)
+                    throw NSError(domain: errorResponse?["detail"] ?? "OTP göndərilmədi", code: httpResponse.statusCode)
+                }
+            } catch {
+                await MainActor.run {
+                    isLoading = false
+                    showErrorMessage(error.localizedDescription)
+                }
+            }
+        }
+    }
+
+    private func verifyOTPAndRegister() {
+        isLoading = true
+        showError = false
+
+        let backendUserType = userType == .client ? "client" : "trainer"
+
+        Task {
+            do {
+                let url = URL(string: "\(APIService.shared.baseURL)/auth/register")!
+                var request = URLRequest(url: url)
+                request.httpMethod = "POST"
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+                let body: [String: String] = [
+                    "name": name,
+                    "email": email.trimmingCharacters(in: .whitespaces).lowercased(),
+                    "password": password,
+                    "user_type": backendUserType,
+                    "otp_code": otpCode
+                ]
+                request.httpBody = try JSONEncoder().encode(body)
+
+                let (data, response) = try await URLSession.shared.data(for: request)
+
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    throw NSError(domain: "Invalid response", code: 0)
+                }
+
+                if httpResponse.statusCode == 201 {
+                    await MainActor.run {
+                        isLoading = false
+                        withAnimation(.spring()) {
+                            showRegister = false
+                        }
+                    }
+                } else {
+                    let errorResponse = try? JSONDecoder().decode([String: String].self, from: data)
+                    throw NSError(domain: errorResponse?["detail"] ?? "Qeydiyyat uğursuz oldu", code: httpResponse.statusCode)
+                }
+            } catch {
+                await MainActor.run {
+                    isLoading = false
+                    showErrorMessage(error.localizedDescription)
+                }
+            }
+        }
     }
 }
 

@@ -41,6 +41,15 @@ class Settings(BaseSettings):
     apple_shared_secret: str = ""  # App Store Connect-den al
     apple_use_production: bool = False  # Production-da True et
 
+    # Email SMTP (Gmail)
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_from_email: str = ""
+    smtp_from_name: str = "CoreVia"
+    email_otp_mock: bool = True  # Test üçün true, production-da false
+
     model_config = {"env_file": ".env", "extra": "ignore"}
 
 

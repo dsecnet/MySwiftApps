@@ -13,7 +13,6 @@ struct ForgotPasswordView: View {
 
     // States
     @State private var email: String = ""
-    @State private var phoneNumber: String = ""
     @State private var otpCode: String = ""
     @State private var newPassword: String = ""
     @State private var confirmPassword: String = ""
@@ -130,30 +129,6 @@ struct ForgotPasswordView: View {
                 )
             }
 
-            // Phone Number Input
-            VStack(alignment: .leading, spacing: 8) {
-                Text("WhatsApp Nömrəsi")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(AppTheme.Colors.secondaryText)
-
-                HStack(spacing: 12) {
-                    Image(systemName: "phone.fill")
-                        .foregroundColor(AppTheme.Colors.accent)
-                        .frame(width: 20)
-
-                    TextField("+994XXXXXXXXX", text: $phoneNumber)
-                        .keyboardType(.phonePad)
-                        .textContentType(.telephoneNumber)
-                }
-                .padding()
-                .background(AppTheme.Colors.secondaryBackground)
-                .cornerRadius(12)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(phoneNumber.isEmpty ? AppTheme.Colors.separator : AppTheme.Colors.accent.opacity(0.5), lineWidth: 1)
-                )
-            }
-
             // Send OTP Button
             Button {
                 sendOTP()
@@ -163,7 +138,7 @@ struct ForgotPasswordView: View {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                     } else {
-                        Text("WhatsApp-a OTP Göndər")
+                        Text("Email-ə OTP Göndər")
                             .font(.system(size: 16, weight: .semibold))
                     }
                 }
@@ -179,8 +154,8 @@ struct ForgotPasswordView: View {
                 .foregroundColor(.white)
                 .cornerRadius(12)
             }
-            .disabled(isLoading || email.isEmpty || phoneNumber.isEmpty)
-            .opacity((email.isEmpty || phoneNumber.isEmpty) ? 0.6 : 1.0)
+            .disabled(isLoading || email.isEmpty)
+            .opacity(email.isEmpty ? 0.6 : 1.0)
         }
         .padding(.top, 30)
     }
@@ -426,7 +401,7 @@ struct ForgotPasswordView: View {
 
     // MARK: - Functions
     private func sendOTP() {
-        guard !email.isEmpty && !phoneNumber.isEmpty else { return }
+        guard !email.isEmpty else { return }
 
         isLoading = true
 
@@ -434,13 +409,12 @@ struct ForgotPasswordView: View {
             do {
                 struct ForgotPasswordRequest: Codable {
                     let email: String
-                    let phone_number: String
                 }
 
                 let response: OTPResponse = try await APIService.shared.request(
                     endpoint: "/api/v1/auth/forgot-password",
                     method: "POST",
-                    body: ForgotPasswordRequest(email: email, phone_number: phoneNumber),
+                    body: ForgotPasswordRequest(email: email),
                     requiresAuth: false
                 )
 
@@ -478,7 +452,6 @@ struct ForgotPasswordView: View {
             do {
                 struct ResetPasswordRequest: Codable {
                     let email: String
-                    let phone_number: String
                     let otp_code: String
                     let new_password: String
                 }
@@ -493,7 +466,6 @@ struct ForgotPasswordView: View {
                     method: "POST",
                     body: ResetPasswordRequest(
                         email: email,
-                        phone_number: phoneNumber,
                         otp_code: otpCode,
                         new_password: newPassword
                     ),

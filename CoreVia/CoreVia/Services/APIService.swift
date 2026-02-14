@@ -46,10 +46,14 @@ class APIService {
     static let shared = APIService()
 
     // Backend URL - development və production üçün ayrı
-    #if DEBUG
-    let baseURL = "http://localhost:8000"  // Development (local)
+    // Simulator və Mac-də local backend
+    // Telefona build edəndə cloud backend
+    #if targetEnvironment(simulator)
+    let baseURL = "http://localhost:8000"  // Simulator (local)
+    #elseif DEBUG
+    let baseURL = "http://192.168.100.70:8000"  // Real device DEBUG (Mac WiFi IP)
     #else
-    let baseURL = "https://api.corevia.life"  // Production (cloud)
+    let baseURL = "https://api.corevia.life"  // Real device RELEASE (cloud)
     #endif
 
     private let session: URLSession

@@ -16,6 +16,10 @@ struct LoginView: View {
     @State private var showError: Bool = false
     @State private var errorMessage: String = ""
 
+    // 2FA OTP
+    @State private var currentStep: Int = 1 // 1: Email+Password, 2: OTP Verification
+    @State private var otpCode: String = ""
+
     var body: some View {
         ZStack {
             // MARK: - Arxa Fon (Adaptiv)
@@ -149,8 +153,29 @@ struct LoginView: View {
                     }
                     .padding(.horizontal, 28)
 
-                    // MARK: - Input Fields
-                    VStack(spacing: 16) {
+                    // MARK: - Step-based Content
+                    if currentStep == 1 {
+                        // Step 1: Email + Password
+                        emailPasswordInputs
+                    } else {
+                        // Step 2: OTP Verification
+                        otpVerificationSection
+                    }
+                }
+                .padding(.bottom, 30)
+            }
+            .ignoresSafeArea(.keyboard)
+        }
+        .onTapGesture {
+            hideKeyboard()
+        }
+    }
+
+    // MARK: - Email + Password Inputs
+    private var emailPasswordInputs: some View {
+        Group {
+            // MARK: - Input Fields
+            VStack(spacing: 16) {
 
                         // Email Input
                         VStack(alignment: .leading, spacing: 6) {
@@ -334,33 +359,28 @@ struct LoginView: View {
                         }
                     }
                     .padding(.bottom, 30)
-                }
-            }
-        }
-        .onTapGesture {
-            hideKeyboard()
         }
     }
 
     // MARK: - Actions
     private func loginAction() {
         guard !email.trimmingCharacters(in: .whitespaces).isEmpty else {
-            showErrorMessage(loc.localized("login_error_email_empty"))
+            showErrorMessage("Email boşdur")
             return
         }
 
         guard !password.isEmpty else {
-            showErrorMessage(loc.localized("login_error_password_empty"))
+            showErrorMessage("Şifrə boşdur")
             return
         }
 
         guard email.contains("@") else {
-            showErrorMessage(loc.localized("login_error_email_invalid"))
+            showErrorMessage("Email düzgün deyil")
             return
         }
 
         guard password.count >= 6 else {
-            showErrorMessage(loc.localized("login_error_password_short"))
+            showErrorMessage("Şifrə minimum 6 simvol olmalıdır")
             return
         }
 
@@ -368,19 +388,40 @@ struct LoginView: View {
         showError = false
 
         Task {
-            let success = await authManager.login(
-                email: email.trimmingCharacters(in: .whitespaces).lowercased(),
-                password: password
-            )
+            do {
+                // Step 1: Send credentials, receive OTP
+                let url = URL(string: "\(APIService.shared.baseURL)/auth/login")!
+                var request = URLRequest(url: url)
+                request.httpMethod = "POST"
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-            await MainActor.run {
-                isLoading = false
-                if success {
-                    withAnimation {
-                        isLoggedIn = true
+                let body: [String: String] = [
+                    "email": email.trimmingCharacters(in: .whitespaces).lowercased(),
+                    "password": password
+                ]
+                request.httpBody = try JSONEncoder().encode(body)
+
+                let (data, response) = try await URLSession.shared.data(for: request)
+
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    throw NSError(domain: "Invalid response", code: 0)
+                }
+
+                if httpResponse.statusCode == 200 {
+                    await MainActor.run {
+                        isLoading = false
+                        withAnimation {
+                            currentStep = 2 // Go to OTP step
+                        }
                     }
                 } else {
-                    showErrorMessage(authManager.errorMessage ?? loc.localized("login_error_wrong_credentials"))
+                    let errorResponse = try? JSONDecoder().decode([String: String].self, from: data)
+                    throw NSError(domain: errorResponse?["detail"] ?? "Email və ya şifrə səhvdir", code: httpResponse.statusCode)
+                }
+            } catch {
+                await MainActor.run {
+                    isLoading = false
+                    showErrorMessage(error.localizedDescription)
                 }
             }
         }
@@ -395,6 +436,148 @@ struct LoginView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
             withAnimation {
                 showError = false
+            }
+        }
+    }
+
+    // MARK: - OTP Verification Section
+    private var otpVerificationSection: some View {
+        VStack(spacing: 24) {
+            VStack(spacing: 12) {
+                Text("OTP Təsdiqi")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(AppTheme.Colors.primaryText)
+
+                Text("\(email) ünvanına göndərilən 6 rəqəmli kodu daxil edin")
+                    .font(.system(size: 14))
+                    .foregroundColor(AppTheme.Colors.secondaryText)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 30)
+            }
+            .padding(.top, 40)
+
+            // OTP Input
+            TextField("000000", text: $otpCode)
+                .font(.system(size: 28, weight: .bold, design: .monospaced))
+                .multilineTextAlignment(.center)
+                .keyboardType(.numberPad)
+                .padding()
+                .background(AppTheme.Colors.secondaryBackground)
+                .cornerRadius(12)
+                .padding(.horizontal, 40)
+                .onChange(of: otpCode) { newValue in
+                    otpCode = String(newValue.prefix(6).filter { $0.isNumber })
+                }
+
+            if showError {
+                HStack(spacing: 8) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(AppTheme.Colors.error)
+                    Text(errorMessage)
+                        .font(.system(size: 13))
+                        .foregroundColor(AppTheme.Colors.primaryText)
+                }
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(AppTheme.Colors.error.opacity(0.2))
+                .cornerRadius(10)
+                .padding(.horizontal, 28)
+            }
+
+            // Verify Button
+            Button {
+                verifyOTPAndLogin()
+            } label: {
+                HStack {
+                    if isLoading {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    } else {
+                        Text("Təsdiq Et və Daxil Ol")
+                            .font(.system(size: 16, weight: .bold))
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(
+                    LinearGradient(
+                        colors: [AppTheme.Colors.accent, AppTheme.Colors.accent.opacity(0.8)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .foregroundColor(.white)
+                .cornerRadius(12)
+            }
+            .disabled(isLoading || otpCode.count != 6)
+            .opacity(otpCode.count == 6 ? 1.0 : 0.5)
+            .padding(.horizontal, 28)
+
+            // Resend OTP
+            Button {
+                currentStep = 1
+                otpCode = ""
+            } label: {
+                Text("Geri qayıt")
+                    .font(.system(size: 14))
+                    .foregroundColor(AppTheme.Colors.accent)
+            }
+
+            Spacer()
+        }
+    }
+
+    private func verifyOTPAndLogin() {
+        isLoading = true
+        showError = false
+
+        Task {
+            do {
+                let url = URL(string: "\(APIService.shared.baseURL)/auth/login-verify")!
+                var request = URLRequest(url: url)
+                request.httpMethod = "POST"
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+                let body: [String: String] = [
+                    "email": email.trimmingCharacters(in: .whitespaces).lowercased(),
+                    "otp_code": otpCode
+                ]
+                request.httpBody = try JSONEncoder().encode(body)
+
+                let (data, response) = try await URLSession.shared.data(for: request)
+
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    throw NSError(domain: "Invalid response", code: 0)
+                }
+
+                if httpResponse.statusCode == 200 {
+                    // Parse token response
+                    struct TokenResponse: Codable {
+                        let access_token: String
+                        let refresh_token: String
+                    }
+
+                    let tokenResponse = try JSONDecoder().decode(TokenResponse.self, from: data)
+
+                    // Save tokens
+                    AuthManager.shared.accessToken = tokenResponse.access_token
+                    AuthManager.shared.refreshToken = tokenResponse.refresh_token
+
+                    await MainActor.run {
+                        isLoading = false
+                        withAnimation {
+                            isLoggedIn = true
+                        }
+                    }
+                } else {
+                    let errorResponse = try? JSONDecoder().decode([String: String].self, from: data)
+                    throw NSError(domain: errorResponse?["detail"] ?? "OTP səhvdir", code: httpResponse.statusCode)
+                }
+            } catch {
+                await MainActor.run {
+                    isLoading = false
+                    showErrorMessage(error.localizedDescription)
+                }
             }
         }
     }

@@ -5,8 +5,13 @@ struct ContentView: View {
     @StateObject private var authManager = AuthManager.shared
     @StateObject private var onboardingManager = OnboardingManager.shared
     @State private var showRegister: Bool = false
-    @State private var onboardingCompleted: Bool = false
     @StateObject private var workoutManager = WorkoutManager.shared
+    @State private var hasSeenPermissions: Bool = UserDefaults.standard.bool(forKey: "hasSeenPermissions")
+
+    /// İlk açılışda permission screen lazımdır?
+    private var needsPermissions: Bool {
+        return !hasSeenPermissions
+    }
 
     /// Trainer login olub amma hele verified deyilse → verifikasiya sehifesini goster
     private var needsTrainerVerification: Bool {
@@ -14,19 +19,21 @@ struct ContentView: View {
         return user.userType == "trainer" && user.verificationStatus != "verified"
     }
 
-    /// Client onboarding tamamlanıb mı?
+    /// Client onboarding tamamlanıb mı? (yalnız server state-ə əsasən)
     private var needsOnboarding: Bool {
         guard let user = authManager.currentUser else { return false }
-        return user.userType == "client" && !onboardingCompleted && !onboardingManager.isCompleted
+        return user.userType == "client" && !onboardingManager.isCompleted
     }
 
     var body: some View {
         Group {
-            if authManager.isLoggedIn {
+            if needsPermissions {
+                PermissionsView(isGranted: $hasSeenPermissions)
+            } else if authManager.isLoggedIn {
                 if needsTrainerVerification {
                     TrainerVerificationView()
                 } else if needsOnboarding {
-                    OnboardingView(isCompleted: $onboardingCompleted)
+                    OnboardingView()
                 } else {
                     MainTabView(isLoggedIn: $authManager.isLoggedIn)
                         .environmentObject(workoutManager)
@@ -156,8 +163,8 @@ struct MainTabView: View {
 
             // Custom Tab Bar
             CustomTabBar(selectedTab: $selectedTab, isTrainer: isTrainer)
+                .zIndex(999) // Tab bar hər zaman yuxarıda olsun
         }
-        .ignoresSafeArea(.keyboard)
     }
 }
 

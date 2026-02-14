@@ -4,11 +4,18 @@ from app.models.user import UserType, VerificationStatus
 import re
 
 
+class RegisterRequestOTP(BaseModel):
+    """Step 1: Request OTP for registration"""
+    email: EmailStr
+
+
 class UserRegister(BaseModel):
+    """Step 2: Verify OTP and complete registration"""
     name: str = Field(..., min_length=2, max_length=100)
     email: EmailStr
     password: str = Field(..., min_length=6, max_length=128)
     user_type: UserType
+    otp_code: str = Field(..., min_length=6, max_length=6, description="6-digit OTP code")
 
     @field_validator("name")
     @classmethod
@@ -27,8 +34,15 @@ class UserRegister(BaseModel):
 
 
 class UserLogin(BaseModel):
+    """Step 1: Login with email + password, receives OTP"""
     email: EmailStr
     password: str = Field(..., min_length=1, max_length=128)
+
+
+class LoginVerifyOTP(BaseModel):
+    """Step 2: Verify OTP and receive JWT token"""
+    email: EmailStr
+    otp_code: str = Field(..., min_length=6, max_length=6, description="6-digit OTP code")
 
 
 class Token(BaseModel):

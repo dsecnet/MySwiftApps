@@ -21,6 +21,8 @@ struct AddFoodView: View {
     @State private var capturedImage: UIImage? = nil
     @State private var isAnalyzing = false
     @State private var analysisComplete = false
+    @State private var showError = false
+    @State private var errorMessage = ""
 
     @ObservedObject private var loc = LocalizationManager.shared
     @ObservedObject private var settingsManager = SettingsManager.shared
@@ -81,6 +83,11 @@ struct AddFoodView: View {
                     }
                 } message: {
                     Text(loc.localized("food_added"))
+                }
+                .alert("Xəta", isPresented: $showError) {
+                    Button("OK", role: .cancel) {}
+                } message: {
+                    Text(errorMessage)
                 }
                 .sheet(isPresented: $showCamera) {
                     CameraPicker(image: $capturedImage)
@@ -546,25 +553,120 @@ struct AddFoodView: View {
         fats = "\(Int(item.fats))"
     }
 
-    // MARK: - Mock Analiz
+    // MARK: - AI Analiz (Backend)
     private func startMockAnalysis() {
+        guard let image = capturedImage else { return }
+
         isAnalyzing = true
         analysisComplete = false
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            let randomResult = mockFoodResults.randomElement()!
-            foodName = randomResult.name
-            calories = "\(randomResult.calories)"
-            protein = "\(Int(randomResult.protein))"
-            carbs = "\(Int(randomResult.carbs))"
-            fats = "\(Int(randomResult.fats))"
+        Task {
+            do {
+                // Convert UIImage to JPEG data
+                guard let imageData = image.jpegData(compressionQuality: 0.7) else {
+                    await MainActor.run {
+                        self.isAnalyzing = false
+                        self.errorMessage = "Şəkil emal edilmədi."
+                        self.showError = true
+                    }
+                    return
+                }
 
-            withAnimation {
-                isAnalyzing = false
-                analysisComplete = true
+                // Create multipart request
+                let boundary = UUID().uuidString
+                var request = URLRequest(url: URL(string: "\(APIService.shared.baseURL)/ai/analyze-food")!)
+                request.httpMethod = "POST"
+                request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+                // Add auth token
+                if let token = AuthManager.shared.accessToken {
+                    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+                }
+
+                // Build multipart body
+                var body = Data()
+                body.append("--\(boundary)\r\n".data(using: .utf8)!)
+                body.append("Content-Disposition: form-data; name=\"file\"; filename=\"food.jpg\"\r\n".data(using: .utf8)!)
+                body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+                body.append(imageData)
+                body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+
+                request.httpBody = body
+
+                // Send request
+                let (data, response) = try await URLSession.shared.data(for: request)
+
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    throw NSError(domain: "Invalid response", code: 0)
+                }
+
+                if httpResponse.statusCode != 200 {
+                    throw NSError(domain: "Server error", code: httpResponse.statusCode)
+                }
+
+                // Parse response
+                let result = try JSONDecoder().decode(AIFoodAnalysisResponse.self, from: data)
+
+                await MainActor.run {
+                    if result.success {
+                        // Use total values or first food item
+                        if let foods = result.foods, !foods.isEmpty {
+                            // Combine food names
+                            let names = foods.map { $0.name }.joined(separator: ", ")
+                            self.foodName = names
+                        } else {
+                            self.foodName = "Analiz edilmiş qida"
+                        }
+
+                        self.calories = "\(result.total_calories ?? 0)"
+                        self.protein = String(format: "%.1f", result.total_protein ?? 0.0)
+                        self.carbs = String(format: "%.1f", result.total_carbs ?? 0.0)
+                        self.fats = String(format: "%.1f", result.total_fats ?? 0.0)
+
+                        withAnimation {
+                            self.isAnalyzing = false
+                            self.analysisComplete = true
+                        }
+                    } else {
+                        self.isAnalyzing = false
+                        self.errorMessage = result.error ?? "Analiz uğursuz oldu."
+                        self.showError = true
+                    }
+                }
+
+            } catch {
+                await MainActor.run {
+                    self.isAnalyzing = false
+                    self.errorMessage = "Şəbəkə xətası: \(error.localizedDescription)"
+                    self.showError = true
+                }
             }
         }
     }
+}
+
+// MARK: - AI Food Analysis Response
+struct AIFoodAnalysisResponse: Codable {
+    let foods: [FoodItem]?
+    let total_calories: Int?
+    let total_protein: Double?
+    let total_carbs: Double?
+    let total_fats: Double?
+    let confidence: Double?
+    let error: String?
+
+    var success: Bool {
+        return error == nil && (foods?.isEmpty == false || total_calories != nil)
+    }
+}
+
+struct FoodItem: Codable {
+    let name: String
+    let calories: Int
+    let protein: Double
+    let carbs: Double
+    let fats: Double
+    let portion_size: String?
 }
 
 // MARK: - Quick Add Food Model

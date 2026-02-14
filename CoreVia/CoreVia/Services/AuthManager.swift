@@ -73,6 +73,17 @@ class AuthManager: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
 
+    // JWT Tokens (for direct API calls)
+    var accessToken: String? {
+        get { keychain.accessToken }
+        set { keychain.accessToken = newValue }
+    }
+
+    var refreshToken: String? {
+        get { keychain.refreshToken }
+        set { keychain.refreshToken = newValue }
+    }
+
     private let api = APIService.shared
     private let keychain = KeychainManager.shared
 

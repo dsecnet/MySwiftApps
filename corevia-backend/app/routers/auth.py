@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 from app.database import get_db
 from app.models.user import User, UserType, VerificationStatus
 from app.models.settings import UserSettings
-from app.schemas.user import UserRegister, UserLogin, Token, TokenRefresh, UserResponse, TrainerVerificationResponse
+from app.schemas.user import UserRegister, RegisterRequestOTP, UserLogin, LoginVerifyOTP, Token, TokenRefresh, UserResponse, TrainerVerificationResponse
 from app.schemas.password_reset import ForgotPasswordRequest, VerifyOTPRequest, ResetPasswordRequest, OTPResponse
 from app.utils.security import (
     hash_password,
@@ -21,20 +21,80 @@ from app.utils.security import (
 )
 from app.services.ai_service import analyze_trainer_photo
 from app.services.file_service import save_upload
-from app.services.whatsapp_service import whatsapp_service
+from app.services.email_service import email_service
 from app.config import get_settings
 
 settings = get_settings()
 router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
 
 
+@router.post("/register-request", response_model=OTPResponse)
+async def register_request_otp(
+    request: RegisterRequestOTP,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Step 1: Qeydiyyat üçün OTP göndərir
+
+    1. Email-in mövcudluğu yoxlanır
+    2. Email-ə 6 rəqəmli OTP göndərilir
+    3. OTP 10 dəqiqə etibarlıdır
+    """
+
+    # Check if user already exists
+    result = await db.execute(select(User).where(User.email == request.email))
+    if result.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Bu email artıq qeydiyyatdan keçib"
+        )
+
+    # Send OTP to Email
+    otp_result = await email_service.send_otp(
+        email=request.email,
+        purpose='registration',
+        db=db
+    )
+
+    if not otp_result['success']:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=otp_result['message']
+        )
+
+    return OTPResponse(**otp_result)
+
+
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)):
+    """
+    Step 2: OTP verify edib istifadəçi yaradır
+
+    1. OTP verify olunur
+    2. Email-in mövcudluğu yenidən yoxlanır
+    3. User yaradılır
+    """
+
+    # Verify OTP
+    otp_result = await email_service.verify_otp(
+        email=user_data.email,
+        code=user_data.otp_code,
+        purpose='registration',
+        db=db
+    )
+
+    if not otp_result['success']:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=otp_result['message']
+        )
+
+    # Check if user exists (double check)
     result = await db.execute(select(User).where(User.email == user_data.email))
     if result.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Qeydiyyat ugursuz oldu",
+            detail="Bu email artıq qeydiyyatdan keçib"
         )
 
     new_user = User(
@@ -53,12 +113,22 @@ async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)):
 
     user_settings = UserSettings(user_id=new_user.id)
     db.add(user_settings)
+    await db.commit()
+
+    logger.info(f"New user registered: {new_user.email}")
 
     return new_user
 
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=OTPResponse)
 async def login(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
+    """
+    Step 1: Login with email + password, send OTP
+
+    1. Email və parol yoxlanır
+    2. Doğrudursa email-ə OTP göndərilir
+    3. OTP 10 dəqiqə etibarlıdır
+    """
     result = await db.execute(select(User).where(User.email == user_data.email))
     user = result.scalar_one_or_none()
 
@@ -66,7 +136,7 @@ async def login(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
         logger.warning(f"Failed login attempt for: {user_data.email}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Email ve ya sifre sehvdir",
+            detail="Email və ya şifrə səhvdir",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -76,7 +146,61 @@ async def login(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
             detail="Hesab deaktiv edilib",
         )
 
-    logger.info(f"Successful login: {user.email}")
+    # Send OTP for 2FA
+    otp_result = await email_service.send_otp(
+        email=user_data.email,
+        purpose='login_2fa',
+        db=db
+    )
+
+    if not otp_result['success']:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=otp_result['message']
+        )
+
+    logger.info(f"Login OTP sent to: {user.email}")
+
+    return OTPResponse(**otp_result)
+
+
+@router.post("/login-verify", response_model=Token)
+async def login_verify_otp(
+    verify_data: LoginVerifyOTP,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Step 2: Verify OTP and return JWT tokens
+
+    1. OTP verify olunur
+    2. JWT token qaytarılır
+    """
+
+    # Verify OTP
+    otp_result = await email_service.verify_otp(
+        email=verify_data.email,
+        code=verify_data.otp_code,
+        purpose='login_2fa',
+        db=db
+    )
+
+    if not otp_result['success']:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=otp_result['message']
+        )
+
+    # Find user
+    result = await db.execute(select(User).where(User.email == verify_data.email))
+    user = result.scalar_one_or_none()
+
+    if not user or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="İstifadəçi tapılmadı",
+        )
+
+    logger.info(f"Successful 2FA login: {user.email}")
 
     token_data = {
         "sub": user.id,
@@ -251,7 +375,7 @@ async def verify_trainer(
 
 
 # ============================================
-# FORGOT PASSWORD - WhatsApp OTP
+# FORGOT PASSWORD - Email OTP
 # ============================================
 
 @router.post("/forgot-password", response_model=OTPResponse)
@@ -281,9 +405,9 @@ async def forgot_password(
             detail="Bu email ilə istifadəçi tapılmadı"
         )
 
-    # Send OTP to WhatsApp
-    result = await whatsapp_service.send_otp(
-        phone_number=request.phone_number,
+    # Send OTP to Email
+    result = await email_service.send_otp(
+        email=request.email,
         purpose='forgot_password',
         db=db
     )
@@ -306,8 +430,8 @@ async def verify_otp(
     OTP kodunu yoxlayır (opsional - reset-password birbaşa yoxlayır)
     """
 
-    result = await whatsapp_service.verify_otp(
-        phone_number=request.phone_number,
+    result = await email_service.verify_otp(
+        email=request.email,
         code=request.otp_code,
         purpose='forgot_password',
         db=db
@@ -337,8 +461,8 @@ async def reset_password(
     """
 
     # Verify OTP
-    otp_result = await whatsapp_service.verify_otp(
-        phone_number=request.phone_number,
+    otp_result = await email_service.verify_otp(
+        email=request.email,
         code=request.otp_code,
         purpose='forgot_password',
         db=db

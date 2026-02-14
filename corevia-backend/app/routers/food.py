@@ -1,13 +1,15 @@
 from datetime import datetime, timedelta
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
+import base64
 
 from app.database import get_db
 from app.models.user import User
 from app.models.food_entry import FoodEntry, MealType
 from app.schemas.food import FoodEntryCreate, FoodEntryUpdate, FoodEntryResponse, DailyNutritionSummary
 from app.utils.security import get_current_user
+from app.services.ai_food_service import ai_food_service
 
 router = APIRouter(prefix="/api/v1/food", tags=["Food"])
 
@@ -163,3 +165,59 @@ async def delete_food_entry(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Qida qeydi tapilmadi")
 
     await db.delete(entry)
+
+
+@router.post("/analyze")
+async def analyze_food_image(
+    file: UploadFile = File(...),
+    language: str = "az",
+    current_user: User = Depends(get_current_user),
+):
+    """
+    AI Food Analysis Endpoint
+
+    Accepts image upload, analyzes with OpenAI Vision API, returns nutritional info.
+
+    Args:
+        file: Image file (JPEG, PNG)
+        language: Response language (az, en, tr, ru)
+        current_user: Authenticated user
+
+    Returns:
+        {
+            "success": bool,
+            "food_name": str,
+            "calories": int,
+            "protein": float,
+            "carbs": float,
+            "fats": float,
+            "portion_size": str,
+            "confidence": float
+        }
+    """
+
+    # Validate file type
+    if file.content_type not in ["image/jpeg", "image/jpg", "image/png"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Yalnız JPEG və PNG formatları dəstəklənir"
+        )
+
+    # Validate file size (max 10MB)
+    contents = await file.read()
+    if len(contents) > 10 * 1024 * 1024:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="Şəkil ölçüsü 10MB-dan çox ola bilməz"
+        )
+
+    # Convert to base64
+    image_base64 = base64.b64encode(contents).decode("utf-8")
+
+    # Analyze with AI
+    result = await ai_food_service.analyze_food_image(
+        image_base64=image_base64,
+        language=language
+    )
+
+    return result
