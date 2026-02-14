@@ -11,6 +11,7 @@ from app.database import get_db
 from app.models.user import User, UserType, VerificationStatus
 from app.models.settings import UserSettings
 from app.schemas.user import UserRegister, UserLogin, Token, TokenRefresh, UserResponse, TrainerVerificationResponse
+from app.schemas.password_reset import ForgotPasswordRequest, VerifyOTPRequest, ResetPasswordRequest, OTPResponse
 from app.utils.security import (
     hash_password,
     verify_password,
@@ -20,6 +21,7 @@ from app.utils.security import (
 )
 from app.services.ai_service import analyze_trainer_photo
 from app.services.file_service import save_upload
+from app.services.whatsapp_service import whatsapp_service
 from app.config import get_settings
 
 settings = get_settings()
@@ -246,3 +248,127 @@ async def verify_trainer(
         verification_score=score,
         message=message,
     )
+
+
+# ============================================
+# FORGOT PASSWORD - WhatsApp OTP
+# ============================================
+
+@router.post("/forgot-password", response_model=OTPResponse)
+async def forgot_password(
+    request: ForgotPasswordRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Şifrəni unutmuş user üçün email-ə OTP göndərir
+
+    Steps:
+    1. Email-lə user tapılır
+    2. Email-ə 6 rəqəmli OTP göndərilir (mock mode-da console-a)
+    3. OTP 10 dəqiqə etibarlıdır
+    """
+
+    # Check if user exists with this email
+    result = await db.execute(
+        select(User).where(User.email == request.email)
+    )
+    user = result.scalar_one_or_none()
+
+    if not user:
+        # Security: Don't reveal if user exists
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Bu email ilə istifadəçi tapılmadı"
+        )
+
+    # Send OTP to WhatsApp
+    result = await whatsapp_service.send_otp(
+        phone_number=request.phone_number,
+        purpose='forgot_password',
+        db=db
+    )
+
+    if not result['success']:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=result['message']
+        )
+
+    return OTPResponse(**result)
+
+
+@router.post("/verify-otp", response_model=dict)
+async def verify_otp(
+    request: VerifyOTPRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    OTP kodunu yoxlayır (opsional - reset-password birbaşa yoxlayır)
+    """
+
+    result = await whatsapp_service.verify_otp(
+        phone_number=request.phone_number,
+        code=request.otp_code,
+        purpose='forgot_password',
+        db=db
+    )
+
+    if not result['success']:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=result['message']
+        )
+
+    return {"success": True, "message": "OTP təsdiqləndi"}
+
+
+@router.post("/reset-password", response_model=dict)
+async def reset_password(
+    request: ResetPasswordRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    OTP ilə şifrəni yeniləyir
+
+    Steps:
+    1. OTP verify olunur
+    2. User tapılır
+    3. Yeni şifrə set olunur
+    """
+
+    # Verify OTP
+    otp_result = await whatsapp_service.verify_otp(
+        phone_number=request.phone_number,
+        code=request.otp_code,
+        purpose='forgot_password',
+        db=db
+    )
+
+    if not otp_result['success']:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=otp_result['message']
+        )
+
+    # Find user
+    result = await db.execute(
+        select(User).where(User.email == request.email)
+    )
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="İstifadəçi tapılmadı"
+        )
+
+    # Update password
+    user.hashed_password = hash_password(request.new_password)
+    await db.commit()
+
+    logger.info(f"Password reset successful for user: {user.id}")
+
+    return {
+        "success": True,
+        "message": "Şifrə uğurla yeniləndi"
+    }

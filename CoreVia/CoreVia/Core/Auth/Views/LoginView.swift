@@ -229,8 +229,8 @@ struct LoginView: View {
                     // MARK: - Şifrəni Unutdum
                     HStack {
                         Spacer()
-                        Button {
-                            print("Şifrəni unutdum")
+                        NavigationLink {
+                            ForgotPasswordView()
                         } label: {
                             Text(loc.localized("login_forgot_password"))
                                 .font(.system(size: 13, weight: .medium))

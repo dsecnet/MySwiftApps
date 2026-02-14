@@ -32,13 +32,15 @@ struct ContentView: View {
                         .environmentObject(workoutManager)
                 }
             } else {
-                if showRegister {
-                    RegisterView(showRegister: $showRegister)
-                } else {
-                    LoginView(
-                        isLoggedIn: $authManager.isLoggedIn,
-                        showRegister: $showRegister
-                    )
+                NavigationStack {
+                    if showRegister {
+                        RegisterView(showRegister: $showRegister)
+                    } else {
+                        LoginView(
+                            isLoggedIn: $authManager.isLoggedIn,
+                            showRegister: $showRegister
+                        )
+                    }
                 }
             }
         }

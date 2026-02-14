@@ -11,6 +11,7 @@ from app.models.review import Review
 from app.models.chat import ChatMessage, DailyMessageCount
 from app.models.content import TrainerContent, ContentType
 from app.models.onboarding import UserOnboarding
+from app.models.otp import OTPCode
 
 __all__ = [
     "User", "UserType", "VerificationStatus",
@@ -26,4 +27,5 @@ __all__ = [
     "ChatMessage", "DailyMessageCount",
     "TrainerContent", "ContentType",
     "UserOnboarding",
+    "OTPCode",
 ]
