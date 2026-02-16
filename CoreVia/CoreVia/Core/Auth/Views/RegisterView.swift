@@ -621,14 +621,9 @@ struct RegisterView: View {
                     throw NSError(domain: "Invalid response", code: 0)
                 }
 
-                if httpResponse.statusCode == 200 {
-                    // Trainer registration successful
-                    await MainActor.run {
-                        isLoading = false
-                        withAnimation {
-                            showRegister = false
-                        }
-                    }
+                if httpResponse.statusCode == 200 || httpResponse.statusCode == 201 {
+                    // Trainer registered successfully - now login automatically
+                    await loginTrainerAutomatically()
                 } else {
                     let errorResponse = try? JSONDecoder().decode([String: String].self, from: data)
                     throw NSError(domain: errorResponse?["detail"] ?? "Qeydiyyat uğursuz oldu", code: httpResponse.statusCode)
@@ -685,6 +680,46 @@ struct RegisterView: View {
                 await MainActor.run {
                     isLoading = false
                     showErrorMessage(error.localizedDescription)
+                }
+            }
+        }
+    }
+
+    // MARK: - Auto-login for Trainer after registration
+    private func loginTrainerAutomatically() async {
+        do {
+            // Step 1: Request login (send OTP)
+            let loginURL = URL(string: "\(APIService.shared.baseURL)/api/v1/auth/login")!
+            var loginRequest = URLRequest(url: loginURL)
+            loginRequest.httpMethod = "POST"
+            loginRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+            let loginBody: [String: String] = [
+                "email": email.trimmingCharacters(in: .whitespaces).lowercased(),
+                "password": password
+            ]
+            loginRequest.httpBody = try JSONEncoder().encode(loginBody)
+
+            let (loginData, loginResponse) = try await URLSession.shared.data(for: loginRequest)
+
+            guard let httpResponse = loginResponse as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                throw NSError(domain: "Login failed", code: 0)
+            }
+
+            // Step 2: Get OTP from response or wait for user to enter
+            // For now, we'll just close registration and let user login manually
+            await MainActor.run {
+                isLoading = false
+                withAnimation {
+                    showRegister = false
+                }
+            }
+        } catch {
+            await MainActor.run {
+                isLoading = false
+                // Still close registration even if auto-login fails
+                withAnimation {
+                    showRegister = false
                 }
             }
         }

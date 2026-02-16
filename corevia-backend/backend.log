@@ -1915,3 +1915,202 @@ WHERE users.email = $1::VARCHAR
 2026-02-15 12:06:16,050 INFO sqlalchemy.engine.Engine COMMIT
 INFO:     192.168.100.69:64528 - "POST /api/v1/auth/reset-password HTTP/1.1" 200 OK
 Run time of job "send_meal_reminders (trigger: cron[hour='12', minute='0'], next run at: 2026-02-16 12:00:00 +04)" was missed by 0:41:12.416940
+Run time of job "send_workout_reminders (trigger: cron[hour='18', minute='0'], next run at: 2026-02-16 18:00:00 +04)" was missed by 16:55:30.760865
+Run time of job "send_meal_reminders (trigger: cron[hour='19', minute='0'], next run at: 2026-02-16 19:00:00 +04)" was missed by 15:55:30.764587
+Run time of job "check_expired_subscriptions (trigger: cron[hour='0', minute='30'], next run at: 2026-02-17 00:30:00 +04)" was missed by 10:25:30.764636
+2026-02-16 11:01:25,917 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-02-16 11:01:25,919 INFO sqlalchemy.engine.Engine SELECT users.id, users.name, users.email, users.hashed_password, users.user_type, users.profile_image_url, users.is_active, users.created_at, users.updated_at, users.age, users.weight, users.height, users.goal, users.trainer_id, users.specialization, users.experience, users.rating, users.price_per_session, users.bio, users.verification_status, users.certificate_image_url, users.instagram_handle, users.verification_photo_url, users.verification_score, users.verification_attempts, users.last_verification_attempt, users.is_premium, users.is_admin 
+FROM users 
+WHERE users.email = $1::VARCHAR
+2026-02-16 11:01:25,919 INFO sqlalchemy.engine.Engine [cached since 5.876e+04s ago] ('dsecnet@gmail.com',)
+Failed login attempt for: dsecnet@gmail.com
+2026-02-16 11:01:26,120 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     127.0.0.1:53277 - "POST /api/v1/auth/login HTTP/1.1" 401 Unauthorized
+2026-02-16 11:01:42,385 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-02-16 11:01:42,386 INFO sqlalchemy.engine.Engine SELECT users.id, users.name, users.email, users.hashed_password, users.user_type, users.profile_image_url, users.is_active, users.created_at, users.updated_at, users.age, users.weight, users.height, users.goal, users.trainer_id, users.specialization, users.experience, users.rating, users.price_per_session, users.bio, users.verification_status, users.certificate_image_url, users.instagram_handle, users.verification_photo_url, users.verification_score, users.verification_attempts, users.last_verification_attempt, users.is_premium, users.is_admin 
+FROM users 
+WHERE users.email = $1::VARCHAR
+2026-02-16 11:01:42,386 INFO sqlalchemy.engine.Engine [cached since 5.878e+04s ago] ('dsecnet@gmail.com',)
+2026-02-16 11:01:42,586 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+FROM otp_codes 
+WHERE otp_codes.email = $1::VARCHAR AND otp_codes.purpose = $2::VARCHAR AND otp_codes.created_at >= $3::TIMESTAMP WITH TIME ZONE
+2026-02-16 11:01:42,586 INFO sqlalchemy.engine.Engine [cached since 5.878e+04s ago] ('dsecnet@gmail.com', 'login_2fa', datetime.datetime(2026, 2, 16, 10, 56, 42, 585604))
+2026-02-16 11:01:42,594 INFO sqlalchemy.engine.Engine INSERT INTO otp_codes (id, email, code, purpose, is_used, expires_at, attempts) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::BOOLEAN, $6::TIMESTAMP WITH TIME ZONE, $7::INTEGER) RETURNING otp_codes.created_at
+2026-02-16 11:01:42,594 INFO sqlalchemy.engine.Engine [cached since 5.878e+04s ago] ('c72db263-b132-4243-9396-312346d0ab52', 'dsecnet@gmail.com', '978651', 'login_2fa', False, datetime.datetime(2026, 2, 16, 11, 11, 42, 594243), 0)
+2026-02-16 11:01:42,598 INFO sqlalchemy.engine.Engine COMMIT
+SMTP xətası: Timed out waiting for server ready message
+Email göndərilmədi: Timed out waiting for server ready message
+INFO:     127.0.0.1:53280 - "POST /api/v1/auth/login HTTP/1.1" 429 Too Many Requests
+2026-02-16 11:03:14,608 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-02-16 11:03:14,609 INFO sqlalchemy.engine.Engine SELECT users.id, users.name, users.email, users.hashed_password, users.user_type, users.profile_image_url, users.is_active, users.created_at, users.updated_at, users.age, users.weight, users.height, users.goal, users.trainer_id, users.specialization, users.experience, users.rating, users.price_per_session, users.bio, users.verification_status, users.certificate_image_url, users.instagram_handle, users.verification_photo_url, users.verification_score, users.verification_attempts, users.last_verification_attempt, users.is_premium, users.is_admin 
+FROM users 
+WHERE users.email = $1::VARCHAR
+2026-02-16 11:03:14,609 INFO sqlalchemy.engine.Engine [cached since 5.887e+04s ago] ('dsecnet@gmail.com',)
+2026-02-16 11:03:14,800 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+FROM otp_codes 
+WHERE otp_codes.email = $1::VARCHAR AND otp_codes.purpose = $2::VARCHAR AND otp_codes.created_at >= $3::TIMESTAMP WITH TIME ZONE
+2026-02-16 11:03:14,800 INFO sqlalchemy.engine.Engine [cached since 5.887e+04s ago] ('dsecnet@gmail.com', 'login_2fa', datetime.datetime(2026, 2, 16, 10, 58, 14, 799801))
+2026-02-16 11:03:14,803 INFO sqlalchemy.engine.Engine INSERT INTO otp_codes (id, email, code, purpose, is_used, expires_at, attempts) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::BOOLEAN, $6::TIMESTAMP WITH TIME ZONE, $7::INTEGER) RETURNING otp_codes.created_at
+2026-02-16 11:03:14,803 INFO sqlalchemy.engine.Engine [cached since 5.887e+04s ago] ('95b7d502-5799-4913-b8cf-af04f8a7a37e', 'dsecnet@gmail.com', '703628', 'login_2fa', False, datetime.datetime(2026, 2, 16, 11, 13, 14, 803245), 0)
+2026-02-16 11:03:14,804 INFO sqlalchemy.engine.Engine COMMIT
+SMTP xətası: Timed out waiting for server ready message
+Email göndərilmədi: Timed out waiting for server ready message
+INFO:     127.0.0.1:53291 - "POST /api/v1/auth/login HTTP/1.1" 429 Too Many Requests
+2026-02-16 11:18:23,281 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-02-16 11:18:23,283 INFO sqlalchemy.engine.Engine SELECT users.id, users.name, users.email, users.hashed_password, users.user_type, users.profile_image_url, users.is_active, users.created_at, users.updated_at, users.age, users.weight, users.height, users.goal, users.trainer_id, users.specialization, users.experience, users.rating, users.price_per_session, users.bio, users.verification_status, users.certificate_image_url, users.instagram_handle, users.verification_photo_url, users.verification_score, users.verification_attempts, users.last_verification_attempt, users.is_premium, users.is_admin 
+FROM users 
+WHERE users.email = $1::VARCHAR
+2026-02-16 11:18:23,283 INFO sqlalchemy.engine.Engine [cached since 5.978e+04s ago] ('dsecnet@gmail.com',)
+2026-02-16 11:18:23,479 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+FROM otp_codes 
+WHERE otp_codes.email = $1::VARCHAR AND otp_codes.purpose = $2::VARCHAR AND otp_codes.created_at >= $3::TIMESTAMP WITH TIME ZONE
+2026-02-16 11:18:23,480 INFO sqlalchemy.engine.Engine [cached since 5.978e+04s ago] ('dsecnet@gmail.com', 'login_2fa', datetime.datetime(2026, 2, 16, 11, 13, 23, 479333))
+2026-02-16 11:18:23,487 INFO sqlalchemy.engine.Engine INSERT INTO otp_codes (id, email, code, purpose, is_used, expires_at, attempts) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::BOOLEAN, $6::TIMESTAMP WITH TIME ZONE, $7::INTEGER) RETURNING otp_codes.created_at
+2026-02-16 11:18:23,487 INFO sqlalchemy.engine.Engine [cached since 5.978e+04s ago] ('1760ddc2-11ff-42f7-8c54-0439707a4fb0', 'dsecnet@gmail.com', '570144', 'login_2fa', False, datetime.datetime(2026, 2, 16, 11, 28, 23, 486962), 0)
+2026-02-16 11:18:23,490 INFO sqlalchemy.engine.Engine COMMIT
+SMTP xətası: Timed out waiting for server ready message
+Email göndərilmədi: Timed out waiting for server ready message
+INFO:     127.0.0.1:53434 - "POST /api/v1/auth/login HTTP/1.1" 429 Too Many Requests
+2026-02-16 11:20:46,660 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-02-16 11:20:46,665 INFO sqlalchemy.engine.Engine SELECT users.id, users.name, users.email, users.hashed_password, users.user_type, users.profile_image_url, users.is_active, users.created_at, users.updated_at, users.age, users.weight, users.height, users.goal, users.trainer_id, users.specialization, users.experience, users.rating, users.price_per_session, users.bio, users.verification_status, users.certificate_image_url, users.instagram_handle, users.verification_photo_url, users.verification_score, users.verification_attempts, users.last_verification_attempt, users.is_premium, users.is_admin 
+FROM users 
+WHERE users.email = $1::VARCHAR
+2026-02-16 11:20:46,666 INFO sqlalchemy.engine.Engine [cached since 5.992e+04s ago] ('dsecnet@gmail.com',)
+2026-02-16 11:20:46,880 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+FROM otp_codes 
+WHERE otp_codes.email = $1::VARCHAR AND otp_codes.purpose = $2::VARCHAR AND otp_codes.created_at >= $3::TIMESTAMP WITH TIME ZONE
+2026-02-16 11:20:46,880 INFO sqlalchemy.engine.Engine [cached since 5.993e+04s ago] ('dsecnet@gmail.com', 'login_2fa', datetime.datetime(2026, 2, 16, 11, 15, 46, 879932))
+2026-02-16 11:20:46,885 INFO sqlalchemy.engine.Engine INSERT INTO otp_codes (id, email, code, purpose, is_used, expires_at, attempts) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::BOOLEAN, $6::TIMESTAMP WITH TIME ZONE, $7::INTEGER) RETURNING otp_codes.created_at
+2026-02-16 11:20:46,886 INFO sqlalchemy.engine.Engine [cached since 5.993e+04s ago] ('3bb9a113-3100-4868-a65e-4bcd04bb864c', 'dsecnet@gmail.com', '975239', 'login_2fa', False, datetime.datetime(2026, 2, 16, 11, 30, 46, 883095), 0)
+2026-02-16 11:20:46,886 INFO sqlalchemy.engine.Engine COMMIT
+SMTP xətası: Timed out waiting for server ready message
+Email göndərilmədi: Timed out waiting for server ready message
+INFO:     127.0.0.1:53453 - "POST /api/v1/auth/login HTTP/1.1" 429 Too Many Requests
+2026-02-16 11:38:23,824 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-02-16 11:38:23,826 INFO sqlalchemy.engine.Engine SELECT users.id, users.name, users.email, users.hashed_password, users.user_type, users.profile_image_url, users.is_active, users.created_at, users.updated_at, users.age, users.weight, users.height, users.goal, users.trainer_id, users.specialization, users.experience, users.rating, users.price_per_session, users.bio, users.verification_status, users.certificate_image_url, users.instagram_handle, users.verification_photo_url, users.verification_score, users.verification_attempts, users.last_verification_attempt, users.is_premium, users.is_admin 
+FROM users 
+WHERE users.email = $1::VARCHAR
+2026-02-16 11:38:23,827 INFO sqlalchemy.engine.Engine [cached since 6.098e+04s ago] ('dsecnet@gmail.com',)
+2026-02-16 11:38:24,031 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+FROM otp_codes 
+WHERE otp_codes.email = $1::VARCHAR AND otp_codes.purpose = $2::VARCHAR AND otp_codes.created_at >= $3::TIMESTAMP WITH TIME ZONE
+2026-02-16 11:38:24,032 INFO sqlalchemy.engine.Engine [cached since 6.098e+04s ago] ('dsecnet@gmail.com', 'login_2fa', datetime.datetime(2026, 2, 16, 11, 33, 24, 29908))
+2026-02-16 11:38:24,037 INFO sqlalchemy.engine.Engine INSERT INTO otp_codes (id, email, code, purpose, is_used, expires_at, attempts) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::BOOLEAN, $6::TIMESTAMP WITH TIME ZONE, $7::INTEGER) RETURNING otp_codes.created_at
+2026-02-16 11:38:24,037 INFO sqlalchemy.engine.Engine [cached since 6.098e+04s ago] ('d30f7ea8-8c29-448a-8da0-b458caaef6bd', 'dsecnet@gmail.com', '985747', 'login_2fa', False, datetime.datetime(2026, 2, 16, 11, 48, 24, 36492), 0)
+2026-02-16 11:38:24,045 INFO sqlalchemy.engine.Engine COMMIT
+SMTP xətası: Timed out waiting for server ready message
+Email göndərilmədi: Timed out waiting for server ready message
+INFO:     127.0.0.1:53560 - "POST /api/v1/auth/login HTTP/1.1" 429 Too Many Requests
+2026-02-16 11:39:04,964 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-02-16 11:39:04,965 INFO sqlalchemy.engine.Engine SELECT users.id, users.name, users.email, users.hashed_password, users.user_type, users.profile_image_url, users.is_active, users.created_at, users.updated_at, users.age, users.weight, users.height, users.goal, users.trainer_id, users.specialization, users.experience, users.rating, users.price_per_session, users.bio, users.verification_status, users.certificate_image_url, users.instagram_handle, users.verification_photo_url, users.verification_score, users.verification_attempts, users.last_verification_attempt, users.is_premium, users.is_admin 
+FROM users 
+WHERE users.email = $1::VARCHAR
+2026-02-16 11:39:04,965 INFO sqlalchemy.engine.Engine [cached since 6.102e+04s ago] ('dsecnet@gmail.com',)
+2026-02-16 11:39:05,169 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+FROM otp_codes 
+WHERE otp_codes.email = $1::VARCHAR AND otp_codes.purpose = $2::VARCHAR AND otp_codes.created_at >= $3::TIMESTAMP WITH TIME ZONE
+2026-02-16 11:39:05,169 INFO sqlalchemy.engine.Engine [cached since 6.102e+04s ago] ('dsecnet@gmail.com', 'login_2fa', datetime.datetime(2026, 2, 16, 11, 34, 5, 168845))
+2026-02-16 11:39:05,172 INFO sqlalchemy.engine.Engine INSERT INTO otp_codes (id, email, code, purpose, is_used, expires_at, attempts) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::BOOLEAN, $6::TIMESTAMP WITH TIME ZONE, $7::INTEGER) RETURNING otp_codes.created_at
+2026-02-16 11:39:05,172 INFO sqlalchemy.engine.Engine [cached since 6.102e+04s ago] ('eb53f957-6e4c-4c6e-a938-3d36d5297298', 'dsecnet@gmail.com', '526894', 'login_2fa', False, datetime.datetime(2026, 2, 16, 11, 49, 5, 171694), 0)
+2026-02-16 11:39:05,174 INFO sqlalchemy.engine.Engine COMMIT
+SMTP xətası: Timed out waiting for server ready message
+Email göndərilmədi: Timed out waiting for server ready message
+INFO:     127.0.0.1:53567 - "POST /api/v1/auth/login HTTP/1.1" 429 Too Many Requests
+2026-02-16 11:39:48,929 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-02-16 11:39:48,931 INFO sqlalchemy.engine.Engine SELECT users.id, users.name, users.email, users.hashed_password, users.user_type, users.profile_image_url, users.is_active, users.created_at, users.updated_at, users.age, users.weight, users.height, users.goal, users.trainer_id, users.specialization, users.experience, users.rating, users.price_per_session, users.bio, users.verification_status, users.certificate_image_url, users.instagram_handle, users.verification_photo_url, users.verification_score, users.verification_attempts, users.last_verification_attempt, users.is_premium, users.is_admin 
+FROM users 
+WHERE users.email = $1::VARCHAR
+2026-02-16 11:39:48,932 INFO sqlalchemy.engine.Engine [cached since 6.107e+04s ago] ('dsecnet@gmail.com',)
+2026-02-16 11:39:48,940 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+FROM otp_codes 
+WHERE otp_codes.email = $1::VARCHAR AND otp_codes.purpose = $2::VARCHAR AND otp_codes.created_at >= $3::TIMESTAMP WITH TIME ZONE
+2026-02-16 11:39:48,940 INFO sqlalchemy.engine.Engine [cached since 6.107e+04s ago] ('dsecnet@gmail.com', 'forgot_password', datetime.datetime(2026, 2, 16, 11, 34, 48, 939937))
+2026-02-16 11:39:48,944 INFO sqlalchemy.engine.Engine INSERT INTO otp_codes (id, email, code, purpose, is_used, expires_at, attempts) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::BOOLEAN, $6::TIMESTAMP WITH TIME ZONE, $7::INTEGER) RETURNING otp_codes.created_at
+2026-02-16 11:39:48,944 INFO sqlalchemy.engine.Engine [cached since 6.107e+04s ago] ('952613e7-e294-48a2-b699-e656f5c5827b', 'dsecnet@gmail.com', '264258', 'forgot_password', False, datetime.datetime(2026, 2, 16, 11, 49, 48, 941267), 0)
+2026-02-16 11:39:48,945 INFO sqlalchemy.engine.Engine COMMIT
+SMTP xətası: Timed out waiting for server ready message
+Email göndərilmədi: Timed out waiting for server ready message
+INFO:     127.0.0.1:53575 - "POST /api/v1/auth/forgot-password HTTP/1.1" 429 Too Many Requests
+2026-02-16 12:00:00,028 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-02-16 12:00:00,037 INFO sqlalchemy.engine.Engine SELECT user_settings.id, user_settings.user_id, user_settings.notifications_enabled, user_settings.workout_reminders, user_settings.meal_reminders, user_settings.weekly_reports 
+FROM user_settings 
+WHERE user_settings.notifications_enabled = true AND user_settings.meal_reminders = true
+2026-02-16 12:00:00,038 INFO sqlalchemy.engine.Engine [generated in 0.00040s] ()
+2026-02-16 12:00:00,077 INFO sqlalchemy.engine.Engine SELECT food_entries.id 
+FROM food_entries 
+WHERE food_entries.user_id = $1::VARCHAR AND food_entries.date >= $2::TIMESTAMP WITHOUT TIME ZONE 
+ LIMIT $3::INTEGER
+2026-02-16 12:00:00,077 INFO sqlalchemy.engine.Engine [generated in 0.00013s] ('2c9f10c0-4366-4ae3-b21e-fc5389e10795', datetime.datetime(2026, 2, 16, 0, 0), 1)
+2026-02-16 12:00:00,088 INFO sqlalchemy.engine.Engine INSERT INTO notifications (id, user_id, title, body, notification_type, data, is_read, is_sent, created_at) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR, $7::BOOLEAN, $8::BOOLEAN, $9::TIMESTAMP WITHOUT TIME ZONE)
+2026-02-16 12:00:00,088 INFO sqlalchemy.engine.Engine [generated in 0.00026s] ('b21d83dd-ff47-4f5e-8de7-537116e2cf54', '2c9f10c0-4366-4ae3-b21e-fc5389e10795', 'Yemək vaxtını unutma! 🍎', 'Qida qeydini yaz ki, günlük kalori hədəfinə çatasan.', 'meal_reminder', None, False, False, datetime.datetime(2026, 2, 16, 8, 0, 0, 88114))
+2026-02-16 12:00:00,096 INFO sqlalchemy.engine.Engine SELECT device_tokens.fcm_token 
+FROM device_tokens 
+WHERE device_tokens.user_id = $1::VARCHAR AND device_tokens.is_active = true
+2026-02-16 12:00:00,096 INFO sqlalchemy.engine.Engine [generated in 0.00014s] ('2c9f10c0-4366-4ae3-b21e-fc5389e10795',)
+2026-02-16 12:00:00,097 INFO sqlalchemy.engine.Engine SELECT food_entries.id 
+FROM food_entries 
+WHERE food_entries.user_id = $1::VARCHAR AND food_entries.date >= $2::TIMESTAMP WITHOUT TIME ZONE 
+ LIMIT $3::INTEGER
+2026-02-16 12:00:00,097 INFO sqlalchemy.engine.Engine [cached since 0.02027s ago] ('ec48cbe8-f17a-41ca-8545-ca825f496730', datetime.datetime(2026, 2, 16, 0, 0), 1)
+2026-02-16 12:00:00,098 INFO sqlalchemy.engine.Engine INSERT INTO notifications (id, user_id, title, body, notification_type, data, is_read, is_sent, created_at) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR, $7::BOOLEAN, $8::BOOLEAN, $9::TIMESTAMP WITHOUT TIME ZONE)
+2026-02-16 12:00:00,098 INFO sqlalchemy.engine.Engine [cached since 0.0101s ago] ('18f4108c-fd53-4a27-89c0-a055308771b8', 'ec48cbe8-f17a-41ca-8545-ca825f496730', 'Yemək vaxtını unutma! 🍎', 'Qida qeydini yaz ki, günlük kalori hədəfinə çatasan.', 'meal_reminder', None, False, False, datetime.datetime(2026, 2, 16, 8, 0, 0, 98040))
+2026-02-16 12:00:00,098 INFO sqlalchemy.engine.Engine SELECT device_tokens.fcm_token 
+FROM device_tokens 
+WHERE device_tokens.user_id = $1::VARCHAR AND device_tokens.is_active = true
+2026-02-16 12:00:00,098 INFO sqlalchemy.engine.Engine [cached since 0.002557s ago] ('ec48cbe8-f17a-41ca-8545-ca825f496730',)
+2026-02-16 12:00:00,098 INFO sqlalchemy.engine.Engine SELECT food_entries.id 
+FROM food_entries 
+WHERE food_entries.user_id = $1::VARCHAR AND food_entries.date >= $2::TIMESTAMP WITHOUT TIME ZONE 
+ LIMIT $3::INTEGER
+2026-02-16 12:00:00,098 INFO sqlalchemy.engine.Engine [cached since 0.02165s ago] ('61efc4e5-4274-4d70-b212-0f8c2b957835', datetime.datetime(2026, 2, 16, 0, 0), 1)
+2026-02-16 12:00:00,099 INFO sqlalchemy.engine.Engine INSERT INTO notifications (id, user_id, title, body, notification_type, data, is_read, is_sent, created_at) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR, $7::BOOLEAN, $8::BOOLEAN, $9::TIMESTAMP WITHOUT TIME ZONE)
+2026-02-16 12:00:00,099 INFO sqlalchemy.engine.Engine [cached since 0.01132s ago] ('ae9a53d7-39fb-4bab-b9a5-b4b522ce7441', '61efc4e5-4274-4d70-b212-0f8c2b957835', 'Yemək vaxtını unutma! 🍎', 'Qida qeydini yaz ki, günlük kalori hədəfinə çatasan.', 'meal_reminder', None, False, False, datetime.datetime(2026, 2, 16, 8, 0, 0, 99271))
+2026-02-16 12:00:00,099 INFO sqlalchemy.engine.Engine SELECT device_tokens.fcm_token 
+FROM device_tokens 
+WHERE device_tokens.user_id = $1::VARCHAR AND device_tokens.is_active = true
+2026-02-16 12:00:00,099 INFO sqlalchemy.engine.Engine [cached since 0.003663s ago] ('61efc4e5-4274-4d70-b212-0f8c2b957835',)
+2026-02-16 12:00:00,099 INFO sqlalchemy.engine.Engine SELECT food_entries.id 
+FROM food_entries 
+WHERE food_entries.user_id = $1::VARCHAR AND food_entries.date >= $2::TIMESTAMP WITHOUT TIME ZONE 
+ LIMIT $3::INTEGER
+2026-02-16 12:00:00,099 INFO sqlalchemy.engine.Engine [cached since 0.02263s ago] ('09bdf0f3-afee-4e5e-9da7-4de87e9c5975', datetime.datetime(2026, 2, 16, 0, 0), 1)
+2026-02-16 12:00:00,100 INFO sqlalchemy.engine.Engine INSERT INTO notifications (id, user_id, title, body, notification_type, data, is_read, is_sent, created_at) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR, $7::BOOLEAN, $8::BOOLEAN, $9::TIMESTAMP WITHOUT TIME ZONE)
+2026-02-16 12:00:00,100 INFO sqlalchemy.engine.Engine [cached since 0.01227s ago] ('4e7cb2d0-6346-4fc1-b2f7-4b7636705986', '09bdf0f3-afee-4e5e-9da7-4de87e9c5975', 'Yemək vaxtını unutma! 🍎', 'Qida qeydini yaz ki, günlük kalori hədəfinə çatasan.', 'meal_reminder', None, False, False, datetime.datetime(2026, 2, 16, 8, 0, 0, 100217))
+2026-02-16 12:00:00,100 INFO sqlalchemy.engine.Engine SELECT device_tokens.fcm_token 
+FROM device_tokens 
+WHERE device_tokens.user_id = $1::VARCHAR AND device_tokens.is_active = true
+2026-02-16 12:00:00,100 INFO sqlalchemy.engine.Engine [cached since 0.004585s ago] ('09bdf0f3-afee-4e5e-9da7-4de87e9c5975',)
+2026-02-16 12:00:00,100 INFO sqlalchemy.engine.Engine SELECT food_entries.id 
+FROM food_entries 
+WHERE food_entries.user_id = $1::VARCHAR AND food_entries.date >= $2::TIMESTAMP WITHOUT TIME ZONE 
+ LIMIT $3::INTEGER
+2026-02-16 12:00:00,100 INFO sqlalchemy.engine.Engine [cached since 0.02354s ago] ('f73221ed-9783-476b-994e-43cc06e7da42', datetime.datetime(2026, 2, 16, 0, 0), 1)
+2026-02-16 12:00:00,101 INFO sqlalchemy.engine.Engine INSERT INTO notifications (id, user_id, title, body, notification_type, data, is_read, is_sent, created_at) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR, $7::BOOLEAN, $8::BOOLEAN, $9::TIMESTAMP WITHOUT TIME ZONE)
+2026-02-16 12:00:00,101 INFO sqlalchemy.engine.Engine [cached since 0.01318s ago] ('d43f488f-efdd-46d1-8a29-377895205690', 'f73221ed-9783-476b-994e-43cc06e7da42', 'Yemək vaxtını unutma! 🍎', 'Qida qeydini yaz ki, günlük kalori hədəfinə çatasan.', 'meal_reminder', None, False, False, datetime.datetime(2026, 2, 16, 8, 0, 0, 101129))
+2026-02-16 12:00:00,101 INFO sqlalchemy.engine.Engine SELECT device_tokens.fcm_token 
+FROM device_tokens 
+WHERE device_tokens.user_id = $1::VARCHAR AND device_tokens.is_active = true
+2026-02-16 12:00:00,101 INFO sqlalchemy.engine.Engine [cached since 0.00561s ago] ('f73221ed-9783-476b-994e-43cc06e7da42',)
+2026-02-16 12:00:00,101 INFO sqlalchemy.engine.Engine SELECT food_entries.id 
+FROM food_entries 
+WHERE food_entries.user_id = $1::VARCHAR AND food_entries.date >= $2::TIMESTAMP WITHOUT TIME ZONE 
+ LIMIT $3::INTEGER
+2026-02-16 12:00:00,101 INFO sqlalchemy.engine.Engine [cached since 0.02462s ago] ('20ef9e36-b8ee-46b8-9b53-6a552c19c207', datetime.datetime(2026, 2, 16, 0, 0), 1)
+2026-02-16 12:00:00,102 INFO sqlalchemy.engine.Engine INSERT INTO notifications (id, user_id, title, body, notification_type, data, is_read, is_sent, created_at) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR, $7::BOOLEAN, $8::BOOLEAN, $9::TIMESTAMP WITHOUT TIME ZONE)
+2026-02-16 12:00:00,102 INFO sqlalchemy.engine.Engine [cached since 0.01487s ago] ('a8f21cda-0fe6-445f-a44e-28b836228334', '20ef9e36-b8ee-46b8-9b53-6a552c19c207', 'Yemək vaxtını unutma! 🍎', 'Qida qeydini yaz ki, günlük kalori hədəfinə çatasan.', 'meal_reminder', None, False, False, datetime.datetime(2026, 2, 16, 8, 0, 0, 102821))
+2026-02-16 12:00:00,103 INFO sqlalchemy.engine.Engine SELECT device_tokens.fcm_token 
+FROM device_tokens 
+WHERE device_tokens.user_id = $1::VARCHAR AND device_tokens.is_active = true
+2026-02-16 12:00:00,103 INFO sqlalchemy.engine.Engine [cached since 0.007348s ago] ('20ef9e36-b8ee-46b8-9b53-6a552c19c207',)
+2026-02-16 12:00:00,103 INFO sqlalchemy.engine.Engine SELECT food_entries.id 
+FROM food_entries 
+WHERE food_entries.user_id = $1::VARCHAR AND food_entries.date >= $2::TIMESTAMP WITHOUT TIME ZONE 
+ LIMIT $3::INTEGER
+2026-02-16 12:00:00,103 INFO sqlalchemy.engine.Engine [cached since 0.02635s ago] ('96084365-6004-49fb-8029-98bd641675c9', datetime.datetime(2026, 2, 16, 0, 0), 1)
+2026-02-16 12:00:00,103 INFO sqlalchemy.engine.Engine INSERT INTO notifications (id, user_id, title, body, notification_type, data, is_read, is_sent, created_at) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR, $7::BOOLEAN, $8::BOOLEAN, $9::TIMESTAMP WITHOUT TIME ZONE)
+2026-02-16 12:00:00,103 INFO sqlalchemy.engine.Engine [cached since 0.01597s ago] ('1cbf7e2b-614f-4515-a5f6-8dfea766a43a', '96084365-6004-49fb-8029-98bd641675c9', 'Yemək vaxtını unutma! 🍎', 'Qida qeydini yaz ki, günlük kalori hədəfinə çatasan.', 'meal_reminder', None, False, False, datetime.datetime(2026, 2, 16, 8, 0, 0, 103919))
+2026-02-16 12:00:00,104 INFO sqlalchemy.engine.Engine SELECT device_tokens.fcm_token 
+FROM device_tokens 
+WHERE device_tokens.user_id = $1::VARCHAR AND device_tokens.is_active = true
+2026-02-16 12:00:00,104 INFO sqlalchemy.engine.Engine [cached since 0.008263s ago] ('96084365-6004-49fb-8029-98bd641675c9',)
+2026-02-16 12:00:00,104 INFO sqlalchemy.engine.Engine COMMIT

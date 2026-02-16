@@ -51,7 +51,7 @@ class APIService {
     #if targetEnvironment(simulator)
     let baseURL = "http://localhost:8000"  // Simulator (local)
     #elseif DEBUG
-    let baseURL = "http://192.168.100.70:8000"  // Real device DEBUG (Mac WiFi IP)
+    let baseURL = "https://api.corevia.life"  // Real device DEBUG (cloud server)
     #else
     let baseURL = "https://api.corevia.life"  // Real device RELEASE (cloud)
     #endif
