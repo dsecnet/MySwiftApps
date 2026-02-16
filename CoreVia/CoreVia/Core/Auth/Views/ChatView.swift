@@ -368,6 +368,7 @@ struct ChatDetailView: View {
                     }
                     .padding()
                 }
+                .scrollDismissesKeyboard(.interactively)
                 .onChange(of: chatManager.messages.count) { _ in
                     if let lastId = chatManager.messages.last?.id {
                         withAnimation {

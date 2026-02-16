@@ -57,8 +57,12 @@ struct ForgotPasswordView: View {
                 }
                 .padding()
             }
+            .scrollDismissesKeyboard(.interactively)
         }
         .navigationTitle("Şifrəni Bərpa Et")
+        .onTapGesture {
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        }
         .navigationBarTitleDisplayMode(.inline)
         .alert("Xəta", isPresented: $showError) {
             Button("OK", role: .cancel) {}

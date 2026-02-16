@@ -15,7 +15,7 @@ class UserRegister(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=6, max_length=128)
     user_type: UserType
-    otp_code: str = Field(..., min_length=6, max_length=6, description="6-digit OTP code")
+    otp_code: str = Field(default="", min_length=0, max_length=6, description="6-digit OTP code (optional for trainers)")
 
     @field_validator("name")
     @classmethod

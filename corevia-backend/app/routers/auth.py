@@ -68,26 +68,32 @@ async def register_request_otp(
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)):
     """
-    Step 2: OTP verify edib istifadəçi yaradır
+    Step 2: OTP verify edib istifadəçi yaradır (trainers üçün OTP tələb olunmur)
 
-    1. OTP verify olunur
-    2. Email-in mövcudluğu yenidən yoxlanır
-    3. User yaradılır
+    1. Əgər trainer-dirsə və OTP boşdursa, OTP yoxlanmır (direct registration)
+    2. Əgər client-dirsə, OTP verify olunur
+    3. Email-in mövcudluğu yenidən yoxlanır
+    4. User yaradılır
     """
 
-    # Verify OTP
-    otp_result = await email_service.verify_otp(
-        email=user_data.email,
-        code=user_data.otp_code,
-        purpose='registration',
-        db=db
-    )
-
-    if not otp_result['success']:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=otp_result['message']
+    # Skip OTP verification for trainers (direct registration)
+    if user_data.user_type == UserType.trainer and not user_data.otp_code:
+        # Trainer direct registration without OTP
+        pass
+    else:
+        # Verify OTP for clients (and trainers with OTP if provided)
+        otp_result = await email_service.verify_otp(
+            email=user_data.email,
+            code=user_data.otp_code,
+            purpose='registration',
+            db=db
         )
+
+        if not otp_result['success']:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=otp_result['message']
+            )
 
     # Check if user exists (double check)
     result = await db.execute(select(User).where(User.email == user_data.email))

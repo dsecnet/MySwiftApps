@@ -163,8 +163,8 @@ struct LoginView: View {
                     }
                 }
                 .padding(.bottom, 30)
-            }
-            .ignoresSafeArea(.keyboard)
+        }
+        .scrollDismissesKeyboard(.interactively)
         }
         .onTapGesture {
             hideKeyboard()
@@ -390,7 +390,7 @@ struct LoginView: View {
         Task {
             do {
                 // Step 1: Send credentials, receive OTP
-                let url = URL(string: "\(APIService.shared.baseURL)/auth/login")!
+                let url = URL(string: "\(APIService.shared.baseURL)/api/v1/auth/login")!
                 var request = URLRequest(url: url)
                 request.httpMethod = "POST"
                 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -533,7 +533,7 @@ struct LoginView: View {
 
         Task {
             do {
-                let url = URL(string: "\(APIService.shared.baseURL)/auth/login-verify")!
+                let url = URL(string: "\(APIService.shared.baseURL)/api/v1/auth/login-verify")!
                 var request = URLRequest(url: url)
                 request.httpMethod = "POST"
                 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -562,6 +562,9 @@ struct LoginView: View {
                     // Save tokens
                     AuthManager.shared.accessToken = tokenResponse.access_token
                     AuthManager.shared.refreshToken = tokenResponse.refresh_token
+
+                    // Fetch user data to populate UserDefaults (fixes trainer showing as client bug)
+                    await AuthManager.shared.fetchCurrentUser()
 
                     await MainActor.run {
                         isLoading = false

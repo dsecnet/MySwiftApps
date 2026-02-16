@@ -136,8 +136,14 @@ struct AddFoodView: View {
                     macrosSection
                     notesSection
                 }
-                .padding()
+                .padding(.horizontal)
+                .padding(.top, 16)
+                .padding(.bottom, 100)
             }
+            .scrollDismissesKeyboard(.interactively)
+        }
+        .onTapGesture {
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         }
     }
 

@@ -2,10 +2,12 @@
 import SwiftUI
 
 struct WorkoutView: View {
-    
+
     @StateObject private var manager = WorkoutManager.shared
     @State private var showAddWorkout: Bool = false
+    @State private var showPremiumPrompt: Bool = false
     @ObservedObject private var loc = LocalizationManager.shared
+    @ObservedObject private var settingsManager = SettingsManager.shared
     
     var body: some View {
         ZStack {
@@ -116,7 +118,55 @@ struct WorkoutView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 60)
                     }
-                    
+
+                    // MARK: - GPS Tracking Button (Premium)
+                    if settingsManager.isPremium {
+                        NavigationLink {
+                            LiveTrackingView()
+                        } label: {
+                            HStack {
+                                Image(systemName: "location.fill")
+                                Text("GPS ilə Qaçış/Gəzinti")
+                                    .bold()
+                            }
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(
+                                LinearGradient(
+                                    colors: [Color.green, Color.green.opacity(0.8)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .cornerRadius(14)
+                            .shadow(color: Color.green.opacity(0.3), radius: 8)
+                        }
+                        .padding(.top, 10)
+                    } else {
+                        Button {
+                            showPremiumPrompt = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "lock.fill")
+                                Text("GPS Tracking (Premium)")
+                                    .bold()
+                            }
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(
+                                LinearGradient(
+                                    colors: [Color.gray, Color.gray.opacity(0.8)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .cornerRadius(14)
+                        }
+                        .padding(.top, 10)
+                    }
+
                     // MARK: - Add Workout Button
                     Button {
                         showAddWorkout = true
@@ -142,10 +192,14 @@ struct WorkoutView: View {
                     .padding(.top, 10)
                 }
                 .padding()
+                .padding(.bottom, 100)
             }
         }
         .sheet(isPresented: $showAddWorkout) {
             AddWorkoutView()
+        }
+        .sheet(isPresented: $showPremiumPrompt) {
+            PremiumView()
         }
     }
 }

@@ -79,6 +79,7 @@ struct RegisterView: View {
                         }
                     }
                 }
+                .scrollDismissesKeyboard(.interactively)
             }
         }
         .onTapGesture {
@@ -316,9 +317,9 @@ struct RegisterView: View {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
                 } else {
-                    Text(loc.localized("register_button"))
+                    Text(userType == .trainer ? "Qeydiyyat" : "OTP göndər")
                         .font(.system(size: 16, weight: .bold))
-                    
+
                     Image(systemName: "arrow.right")
                         .font(.system(size: 14, weight: .bold))
                 }
@@ -442,7 +443,7 @@ struct RegisterView: View {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
                 } else {
-                    Text("OTP Göndər")
+                    Text(userType == .trainer ? "Qeydiyyat" : "OTP Göndər")
                         .font(.system(size: 16, weight: .bold))
 
                     Image(systemName: "arrow.right")
@@ -548,13 +549,19 @@ struct RegisterView: View {
             return
         }
 
+        // If trainer, skip OTP and register directly
+        if userType == .trainer {
+            registerTrainerDirectly()
+            return
+        }
+
         isLoading = true
         showError = false
 
         Task {
             do {
-                // Step 1: Request OTP
-                let url = URL(string: "\(APIService.shared.baseURL)/auth/register-request")!
+                // Step 1: Request OTP (only for clients)
+                let url = URL(string: "\(APIService.shared.baseURL)/api/v1/auth/register-request")!
                 var request = URLRequest(url: url)
                 request.httpMethod = "POST"
                 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -588,6 +595,53 @@ struct RegisterView: View {
         }
     }
 
+    private func registerTrainerDirectly() {
+        isLoading = true
+        showError = false
+
+        Task {
+            do {
+                let url = URL(string: "\(APIService.shared.baseURL)/api/v1/auth/register")!
+                var request = URLRequest(url: url)
+                request.httpMethod = "POST"
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+                let body: [String: Any] = [
+                    "name": name.trimmingCharacters(in: .whitespaces),
+                    "email": email.trimmingCharacters(in: .whitespaces).lowercased(),
+                    "password": password,
+                    "user_type": "trainer",
+                    "otp_code": "" // Empty OTP for trainers
+                ]
+                request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+                let (data, response) = try await URLSession.shared.data(for: request)
+
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    throw NSError(domain: "Invalid response", code: 0)
+                }
+
+                if httpResponse.statusCode == 200 {
+                    // Trainer registration successful
+                    await MainActor.run {
+                        isLoading = false
+                        withAnimation {
+                            showRegister = false
+                        }
+                    }
+                } else {
+                    let errorResponse = try? JSONDecoder().decode([String: String].self, from: data)
+                    throw NSError(domain: errorResponse?["detail"] ?? "Qeydiyyat uğursuz oldu", code: httpResponse.statusCode)
+                }
+            } catch {
+                await MainActor.run {
+                    isLoading = false
+                    showErrorMessage(error.localizedDescription)
+                }
+            }
+        }
+    }
+
     private func verifyOTPAndRegister() {
         isLoading = true
         showError = false
@@ -596,7 +650,7 @@ struct RegisterView: View {
 
         Task {
             do {
-                let url = URL(string: "\(APIService.shared.baseURL)/auth/register")!
+                let url = URL(string: "\(APIService.shared.baseURL)/api/v1/auth/register")!
                 var request = URLRequest(url: url)
                 request.httpMethod = "POST"
                 request.setValue("application/json", forHTTPHeaderField: "Content-Type")

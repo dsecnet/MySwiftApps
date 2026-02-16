@@ -26,6 +26,7 @@ struct FoodView: View {
                     addButton
                 }
                 .padding()
+                .padding(.bottom, 100)
             }
         }
         .sheet(isPresented: $showAddFood) {
