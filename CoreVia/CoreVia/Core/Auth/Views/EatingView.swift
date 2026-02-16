@@ -2,12 +2,16 @@
 import SwiftUI
 
 struct FoodView: View {
-    
+
     @StateObject private var foodManager = FoodManager.shared
     @State private var showAddFood = false
     @State private var showEditGoal = false
     @State private var selectedEntry: FoodEntry? = nil
     @ObservedObject private var loc = LocalizationManager.shared
+
+    // FIX A: NEW - Trainer button state
+    @StateObject private var profileManager = UserProfileManager.shared
+    @State private var showAddFoodForStudent = false
     
     var body: some View {
         ZStack {
@@ -37,6 +41,10 @@ struct FoodView: View {
         }
         .sheet(item: $selectedEntry) { entry in
             FoodDetailView(entry: entry)
+        }
+        // FIX A: NEW - Trainer button sheet
+        .sheet(isPresented: $showAddFoodForStudent) {
+            StudentSelectorForActionView(actionType: .food)
         }
     }
     
@@ -225,28 +233,58 @@ struct FoodView: View {
     
     // MARK: - Add Button
     private var addButton: some View {
-        Button {
-            showAddFood = true
-        } label: {
-            HStack {
-                Image(systemName: "plus.circle.fill")
-                    .font(.system(size: 20))
-                
-                Text(loc.localized("food_add_title"))
-                    .font(.system(size: 16, weight: .bold))
-            }
-            .foregroundColor(.white)
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(
-                LinearGradient(
-                    colors: [AppTheme.Colors.accent, AppTheme.Colors.accent.opacity(0.8)],
-                    startPoint: .leading,
-                    endPoint: .trailing
+        VStack(spacing: 12) {
+            // Regular add food button (for everyone)
+            Button {
+                showAddFood = true
+            } label: {
+                HStack {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 20))
+
+                    Text(loc.localized("food_add_title"))
+                        .font(.system(size: 16, weight: .bold))
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(
+                    LinearGradient(
+                        colors: [AppTheme.Colors.accent, AppTheme.Colors.accent.opacity(0.8)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
                 )
-            )
-            .cornerRadius(12)
-            .shadow(color: AppTheme.Colors.accent.opacity(0.3), radius: 8)
+                .cornerRadius(12)
+                .shadow(color: AppTheme.Colors.accent.opacity(0.3), radius: 8)
+            }
+
+            // FIX A: NEW - Trainer button (only for trainers)
+            if profileManager.userProfile.userType == .trainer {
+                Button {
+                    showAddFoodForStudent = true
+                } label: {
+                    HStack {
+                        Image(systemName: "person.2.fill")
+                            .font(.system(size: 16))
+
+                        Text("Tələbəyə Qida Əlavə Et")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(
+                        LinearGradient(
+                            colors: [Color.green.opacity(0.8), Color.green],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(12)
+                    .shadow(color: Color.green.opacity(0.3), radius: 8)
+                }
+            }
         }
     }
     

@@ -28,7 +28,81 @@ struct WorkoutView: View {
                             .font(.caption)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    
+
+                    // FIX 11: NEW - Weekly Summary Statistics
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Həftəlik Xülasə")
+                            .font(.headline)
+                            .foregroundColor(AppTheme.Colors.primaryText)
+
+                        HStack(spacing: 12) {
+                            // Total workouts
+                            VStack(spacing: 4) {
+                                Text("\(manager.weekWorkoutCount)")
+                                    .font(.title2)
+                                    .bold()
+                                    .foregroundColor(AppTheme.Colors.accent)
+                                Text("Məşqlər")
+                                    .font(.caption2)
+                                    .foregroundColor(AppTheme.Colors.secondaryText)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(AppTheme.Colors.cardBackground)
+                            .cornerRadius(12)
+
+                            // Completed workouts
+                            VStack(spacing: 4) {
+                                Text("\(manager.completedWorkouts.count)")
+                                    .font(.title2)
+                                    .bold()
+                                    .foregroundColor(.green)
+                                Text("Tamamlandı")
+                                    .font(.caption2)
+                                    .foregroundColor(AppTheme.Colors.secondaryText)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(AppTheme.Colors.cardBackground)
+                            .cornerRadius(12)
+                        }
+
+                        HStack(spacing: 12) {
+                            // Total minutes
+                            VStack(spacing: 4) {
+                                Text("\(calculateWeeklyMinutes())")
+                                    .font(.title2)
+                                    .bold()
+                                    .foregroundColor(AppTheme.Colors.accent)
+                                Text("Dəqiqə")
+                                    .font(.caption2)
+                                    .foregroundColor(AppTheme.Colors.secondaryText)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(AppTheme.Colors.cardBackground)
+                            .cornerRadius(12)
+
+                            // Total calories
+                            VStack(spacing: 4) {
+                                Text("\(calculateWeeklyCalories())")
+                                    .font(.title2)
+                                    .bold()
+                                    .foregroundColor(.orange)
+                                Text("Kalori")
+                                    .font(.caption2)
+                                    .foregroundColor(AppTheme.Colors.secondaryText)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(AppTheme.Colors.cardBackground)
+                            .cornerRadius(12)
+                        }
+                    }
+                    .padding()
+                    .background(AppTheme.Colors.secondaryBackground)
+                    .cornerRadius(16)
+
                     // MARK: - Daily Goal Progress
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
@@ -201,6 +275,27 @@ struct WorkoutView: View {
         .sheet(isPresented: $showPremiumPrompt) {
             PremiumView()
         }
+    }
+
+    // FIX 11: NEW - Helper functions for weekly statistics
+    private func calculateWeeklyMinutes() -> Int {
+        let calendar = Calendar.current
+        let now = Date()
+        let weekStart = calendar.date(byAdding: .day, value: -7, to: now)!
+
+        return manager.workouts
+            .filter { $0.date >= weekStart }
+            .reduce(0) { $0 + $1.duration }
+    }
+
+    private func calculateWeeklyCalories() -> Int {
+        let calendar = Calendar.current
+        let now = Date()
+        let weekStart = calendar.date(byAdding: .day, value: -7, to: now)!
+
+        return manager.workouts
+            .filter { $0.date >= weekStart }
+            .reduce(0) { $0 + ($1.caloriesBurned ?? 0) } 
     }
 }
 

@@ -5,6 +5,14 @@
 
 import SwiftUI
 
+struct CreateMealPlanRequest: Encodable {
+    let title: String
+    let plan_type: String
+    let student_id: String
+    let daily_calorie_target: Int
+    let notes: String
+}
+
 struct AddMealPlanView: View {
 
     @Environment(\.dismiss) var dismiss
@@ -366,7 +374,48 @@ struct AddMealPlanView: View {
             notes: notes.isEmpty ? nil : String(notes.prefix(1000))
         )
         manager.addPlan(plan)
+
+        // NEW: Save to backend if student is selected
+        if let studentName = selectedStudent, !studentName.isEmpty {
+            Task {
+                await saveToBackend(plan: plan, studentName: studentName)
+            }
+        }
+
         dismiss()
+    }
+
+    // NEW: Backend API integration
+    @MainActor
+    private func saveToBackend(plan: MealPlan, studentName: String) async {
+        // Find student ID from TrainerManager
+        let students = TrainerManager.shared.myStudents
+        guard let student = students.first(where: { $0.name == studentName }) else {
+            print("⚠️ Student not found: \(studentName)")
+            return
+        }
+
+        do {
+            let endpoint = "/api/v1/meal-plans"
+            let body = CreateMealPlanRequest(  // ← YENİ: struct
+                title: plan.title,
+                plan_type: plan.planType.rawValue,
+                student_id: student.id,
+                daily_calorie_target: plan.dailyCalorieTarget,
+                notes: plan.notes ?? ""
+            )
+            print("✅ Meal plan saved to backend for student: \(studentName)")
+
+
+            let _: [String: String] = try await APIService.shared.request(
+                endpoint: endpoint,
+                method: "POST",
+                body: body
+            )
+            print("✅ Meal plan saved to backend for student: \(studentName)")
+        } catch {
+            print("❌ Failed to save meal plan: \(error.localizedDescription)")
+        }
     }
 }
 

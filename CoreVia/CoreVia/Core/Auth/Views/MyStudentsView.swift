@@ -16,9 +16,26 @@ struct MyStudentsView: View {
     @State private var showAddMealPlan: Bool = false
     @ObservedObject private var loc = LocalizationManager.shared
 
-    // Data source
+    // NEW: Real API data manager
+    @StateObject private var trainerManager = TrainerManager.shared
+
+    // Data source - Use real API data if available, fallback to demo
     var students: [DemoStudent] {
-        DemoStudent.demoStudents
+        // Convert UserResponse to DemoStudent for compatibility
+        if !trainerManager.myStudents.isEmpty {
+            return trainerManager.myStudents.map { user in
+                DemoStudent(
+                    id: user.id,
+                    name: user.name,
+                    progress: 0.65,        // ✅ 3-cü - DÜZ!
+                    avatarEmoji: "👤",     // ✅ 4-cü - DÜZ!
+                    age: user.age ?? 25,
+                    goal: user.goal ?? "Sağlam yaşam"
+                )
+            }
+        }
+        // Fallback to demo data
+        return DemoStudent.demoStudents
     }
 
     // Filtered students based on search
@@ -80,6 +97,25 @@ struct MyStudentsView: View {
         }
         .sheet(isPresented: $showAddMealPlan) {
             AddMealPlanView()
+        }
+        .onAppear {
+            // NEW: Fetch real students from backend
+            Task {
+                await trainerManager.fetchMyStudents()
+            }
+        }
+        .overlay(alignment: .top) {
+            // NEW: Show loading indicator while fetching
+            if trainerManager.isLoadingStudents {
+                ProgressView()
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(AppTheme.Colors.cardBackground)
+                            .shadow(radius: 4)
+                    )
+                    .padding(.top, 100)
+            }
         }
     }
 

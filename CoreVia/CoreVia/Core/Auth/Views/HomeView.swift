@@ -7,14 +7,18 @@ struct HomeView: View {
     @ObservedObject private var loc = LocalizationManager.shared
     @State private var showAddWorkout: Bool = false
     @State private var showAddFood: Bool = false
+
+    // FIX E: NEW - Overall statistics sheet
+    @State private var showOverallStatistics: Bool = false
     
     var body: some View {
         ZStack {
-            Color(UIColor.systemBackground).ignoresSafeArea()
-            
+            // FIX 10: Remove ignoresSafeArea to prevent overlap
+            Color(UIColor.systemBackground)
+
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    
+
                     // MARK: - Header
                     VStack(alignment: .leading, spacing: 6) {
                         Text("\(loc.localized("home_hello")) 👋")
@@ -147,6 +151,14 @@ struct HomeView: View {
                                 icon: "video.fill"
                             )
                         }
+
+                        // FIX E: NEW - Overall Statistics Button
+                        QuickActionButton(
+                            title: "Ümumi Statistika",
+                            icon: "chart.bar.doc.horizontal.fill"
+                        ) {
+                            showOverallStatistics = true
+                        }
                     }
                     
                     // MARK: - Weekly Stats
@@ -181,13 +193,23 @@ struct HomeView: View {
                     .cornerRadius(14)
                 }
                 .padding()
+                // FIX 10: Add bottom padding for custom tab bar
+                .padding(.bottom, 80)
             }
+        }
+        // FIX 10: Add safe area inset for proper spacing
+        .safeAreaInset(edge: .bottom) {
+            Color.clear.frame(height: 0)
         }
         .sheet(isPresented: $showAddWorkout) {
             AddWorkoutView()
         }
         .sheet(isPresented: $showAddFood) {
             AddFoodView()
+        }
+        // FIX E: NEW - Overall Statistics sheet
+        .sheet(isPresented: $showOverallStatistics) {
+            OverallStatisticsView()
         }
     }
 }

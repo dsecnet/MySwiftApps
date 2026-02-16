@@ -19,60 +19,112 @@ struct LiveTrackingView: View {
     @State private var showSaveDialog = false
 
     var body: some View {
-        ZStack {
-            // Map background
-            Map(coordinateRegion: $locationManager.region,
-                showsUserLocation: true,
-                annotationItems: locationManager.routePoints) { point in
-                MapMarker(coordinate: point.coordinate, tint: .blue)
-            }
-            .ignoresSafeArea()
-
-            VStack {
-                // Top stats card
-                VStack(spacing: 12) {
-                    HStack(spacing: 20) {
-                        StatBox(
-                            icon: "figure.run",
-                            value: String(format: "%.2f", locationManager.distance),
-                            unit: "km",
-                            color: .blue
-                        )
-
-                        StatBox(
-                            icon: "flame.fill",
-                            value: "\(locationManager.calories)",
-                            unit: "kcal",
-                            color: .orange
-                        )
-                    }
-
-                    HStack(spacing: 20) {
-                        StatBox(
-                            icon: "timer",
-                            value: timeString(from: locationManager.duration),
-                            unit: "",
-                            color: .green
-                        )
-
-                        StatBox(
-                            icon: "speedometer",
-                            value: String(format: "%.1f", locationManager.speed),
-                            unit: "km/h",
-                            color: .purple
-                        )
-                    }
+        // FIX D: GeometryReader for proper safe area handling
+        GeometryReader { geometry in
+            // FIX 7: NEW LAYOUT - Map in top 40%, Stats card in bottom 60%
+            VStack(spacing: 0) {
+                // FIX 7: Map section (40% of AVAILABLE height) - windowed at top
+                ZStack {
+                    // FIX 6: Map with route polyline overlay
+                    MapViewWithRoute(
+                        region: $locationManager.region,
+                        routePoints: locationManager.routePoints
+                    )
+                    .frame(height: geometry.size.height * 0.4)
+                    .cornerRadius(20)
+                    .shadow(radius: 5)
+                    .padding()
                 }
-                .padding()
-                .background(.ultraThinMaterial)
-                .cornerRadius(20)
-                .shadow(radius: 10)
-                .padding()
+                .background(AppTheme.Colors.background)
+
+            // FIX 7: Large stats card section (60% of screen)
+            VStack(spacing: 16) {
+                Text("Canlı İzləmə")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(AppTheme.Colors.primaryText)
+
+                // Distance & Calories
+                HStack(spacing: 16) {
+                    VStack(spacing: 8) {
+                        Image(systemName: "figure.run")
+                            .font(.system(size: 32))
+                            .foregroundColor(.blue)
+
+                        Text(String(format: "%.2f", locationManager.distance))
+                            .font(.system(size: 36, weight: .bold))
+                            .foregroundColor(AppTheme.Colors.primaryText)
+
+                        Text("Kilometr")
+                            .font(.system(size: 14))
+                            .foregroundColor(AppTheme.Colors.secondaryText)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(AppTheme.Colors.cardBackground)
+                    .cornerRadius(16)
+
+                    VStack(spacing: 8) {
+                        Image(systemName: "flame.fill")
+                            .font(.system(size: 32))
+                            .foregroundColor(.orange)
+
+                        Text("\(locationManager.calories)")
+                            .font(.system(size: 36, weight: .bold))
+                            .foregroundColor(AppTheme.Colors.primaryText)
+
+                        Text("Kalori")
+                            .font(.system(size: 14))
+                            .foregroundColor(AppTheme.Colors.secondaryText)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(AppTheme.Colors.cardBackground)
+                    .cornerRadius(16)
+                }
+
+                // Time & Speed
+                HStack(spacing: 16) {
+                    VStack(spacing: 8) {
+                        Image(systemName: "timer")
+                            .font(.system(size: 32))
+                            .foregroundColor(.green)
+
+                        Text(timeString(from: locationManager.duration))
+                            .font(.system(size: 36, weight: .bold))
+                            .foregroundColor(AppTheme.Colors.primaryText)
+
+                        Text("Vaxt")
+                            .font(.system(size: 14))
+                            .foregroundColor(AppTheme.Colors.secondaryText)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(AppTheme.Colors.cardBackground)
+                    .cornerRadius(16)
+
+                    VStack(spacing: 8) {
+                        Image(systemName: "speedometer")
+                            .font(.system(size: 32))
+                            .foregroundColor(.purple)
+
+                        Text(String(format: "%.1f", locationManager.speed))
+                            .font(.system(size: 36, weight: .bold))
+                            .foregroundColor(AppTheme.Colors.primaryText)
+
+                        Text("km/s")
+                            .font(.system(size: 14))
+                            .foregroundColor(AppTheme.Colors.secondaryText)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(AppTheme.Colors.cardBackground)
+                    .cornerRadius(16)
+                }
 
                 Spacer()
 
-                // Bottom controls
-                HStack(spacing: 20) {
+                // Control buttons at bottom
+                HStack(spacing: 16) {
                     if !locationManager.isTracking {
                         // Start button
                         Button {
@@ -99,12 +151,16 @@ struct LiveTrackingView: View {
                             }
                             isPaused.toggle()
                         } label: {
-                            Image(systemName: isPaused ? "play.fill" : "pause.fill")
-                                .font(.system(size: 24))
-                                .foregroundColor(.white)
-                                .frame(width: 60, height: 60)
-                                .background(Color.orange)
-                                .clipShape(Circle())
+                            VStack(spacing: 4) {
+                                Image(systemName: isPaused ? "play.fill" : "pause.fill")
+                                    .font(.system(size: 24))
+                                Text(isPaused ? "Davam" : "Pauza")
+                                    .font(.system(size: 12, weight: .semibold))
+                            }
+                            .foregroundColor(.white)
+                            .frame(width: 80, height: 80)
+                            .background(Color.orange)
+                            .clipShape(Circle())
                         }
 
                         // Stop button
@@ -125,9 +181,13 @@ struct LiveTrackingView: View {
                         }
                     }
                 }
-                .padding()
-                .background(.ultraThinMaterial)
             }
+            .padding()
+            // FIX D: Use 60% of AVAILABLE height instead of infinity
+            .frame(maxWidth: .infinity, height: geometry.size.height * 0.6)
+            .background(AppTheme.Colors.secondaryBackground)
+            }
+            .background(AppTheme.Colors.background)
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -302,6 +362,51 @@ class LiveTrackingManager: NSObject, ObservableObject, CLLocationManagerDelegate
 struct RoutePoint: Identifiable {
     let id = UUID()
     let coordinate: CLLocationCoordinate2D
+}
+
+// FIX 6: NEW - MapView with Route Polyline Overlay
+struct MapViewWithRoute: UIViewRepresentable {
+    @Binding var region: MKCoordinateRegion
+    let routePoints: [RoutePoint]
+
+    func makeUIView(context: Context) -> MKMapView {
+        let mapView = MKMapView()
+        mapView.delegate = context.coordinator
+        mapView.showsUserLocation = true
+        mapView.userTrackingMode = .follow
+        return mapView
+    }
+
+    func updateUIView(_ mapView: MKMapView, context: Context) {
+        mapView.setRegion(region, animated: true)
+
+        // FIX 6: Remove old overlays
+        mapView.removeOverlays(mapView.overlays)
+
+        // FIX 6: Add route polyline if we have points
+        if routePoints.count > 1 {
+            let coordinates = routePoints.map { $0.coordinate }
+            let polyline = MKPolyline(coordinates: coordinates, count: coordinates.count)
+            mapView.addOverlay(polyline)
+        }
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    // FIX 6: Coordinator to handle polyline rendering
+    class Coordinator: NSObject, MKMapViewDelegate {
+        func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+            if let polyline = overlay as? MKPolyline {
+                let renderer = MKPolylineRenderer(polyline: polyline)
+                renderer.strokeColor = UIColor.systemBlue.withAlphaComponent(0.7)
+                renderer.lineWidth = 5
+                return renderer
+            }
+            return MKOverlayRenderer(overlay: overlay)
+        }
+    }
 }
 
 #Preview {

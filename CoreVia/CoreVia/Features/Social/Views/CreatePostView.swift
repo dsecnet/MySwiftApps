@@ -57,6 +57,8 @@ struct CreatePostView: View {
                                 Button {
                                     viewModel.selectedImage = nil
                                     viewModel.selectedPhotoItem = nil
+                                    // FIX 8: Clear caption when image is removed
+                                    viewModel.imageCaption = ""
                                 } label: {
                                     Image(systemName: "xmark.circle.fill")
                                         .font(.title2)
@@ -64,6 +66,23 @@ struct CreatePostView: View {
                                         .padding(8)
                                 }
                             }
+
+                            // FIX 8: NEW - Image Caption Field
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Şəkil Açıqlaması")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+
+                                TextField("Şəkil haqqında məlumat əlavə edin...", text: $viewModel.imageCaption)
+                                    .padding(12)
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(8)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color(.systemGray4), lineWidth: 1)
+                                    )
+                            }
+                            .padding(.top, 8)
                         } else {
                             PhotosPicker(
                                 selection: $viewModel.selectedPhotoItem,
@@ -143,6 +162,9 @@ class CreatePostViewModel: ObservableObject {
     @Published var selectedImage: UIImage?
     @Published var isLoading = false
     @Published var errorMessage: String?
+
+    // FIX 8: NEW - Image caption field
+    @Published var imageCaption: String = ""
 
     func loadImage(from item: PhotosPickerItem?) async {
         guard let item = item else { return }

@@ -700,7 +700,7 @@ struct RegisterView: View {
             ]
             loginRequest.httpBody = try JSONEncoder().encode(loginBody)
 
-            let (loginData, loginResponse) = try await URLSession.shared.data(for: loginRequest)
+            let (_, loginResponse) = try await URLSession.shared.data(for: loginRequest)
 
             guard let httpResponse = loginResponse as? HTTPURLResponse, httpResponse.statusCode == 200 else {
                 throw NSError(domain: "Login failed", code: 0)

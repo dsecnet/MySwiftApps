@@ -8,6 +8,7 @@ struct AppTheme {
         // === Base (system adaptive) ===
         static let background = Color(UIColor.systemBackground)
         static let secondaryBackground = Color(UIColor.secondarySystemBackground)
+        static let cardBackground = Color(UIColor.tertiarySystemBackground)  // ← BU SƏTRİ ƏLAVƏ ET
         static let primaryText = Color(UIColor.label)
         static let secondaryText = Color(UIColor.secondaryLabel)
         static let tertiaryText = Color(UIColor.tertiaryLabel)

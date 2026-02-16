@@ -1,8 +1,21 @@
 
 import SwiftUI
 
+// FIX B: NEW - Request model for backend workout
+struct CreateWorkoutRequest: Encodable {
+    let title: String
+    let workout_type: String
+    let duration: Int
+    let calories_burned: Int
+    let student_id: String
+    let notes: String
+}
+
 struct AddWorkoutView: View {
-    
+
+    // NEW: Optional student ID for trainers
+    var forStudentId: String? = nil
+
     @Environment(\.dismiss) var dismiss
     @StateObject private var manager = WorkoutManager.shared
     
@@ -236,9 +249,41 @@ struct AddWorkoutView: View {
         )
         
         manager.addWorkout(workout)
-        
+
+        // FIX B: Save to backend if this is for a student
+        if let studentId = forStudentId {
+            Task {
+                await saveToBackendForStudent(workout: workout, studentId: studentId)
+            }
+        }
+
         withAnimation {
             showSuccessAlert = true
+        }
+    }
+
+    // FIX B: NEW - Save workout to backend for student
+    @MainActor
+    private func saveToBackendForStudent(workout: Workout, studentId: String) async {
+        do {
+            let endpoint = "/api/v1/workouts"
+            let body = CreateWorkoutRequest(
+                title: workout.title,
+                workout_type: workout.category.rawValue,
+                duration: workout.duration,
+                calories_burned: workout.caloriesBurned ?? 0,
+                student_id: studentId,
+                notes: workout.notes ?? ""
+            )
+
+            let _: [String: String] = try await APIService.shared.request(
+                endpoint: endpoint,
+                method: "POST",
+                body: body
+            )
+            print("✅ Workout saved to backend for student: \(studentId)")
+        } catch {
+            print("❌ Failed to save workout to backend: \(error.localizedDescription)")
         }
     }
 }

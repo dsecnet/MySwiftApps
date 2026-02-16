@@ -14,6 +14,10 @@ struct TrainingPlanView: View {
     @State private var showAddPlan: Bool = false
     @State private var selectedFilter: PlanType? = nil
 
+    // FIX A: NEW - Trainer button state
+    @StateObject private var profileManager = UserProfileManager.shared
+    @State private var showAddWorkoutForStudent = false
+
     var filteredPlans: [TrainingPlan] {
         if let filter = selectedFilter {
             return manager.plansForType(filter)
@@ -119,23 +123,63 @@ struct TrainingPlanView: View {
                 Spacer()
                 HStack {
                     Spacer()
-                    Button(action: { showAddPlan = true }) {
-                        Image(systemName: "plus")
-                            .font(.title2)
-                            .bold()
-                            .foregroundColor(.white)
-                            .frame(width: 56, height: 56)
-                            .background(AppTheme.Colors.accent)
-                            .clipShape(Circle())
-                            .shadow(color: AppTheme.Colors.accent.opacity(0.4), radius: 8, x: 0, y: 4)
+
+                    // FIX A: NEW - Trainer button (only for trainers)
+                    if profileManager.userProfile.userType == .trainer {
+                        VStack(spacing: 12) {
+                            // Regular add plan button
+                            Button(action: { showAddPlan = true }) {
+                                Image(systemName: "plus")
+                                    .font(.title2)
+                                    .bold()
+                                    .foregroundColor(.white)
+                                    .frame(width: 56, height: 56)
+                                    .background(AppTheme.Colors.accent)
+                                    .clipShape(Circle())
+                                    .shadow(color: AppTheme.Colors.accent.opacity(0.4), radius: 8, x: 0, y: 4)
+                            }
+
+                            // Add workout for student button
+                            Button(action: { showAddWorkoutForStudent = true }) {
+                                VStack(spacing: 4) {
+                                    Image(systemName: "person.2.fill")
+                                        .font(.system(size: 16))
+                                    Text("Tələbəyə")
+                                        .font(.system(size: 10, weight: .semibold))
+                                }
+                                .foregroundColor(.white)
+                                .frame(width: 56, height: 56)
+                                .background(Color.green)
+                                .clipShape(Circle())
+                                .shadow(color: Color.green.opacity(0.4), radius: 8, x: 0, y: 4)
+                            }
+                        }
+                        .padding(.trailing, 20)
+                        .padding(.bottom, 20)
+                    } else {
+                        // Regular FAB for non-trainers (keep existing)
+                        Button(action: { showAddPlan = true }) {
+                            Image(systemName: "plus")
+                                .font(.title2)
+                                .bold()
+                                .foregroundColor(.white)
+                                .frame(width: 56, height: 56)
+                                .background(AppTheme.Colors.accent)
+                                .clipShape(Circle())
+                                .shadow(color: AppTheme.Colors.accent.opacity(0.4), radius: 8, x: 0, y: 4)
+                        }
+                        .padding(.trailing, 20)
+                        .padding(.bottom, 20)
                     }
-                    .padding(.trailing, 20)
-                    .padding(.bottom, 20)
                 }
             }
         }
         .sheet(isPresented: $showAddPlan) {
             AddTrainingPlanView()
+        }
+        // FIX A: NEW - Trainer button sheet
+        .sheet(isPresented: $showAddWorkoutForStudent) {
+            StudentSelectorForActionView(actionType: .workout)
         }
     }
 }

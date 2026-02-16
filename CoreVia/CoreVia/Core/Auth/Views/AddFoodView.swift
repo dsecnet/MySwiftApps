@@ -2,7 +2,23 @@
 
 import SwiftUI
 
+// FIX B: NEW - Request model for backend food entry
+struct CreateFoodEntryRequest: Encodable {
+    let food_name: String
+    let calories: Int
+    let protein: Double
+    let carbs: Double
+    let fats: Double
+    let student_id: String
+    let meal_type: String
+    let portion_size: String
+    let notes: String
+}
+
 struct AddFoodView: View {
+
+    // NEW: Optional student ID for trainers
+    var forStudentId: String? = nil
 
     @Environment(\.dismiss) var dismiss
     @StateObject private var foodManager = FoodManager.shared
@@ -546,8 +562,43 @@ struct AddFoodView: View {
 
         foodManager.addEntry(entry)
 
+        // FIX B: Save to backend if this is for a student
+        if let studentId = forStudentId {
+            Task {
+                await saveToBackendForStudent(entry: entry, studentId: studentId)
+            }
+        }
+
         withAnimation {
             showSuccessAlert = true
+        }
+    }
+
+    // FIX B: NEW - Save food entry to backend for student
+    @MainActor
+    private func saveToBackendForStudent(entry: FoodEntry, studentId: String) async {
+        do {
+            let endpoint = "/api/v1/food-entries"
+            let body = CreateFoodEntryRequest(
+                food_name: entry.name,
+                calories: entry.calories,
+                protein: entry.protein ?? 0.0,
+                carbs: entry.carbs ?? 0.0,
+                fats: entry.fats ?? 0.0,
+                student_id: studentId,
+                meal_type: entry.mealType.rawValue,
+                portion_size: "1 portion",
+                notes: entry.notes ?? ""
+            )
+
+            let _: [String: String] = try await APIService.shared.request(
+                endpoint: endpoint,
+                method: "POST",
+                body: body
+            )
+            print("✅ Food entry saved to backend for student: \(studentId)")
+        } catch {
+            print("❌ Failed to save food entry to backend: \(error.localizedDescription)")
         }
     }
 
@@ -578,9 +629,9 @@ struct AddFoodView: View {
                     return
                 }
 
-                // Create multipart request
+                // FIX C: Create multipart request with CORRECT endpoint
                 let boundary = UUID().uuidString
-                var request = URLRequest(url: URL(string: "\(APIService.shared.baseURL)/ai/analyze-food")!)
+                var request = URLRequest(url: URL(string: "\(APIService.shared.baseURL)/api/v1/food/analyze-image")!)
                 request.httpMethod = "POST"
                 request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
 
@@ -641,10 +692,19 @@ struct AddFoodView: View {
                 }
 
             } catch {
+                // FIX C: Better error messages in Azerbaijani
                 await MainActor.run {
                     self.isAnalyzing = false
-                    self.errorMessage = "Şəbəkə xətası: \(error.localizedDescription)"
+                    let errorDesc = error.localizedDescription
+                    if errorDesc.contains("network") || errorDesc.contains("internet") {
+                        self.errorMessage = "Şəbəkə bağlantısı yoxdur"
+                    } else if errorDesc.contains("unauthorized") || errorDesc.contains("401") {
+                        self.errorMessage = "Giriş səhvi. Yenidən daxil olun"
+                    } else {
+                        self.errorMessage = "Server xətası. Zəhmət olmasa sonra cəhd edin"
+                    }
                     self.showError = true
+                    print("❌ AI Analysis Error: \(errorDesc)")
                 }
             }
         }

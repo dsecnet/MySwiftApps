@@ -1,6 +1,20 @@
 import SwiftUI
 
 /// Create Live Session View (Trainer only)
+/// // MARK: - Request Model
+struct CreateLiveSessionRequest: Encodable {
+    let title: String
+    let description: String
+    let session_type: String
+    let max_participants: Int
+    let difficulty_level: String
+    let duration_minutes: Int
+    let scheduled_start: String
+    let is_public: Bool
+    let is_paid: Bool
+    let price: Double
+}
+
 struct CreateLiveSessionView: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject private var loc = LocalizationManager.shared
@@ -109,19 +123,52 @@ struct CreateLiveSessionView: View {
         }
     }
 
+    // FIX 9: NEW - Real API integration with error handling
     private func createSession() async {
         isCreating = true
         errorMessage = nil
 
-        // For now, just simulate success
-        try? await Task.sleep(nanoseconds: 1_000_000_000)
+        do {
+            // Prepare session request
+            let request = CreateLiveSessionRequest(
+                title: title,
+                description: description,
+                session_type: sessionType,
+                max_participants: maxParticipants,
+                difficulty_level: difficultyLevel,
+                duration_minutes: durationMinutes,
+                scheduled_start: ISO8601DateFormatter().string(from: scheduledStart),
+                is_public: isPublic,
+                is_paid: isPaid,
+                price: isPaid ? price : 0.0
+            )
 
-        // TODO: Call API to create session
-        // let request = CreateSessionRequest(...)
-        // let session = try await APIService.shared.request(...)
+            // FIX 9: Call backend API to create live session
+            let _: [String: String] = try await APIService.shared.request(
+                endpoint: "/api/v1/live-sessions",
+                method: "POST",
+                body: request
+            )
 
-        isCreating = false
-        dismiss()
+            // Success - dismiss view
+            await MainActor.run {
+                isCreating = false
+                dismiss()
+            }
+
+        } catch let error as APIError {
+            // FIX 9: Handle API errors with Azerbaijani message
+            await MainActor.run {
+                isCreating = false
+                errorMessage = error.errorDescription ?? "Xəta baş verdi. Zəhmət olmasa yenidən cəhd edin"
+            }
+        } catch {
+            // FIX 9: Handle other errors with Azerbaijani message
+            await MainActor.run {
+                isCreating = false
+                errorMessage = "Xəta baş verdi. Zəhmət olmasa yenidən cəhd edin"
+            }
+        }
     }
 }
 

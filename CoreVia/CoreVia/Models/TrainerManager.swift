@@ -15,6 +15,10 @@ class TrainerManager: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
 
+    // NEW: My students (for trainers)
+    @Published var myStudents: [UserResponse] = []
+    @Published var isLoadingStudents = false
+
     private let api = APIService.shared
 
     private init() {}
@@ -109,5 +113,28 @@ class TrainerManager: ObservableObject {
             return
         }
         await fetchAssignedTrainer(trainerId: trainerId)
+    }
+
+    // MARK: - NEW: Fetch My Students (for trainers only)
+
+    @MainActor
+    func fetchMyStudents() async {
+        isLoadingStudents = true
+        errorMessage = nil
+        do {
+            let result: [UserResponse] = try await api.request(
+                endpoint: "/api/v1/users/my-students"
+            )
+            myStudents = result
+            isLoadingStudents = false
+        } catch let error as APIError {
+            errorMessage = error.errorDescription
+            isLoadingStudents = false
+            print("❌ Failed to fetch students: \(error.errorDescription ?? "Unknown")")
+        } catch {
+            errorMessage = error.localizedDescription
+            isLoadingStudents = false
+            print("❌ Failed to fetch students: \(error.localizedDescription)")
+        }
     }
 }
