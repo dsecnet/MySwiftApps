@@ -16,6 +16,7 @@ struct AddTrainingPlanView: View {
 
     @Environment(\.dismiss) var dismiss
     @StateObject private var manager = TrainingPlanManager.shared
+    @StateObject private var trainerManager = TrainerManager.shared
     @ObservedObject private var loc = LocalizationManager.shared
 
     @State private var title: String = ""
@@ -29,6 +30,17 @@ struct AddTrainingPlanView: View {
     @State private var newWorkoutSets: String = "3"
     @State private var newWorkoutReps: String = "12"
     @State private var newWorkoutDuration: String = ""
+
+    // FIX: Real tələbələri göstər, yoxdursa demo
+    var realStudents: [DemoStudent] {
+        if !trainerManager.myStudents.isEmpty {
+            return trainerManager.myStudents.map { user in
+                DemoStudent(id: user.id, name: user.name, progress: 0.5,
+                            avatarEmoji: "🏋️", age: 25, goal: user.goal ?? "")
+            }
+        }
+        return DemoStudent.demoStudents
+    }
 
     var body: some View {
         NavigationStack {
@@ -77,7 +89,7 @@ struct AddTrainingPlanView: View {
                                 .font(.caption)
                                 .foregroundColor(Color(UIColor.secondaryLabel))
 
-                            ForEach(DemoStudent.demoStudents) { student in
+                            ForEach(realStudents) { student in
                                 StudentSelectRow(
                                     student: student,
                                     isSelected: selectedStudent == student.name
@@ -168,6 +180,9 @@ struct AddTrainingPlanView: View {
             }
             .navigationTitle(loc.localized("trainer_new_training"))
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                Task { await trainerManager.fetchMyStudents() }
+            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(loc.localized("common_cancel")) {

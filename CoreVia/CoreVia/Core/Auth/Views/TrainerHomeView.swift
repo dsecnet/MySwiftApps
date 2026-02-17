@@ -11,10 +11,6 @@ struct TrainerHomeView: View {
     @StateObject private var profileManager = UserProfileManager.shared
     @ObservedObject private var loc = LocalizationManager.shared
 
-    // NEW: State for student-specific actions
-    @State private var showAddWorkoutForStudent = false
-    @State private var showAddFoodForStudent = false
-
     var body: some View {
         ZStack {
             AppTheme.Colors.background.ignoresSafeArea()
@@ -33,7 +29,7 @@ struct TrainerHomeView: View {
                         }
                     }
 
-                    quickActionsSection
+                    // quickActionsSection — gizlədildi (user tələbi)
                 }
                 .padding()
             }
@@ -48,14 +44,6 @@ struct TrainerHomeView: View {
         }
         .refreshable {
             await dashboardManager.fetchStats()
-        }
-        .sheet(isPresented: $showAddWorkoutForStudent) {
-            // NEW: Student selector for workout
-            StudentSelectorForActionView(actionType: .workout)
-        }
-        .sheet(isPresented: $showAddFoodForStudent) {
-            // NEW: Student selector for food
-            StudentSelectorForActionView(actionType: .food)
         }
     }
 
@@ -254,52 +242,6 @@ struct TrainerHomeView: View {
                 )
             }
 
-            // NEW: Additional student-specific actions
-            HStack(spacing: 12) {
-                Button {
-                    showAddWorkoutForStudent = true
-                } label: {
-                    HStack {
-                        Image(systemName: "figure.run")
-                            .font(.system(size: 16))
-                        Text("Tələbəyə Hərəkət Əlavə Et")
-                            .font(.system(size: 14, weight: .semibold))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(
-                        LinearGradient(
-                            colors: [AppTheme.Colors.accent.opacity(0.8), AppTheme.Colors.accent],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
-                }
-
-                Button {
-                    showAddFoodForStudent = true
-                } label: {
-                    HStack {
-                        Image(systemName: "leaf.fill")
-                            .font(.system(size: 16))
-                        Text("Tələbəyə Qida Əlavə Et")
-                            .font(.system(size: 14, weight: .semibold))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(
-                        LinearGradient(
-                            colors: [Color.green.opacity(0.8), Color.green],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
-                }
-            }
         }
     }
 }

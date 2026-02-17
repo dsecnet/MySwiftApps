@@ -12,6 +12,7 @@ import CoreLocation
 struct LiveTrackingView: View {
 
     @StateObject private var locationManager = LiveTrackingManager()
+    @StateObject private var workoutManager = WorkoutManager.shared
     @ObservedObject private var loc = LocalizationManager.shared
     @Environment(\.dismiss) private var dismiss
 
@@ -19,8 +20,10 @@ struct LiveTrackingView: View {
     @State private var showSaveDialog = false
 
     var body: some View {
-        // FIX D: GeometryReader for proper safe area handling
+        // FIX D: ZStack + GeometryReader - düymə həmişə görünür
         GeometryReader { geometry in
+            
+        ZStack(alignment: .bottom) {
             // FIX 7: NEW LAYOUT - Map in top 40%, Stats card in bottom 60%
             VStack(spacing: 0) {
                 // FIX 7: Map section (40% of AVAILABLE height) - windowed at top
@@ -30,7 +33,12 @@ struct LiveTrackingView: View {
                         region: $locationManager.region,
                         routePoints: locationManager.routePoints
                     )
-                    .frame(height: geometry.size.height * 0.4)
+                    .frame(
+                        height: (geometry.size.height
+                                 - geometry.safeAreaInsets.top
+                                 - geometry.safeAreaInsets.bottom) * 0.4
+                    )
+
                     .cornerRadius(20)
                     .shadow(radius: 5)
                     .padding()
@@ -123,7 +131,7 @@ struct LiveTrackingView: View {
 
                 Spacer()
 
-                // Control buttons at bottom
+                // Buttons inside stats section
                 HStack(spacing: 16) {
                     if !locationManager.isTracking {
                         // Start button
@@ -137,7 +145,9 @@ struct LiveTrackingView: View {
                             }
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
-                            .padding()
+                            .padding(.horizontal)
+                            .padding(.vertical, 12)
+                            .padding(.bottom, 30)
                             .background(Color.green)
                             .cornerRadius(16)
                         }
@@ -181,13 +191,21 @@ struct LiveTrackingView: View {
                         }
                     }
                 }
+                .padding(.horizontal)
+                .padding(.vertical, 12)
+                
             }
             .padding()
-            // FIX D: Use 60% of AVAILABLE height instead of infinity
-            .frame(maxWidth: .infinity, height: geometry.size.height * 0.6)
+            .frame(maxWidth: .infinity)
+            .frame(
+                height: (geometry.size.height
+                         - geometry.safeAreaInsets.top
+                         - geometry.safeAreaInsets.bottom) * 0.5
+            )
             .background(AppTheme.Colors.secondaryBackground)
             }
             .background(AppTheme.Colors.background)
+        } // ZStack end
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -230,8 +248,19 @@ struct LiveTrackingView: View {
     }
 
     private func saveWorkout() {
-        // TODO: Backend-ə save et
-        print("💾 Saving workout: \(locationManager.distance)km, \(locationManager.calories)kcal")
+        let durationMinutes = max(1, locationManager.duration / 60)
+        let newWorkout = Workout(
+            id: UUID().uuidString,
+            userId: nil,
+            title: "GPS Məşq – \(String(format: "%.2f", locationManager.distance)) km",
+            category: .cardio,
+            duration: durationMinutes,
+            caloriesBurned: locationManager.calories,
+            notes: "Məsafə: \(String(format: "%.2f", locationManager.distance)) km | Sürət: \(String(format: "%.1f", locationManager.speed)) km/s",
+            date: Date(),
+            isCompleted: true
+        )
+        workoutManager.addWorkout(newWorkout)
     }
 }
 

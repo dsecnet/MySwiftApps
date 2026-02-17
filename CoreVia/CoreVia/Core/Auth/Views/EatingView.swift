@@ -30,7 +30,7 @@ struct FoodView: View {
                     addButton
                 }
                 .padding()
-                .padding(.bottom, 100)
+                .padding(.bottom, 100)  // FIX 3: Keep existing padding, button now at TOP of VStack
             }
         }
         .sheet(isPresented: $showAddFood) {
@@ -234,32 +234,7 @@ struct FoodView: View {
     // MARK: - Add Button
     private var addButton: some View {
         VStack(spacing: 12) {
-            // Regular add food button (for everyone)
-            Button {
-                showAddFood = true
-            } label: {
-                HStack {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 20))
-
-                    Text(loc.localized("food_add_title"))
-                        .font(.system(size: 16, weight: .bold))
-                }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(
-                    LinearGradient(
-                        colors: [AppTheme.Colors.accent, AppTheme.Colors.accent.opacity(0.8)],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .cornerRadius(12)
-                .shadow(color: AppTheme.Colors.accent.opacity(0.3), radius: 8)
-            }
-
-            // FIX A: NEW - Trainer button (only for trainers)
+            // FIX A: Trainer button first (only for trainers) - shown prominently at TOP
             if profileManager.userProfile.userType == .trainer {
                 Button {
                     showAddFoodForStudent = true
@@ -284,6 +259,31 @@ struct FoodView: View {
                     .cornerRadius(12)
                     .shadow(color: Color.green.opacity(0.3), radius: 8)
                 }
+            }
+
+            // Regular add food button (for everyone)
+            Button {
+                showAddFood = true
+            } label: {
+                HStack {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 20))
+
+                    Text(loc.localized("food_add_title"))
+                        .font(.system(size: 16, weight: .bold))
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(
+                    LinearGradient(
+                        colors: [AppTheme.Colors.accent, AppTheme.Colors.accent.opacity(0.8)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .cornerRadius(12)
+                .shadow(color: AppTheme.Colors.accent.opacity(0.3), radius: 8)
             }
         }
     }

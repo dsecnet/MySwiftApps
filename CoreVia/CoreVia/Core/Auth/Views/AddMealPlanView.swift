@@ -17,6 +17,7 @@ struct AddMealPlanView: View {
 
     @Environment(\.dismiss) var dismiss
     @StateObject private var manager = MealPlanManager.shared
+    @StateObject private var trainerManager = TrainerManager.shared
     @ObservedObject private var loc = LocalizationManager.shared
 
     @State private var title: String = ""
@@ -33,6 +34,23 @@ struct AddMealPlanView: View {
     @State private var newMealCarbs: String = ""
     @State private var newMealFats: String = ""
     @State private var newMealType: MealType = .breakfast
+
+    // FIX: Real tələbələri göstər, yoxdursa demo
+    var realStudents: [DemoStudent] {
+        if !trainerManager.myStudents.isEmpty {
+            return trainerManager.myStudents.map { user in
+                DemoStudent(
+                    id: user.id,
+                    name: user.name,
+                    progress: 0.5,
+                    avatarEmoji: "🏋️",
+                    age: 25,
+                    goal: user.goal ?? ""
+                )
+            }
+        }
+        return DemoStudent.demoStudents
+    }
 
     var body: some View {
         NavigationStack {
@@ -101,7 +119,7 @@ struct AddMealPlanView: View {
                                 .font(.caption)
                                 .foregroundColor(Color(UIColor.secondaryLabel))
 
-                            ForEach(DemoStudent.demoStudents) { student in
+                            ForEach(realStudents) { student in
                                 StudentSelectRow(
                                     student: student,
                                     isSelected: selectedStudent == student.name
@@ -206,6 +224,9 @@ struct AddMealPlanView: View {
             }
             .navigationTitle(loc.localized("trainer_new_meal"))
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                Task { await trainerManager.fetchMyStudents() }
+            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(loc.localized("common_cancel")) {

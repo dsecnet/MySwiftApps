@@ -631,7 +631,7 @@ struct AddFoodView: View {
 
                 // FIX C: Create multipart request with CORRECT endpoint
                 let boundary = UUID().uuidString
-                var request = URLRequest(url: URL(string: "\(APIService.shared.baseURL)/api/v1/food/analyze-image")!)
+                var request = URLRequest(url: URL(string: "\(APIService.shared.baseURL)/api/v1/food/analyze")!)
                 request.httpMethod = "POST"
                 request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
 
@@ -666,19 +666,20 @@ struct AddFoodView: View {
 
                 await MainActor.run {
                     if result.success {
-                        // Use total values or first food item
-                        if let foods = result.foods, !foods.isEmpty {
-                            // Combine food names
-                            let names = foods.map { $0.name }.joined(separator: ", ")
-                            self.foodName = names
+                        // FIX C: Handle backend direct format {food_name, calories, protein, carbs, fats}
+                        if let directName = result.food_name, !directName.isEmpty {
+                            self.foodName = directName
+                        } else if let foods = result.foods, !foods.isEmpty {
+                            self.foodName = foods.map { $0.name }.joined(separator: ", ")
                         } else {
                             self.foodName = "Analiz edilmiş qida"
                         }
 
-                        self.calories = "\(result.total_calories ?? 0)"
-                        self.protein = String(format: "%.1f", result.total_protein ?? 0.0)
-                        self.carbs = String(format: "%.1f", result.total_carbs ?? 0.0)
-                        self.fats = String(format: "%.1f", result.total_fats ?? 0.0)
+                        // Use direct fields first, fall back to total_ fields
+                        self.calories = "\(result.calories ?? result.total_calories ?? 0)"
+                        self.protein = String(format: "%.1f", result.protein ?? result.total_protein ?? 0.0)
+                        self.carbs = String(format: "%.1f", result.carbs ?? result.total_carbs ?? 0.0)
+                        self.fats = String(format: "%.1f", result.fats ?? result.total_fats ?? 0.0)
 
                         withAnimation {
                             self.isAnalyzing = false
@@ -712,17 +713,27 @@ struct AddFoodView: View {
 }
 
 // MARK: - AI Food Analysis Response
+// Backend /api/v1/food/analyze returns: {food_name, calories, protein, carbs, fats, portion_size, confidence}
 struct AIFoodAnalysisResponse: Codable {
+    // Backend direct fields
+    let food_name: String?
+    let calories: Int?
+    let protein: Double?
+    let carbs: Double?
+    let fats: Double?
+    let portion_size: String?
+    let confidence: Double?
+    let error: String?
+
+    // Legacy array format fields (kept for compatibility)
     let foods: [FoodItem]?
     let total_calories: Int?
     let total_protein: Double?
     let total_carbs: Double?
     let total_fats: Double?
-    let confidence: Double?
-    let error: String?
 
     var success: Bool {
-        return error == nil && (foods?.isEmpty == false || total_calories != nil)
+        return error == nil && (food_name != nil || calories != nil || foods?.isEmpty == false || total_calories != nil)
     }
 }
 

@@ -138,13 +138,6 @@ struct HomeView: View {
                             )
                         }
 
-                        NavigationLink(destination: AnalyticsDashboardView()) {
-                            QuickActionButtonStyle(
-                                title: loc.localized("analytics_title"),
-                                icon: "chart.bar.fill"
-                            )
-                        }
-
                         NavigationLink(destination: LiveSessionListView()) {
                             QuickActionButtonStyle(
                                 title: loc.localized("live_sessions_title"),

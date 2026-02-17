@@ -129,7 +129,7 @@ struct MealPlanView: View {
                             .shadow(color: AppTheme.Colors.accent.opacity(0.4), radius: 8, x: 0, y: 4)
                     }
                     .padding(.trailing, 20)
-                    .padding(.bottom, 20)
+                    .padding(.bottom, 100)
                 }
             }
         }
