@@ -10,6 +10,12 @@ data class LoginRequest(
     val password: String
 )
 
+// iOS: struct LoginVerifyRequest: Encodable — Step 2 OTP doğrulama
+data class LoginVerifyRequest(
+    val email: String,
+    @SerializedName("otp_code") val otpCode: String
+)
+
 // iOS: struct RegisterRequest: Encodable
 data class RegisterRequest(
     val name: String,
