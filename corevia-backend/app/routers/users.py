@@ -113,3 +113,32 @@ async def get_my_students(
         select(User).where(User.trainer_id == current_user.id)
     )
     return result.scalars().all()
+
+
+@router.post("/assign-student/{student_id}", response_model=UserResponse)
+async def assign_student_to_trainer(
+    student_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Trainer oz telebesi ucun trainer_id set edir (trainer terefinden)."""
+    if current_user.user_type != UserType.trainer:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Yalniz trainer telebe assign ede biler",
+        )
+
+    result = await db.execute(
+        select(User).where(
+            User.id == student_id,
+            User.user_type == UserType.client,
+        )
+    )
+    student = result.scalar_one_or_none()
+    if not student:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Telebe tapilmadi")
+
+    student.trainer_id = current_user.id
+    await db.commit()
+    await db.refresh(student)
+    return student
