@@ -101,6 +101,24 @@ struct MealPlan: Identifiable, Codable {
         self.notes = notes
     }
 
+    // Custom decoder - backend is_completed/completed_at göndərməyə bilər
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        trainerId = try container.decodeIfPresent(String.self, forKey: .trainerId)
+        assignedStudentId = try container.decodeIfPresent(String.self, forKey: .assignedStudentId)
+        title = try container.decode(String.self, forKey: .title)
+        planType = try container.decode(PlanType.self, forKey: .planType)
+        meals = try container.decodeIfPresent([MealPlanItem].self, forKey: .meals) ?? []
+        isCompleted = try container.decodeIfPresent(Bool.self, forKey: .isCompleted) ?? false
+        completedAt = try container.decodeIfPresent(Date.self, forKey: .completedAt)
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
+        updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt)
+        dailyCalorieTarget = try container.decodeIfPresent(Int.self, forKey: .dailyCalorieTarget) ?? 2000
+        notes = try container.decodeIfPresent(String.self, forKey: .notes)
+        assignedStudentName = nil
+    }
+
     var formattedDate: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "dd MMM yyyy"
@@ -295,6 +313,12 @@ class MealPlanManager: ObservableObject {
                     method: "PUT"
                 )
             } catch {
+                await MainActor.run {
+                    if let index = self.plans.firstIndex(where: { $0.id == plan.id }) {
+                        self.plans[index].isCompleted = false
+                        self.plans[index].completedAt = nil
+                    }
+                }
                 print("Meal plan complete xətası: \(error)")
             }
         }
@@ -315,12 +339,16 @@ class MealPlanManager: ObservableObject {
     // MARK: - Backend Sync
 
     func loadPlans() {
-        guard KeychainManager.shared.isLoggedIn else { return }
+        guard KeychainManager.shared.isLoggedIn else {
+            print("⚠️ MealPlanManager: isLoggedIn=false, loadPlans keçildi")
+            return
+        }
 
         isLoading = true
         Task {
             do {
                 let fetched: [MealPlan] = try await api.request(endpoint: "/api/v1/plans/meal")
+                print("✅ Meal plans yükləndi: \(fetched.count) plan tapıldı")
                 await MainActor.run {
                     self.plans = fetched
                     self.isLoading = false
@@ -329,7 +357,8 @@ class MealPlanManager: ObservableObject {
                 await MainActor.run {
                     self.isLoading = false
                 }
-                print("Meal plans yükləmə xətası: \(error)")
+                print("❌ Meal plans yükləmə xətası: \(error)")
+                if let de = error as? DecodingError { print("⚠️ Decode detalları: \(de)") }
             }
         }
     }

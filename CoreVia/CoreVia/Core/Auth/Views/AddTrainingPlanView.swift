@@ -5,13 +5,6 @@
 
 import SwiftUI
 
-struct CreateTrainingPlanRequest: Encodable {
-    let title: String
-    let plan_type: String
-    let student_id: String
-    let notes: String
-}
-
 struct AddTrainingPlanView: View {
 
     @Environment(\.dismiss) var dismiss
@@ -303,7 +296,14 @@ struct AddTrainingPlanView: View {
     }
 
     func savePlan() {
+        // Student ID-ni name-dən tap
+        var studentId: String? = nil
+        if let studentName = selectedStudent {
+            studentId = realStudents.first(where: { $0.name == studentName })?.id
+        }
+
         let plan = TrainingPlan(
+            assignedStudentId: studentId,
             title: title,
             planType: selectedPlanType,
             workouts: workouts,
@@ -311,51 +311,7 @@ struct AddTrainingPlanView: View {
             notes: notes.isEmpty ? nil : notes
         )
         manager.addPlan(plan)
-
-        // NEW: Save to backend if student is selected
-        if let studentName = selectedStudent, !studentName.isEmpty {
-            Task {
-                await saveToBackend(plan: plan, studentName: studentName)
-            }
-        }
-        struct CreateTrainingPlanRequest: Encodable {
-            let title: String
-            let plan_type: String
-            let student_id: String
-            let notes: String
-        }
-
         dismiss()
-    }
-
-    // NEW: Backend API integration
-    @MainActor
-    private func saveToBackend(plan: TrainingPlan, studentName: String) async {
-        // Find student ID from TrainerManager
-        let students = TrainerManager.shared.myStudents
-        guard let student = students.first(where: { $0.name == studentName }) else {
-            print("⚠️ Student not found: \(studentName)")
-            return
-        }
-
-        do {
-            let endpoint = "/api/v1/training-plans"
-            let body = CreateTrainingPlanRequest(
-                title: plan.title,
-                plan_type: plan.planType.rawValue,
-                student_id: student.id,
-                notes: plan.notes ?? ""
-            )
-
-            let _: [String: String] = try await APIService.shared.request(
-                endpoint: endpoint,
-                method: "POST",
-                body: body
-            )
-            print("✅ Training plan saved to backend for student: \(studentName)")
-        } catch {
-            print("❌ Failed to save training plan: \(error.localizedDescription)")
-        }
     }
 }
 

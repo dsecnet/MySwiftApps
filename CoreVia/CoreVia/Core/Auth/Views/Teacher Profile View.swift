@@ -50,6 +50,8 @@ struct TrainerProfileView: View {
         }
         .onAppear {
             Task { await dashboard.fetchStats() }
+            trainingPlanManager.loadPlans()
+            mealPlanManager.loadPlans()
         }
         .sheet(isPresented: $showAllStudents) {
             NavigationStack {

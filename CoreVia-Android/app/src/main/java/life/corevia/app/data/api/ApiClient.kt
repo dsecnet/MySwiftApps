@@ -64,15 +64,18 @@ class ApiClient private constructor(context: Context) {
             }
 
             // Synchronous refresh (Authenticator bloklanır)
+            // FIXED: iOS-da eyni bug düzəldildi — backend JSON body gözləyir, header yox!
             val refreshResponse = try {
+                val jsonBody = """{"refresh_token":"$refreshToken"}"""
                 val refreshRequest = Request.Builder()
                     .url("${baseUrl}api/v1/auth/refresh")
-                    .post(okhttp3.RequestBody.create(null, ByteArray(0)))
-                    .header("Authorization", "Bearer $refreshToken")
+                    .post(okhttp3.RequestBody.create(
+                        okhttp3.MediaType.parse("application/json; charset=utf-8"),
+                        jsonBody
+                    ))
                     .header("Content-Type", "application/json")
                     .build()
 
-                response.request.newBuilder().build()   // temporary
                 okhttp3.OkHttpClient().newCall(refreshRequest).execute()
             } catch (e: Exception) {
                 tokenManager.clearTokens()

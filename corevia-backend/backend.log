@@ -2136,3 +2136,18 @@ Run time of job "send_meal_reminders (trigger: cron[hour='12', minute='0'], next
 Run time of job "send_workout_reminders (trigger: cron[hour='18', minute='0'], next run at: 2026-02-18 18:00:00 +04)" was missed by 8:43:49.518016
 Run time of job "send_meal_reminders (trigger: cron[hour='19', minute='0'], next run at: 2026-02-18 19:00:00 +04)" was missed by 7:43:49.526457
 Run time of job "check_expired_subscriptions (trigger: cron[hour='0', minute='30'], next run at: 2026-02-19 00:30:00 +04)" was missed by 2:13:49.527542
+2026-02-18 13:05:20,993 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-02-18 13:05:20,998 INFO sqlalchemy.engine.Engine SELECT users.id, users.name, users.email, users.hashed_password, users.user_type, users.profile_image_url, users.is_active, users.created_at, users.updated_at, users.age, users.weight, users.height, users.goal, users.trainer_id, users.specialization, users.experience, users.rating, users.price_per_session, users.bio, users.verification_status, users.certificate_image_url, users.instagram_handle, users.verification_photo_url, users.verification_score, users.verification_attempts, users.last_verification_attempt, users.is_premium, users.is_admin 
+FROM users 
+WHERE users.email = $1::VARCHAR
+2026-02-18 13:05:20,998 INFO sqlalchemy.engine.Engine [cached since 1.171e+05s ago] ('dsecnet@gmail.com',)
+2026-02-18 13:05:21,210 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+FROM otp_codes 
+WHERE otp_codes.email = $1::VARCHAR AND otp_codes.purpose = $2::VARCHAR AND otp_codes.created_at >= $3::TIMESTAMP WITH TIME ZONE
+2026-02-18 13:05:21,210 INFO sqlalchemy.engine.Engine [cached since 1.171e+05s ago] ('dsecnet@gmail.com', 'login_2fa', datetime.datetime(2026, 2, 18, 13, 0, 21, 207287))
+2026-02-18 13:05:21,223 INFO sqlalchemy.engine.Engine INSERT INTO otp_codes (id, email, code, purpose, is_used, expires_at, attempts) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::BOOLEAN, $6::TIMESTAMP WITH TIME ZONE, $7::INTEGER) RETURNING otp_codes.created_at
+2026-02-18 13:05:21,223 INFO sqlalchemy.engine.Engine [cached since 1.171e+05s ago] ('35c5bf88-cab8-4d3e-9025-d4efe4f7d27b', 'dsecnet@gmail.com', '599562', 'login_2fa', False, datetime.datetime(2026, 2, 18, 13, 15, 21, 216623), 0)
+2026-02-18 13:05:21,237 INFO sqlalchemy.engine.Engine COMMIT
+SMTP xətası: Timed out waiting for server ready message
+Email göndərilmədi: Timed out waiting for server ready message
+INFO:     127.0.0.1:64284 - "POST /api/v1/auth/login HTTP/1.1" 429 Too Many Requests

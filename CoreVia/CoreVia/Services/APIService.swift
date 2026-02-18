@@ -318,6 +318,12 @@ class APIService {
 
         do {
             return try decoder.decode(T.self, from: data)
+        } catch let decodingError as DecodingError {
+            // Detallı decode xətası
+            let rawJSON = String(data: data.prefix(500), encoding: .utf8) ?? "nil"
+            print("🔴 DECODE XƏTASI: \(decodingError)")
+            print("🔴 RAW JSON (ilk 500): \(rawJSON)")
+            throw APIError.decodingError("\(decodingError)")
         } catch {
             throw APIError.decodingError(error.localizedDescription)
         }
@@ -333,7 +339,10 @@ class APIService {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(refreshToken)", forHTTPHeaderField: "Authorization")
+
+        // Backend JSON body gözləyir: {"refresh_token": "..."}
+        let body = ["refresh_token": refreshToken]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
         do {
             let (data, response) = try await session.data(for: request)

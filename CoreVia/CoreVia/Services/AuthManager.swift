@@ -242,5 +242,9 @@ class AuthManager: ObservableObject {
 
         // Clear userType from UserDefaults
         UserDefaults.standard.removeObject(forKey: "userType")
+
+        // Clear cached data so next login loads fresh
+        TrainingPlanManager.shared.clearAllPlans()
+        MealPlanManager.shared.clearAllPlans()
     }
 }

@@ -457,8 +457,8 @@ struct ActivitiesView: View {
 
     // MARK: - Assigned Plans Section
     private var assignedPlansSection: some View {
-        let assignedTraining = trainingPlanManager.plans.filter { $0.assignedStudentId != nil }
-        let assignedMeals = mealPlanManager.plans.filter { $0.assignedStudentId != nil }
+        let assignedTraining = trainingPlanManager.plans.filter { $0.trainerId != nil }
+        let assignedMeals = mealPlanManager.plans.filter { $0.trainerId != nil }
 
         return Group {
             if !assignedTraining.isEmpty || !assignedMeals.isEmpty {

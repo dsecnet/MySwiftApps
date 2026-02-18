@@ -500,7 +500,7 @@ class LocalizationManager: ObservableObject {
         "activities_pace": [.az: "Temp", .en: "Pace", .ru: "Темп"],
         "activities_stop": [.az: "Dayandır", .en: "Stop", .ru: "Стоп"],
         "activities_history": [.az: "Tarixçə", .en: "History", .ru: "История"],
-        "activities_assigned_plans": [.az: "Tapşırıqlar", .en: "Assigned Plans", .ru: "Назначенные планы"],
+        "activities_assigned_plans": [.az: "Müəllim Tapşırıqları", .en: "Trainer Tasks", .ru: "Задания тренера"],
         "activities_all": [.az: "Hamısı", .en: "All", .ru: "Все"],
         "activities_not_found": [.az: "Hərəkət tapılmadı", .en: "No activity found", .ru: "Активностей не найдено"],
         "activities_start_hint": [.az: "Aşağıdakı + düyməyə basıb yeni hərəkət başlayın", .en: "Tap the + button below to start a new activity", .ru: "Нажмите + ниже, чтобы начать новую активность"],

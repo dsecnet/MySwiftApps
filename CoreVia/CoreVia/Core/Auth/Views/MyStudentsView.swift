@@ -103,6 +103,8 @@ struct MyStudentsView: View {
             Task {
                 await trainerManager.fetchMyStudents()
             }
+            TrainingPlanManager.shared.loadPlans()
+            MealPlanManager.shared.loadPlans()
         }
         .overlay(alignment: .top) {
             // NEW: Show loading indicator while fetching

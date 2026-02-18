@@ -27,15 +27,24 @@ interface CoreViaApi {
     @POST("api/v1/auth/register")
     suspend fun register(@Body request: RegisterRequest): AuthResponse
 
-    // iOS: POST /api/v1/auth/refresh  (Authorization: Bearer <refresh_token>)
+    // iOS: POST /api/v1/auth/refresh — JSON body ilə (header yox!)
+    // FIXED: iOS-da eyni bug düzəldildi — backend JSON body gözləyir
     @POST("api/v1/auth/refresh")
-    suspend fun refreshToken(@Header("Authorization") bearerRefresh: String): AuthResponse
+    suspend fun refreshToken(@Body request: RefreshTokenRequest): AuthResponse
 
     // ─── User ──────────────────────────────────────────────────────────────────
 
     // iOS: GET /api/v1/users/me
     @GET("api/v1/users/me")
     suspend fun getMe(): UserResponse
+
+    // iOS: PUT /api/v1/users/profile
+    @PUT("api/v1/users/profile")
+    suspend fun updateProfile(@Body request: ProfileUpdateRequest): UserResponse
+
+    // iOS: GET /api/v1/users/my-students (Trainer only)
+    @GET("api/v1/users/my-students")
+    suspend fun getMyStudents(): List<UserResponse>
 
     // ─── Workouts ─────────────────────────────────────────────────────────────
 
@@ -58,29 +67,73 @@ interface CoreViaApi {
     @DELETE("api/v1/workouts/{id}")
     suspend fun deleteWorkout(@Path("id") id: String)
 
-    // ─── Food / Meal ───────────────────────────────────────────────────────────
+    // ─── Food Entries ─────────────────────────────────────────────────────────
+    // FIXED: Endpoint-lər düzəldildi — /api/v1/food/ (meal-plans yox!)
 
-    // iOS: GET /api/v1/meal-plans/
-    @GET("api/v1/meal-plans/")
+    // iOS: GET /api/v1/food/
+    @GET("api/v1/food/")
     suspend fun getFoodEntries(): List<FoodEntry>
 
-    // iOS: POST /api/v1/meal-plans/
-    @POST("api/v1/meal-plans/")
+    // iOS: POST /api/v1/food/
+    @POST("api/v1/food/")
     suspend fun createFoodEntry(@Body request: FoodEntryCreateRequest): FoodEntry
 
-    // iOS: DELETE /api/v1/meal-plans/{id}
-    @DELETE("api/v1/meal-plans/{id}")
+    // iOS: PUT /api/v1/food/{id}
+    @PUT("api/v1/food/{id}")
+    suspend fun updateFoodEntry(
+        @Path("id") id: String,
+        @Body request: FoodEntryCreateRequest
+    ): FoodEntry
+
+    // iOS: DELETE /api/v1/food/{id}
+    @DELETE("api/v1/food/{id}")
     suspend fun deleteFoodEntry(@Path("id") id: String)
 
     // ─── Training Plans ───────────────────────────────────────────────────────
+    // FIXED: Endpoint-lər düzəldildi — /api/v1/plans/training (training-plans yox!)
 
-    // iOS: GET /api/v1/training-plans/
-    @GET("api/v1/training-plans/")
+    // iOS: GET /api/v1/plans/training
+    @GET("api/v1/plans/training")
     suspend fun getTrainingPlans(): List<TrainingPlan>
 
-    // iOS: POST /api/v1/training-plans/
-    @POST("api/v1/training-plans/")
-    suspend fun createTrainingPlan(@Body request: TrainingPlan): TrainingPlan
+    // iOS: GET /api/v1/plans/training/{id}
+    @GET("api/v1/plans/training/{id}")
+    suspend fun getTrainingPlan(@Path("id") id: String): TrainingPlan
+
+    // iOS: POST /api/v1/plans/training
+    @POST("api/v1/plans/training")
+    suspend fun createTrainingPlan(@Body request: TrainingPlanCreateRequest): TrainingPlan
+
+    // iOS: PUT /api/v1/plans/training/{id}/complete
+    @PUT("api/v1/plans/training/{id}/complete")
+    suspend fun completeTrainingPlan(@Path("id") id: String): TrainingPlan
+
+    // iOS: DELETE /api/v1/plans/training/{id}
+    @DELETE("api/v1/plans/training/{id}")
+    suspend fun deleteTrainingPlan(@Path("id") id: String)
+
+    // ─── Meal Plans ──────────────────────────────────────────────────────────
+    // YENI: /api/v1/plans/meal
+
+    // iOS: GET /api/v1/plans/meal
+    @GET("api/v1/plans/meal")
+    suspend fun getMealPlans(): List<MealPlan>
+
+    // iOS: GET /api/v1/plans/meal/{id}
+    @GET("api/v1/plans/meal/{id}")
+    suspend fun getMealPlan(@Path("id") id: String): MealPlan
+
+    // iOS: POST /api/v1/plans/meal
+    @POST("api/v1/plans/meal")
+    suspend fun createMealPlan(@Body request: MealPlanCreateRequest): MealPlan
+
+    // iOS: PUT /api/v1/plans/meal/{id}/complete
+    @PUT("api/v1/plans/meal/{id}/complete")
+    suspend fun completeMealPlan(@Path("id") id: String): MealPlan
+
+    // iOS: DELETE /api/v1/plans/meal/{id}
+    @DELETE("api/v1/plans/meal/{id}")
+    suspend fun deleteMealPlan(@Path("id") id: String)
 
     // ─── Image Upload (Multipart) ─────────────────────────────────────────────
 

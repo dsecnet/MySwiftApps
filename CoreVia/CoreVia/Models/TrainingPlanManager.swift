@@ -121,6 +121,23 @@ struct TrainingPlan: Identifiable, Codable {
         self.notes = notes
     }
 
+    // Custom decoder - backend is_completed/completed_at göndərməyə bilər
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        trainerId = try container.decodeIfPresent(String.self, forKey: .trainerId)
+        assignedStudentId = try container.decodeIfPresent(String.self, forKey: .assignedStudentId)
+        title = try container.decode(String.self, forKey: .title)
+        planType = try container.decode(PlanType.self, forKey: .planType)
+        workouts = try container.decodeIfPresent([PlanWorkout].self, forKey: .workouts) ?? []
+        isCompleted = try container.decodeIfPresent(Bool.self, forKey: .isCompleted) ?? false
+        completedAt = try container.decodeIfPresent(Date.self, forKey: .completedAt)
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
+        updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt)
+        notes = try container.decodeIfPresent(String.self, forKey: .notes)
+        assignedStudentName = nil
+    }
+
     var formattedDate: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "dd MMM yyyy"
@@ -279,6 +296,12 @@ class TrainingPlanManager: ObservableObject {
                     method: "PUT"
                 )
             } catch {
+                await MainActor.run {
+                    if let index = self.plans.firstIndex(where: { $0.id == plan.id }) {
+                        self.plans[index].isCompleted = false
+                        self.plans[index].completedAt = nil
+                    }
+                }
                 print("Training plan complete xətası: \(error)")
             }
         }
@@ -299,12 +322,16 @@ class TrainingPlanManager: ObservableObject {
     // MARK: - Backend Sync
 
     func loadPlans() {
-        guard KeychainManager.shared.isLoggedIn else { return }
+        guard KeychainManager.shared.isLoggedIn else {
+            print("⚠️ TrainingPlanManager: isLoggedIn=false, loadPlans keçildi")
+            return
+        }
 
         isLoading = true
         Task {
             do {
                 let fetched: [TrainingPlan] = try await api.request(endpoint: "/api/v1/plans/training")
+                print("✅ Training plans yükləndi: \(fetched.count) plan tapıldı")
                 await MainActor.run {
                     self.plans = fetched
                     self.isLoading = false
@@ -313,7 +340,8 @@ class TrainingPlanManager: ObservableObject {
                 await MainActor.run {
                     self.isLoading = false
                 }
-                print("Training plans yükləmə xətası: \(error)")
+                print("❌ Training plans yükləmə xətası: \(error)")
+                if let de = error as? DecodingError { print("⚠️ Decode detalları: \(de)") }
             }
         }
     }
