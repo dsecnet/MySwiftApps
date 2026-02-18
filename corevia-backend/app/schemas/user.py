@@ -135,6 +135,8 @@ class StudentSummary(BaseModel):
     profile_image_url: str | None = None
     training_plans_count: int = 0
     meal_plans_count: int = 0
+    completed_training_plans: int = 0
+    completed_meal_plans: int = 0
     total_workouts: int = 0
     this_week_workouts: int = 0
     total_calories_logged: int = 0

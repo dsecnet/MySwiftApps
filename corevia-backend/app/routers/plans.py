@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -259,3 +261,49 @@ async def delete_training_plan(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Training plan tapilmadi")
 
     await db.delete(plan)
+
+
+# ==================== PLAN COMPLETION (Tələbə tamamlama) ====================
+
+@router.put("/training/{plan_id}/complete", response_model=TrainingPlanResponse)
+async def complete_training_plan(
+    plan_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Tələbə assign olunmuş məşq planını tamamlandı kimi işarələyir"""
+    result = await db.execute(
+        select(TrainingPlan).options(selectinload(TrainingPlan.workouts)).where(
+            TrainingPlan.id == plan_id,
+            TrainingPlan.assigned_student_id == current_user.id,
+        )
+    )
+    plan = result.scalar_one_or_none()
+    if not plan:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Training plan tapilmadi")
+
+    plan.is_completed = True
+    plan.completed_at = datetime.utcnow()
+    return plan
+
+
+@router.put("/meal/{plan_id}/complete", response_model=MealPlanResponse)
+async def complete_meal_plan(
+    plan_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Tələbə assign olunmuş yemək planını tamamlandı kimi işarələyir"""
+    result = await db.execute(
+        select(MealPlan).options(selectinload(MealPlan.items)).where(
+            MealPlan.id == plan_id,
+            MealPlan.assigned_student_id == current_user.id,
+        )
+    )
+    plan = result.scalar_one_or_none()
+    if not plan:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Meal plan tapilmadi")
+
+    plan.is_completed = True
+    plan.completed_at = datetime.utcnow()
+    return plan

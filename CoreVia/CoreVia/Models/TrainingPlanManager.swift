@@ -76,6 +76,8 @@ struct TrainingPlan: Identifiable, Codable {
     var planType: PlanType
     var workouts: [PlanWorkout]
     var assignedStudentName: String?
+    var isCompleted: Bool
+    var completedAt: Date?
     var createdAt: Date?
     var updatedAt: Date?
     var notes: String?
@@ -85,6 +87,8 @@ struct TrainingPlan: Identifiable, Codable {
         case trainerId = "trainer_id"
         case assignedStudentId = "assigned_student_id"
         case planType = "plan_type"
+        case isCompleted = "is_completed"
+        case completedAt = "completed_at"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
     }
@@ -97,6 +101,8 @@ struct TrainingPlan: Identifiable, Codable {
         planType: PlanType,
         workouts: [PlanWorkout] = [],
         assignedStudentName: String? = nil,
+        isCompleted: Bool = false,
+        completedAt: Date? = nil,
         createdAt: Date? = nil,
         updatedAt: Date? = nil,
         notes: String? = nil
@@ -108,6 +114,8 @@ struct TrainingPlan: Identifiable, Codable {
         self.planType = planType
         self.workouts = workouts
         self.assignedStudentName = assignedStudentName
+        self.isCompleted = isCompleted
+        self.completedAt = completedAt
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.notes = notes
@@ -252,6 +260,26 @@ class TrainingPlanManager: ObservableObject {
                 } catch {
                     print("Training plan delete xətası: \(error)")
                 }
+            }
+        }
+    }
+
+    // MARK: - Complete Plan
+
+    func completePlan(_ plan: TrainingPlan) {
+        if let index = plans.firstIndex(where: { $0.id == plan.id }) {
+            plans[index].isCompleted = true
+            plans[index].completedAt = Date()
+        }
+
+        Task {
+            do {
+                let _: TrainingPlan = try await api.request(
+                    endpoint: "/api/v1/plans/training/\(plan.id)/complete",
+                    method: "PUT"
+                )
+            } catch {
+                print("Training plan complete xətası: \(error)")
             }
         }
     }

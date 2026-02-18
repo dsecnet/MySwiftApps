@@ -88,6 +88,24 @@ async def get_trainer_stats(
         )
         mp_count = mp_count_result.scalar() or 0
 
+        completed_tp_result = await db.execute(
+            select(func.count(TrainingPlan.id)).where(
+                TrainingPlan.assigned_student_id == student.id,
+                TrainingPlan.trainer_id == current_user.id,
+                TrainingPlan.is_completed == True,
+            )
+        )
+        completed_tp = completed_tp_result.scalar() or 0
+
+        completed_mp_result = await db.execute(
+            select(func.count(MealPlan.id)).where(
+                MealPlan.assigned_student_id == student.id,
+                MealPlan.trainer_id == current_user.id,
+                MealPlan.is_completed == True,
+            )
+        )
+        completed_mp = completed_mp_result.scalar() or 0
+
         total_workouts_result = await db.execute(
             select(func.count(Workout.id)).where(Workout.user_id == student.id)
         )
@@ -120,6 +138,8 @@ async def get_trainer_stats(
                 profile_image_url=student.profile_image_url,
                 training_plans_count=tp_count,
                 meal_plans_count=mp_count,
+                completed_training_plans=completed_tp,
+                completed_meal_plans=completed_mp,
                 total_workouts=total_workouts,
                 this_week_workouts=this_week_workouts,
                 total_calories_logged=total_calories,

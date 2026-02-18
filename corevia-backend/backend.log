@@ -2133,3 +2133,6 @@ Run time of job "send_workout_reminders (trigger: cron[hour='18', minute='0'], n
 Run time of job "send_meal_reminders (trigger: cron[hour='19', minute='0'], next run at: 2026-02-17 19:00:00 +04)" was missed by 16:07:04.543049
 Run time of job "check_expired_subscriptions (trigger: cron[hour='0', minute='30'], next run at: 2026-02-18 00:30:00 +04)" was missed by 10:37:04.543109
 Run time of job "send_meal_reminders (trigger: cron[hour='12', minute='0'], next run at: 2026-02-18 12:00:00 +04)" was missed by 0:49:31.603428
+Run time of job "send_workout_reminders (trigger: cron[hour='18', minute='0'], next run at: 2026-02-18 18:00:00 +04)" was missed by 8:43:49.518016
+Run time of job "send_meal_reminders (trigger: cron[hour='19', minute='0'], next run at: 2026-02-18 19:00:00 +04)" was missed by 7:43:49.526457
+Run time of job "check_expired_subscriptions (trigger: cron[hour='0', minute='30'], next run at: 2026-02-19 00:30:00 +04)" was missed by 2:13:49.527542

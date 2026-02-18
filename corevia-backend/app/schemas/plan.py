@@ -49,6 +49,8 @@ class MealPlanResponse(BaseModel):
     plan_type: PlanType
     daily_calorie_target: int
     notes: str | None = None
+    is_completed: bool = False
+    completed_at: datetime | None = None
     items: list[MealPlanItemResponse] = []
     created_at: datetime
     updated_at: datetime
@@ -95,6 +97,8 @@ class TrainingPlanResponse(BaseModel):
     title: str
     plan_type: PlanType
     notes: str | None = None
+    is_completed: bool = False
+    completed_at: datetime | None = None
     workouts: list[PlanWorkoutResponse] = []
     created_at: datetime
     updated_at: datetime

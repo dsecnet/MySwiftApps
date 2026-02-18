@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import String, Integer, Float, DateTime, Enum as SAEnum, ForeignKey
+from sqlalchemy import String, Integer, Float, Boolean, DateTime, Enum as SAEnum, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 import enum
@@ -22,6 +22,8 @@ class MealPlan(Base):
     plan_type: Mapped[PlanType] = mapped_column(SAEnum(PlanType), nullable=False)
     daily_calorie_target: Mapped[int] = mapped_column(Integer, default=2000)
     notes: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    is_completed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
