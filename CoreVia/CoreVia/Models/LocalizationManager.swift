@@ -65,6 +65,7 @@ class LocalizationManager: ObservableObject {
         // ============================================================
         "common_save": [.az: "Saxla", .en: "Save", .ru: "\u{0421}\u{043E}\u{0445}\u{0440}\u{0430}\u{043D}\u{0438}\u{0442}\u{044C}"],
         "common_cancel": [.az: "L\u{0259}\u{011F}v et", .en: "Cancel", .ru: "\u{041E}\u{0442}\u{043C}\u{0435}\u{043D}\u{0430}"],
+        "common_yes": [.az: "Bəli", .en: "Yes", .ru: "Да"],
         "common_close": [.az: "Ba\u{011F}la", .en: "Close", .ru: "\u{0417}\u{0430}\u{043A}\u{0440}\u{044B}\u{0442}\u{044C}"],
         "common_delete": [.az: "Sil", .en: "Delete", .ru: "\u{0423}\u{0434}\u{0430}\u{043B}\u{0438}\u{0442}\u{044C}"],
         "common_ok": [.az: "OK", .en: "OK", .ru: "OK"],
@@ -499,6 +500,7 @@ class LocalizationManager: ObservableObject {
         "activities_pace": [.az: "Temp", .en: "Pace", .ru: "Темп"],
         "activities_stop": [.az: "Dayandır", .en: "Stop", .ru: "Стоп"],
         "activities_history": [.az: "Tarixçə", .en: "History", .ru: "История"],
+        "activities_assigned_plans": [.az: "Tapşırıqlar", .en: "Assigned Plans", .ru: "Назначенные планы"],
         "activities_all": [.az: "Hamısı", .en: "All", .ru: "Все"],
         "activities_not_found": [.az: "Hərəkət tapılmadı", .en: "No activity found", .ru: "Активностей не найдено"],
         "activities_start_hint": [.az: "Aşağıdakı + düyməyə basıb yeni hərəkət başlayın", .en: "Tap the + button below to start a new activity", .ru: "Нажмите + ниже, чтобы начать новую активность"],
@@ -626,6 +628,10 @@ class LocalizationManager: ObservableObject {
         // ============================================================
         // MARK: - Plan Types
         // ============================================================
+        "plan_completed": [.az: "Tamamlandı", .en: "Completed", .ru: "Завершено"],
+        "plan_mark_done": [.az: "İcra etdim", .en: "Mark as Done", .ru: "Отметить как выполнено"],
+        "plan_confirm_complete": [.az: "Bu planı tamamlandı kimi işarələmək istəyirsiniz?", .en: "Do you want to mark this plan as completed?", .ru: "Вы хотите отметить этот план как выполненный?"],
+        "plan_status_pending": [.az: "Gözləyir", .en: "Pending", .ru: "Ожидает"],
         "plan_type_weight_loss": [.az: "Ar\u{0131}qlama", .en: "Weight Loss", .ru: "\u{041F}\u{043E}\u{0445}\u{0443}\u{0434}\u{0435}\u{043D}\u{0438}\u{0435}"],
         "plan_type_weight_gain": [.az: "K\u{00F6}k\u{0259}lm\u{0259}", .en: "Weight Gain", .ru: "\u{041D}\u{0430}\u{0431}\u{043E}\u{0440} \u{043C}\u{0430}\u{0441}\u{0441}\u{044B}"],
         "plan_type_strength": [.az: "A\u{011F}\u{0131}rl\u{0131}q m\u{0259}\u{015F}ql\u{0259}ri", .en: "Strength Training", .ru: "\u{0421}\u{0438}\u{043B}\u{043E}\u{0432}\u{044B}\u{0435} \u{0442}\u{0440}\u{0435}\u{043D}\u{0438}\u{0440}\u{043E}\u{0432}\u{043A}\u{0438}"],

@@ -11,6 +11,8 @@ struct OverallStatisticsView: View {
 
     @StateObject private var foodManager = FoodManager.shared
     @StateObject private var workoutManager = WorkoutManager.shared
+    @StateObject private var trainingPlanManager = TrainingPlanManager.shared
+    @StateObject private var mealPlanManager = MealPlanManager.shared
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -119,6 +121,42 @@ struct OverallStatisticsView: View {
                                 value: "\(calculateWeeklyCaloriesBurned())",
                                 unit: "kcal",
                                 color: .orange
+                            )
+                        }
+                        .padding()
+                        .background(AppTheme.Colors.cardBackground)
+                        .cornerRadius(16)
+                    }
+
+                    // MARK: - Completed Plans Section
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Tamamlanmış Planlar")
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundColor(AppTheme.Colors.primaryText)
+
+                        VStack(spacing: 12) {
+                            OverallStatRow(
+                                icon: "dumbbell.fill",
+                                label: "Tamamlanmış Məşq Planları",
+                                value: "\(trainingPlanManager.plans.filter { $0.isCompleted }.count)",
+                                unit: "plan",
+                                color: .blue
+                            )
+
+                            OverallStatRow(
+                                icon: "fork.knife",
+                                label: "Tamamlanmış Qida Planları",
+                                value: "\(mealPlanManager.plans.filter { $0.isCompleted }.count)",
+                                unit: "plan",
+                                color: .green
+                            )
+
+                            OverallStatRow(
+                                icon: "chart.bar.fill",
+                                label: "Ümumi Assign Planlar",
+                                value: "\(trainingPlanManager.plans.filter { $0.assignedStudentId != nil }.count + mealPlanManager.plans.filter { $0.assignedStudentId != nil }.count)",
+                                unit: "plan",
+                                color: .purple
                             )
                         }
                         .padding()

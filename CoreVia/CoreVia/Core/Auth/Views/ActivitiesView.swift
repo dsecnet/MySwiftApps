@@ -5,6 +5,7 @@
 
 import SwiftUI
 import CoreLocation
+import Foundation
 
 // MARK: - Activity Type
 enum ActivityType: String, CaseIterable {
@@ -45,6 +46,8 @@ struct ActivitiesView: View {
     @ObservedObject private var locationManager = LocationManager.shared
     @ObservedObject private var settingsManager = SettingsManager.shared
     @ObservedObject private var loc = LocalizationManager.shared
+    @ObservedObject private var trainingPlanManager = TrainingPlanManager.shared
+    @ObservedObject private var mealPlanManager = MealPlanManager.shared
 
     @State private var selectedFilter: ActivityType? = nil
     @State private var showPremium = false
@@ -107,6 +110,7 @@ struct ActivitiesView: View {
                 VStack(spacing: 20) {
                     headerSection
                     weeklyStatsSection
+                    assignedPlansSection
                     if isTracking { activeTrackingSection }
                     filterSection
                     activityListSection
@@ -148,6 +152,8 @@ struct ActivitiesView: View {
         .onAppear {
             routeManager.loadRoutes()
             routeManager.loadWeeklyStats()
+            trainingPlanManager.loadPlans()
+            mealPlanManager.loadPlans()
         }
         .sheet(isPresented: $showStartActivity) {
             StartActivitySheet(
@@ -449,6 +455,36 @@ struct ActivitiesView: View {
         }
     }
 
+    // MARK: - Assigned Plans Section
+    private var assignedPlansSection: some View {
+        let assignedTraining = trainingPlanManager.plans.filter { $0.assignedStudentId != nil }
+        let assignedMeals = mealPlanManager.plans.filter { $0.assignedStudentId != nil }
+
+        return Group {
+            if !assignedTraining.isEmpty || !assignedMeals.isEmpty {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(loc.localized("activities_assigned_plans"))
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(AppTheme.Colors.primaryText)
+
+                    // Training Plans
+                    ForEach(assignedTraining) { plan in
+                        AssignedTrainingPlanCard(plan: plan) {
+                            trainingPlanManager.completePlan(plan)
+                        }
+                    }
+
+                    // Meal Plans
+                    ForEach(assignedMeals) { plan in
+                        AssignedMealPlanCard(plan: plan) {
+                            mealPlanManager.completePlan(plan)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     // MARK: - Tracking Logic
 
     private func startTracking(type: ActivityType) {
@@ -705,6 +741,176 @@ struct RouteActivityCard: View {
             return String(format: "%d:%02d:%02d", hrs, mins, secs)
         }
         return String(format: "%d:%02d", mins, secs)
+    }
+}
+
+// MARK: - Assigned Training Plan Card
+struct AssignedTrainingPlanCard: View {
+    let plan: TrainingPlan
+    let onComplete: () -> Void
+    @State private var showConfirm = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Image(systemName: "dumbbell.fill")
+                    .foregroundColor(plan.planType.color)
+                    .font(.title3)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(plan.title)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(AppTheme.Colors.primaryText)
+
+                    Text(plan.planType.localizedName)
+                        .font(.caption)
+                        .foregroundColor(plan.planType.color)
+                }
+
+                Spacer()
+
+                if plan.isCompleted {
+                    HStack(spacing: 4) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(AppTheme.Colors.success)
+                        Text(LocalizationManager.shared.localized("plan_completed"))
+                            .font(.caption)
+                            .foregroundColor(AppTheme.Colors.success)
+                    }
+                }
+            }
+
+            if !plan.workouts.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    ForEach(plan.workouts) { workout in
+                        HStack(spacing: 6) {
+                            Circle()
+                                .fill(plan.planType.color.opacity(0.5))
+                                .frame(width: 6, height: 6)
+                            Text("\(workout.name) - \(workout.sets)x\(workout.reps)")
+                                .font(.system(size: 13))
+                                .foregroundColor(AppTheme.Colors.secondaryText)
+                        }
+                    }
+                }
+            }
+
+            if !plan.isCompleted {
+                Button {
+                    showConfirm = true
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.circle")
+                        Text(LocalizationManager.shared.localized("plan_mark_done"))
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(AppTheme.Colors.success)
+                    .cornerRadius(10)
+                }
+                .alert(LocalizationManager.shared.localized("plan_confirm_complete"), isPresented: $showConfirm) {
+                    Button(LocalizationManager.shared.localized("common_yes")) {
+                        onComplete()
+                    }
+                    Button(LocalizationManager.shared.localized("common_cancel"), role: .cancel) {}
+                }
+            }
+        }
+        .padding()
+        .background(AppTheme.Colors.secondaryBackground)
+        .cornerRadius(14)
+    }
+}
+
+// MARK: - Assigned Meal Plan Card
+struct AssignedMealPlanCard: View {
+    let plan: MealPlan
+    let onComplete: () -> Void
+    @State private var showConfirm = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Image(systemName: "fork.knife")
+                    .foregroundColor(plan.planType.color)
+                    .font(.title3)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(plan.title)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(AppTheme.Colors.primaryText)
+
+                    Text(plan.planType.localizedName)
+                        .font(.caption)
+                        .foregroundColor(plan.planType.color)
+                }
+
+                Spacer()
+
+                if plan.isCompleted {
+                    HStack(spacing: 4) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(AppTheme.Colors.success)
+                        Text(LocalizationManager.shared.localized("plan_completed"))
+                            .font(.caption)
+                            .foregroundColor(AppTheme.Colors.success)
+                    }
+                }
+            }
+
+            HStack(spacing: 12) {
+                Label("\(plan.dailyCalorieTarget) kcal", systemImage: "flame.fill")
+                    .font(.caption)
+                    .foregroundColor(AppTheme.Colors.secondaryText)
+
+                Label("\(plan.meals.count) \(LocalizationManager.shared.localized("trainer_meals_count"))", systemImage: "list.bullet")
+                    .font(.caption)
+                    .foregroundColor(AppTheme.Colors.secondaryText)
+            }
+
+            if !plan.meals.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    ForEach(plan.meals) { meal in
+                        HStack(spacing: 6) {
+                            Circle()
+                                .fill(plan.planType.color.opacity(0.5))
+                                .frame(width: 6, height: 6)
+                            Text("\(meal.name) - \(meal.calories) kcal")
+                                .font(.system(size: 13))
+                                .foregroundColor(AppTheme.Colors.secondaryText)
+                        }
+                    }
+                }
+            }
+
+            if !plan.isCompleted {
+                Button {
+                    showConfirm = true
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.circle")
+                        Text(LocalizationManager.shared.localized("plan_mark_done"))
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(AppTheme.Colors.success)
+                    .cornerRadius(10)
+                }
+                .alert(LocalizationManager.shared.localized("plan_confirm_complete"), isPresented: $showConfirm) {
+                    Button(LocalizationManager.shared.localized("common_yes")) {
+                        onComplete()
+                    }
+                    Button(LocalizationManager.shared.localized("common_cancel"), role: .cancel) {}
+                }
+            }
+        }
+        .padding()
+        .background(AppTheme.Colors.secondaryBackground)
+        .cornerRadius(14)
     }
 }
 

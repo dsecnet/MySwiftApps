@@ -51,6 +51,8 @@ struct MealPlan: Identifiable, Codable {
     var planType: PlanType
     var meals: [MealPlanItem]
     var assignedStudentName: String?
+    var isCompleted: Bool
+    var completedAt: Date?
     var createdAt: Date?
     var updatedAt: Date?
     var dailyCalorieTarget: Int
@@ -62,6 +64,8 @@ struct MealPlan: Identifiable, Codable {
         case assignedStudentId = "assigned_student_id"
         case planType = "plan_type"
         case meals = "items"
+        case isCompleted = "is_completed"
+        case completedAt = "completed_at"
         case dailyCalorieTarget = "daily_calorie_target"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
@@ -75,6 +79,8 @@ struct MealPlan: Identifiable, Codable {
         planType: PlanType,
         meals: [MealPlanItem] = [],
         assignedStudentName: String? = nil,
+        isCompleted: Bool = false,
+        completedAt: Date? = nil,
         createdAt: Date? = nil,
         updatedAt: Date? = nil,
         dailyCalorieTarget: Int = 2000,
@@ -87,6 +93,8 @@ struct MealPlan: Identifiable, Codable {
         self.planType = planType
         self.meals = meals
         self.assignedStudentName = assignedStudentName
+        self.isCompleted = isCompleted
+        self.completedAt = completedAt
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.dailyCalorieTarget = dailyCalorieTarget
@@ -268,6 +276,26 @@ class MealPlanManager: ObservableObject {
                 } catch {
                     print("Meal plan delete xətası: \(error)")
                 }
+            }
+        }
+    }
+
+    // MARK: - Complete Plan
+
+    func completePlan(_ plan: MealPlan) {
+        if let index = plans.firstIndex(where: { $0.id == plan.id }) {
+            plans[index].isCompleted = true
+            plans[index].completedAt = Date()
+        }
+
+        Task {
+            do {
+                let _: MealPlan = try await api.request(
+                    endpoint: "/api/v1/plans/meal/\(plan.id)/complete",
+                    method: "PUT"
+                )
+            } catch {
+                print("Meal plan complete xətası: \(error)")
             }
         }
     }

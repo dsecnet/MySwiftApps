@@ -210,6 +210,27 @@ struct MealPlanCard: View {
                 }
             }
 
+            // Completion status
+            if plan.assignedStudentId != nil {
+                HStack(spacing: 6) {
+                    if plan.isCompleted {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.caption)
+                            .foregroundColor(AppTheme.Colors.success)
+                        Text(loc.localized("plan_completed"))
+                            .font(.caption)
+                            .foregroundColor(AppTheme.Colors.success)
+                    } else {
+                        Image(systemName: "clock.fill")
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                        Text(loc.localized("plan_status_pending"))
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                    }
+                }
+            }
+
             HStack {
                 Text(plan.formattedDate)
                     .font(.caption2)
