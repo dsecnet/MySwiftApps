@@ -2,8 +2,10 @@ package life.corevia.app.data.api
 
 import android.content.Context
 import okhttp3.Interceptor
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -67,12 +69,10 @@ class ApiClient private constructor(context: Context) {
             // FIXED: iOS-da eyni bug düzəldildi — backend JSON body gözləyir, header yox!
             val refreshResponse = try {
                 val jsonBody = """{"refresh_token":"$refreshToken"}"""
+                val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
                 val refreshRequest = Request.Builder()
                     .url("${baseUrl}api/v1/auth/refresh")
-                    .post(okhttp3.RequestBody.create(
-                        okhttp3.MediaType.parse("application/json; charset=utf-8"),
-                        jsonBody
-                    ))
+                    .post(jsonBody.toRequestBody(mediaType))
                     .header("Content-Type", "application/json")
                     .build()
 

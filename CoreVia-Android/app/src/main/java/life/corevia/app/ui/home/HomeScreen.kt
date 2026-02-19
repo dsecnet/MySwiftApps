@@ -39,6 +39,13 @@ fun HomeScreen(
     onNavigateToFood: () -> Unit,
     onNavigateToTrainingPlan: () -> Unit,
     onNavigateToLiveTracking: () -> Unit,
+    onNavigateToProfile: () -> Unit = {},
+    onNavigateToActivities: () -> Unit = {},
+    // iOS HomeView Quick Actions → feature screens
+    onNavigateToSocial: () -> Unit = {},
+    onNavigateToMarketplace: () -> Unit = {},
+    onNavigateToLiveSessions: () -> Unit = {},
+    onNavigateToAnalytics: () -> Unit = {},
     workoutViewModel: WorkoutViewModel = viewModel()
 ) {
     val workouts by workoutViewModel.workouts.collectAsState()
@@ -129,7 +136,7 @@ fun HomeScreen(
 
             // iOS: ProgressView(value: todayProgress).tint(accent)
             LinearProgressIndicator(
-                progress          = todayProgress,
+                progress          = { todayProgress },
                 modifier          = Modifier
                     .fillMaxWidth()
                     .height(6.dp)
@@ -192,15 +199,15 @@ fun HomeScreen(
         )
         Spacer(modifier = Modifier.height(10.dp))
 
-        // iOS: 6 QuickActionButton — 2 sütunlu grid
-        // Compose LazyVerticalGrid — fixed height (3 sıra * ~80dp = 260dp)
+        // iOS HomeView: 6 QuickActionButton — 2 sütunlu grid
+        // iOS kimi: Add Workout, Add Food, Social Feed, Marketplace, Live Sessions, Statistics
         val quickActions = listOf(
             Triple("➕", "Məşq əlavə et",   onNavigateToWorkout),
             Triple("🍴", "Qida əlavə et",   onNavigateToFood),
-            Triple("👥", "Social Feed",      {}),
-            Triple("🛒", "Marketplace",      {}),
-            Triple("📹", "Canlı Sessiyalar", {}),
-            Triple("📊", "Ümumi Statistika", {})
+            Triple("📱", "Sosial Axın",     onNavigateToSocial),
+            Triple("🛒", "Mağaza",          onNavigateToMarketplace),
+            Triple("📹", "Canlı Sessiyalar", onNavigateToLiveSessions),
+            Triple("📊", "Statistika",       onNavigateToAnalytics)
         )
 
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {

@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import life.corevia.app.data.api.ErrorParser
 import life.corevia.app.data.models.PlanType
 import life.corevia.app.data.models.TrainingPlan
 import life.corevia.app.data.models.TrainingPlanCreateRequest
@@ -52,7 +53,7 @@ class TrainingPlanViewModel(application: Application) : AndroidViewModel(applica
             _isLoading.value = true
             repository.getTrainingPlans().fold(
                 onSuccess = { _plans.value = it },
-                onFailure = { _errorMessage.value = it.message }
+                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
             )
             _isLoading.value = false
         }
@@ -67,7 +68,7 @@ class TrainingPlanViewModel(application: Application) : AndroidViewModel(applica
                     _successMessage.value = "Plan yaradıldı"
                     loadPlans()
                 },
-                onFailure = { _errorMessage.value = it.message }
+                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
             )
             _isLoading.value = false
         }
@@ -81,7 +82,7 @@ class TrainingPlanViewModel(application: Application) : AndroidViewModel(applica
                     _successMessage.value = "Plan tamamlandı"
                     loadPlans()
                 },
-                onFailure = { _errorMessage.value = it.message }
+                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
             )
         }
     }
@@ -94,7 +95,7 @@ class TrainingPlanViewModel(application: Application) : AndroidViewModel(applica
                     _successMessage.value = "Plan silindi"
                     loadPlans()
                 },
-                onFailure = { _errorMessage.value = it.message }
+                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
             )
         }
     }

@@ -48,3 +48,25 @@ data class FoodEntryCreateRequest(
     val date: String?,
     val notes: String?
 )
+
+// ─── Daily Nutrition Summary ────────────────────────────────────────────────
+
+data class DailyNutritionSummary(
+    @SerializedName("total_calories") val totalCalories: Int = 0,
+    @SerializedName("total_protein")  val totalProtein: Double = 0.0,
+    @SerializedName("total_carbs")    val totalCarbs: Double = 0.0,
+    @SerializedName("total_fats")     val totalFats: Double = 0.0,
+    @SerializedName("entry_count")    val entryCount: Int = 0
+)
+
+// ─── Food Analysis Result (AI) ──────────────────────────────────────────────
+
+data class FoodAnalysisResult(
+    @SerializedName("food_name")    val foodName: String,
+    val calories: Int,
+    val protein: Double? = null,
+    val carbs: Double? = null,
+    val fats: Double? = null,
+    @SerializedName("portion_size") val portionSize: String? = null,
+    val confidence: Double = 0.0
+)

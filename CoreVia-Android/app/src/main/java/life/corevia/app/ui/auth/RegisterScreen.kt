@@ -10,16 +10,20 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -46,6 +50,15 @@ import life.corevia.app.ui.theme.AppTheme
  * 2-step qeydiyyat:
  *  - Step 1: Ad, email, şifrə, user type, şərtlər — form
  *  - Step 2: 6-rəqəmli OTP verification (yalnız client üçün)
+ *
+ * iOS ilə tam uyğun:
+ *  - Back button: chevron.left icon + "Geri" text, secondaryBackground, cornerRadius 10
+ *  - User type cards: 50dp circle icon, cornerRadius 14
+ *  - Compact input fields: Material icons (person.fill, envelope.fill, lock.fill)
+ *  - Password toggle: eye / eye.slash Material icons
+ *  - Password strength: 3 bar, height 3dp, cornerRadius 1.5
+ *  - Terms checkbox: 20dp, 2dp accent border, cornerRadius 5
+ *  - Button: gradient + shadow + arrow
  */
 @Composable
 fun RegisterScreen(
@@ -74,14 +87,16 @@ fun RegisterScreen(
 
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Success) onRegisterSuccess()
-        if (uiState is AuthUiState.OtpSent) currentStep = 2
+        if (uiState is AuthUiState.RegisterSuccess) onNavigateToLogin()  // iOS kimi: login ekranına qayıt
+        if (uiState is AuthUiState.RegisterOtpSent) currentStep = 2
     }
 
+    // iOS: passwordStrength 0-3 (< 6 → 0, 6-7 → 1, 8+ without digits → 2, 8+ with digits → 3)
     val passwordStrength = when {
         password.length < 6 -> 0
         password.length < 8 -> 1
-        password.length >= 8 && password.any { it.isDigit() } -> 2
-        else -> 3
+        password.length >= 8 && password.any { it.isDigit() } -> 3
+        else -> 2
     }
     val strengthColor = when (passwordStrength) {
         0, 1 -> AppTheme.Colors.error
@@ -103,21 +118,36 @@ fun RegisterScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(AppTheme.Colors.background)
+            .imePadding()
     ) {
-        // Header (iOS: back button)
+        // Header (iOS: HStack { back button (chevron.left + "Geri") })
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(AppTheme.Colors.background)
                 .padding(16.dp)
         ) {
-            Box(
+            // iOS: chevron.left icon + "Geri" text, secondaryBackground bg, cornerRadius 10
+            Row(
                 modifier = Modifier
                     .background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(10.dp))
                     .clickable(onClick = onNavigateToLogin)
-                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("← Geri", color = AppTheme.Colors.accent, fontSize = 15.sp, fontWeight = FontWeight.Medium)
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = null,
+                    tint = AppTheme.Colors.accent,
+                    modifier = Modifier.size(14.dp)
+                )
+                Text(
+                    text = "Geri",
+                    color = AppTheme.Colors.accent,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Medium
+                )
             }
         }
 
@@ -128,10 +158,11 @@ fun RegisterScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (currentStep == 1) {
-                // Title
+                // Title (iOS: VStack spacing:8 { "Qeydiyyat" 32sp black + subtitle })
                 Column(
                     modifier = Modifier.padding(top = 10.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text("Qeydiyyat", fontSize = 32.sp, fontWeight = FontWeight.Black, color = AppTheme.Colors.primaryText)
                     Text("Hesab yaradın", fontSize = 14.sp, color = AppTheme.Colors.secondaryText)
@@ -139,20 +170,22 @@ fun RegisterScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // User Type Selection
+                // User Type Selection (iOS: VStack alignment: .leading, spacing: 12)
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
                 ) {
                     Text("Hesab növü seçin", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.primaryText)
                     Spacer(modifier = Modifier.height(12.dp))
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        // iOS: person.fill icon + "Tələbə" + description, 50dp circle
                         RegisterUserTypeCard(
-                            label = "Tələbə", icon = "👤", description = "İdman və qidalanmanı izlə",
+                            label = "Tələbə", isClient = true, description = "İdman və qidalanmanı izlə",
                             isSelected = userType == "client", modifier = Modifier.weight(1f),
                             onClick = { userType = "client" }
                         )
+                        // iOS: person.2.fill icon + "Məşqçi" + description, 50dp circle
                         RegisterUserTypeCard(
-                            label = "Məşqçi", icon = "👥", description = "Tələbələri idarə et",
+                            label = "Məşqçi", isClient = false, description = "Tələbələri idarə et",
                             isSelected = userType == "trainer", modifier = Modifier.weight(1f),
                             onClick = { userType = "trainer" }
                         )
@@ -161,48 +194,53 @@ fun RegisterScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Input Fields
+                // Input Fields (iOS: VStack spacing: 14)
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
+                    // Name — iOS: person.fill icon, 14sp font
                     RegisterInputField(
                         value = name, onValueChange = { name = it; viewModel.clearError() },
                         placeholder = "Ad və soyad",
                         leadingIcon = { Icon(Icons.Default.Person, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(16.dp)) },
                         hasValue = name.isNotEmpty()
                     )
+                    // Email — iOS: envelope.fill icon
                     RegisterInputField(
                         value = email, onValueChange = { email = it; viewModel.clearError() },
                         placeholder = "E-poçt",
                         leadingIcon = { Icon(Icons.Default.Email, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(16.dp)) },
                         keyboardType = KeyboardType.Email, hasValue = email.isNotEmpty()
                     )
+                    // Password — iOS: lock.fill icon + eye toggle
                     RegisterPasswordField(
                         value = password, onValueChange = { password = it; viewModel.clearError() },
                         placeholder = "Şifrə", isVisible = passwordVisible,
                         onToggle = { passwordVisible = !passwordVisible }, hasValue = password.isNotEmpty()
                     )
 
-                    // Password strength
+                    // Password strength (iOS: 3 bars, height 3, cornerRadius 1.5)
                     if (password.isNotEmpty()) {
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                                 repeat(3) { idx ->
                                     Box(modifier = Modifier.weight(1f).height(3.dp)
-                                        .background(if (passwordStrength > idx) strengthColor else AppTheme.Colors.separator, RoundedCornerShape(2.dp)))
+                                        .background(if (passwordStrength > idx) strengthColor else AppTheme.Colors.separator, RoundedCornerShape(1.5.dp)))
                                 }
                             }
                             Text(strengthText, fontSize = 11.sp, color = strengthColor)
                         }
                     }
 
+                    // Confirm password — iOS: lock.fill icon + eye toggle
                     RegisterPasswordField(
                         value = confirmPassword, onValueChange = { confirmPassword = it },
                         placeholder = "Şifrəni təkrar daxil edin", isVisible = confirmPasswordVisible,
                         onToggle = { confirmPasswordVisible = !confirmPasswordVisible }, hasValue = confirmPassword.isNotEmpty()
                     )
 
+                    // Password match indicator (iOS: checkmark.circle.fill / xmark.circle.fill)
                     if (confirmPassword.isNotEmpty()) {
                         Row(horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.CenterVertically) {
                             Text(if (passwordsMatch) "✓" else "✗", fontSize = 12.sp,
@@ -212,7 +250,7 @@ fun RegisterScreen(
                         }
                     }
 
-                    // Terms checkbox
+                    // Terms checkbox (iOS: 20dp, 2dp accent border, cornerRadius 5)
                     Row(
                         modifier = Modifier.fillMaxWidth().clickable { acceptTerms = !acceptTerms },
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -228,6 +266,7 @@ fun RegisterScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Error
                 AnimatedVisibility(visible = showError, enter = slideInVertically() + fadeIn(), exit = fadeOut(),
                     modifier = Modifier.padding(horizontal = 20.dp)) {
                     Row(modifier = Modifier.fillMaxWidth()
@@ -240,6 +279,7 @@ fun RegisterScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Register button (iOS: gradient accent→accent(0.8), shadow, cornerRadius 12)
                 val btnEnabled = isFormValid && !isLoading
                 Box(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
@@ -269,7 +309,7 @@ fun RegisterScreen(
                 Spacer(modifier = Modifier.height(30.dp))
 
             } else {
-                // Step 2: OTP
+                // Step 2: OTP (iOS ilə tam uyğun)
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 28.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -280,6 +320,7 @@ fun RegisterScreen(
                     Text("$email ünvanına göndərilən\n6 rəqəmli kodu daxil edin",
                         fontSize = 14.sp, color = AppTheme.Colors.secondaryText, textAlign = TextAlign.Center)
 
+                    // OTP TextField — iOS: 28sp monospaced bold, cornerRadius 12
                     OutlinedTextField(
                         value = otpCode,
                         onValueChange = { otpCode = it.filter { c -> c.isDigit() }.take(6) },
@@ -307,6 +348,7 @@ fun RegisterScreen(
                         shape = RoundedCornerShape(12.dp)
                     )
 
+                    // Error
                     AnimatedVisibility(visible = showError, enter = fadeIn(), exit = fadeOut()) {
                         Row(modifier = Modifier.fillMaxWidth()
                             .background(AppTheme.Colors.error.copy(alpha = 0.2f), RoundedCornerShape(10.dp)).padding(12.dp),
@@ -316,6 +358,7 @@ fun RegisterScreen(
                         }
                     }
 
+                    // Verify button
                     val verifyEnabled = otpCode.length == 6 && !isLoading
                     Box(
                         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
@@ -325,7 +368,7 @@ fun RegisterScreen(
                             )))
                             .clickable(enabled = verifyEnabled) {
                                 focusManager.clearFocus()
-                                viewModel.verifyOtp(email.trim(), otpCode)
+                                viewModel.verifyRegisterOtp(name.trim(), email.trim(), password, userType, otpCode.trim())
                             }
                             .padding(vertical = 14.dp),
                         contentAlignment = Alignment.Center
@@ -337,6 +380,7 @@ fun RegisterScreen(
                         }
                     }
 
+                    // Resend + Back buttons
                     TextButton(onClick = { viewModel.register(name.trim(), email.trim(), password, userType) }) {
                         Text("OTP-ni yenidən göndər", fontSize = 14.sp, color = AppTheme.Colors.accent)
                     }
@@ -349,9 +393,10 @@ fun RegisterScreen(
     }
 }
 
+// ─── User Type Card (iOS: VStack { 50dp Circle icon + label + description }, cornerRadius 14) ─
 @Composable
 fun RegisterUserTypeCard(
-    label: String, icon: String, description: String,
+    label: String, isClient: Boolean, description: String,
     isSelected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit
 ) {
     val bgColor by animateColorAsState(
@@ -362,6 +407,10 @@ fun RegisterUserTypeCard(
         if (isSelected) AppTheme.Colors.accent else AppTheme.Colors.separator,
         animationSpec = spring(), label = "regTypeBorder"
     )
+    val iconColor by animateColorAsState(
+        if (isSelected) AppTheme.Colors.accent else AppTheme.Colors.secondaryText,
+        animationSpec = spring(), label = "regTypeIcon"
+    )
     Column(
         modifier = modifier.background(bgColor, RoundedCornerShape(14.dp))
             .border(if (isSelected) 2.dp else 1.dp, borderColor, RoundedCornerShape(14.dp))
@@ -369,18 +418,31 @@ fun RegisterUserTypeCard(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
+        // iOS: 50dp circle with person.fill / person.2.fill icon (20pt)
         Box(modifier = Modifier.size(50.dp)
             .background(if (isSelected) AppTheme.Colors.accent.copy(alpha = 0.2f) else AppTheme.Colors.cardBackground, CircleShape),
             contentAlignment = Alignment.Center) {
-            Text(text = icon, fontSize = 20.sp)
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = null,
+                tint = iconColor,
+                modifier = Modifier.size(20.dp)
+            )
         }
-        Text(label, fontSize = 14.sp, fontWeight = FontWeight.Bold,
-            color = if (isSelected) AppTheme.Colors.primaryText else AppTheme.Colors.secondaryText)
-        Text(description, fontSize = 10.sp, color = AppTheme.Colors.secondaryText,
-            textAlign = TextAlign.Center, maxLines = 2)
+        // iOS: VStack(spacing:3) { name 14sp bold + description 10sp }
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(3.dp)
+        ) {
+            Text(label, fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                color = if (isSelected) AppTheme.Colors.primaryText else AppTheme.Colors.secondaryText)
+            Text(description, fontSize = 10.sp, color = AppTheme.Colors.secondaryText,
+                textAlign = TextAlign.Center, maxLines = 2)
+        }
     }
 }
 
+// ─── Input Field (iOS: HStack { icon + TextField }, cornerRadius 12) ──────────
 @Composable
 fun RegisterInputField(
     value: String, onValueChange: (String) -> Unit, placeholder: String,
@@ -406,6 +468,7 @@ fun RegisterInputField(
     }
 }
 
+// ─── Password Field (iOS: HStack { lock.fill + TextField + eye toggle }, cornerRadius 12) ─
 @Composable
 fun RegisterPasswordField(
     value: String, onValueChange: (String) -> Unit, placeholder: String,
@@ -418,6 +481,7 @@ fun RegisterPasswordField(
         .background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(12.dp))
         .border(1.dp, borderColor, RoundedCornerShape(12.dp)).padding(horizontal = 16.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        // iOS: lock.fill icon
         Icon(Icons.Default.Lock, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(16.dp))
         OutlinedTextField(
             value = value, onValueChange = onValueChange,
@@ -429,8 +493,17 @@ fun RegisterPasswordField(
             visualTransformation = if (!isVisible) PasswordVisualTransformation() else VisualTransformation.None,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next), singleLine = true
         )
-        TextButton(onClick = onToggle, contentPadding = PaddingValues(horizontal = 4.dp)) {
-            Text(if (isVisible) "👁" else "👁‍🗨", fontSize = 16.sp)
+        // iOS: eye.fill / eye.slash.fill — Material icons (not emojis)
+        IconButton(
+            onClick = onToggle,
+            modifier = Modifier.size(32.dp)
+        ) {
+            Icon(
+                imageVector = if (isVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                contentDescription = if (isVisible) "Şifrəni gizlət" else "Şifrəni göstər",
+                tint = AppTheme.Colors.secondaryText,
+                modifier = Modifier.size(16.dp)
+            )
         }
     }
 }

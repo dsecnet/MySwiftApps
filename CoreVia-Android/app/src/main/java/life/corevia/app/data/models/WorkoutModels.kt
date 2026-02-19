@@ -52,3 +52,14 @@ data class WorkoutUpdateRequest(
     val notes: String?,
     @SerializedName("is_completed")   val isCompleted: Boolean?
 )
+
+// ─── Stats Response ─────────────────────────────────────────────────────────
+
+data class WorkoutStatsResponse(
+    @SerializedName("today_count")            val todayCount: Int = 0,
+    @SerializedName("today_duration")         val todayDuration: Int = 0,
+    @SerializedName("today_calories")         val todayCalories: Int = 0,
+    @SerializedName("week_count")             val weekCount: Int = 0,
+    @SerializedName("week_duration")          val weekDuration: Int = 0,
+    @SerializedName("week_calories")          val weekCalories: Int = 0
+)

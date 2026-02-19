@@ -21,7 +21,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -55,14 +58,13 @@ import life.corevia.app.ui.theme.AppTheme
  *  - Addım 1: Email + Şifrə + User type → POST /api/v1/auth/login → OTP göndərilir
  *  - Addım 2: 6-rəqəmli OTP kodu → POST /api/v1/auth/login-verify → token alınır
  *
- * iOS-dan götürülmüş elementlər:
- *  - Dil seçici (🇦🇿 🇷🇺 🇬🇧) — sol üstdə
+ * iOS ilə tam uyğun:
+ *  - Dil seçici (🇦🇿 🇷🇺 🇬🇧) — 3 bayraq, sol üstdə
  *  - Blur halo + gym.png ikon (gradient fon, cornerRadius 20)
  *  - "CoreVia" 38sp Black + slogan 11sp accent letterSpacing 2.5
- *  - Tələbə/Məşqçi type toggle
+ *  - Tələbə/Məşqçi type toggle (Material icons — person.fill / person.2.fill)
  *  - Input sahələri: label + icon (accent) + TextField + border focus
- *  - "Şifrəni unutdum" — sağa yığılmış
- *  - Xəta: ⚠️ + error.opacity(0.2) fon
+ *  - Password toggle: eye / eye.slash icon (Material)
  *  - Gradient düymə: icon + label + arrow
  *  - "──── və ya ────" ayırıcı
  *  - OTP: 28sp monospaced TextField, 6 simvol limit
@@ -115,7 +117,7 @@ fun LoginScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ─── Dil Seçici (iOS: HStack flags, sol üstdə) ──────────────────────
+            // ─── Dil Seçici (iOS: HStack 4 flags, sol üstdə) ──────────────────────
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -123,21 +125,23 @@ fun LoginScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // iOS: 3 dil — az, ru, en
                 listOf("🇦🇿" to "az", "🇷🇺" to "ru", "🇬🇧" to "en").forEach { (flag, code) ->
                     val isSelected = currentLanguage == code
                     val bgColor by animateColorAsState(
                         if (isSelected) AppTheme.Colors.accent.copy(alpha = 0.15f) else AppTheme.Colors.secondaryBackground,
-                        label = "langBg"
+                        animationSpec = spring(), label = "langBg"
                     )
                     val borderColor by animateColorAsState(
-                        if (isSelected) AppTheme.Colors.accent else Color.Transparent,
-                        label = "langBorder"
+                        if (isSelected) AppTheme.Colors.accent else AppTheme.Colors.separator,
+                        animationSpec = spring(), label = "langBorder"
                     )
+                    val borderWidth = if (isSelected) 2.dp else 1.dp
                     Box(
                         modifier = Modifier
                             .size(40.dp)
                             .background(bgColor, RoundedCornerShape(10.dp))
-                            .border(2.dp, borderColor, RoundedCornerShape(10.dp))
+                            .border(borderWidth, borderColor, RoundedCornerShape(10.dp))
                             .clickable { currentLanguage = code },
                         contentAlignment = Alignment.Center
                     ) {
@@ -147,12 +151,12 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.weight(1f))
             }
 
-            // ─── Logo Bölməsi (iOS: ZStack blur + gym.png) ──────────────────────
+            // ─── Logo Bölməsi (iOS: ZStack blur + corevia_icon) ──────────────────────
             Box(
                 modifier = Modifier.padding(vertical = 8.dp),
                 contentAlignment = Alignment.Center
             ) {
-                // Blur halo circle
+                // Blur halo circle — iOS: Circle().fill(LinearGradient) .frame(100) .blur(15)
                 Box(
                     modifier = Modifier
                         .size(100.dp)
@@ -167,7 +171,7 @@ fun LoginScreen(
                         )
                         .blur(15.dp)
                 )
-                // gym.png — gradient fon, cornerRadius 20, white tint, shadow
+                // gym.png — iOS: gradient fon, cornerRadius 20, shadow accent(0.5) radius 15 y-offset 8
                 Box(
                     modifier = Modifier
                         .shadow(
@@ -207,6 +211,8 @@ fun LoginScreen(
                 color = AppTheme.Colors.primaryText
             )
 
+            Spacer(modifier = Modifier.height(6.dp))
+
             // iOS: font(.system(size: 11, weight: .semibold)) + accent + tracking 2.5
             Text(
                 text = "FİTNES · SAĞLAMLIQ · HƏYAT",
@@ -218,7 +224,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            // ─── User Type Selection (iOS: Tələbə / Məşqçi toggle) ──────────────
+            // ─── User Type Selection (iOS: person.fill / person.2.fill icons) ──────
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -236,19 +242,19 @@ fun LoginScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Tələbə
-                    UserTypeButton(
+                    // Tələbə — iOS: person.fill icon
+                    LoginUserTypeButton(
                         label = "Tələbə",
-                        icon = "👤",
                         isSelected = selectedUserType == "client",
+                        isClient = true,
                         modifier = Modifier.weight(1f),
                         onClick = { selectedUserType = "client" }
                     )
-                    // Məşqçi
-                    UserTypeButton(
+                    // Məşqçi — iOS: person.2.fill icon
+                    LoginUserTypeButton(
                         label = "Məşqçi",
-                        icon = "👥",
                         isSelected = selectedUserType == "trainer",
+                        isClient = false,
                         modifier = Modifier.weight(1f),
                         onClick = { selectedUserType = "trainer" }
                     )
@@ -309,13 +315,12 @@ fun LoginScreen(
     }
 }
 
-// ─── User Type Button ─────────────────────────────────────────────────────────
-// iOS: selectedUserType == .client ? accent fon : secondaryBackground
+// ─── User Type Button (iOS: person.fill / person.2.fill Material icons) ───────
 @Composable
-fun UserTypeButton(
+fun LoginUserTypeButton(
     label: String,
-    icon: String,
     isSelected: Boolean,
+    isClient: Boolean,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
@@ -345,7 +350,13 @@ fun UserTypeButton(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = icon, fontSize = 16.sp)
+            // iOS: person.fill (16pt) / person.2.fill (16pt)
+            Icon(
+                imageVector = if (isClient) Icons.Default.Person else Icons.Default.Person,
+                contentDescription = null,
+                tint = textColor,
+                modifier = Modifier.size(16.dp)
+            )
             Text(
                 text = label,
                 fontSize = 15.sp,
@@ -379,7 +390,7 @@ fun LoginStep1Content(
             .padding(horizontal = 28.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Email
+        // Email — iOS: VStack(spacing:6) { label + HStack { envelope.fill icon + TextField } }
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("E-poçt", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = AppTheme.Colors.secondaryText)
             LoginTextField(
@@ -400,7 +411,7 @@ fun LoginStep1Content(
             )
         }
 
-        // Şifrə
+        // Şifrə — iOS: VStack(spacing:6) { label + HStack { lock.fill + TextField + eye toggle } }
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("Şifrə", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = AppTheme.Colors.secondaryText)
             LoginTextField(
@@ -440,7 +451,7 @@ fun LoginStep1Content(
             }
         }
 
-        // Error message (iOS: HStack ⚠️ + error.opacity(0.2) fon)
+        // Error message (iOS: HStack exclamationmark.triangle.fill + error.opacity(0.2) fon)
         AnimatedVisibility(
             visible = showError,
             enter = slideInVertically() + fadeIn(),
@@ -502,9 +513,12 @@ fun LoginStep1Content(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = if (selectedUserType == "client") "👤" else "👥",
-                        fontSize = 14.sp
+                    // iOS: person.fill (14pt) / person.2.fill (14pt)
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(14.dp)
                     )
                     Text(
                         text = buttonLabel,
@@ -512,23 +526,24 @@ fun LoginStep1Content(
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
+                    // iOS: arrow.right (14pt, bold)
                     Text(text = "→", fontSize = 14.sp, color = Color.White, fontWeight = FontWeight.Bold)
                 }
             }
         }
 
-        // Ayırıcı: ──── və ya ────
+        // Ayırıcı: ──── və ya ──── (iOS: Rectangle.frame(height:1) + "və ya" + Rectangle)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Divider(modifier = Modifier.weight(1f), color = AppTheme.Colors.separator)
+            HorizontalDivider(modifier = Modifier.weight(1f), color = AppTheme.Colors.separator)
             Text("və ya", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = AppTheme.Colors.secondaryText)
-            Divider(modifier = Modifier.weight(1f), color = AppTheme.Colors.separator)
+            HorizontalDivider(modifier = Modifier.weight(1f), color = AppTheme.Colors.separator)
         }
 
-        // Qeydiyyat linki
+        // Qeydiyyat linki (iOS: "Hesabınız yoxdur?" + "Qeydiyyatdan keç" bold accent)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
@@ -588,7 +603,7 @@ fun OtpStep2Content(
             )
         }
 
-        // OTP TextField — 28sp monospaced (iOS: .system(size:28, weight:.bold, design:.monospaced))
+        // OTP TextField — iOS: .system(size:28, weight:.bold, design:.monospaced)
         OutlinedTextField(
             value = otpCode,
             onValueChange = onOtpChange,
@@ -650,7 +665,7 @@ fun OtpStep2Content(
             }
         }
 
-        // Verify Button
+        // Verify Button — iOS: gradient + cornerRadius 12 + opacity based on code length
         val verifyEnabled = otpCode.length == 6 && !isLoading
         Box(
             modifier = Modifier
@@ -686,7 +701,7 @@ fun OtpStep2Content(
             }
         }
 
-        // Geri qayıt (iOS: "Geri qayıt" accent rəngli link)
+        // Geri qayıt (iOS: accent rəngli link)
         TextButton(onClick = onBack) {
             Text(
                 text = "Geri qayıt",
@@ -699,6 +714,7 @@ fun OtpStep2Content(
 
 // ─── CoreVia Login TextField ──────────────────────────────────────────────────
 // iOS: HStack { icon + TextField } — accent icon, border changes on value
+// Password toggle: eye.fill / eye.slash.fill (Material icons, not emojis)
 @Composable
 fun LoginTextField(
     value: String,
@@ -760,14 +776,17 @@ fun LoginTextField(
             keyboardActions = KeyboardActions(onDone = { onDone?.invoke() }),
             singleLine = true
         )
+        // iOS: eye.fill / eye.slash.fill — Material icons (not emojis)
         if (isPassword && onPasswordToggle != null) {
-            TextButton(
+            IconButton(
                 onClick = onPasswordToggle,
-                contentPadding = PaddingValues(horizontal = 4.dp)
+                modifier = Modifier.size(32.dp)
             ) {
-                Text(
-                    text = if (passwordVisible) "👁" else "👁‍🗨",
-                    fontSize = 18.sp
+                Icon(
+                    imageVector = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                    contentDescription = if (passwordVisible) "Şifrəni gizlət" else "Şifrəni göstər",
+                    tint = AppTheme.Colors.secondaryText,
+                    modifier = Modifier.size(18.dp)
                 )
             }
         }

@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -30,6 +32,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import life.corevia.app.data.api.TokenManager
+import life.corevia.app.ui.activities.ActivitiesScreen
+import life.corevia.app.ui.activities.ActivitiesViewModel
 import life.corevia.app.ui.auth.AuthViewModel
 import life.corevia.app.ui.auth.ForgotPasswordScreen
 import life.corevia.app.ui.auth.LoginScreen
@@ -37,14 +41,61 @@ import life.corevia.app.ui.auth.RegisterScreen
 import life.corevia.app.ui.food.FoodScreen
 import life.corevia.app.ui.food.FoodViewModel
 import life.corevia.app.ui.home.HomeScreen
+import life.corevia.app.ui.home.TrainerHomeScreen
+import life.corevia.app.ui.home.TrainerHomeViewModel
+import life.corevia.app.ui.mealplan.AddMealPlanScreen
+import life.corevia.app.ui.mealplan.MealPlanScreen
+import life.corevia.app.ui.mealplan.MealPlanViewModel
+import life.corevia.app.ui.profile.ProfileScreen
+import life.corevia.app.ui.profile.ProfileViewModel
+import life.corevia.app.ui.settings.SettingsScreen
+import life.corevia.app.ui.trainer.MyStudentsScreen
+import life.corevia.app.ui.trainer.MyStudentsViewModel
+import life.corevia.app.ui.trainingplan.AddTrainingPlanScreen
 import life.corevia.app.ui.trainingplan.TrainingPlanScreen
 import life.corevia.app.ui.trainingplan.TrainingPlanViewModel
 import life.corevia.app.ui.workout.WorkoutScreen
 import life.corevia.app.ui.workout.WorkoutViewModel
+import life.corevia.app.ui.chat.ChatViewModel
+import life.corevia.app.ui.chat.ConversationsScreen
+import life.corevia.app.ui.chat.ChatDetailScreen
+import life.corevia.app.ui.notifications.NotificationsViewModel
+import life.corevia.app.ui.notifications.NotificationsScreen
+import life.corevia.app.ui.analytics.AnalyticsViewModel
+import life.corevia.app.ui.analytics.AnalyticsScreen
+import life.corevia.app.ui.social.SocialViewModel
+import life.corevia.app.ui.social.SocialFeedScreen
+import life.corevia.app.ui.premium.PremiumViewModel
+import life.corevia.app.ui.premium.PremiumScreen
+import life.corevia.app.ui.trainers.TrainersViewModel
+import life.corevia.app.ui.trainers.TrainersScreen
+import life.corevia.app.ui.trainers.TrainerDetailScreen
+import life.corevia.app.ui.onboarding.OnboardingScreen
+import life.corevia.app.ui.livesession.LiveSessionsViewModel
+import life.corevia.app.ui.livesession.LiveSessionsScreen
+import life.corevia.app.ui.livesession.LiveSessionDetailScreen
+import life.corevia.app.ui.marketplace.MarketplaceViewModel
+import life.corevia.app.ui.marketplace.MarketplaceScreen
+import life.corevia.app.ui.marketplace.ProductDetailScreen
+import life.corevia.app.ui.news.NewsViewModel
+import life.corevia.app.ui.news.NewsScreen
+import life.corevia.app.ui.news.NewsDetailScreen
+import life.corevia.app.ui.tracking.TrackingViewModel
+import life.corevia.app.ui.tracking.LiveTrackingScreen
 
 /**
  * iOS: ContentView + MainTabView + CustomTabBar
- * Android 1-ə-1 port — glassmorphism tab bar, trainer/client dinamik tab
+ * 1-ə-1 iOS port:
+ *
+ * CLIENT Tab Bar: Home | Workout | Food | Chat | More(Activities, Profile)
+ * TRAINER Tab Bar: Home | Plans | Meal Plans | Chat | More(Content, Profile)
+ *
+ * Feature-lara HomeView Quick Actions-dan daxil olunur (iOS kimi):
+ *   Social Feed, Marketplace, Live Sessions → Home quick action buttons
+ *   Statistics/Analytics → Home quick action sheet
+ *   GPS Tracking → Workout screen button (premium only)
+ *   Settings → Profile → Settings
+ *   Notifications → Profile → Settings → Notifications
  */
 
 // ─── Route sabitləri ──────────────────────────────────────────────────────────
@@ -52,26 +103,38 @@ object Routes {
     const val LOGIN           = "login"
     const val REGISTER        = "register"
     const val HOME            = "home"
-    const val WORKOUT         = "workout"
-    const val FOOD            = "food"
-    const val TRAINING_PLAN   = "training_plan"
-    const val LIVE_TRACKING   = "live_tracking"
-    const val PROFILE         = "profile"
-    const val SETTINGS        = "settings"
-    const val CHAT            = "chat"
     const val FORGOT_PASSWORD = "forgot_password"
-    const val TRAINER_HOME    = "trainer_home"
-    const val MY_STUDENTS     = "my_students"
-    const val MEAL_PLAN       = "meal_plan"
-    const val ACTIVITIES      = "activities"
+    const val ONBOARDING      = "onboarding"
 }
 
 // ─── Tab indeksləri (iOS selectedTab ilə eyni) ────────────────────────────────
+// iOS CustomTabBar: 0-3 = tab bar tabs, 4 = activities/content, 5 = profile
 private const val TAB_HOME     = 0
-private const val TAB_WORKOUT  = 1   // trainer: training plans
-private const val TAB_FOOD     = 2   // trainer: meal plans
+private const val TAB_WORKOUT  = 1   // client: WorkoutView | trainer: TrainingPlanView
+private const val TAB_FOOD     = 2   // client: FoodView    | trainer: MealPlanView
 private const val TAB_CHAT     = 3
-private const val TAB_MORE     = 4   // activities / content
+private const val TAB_MORE     = 4   // client: ActivitiesView | trainer: TrainerContentView
+private const val TAB_PROFILE  = 5
+
+// Sub-screens (iOS: NavigationLink/sheet-dən açılır)
+private const val TAB_SETTINGS         = 6
+private const val TAB_MY_STUDENTS      = 7
+private const val TAB_ADD_TRAINING     = 8
+private const val TAB_ADD_MEAL         = 9
+private const val TAB_CHAT_DETAIL      = 10
+private const val TAB_NOTIFICATIONS    = 11
+private const val TAB_ANALYTICS        = 12
+private const val TAB_SOCIAL           = 13
+private const val TAB_PREMIUM          = 14
+private const val TAB_TRAINERS         = 15
+private const val TAB_TRAINER_DETAIL   = 16
+private const val TAB_LIVE_SESSIONS    = 17
+private const val TAB_LIVE_SESSION_DETAIL = 18
+private const val TAB_MARKETPLACE      = 19
+private const val TAB_PRODUCT_DETAIL   = 20
+private const val TAB_NEWS             = 21
+private const val TAB_NEWS_DETAIL      = 22
+private const val TAB_TRACKING         = 23
 
 // ─── Ana composable ───────────────────────────────────────────────────────────
 @Composable
@@ -79,10 +142,23 @@ fun AppNavigation(tokenManager: TokenManager) {
     val navController = rememberNavController()
     val startDestination = if (tokenManager.isLoggedIn) Routes.HOME else Routes.LOGIN
 
-    val authViewModel: AuthViewModel           = viewModel()
-    val workoutViewModel: WorkoutViewModel     = viewModel()
-    val foodViewModel: FoodViewModel           = viewModel()
-    val trainingPlanViewModel: TrainingPlanViewModel = viewModel()
+    val authViewModel: AuthViewModel                   = viewModel()
+    val workoutViewModel: WorkoutViewModel             = viewModel()
+    val foodViewModel: FoodViewModel                   = viewModel()
+    val trainingPlanViewModel: TrainingPlanViewModel   = viewModel()
+    val mealPlanViewModel: MealPlanViewModel           = viewModel()
+    val profileViewModel: ProfileViewModel             = viewModel()
+    val activitiesViewModel: ActivitiesViewModel       = viewModel()
+    val chatViewModel: ChatViewModel                   = viewModel()
+    val notificationsViewModel: NotificationsViewModel = viewModel()
+    val analyticsViewModel: AnalyticsViewModel         = viewModel()
+    val socialViewModel: SocialViewModel               = viewModel()
+    val premiumViewModel: PremiumViewModel             = viewModel()
+    val trainersViewModel: TrainersViewModel           = viewModel()
+    val liveSessionsViewModel: LiveSessionsViewModel   = viewModel()
+    val marketplaceViewModel: MarketplaceViewModel     = viewModel()
+    val newsViewModel: NewsViewModel                   = viewModel()
+    val trackingViewModel: TrackingViewModel           = viewModel()
 
     NavHost(
         navController    = navController,
@@ -101,7 +177,10 @@ fun AppNavigation(tokenManager: TokenManager) {
         composable(Routes.REGISTER) {
             RegisterScreen(
                 onRegisterSuccess = { navController.navigateToMain() },
-                onNavigateToLogin = { navController.popBackStack() },
+                onNavigateToLogin = {
+                    authViewModel.resetToIdle()
+                    navController.popBackStack()
+                },
                 viewModel         = authViewModel
             )
         }
@@ -109,14 +188,46 @@ fun AppNavigation(tokenManager: TokenManager) {
             ForgotPasswordScreen(onBack = { navController.popBackStack() })
         }
 
+        // ── Onboarding ──────────────────────────────────────────────────────
+        composable(Routes.ONBOARDING) {
+            OnboardingScreen(
+                onComplete = {
+                    tokenManager.hasCompletedOnboarding = true
+                    navController.navigateToMain()
+                }
+            )
+        }
+
         // ── Main (iOS: MainTabView) ───────────────────────────────────────────
         composable(Routes.HOME) {
+            val user by profileViewModel.user.collectAsState()
+            val isTrainer = user?.userType == "trainer"
+
             MainTabView(
-                navController        = navController,
-                workoutViewModel     = workoutViewModel,
-                foodViewModel        = foodViewModel,
+                navController         = navController,
+                workoutViewModel      = workoutViewModel,
+                foodViewModel         = foodViewModel,
                 trainingPlanViewModel = trainingPlanViewModel,
-                isTrainer            = false   // TODO: tokenManager-dan al
+                mealPlanViewModel     = mealPlanViewModel,
+                profileViewModel      = profileViewModel,
+                activitiesViewModel   = activitiesViewModel,
+                chatViewModel         = chatViewModel,
+                notificationsViewModel = notificationsViewModel,
+                analyticsViewModel    = analyticsViewModel,
+                socialViewModel       = socialViewModel,
+                premiumViewModel      = premiumViewModel,
+                trainersViewModel     = trainersViewModel,
+                liveSessionsViewModel = liveSessionsViewModel,
+                marketplaceViewModel  = marketplaceViewModel,
+                newsViewModel         = newsViewModel,
+                trackingViewModel     = trackingViewModel,
+                isTrainer             = isTrainer,
+                onLogout = {
+                    authViewModel.logout()
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
             )
         }
     }
@@ -129,9 +240,32 @@ fun MainTabView(
     workoutViewModel: WorkoutViewModel,
     foodViewModel: FoodViewModel,
     trainingPlanViewModel: TrainingPlanViewModel,
-    isTrainer: Boolean = false
+    mealPlanViewModel: MealPlanViewModel,
+    profileViewModel: ProfileViewModel,
+    activitiesViewModel: ActivitiesViewModel,
+    chatViewModel: ChatViewModel,
+    notificationsViewModel: NotificationsViewModel,
+    analyticsViewModel: AnalyticsViewModel,
+    socialViewModel: SocialViewModel,
+    premiumViewModel: PremiumViewModel,
+    trainersViewModel: TrainersViewModel,
+    liveSessionsViewModel: LiveSessionsViewModel,
+    marketplaceViewModel: MarketplaceViewModel,
+    newsViewModel: NewsViewModel,
+    trackingViewModel: TrackingViewModel,
+    isTrainer: Boolean = false,
+    onLogout: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf(TAB_HOME) }
+
+    val myStudentsViewModel: MyStudentsViewModel = viewModel()
+    val trainerHomeViewModel: TrainerHomeViewModel = viewModel()
+    val students by myStudentsViewModel.students.collectAsState()
+
+    // iOS: Trainer üçün user adı
+    val user by profileViewModel.user.collectAsState()
+
+    var preSelectedStudentId by remember { mutableStateOf<String?>(null) }
 
     Box(modifier = Modifier.fillMaxSize()) {
 
@@ -139,61 +273,262 @@ fun MainTabView(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 80.dp)   // tab bar üçün yer
+                .padding(bottom = 80.dp)
         ) {
             when (selectedTab) {
                 TAB_HOME -> {
-                    HomeScreen(
-                        onNavigateToWorkout      = { selectedTab = TAB_WORKOUT },
-                        onNavigateToFood         = { selectedTab = TAB_FOOD },
-                        onNavigateToTrainingPlan = { selectedTab = TAB_WORKOUT },
-                        onNavigateToLiveTracking = { selectedTab = TAB_MORE },
-                        workoutViewModel         = workoutViewModel
-                    )
+                    if (isTrainer) {
+                        // iOS: TrainerHomeView
+                        TrainerHomeScreen(
+                            userName    = user?.name ?: "",
+                            userInitial = user?.name?.take(1) ?: "",
+                            viewModel   = trainerHomeViewModel
+                        )
+                    } else {
+                        // iOS: HomeView
+                        HomeScreen(
+                            onNavigateToWorkout      = { selectedTab = TAB_WORKOUT },
+                            onNavigateToFood         = { selectedTab = TAB_FOOD },
+                            onNavigateToTrainingPlan = { selectedTab = TAB_WORKOUT },
+                            onNavigateToLiveTracking = { selectedTab = TAB_TRACKING },
+                            onNavigateToProfile      = { selectedTab = TAB_PROFILE },
+                            onNavigateToActivities   = { selectedTab = TAB_MORE },
+                            // iOS HomeView Quick Actions → feature screens
+                            onNavigateToSocial       = { selectedTab = TAB_SOCIAL },
+                            onNavigateToMarketplace  = { selectedTab = TAB_MARKETPLACE },
+                            onNavigateToLiveSessions = { selectedTab = TAB_LIVE_SESSIONS },
+                            onNavigateToAnalytics    = { selectedTab = TAB_ANALYTICS },
+                            workoutViewModel         = workoutViewModel
+                        )
+                    }
                 }
                 TAB_WORKOUT -> {
                     if (isTrainer) {
-                        TrainingPlanScreen(viewModel = trainingPlanViewModel)
+                        TrainingPlanScreen(
+                            isTrainer = true,
+                            onNavigateToAddTrainingPlan = {
+                                preSelectedStudentId = null
+                                selectedTab = TAB_ADD_TRAINING
+                            },
+                            onDeletePlan = { planId -> trainingPlanViewModel.deletePlan(planId) },
+                            viewModel = trainingPlanViewModel
+                        )
                     } else {
                         WorkoutScreen(
-                            onNavigateToLiveTracking = { selectedTab = TAB_MORE },
+                            onNavigateToLiveTracking = { selectedTab = TAB_TRACKING },
                             viewModel                = workoutViewModel
                         )
                     }
                 }
                 TAB_FOOD -> {
                     if (isTrainer) {
-                        PlaceholderScreen("Qida Planları", "🍽️")
+                        MealPlanScreen(
+                            isTrainer = true,
+                            onNavigateToAddMealPlan = {
+                                preSelectedStudentId = null
+                                selectedTab = TAB_ADD_MEAL
+                            },
+                            onDeletePlan = { planId -> mealPlanViewModel.deletePlan(planId) },
+                            viewModel = mealPlanViewModel
+                        )
                     } else {
                         FoodScreen(viewModel = foodViewModel)
                     }
                 }
                 TAB_CHAT -> {
-                    PlaceholderScreen("Mesajlar", "💬")
+                    ConversationsScreen(
+                        viewModel = chatViewModel,
+                        onOpenChat = { userId, userName ->
+                            chatViewModel.openChat(userId, userName)
+                            selectedTab = TAB_CHAT_DETAIL
+                        }
+                    )
+                }
+                TAB_CHAT_DETAIL -> {
+                    ChatDetailScreen(
+                        viewModel = chatViewModel,
+                        onBack = {
+                            chatViewModel.closeChat()
+                            chatViewModel.loadConversations()
+                            selectedTab = TAB_CHAT
+                        }
+                    )
                 }
                 TAB_MORE -> {
+                    // iOS: Tab 4 = Activities (client) / Content (trainer)
                     if (isTrainer) {
                         PlaceholderScreen("Kontent", "📄")
                     } else {
-                        PlaceholderScreen("Aktivliklər", "🏃")
+                        ActivitiesScreen(
+                            viewModel = activitiesViewModel,
+                            isPremium = user?.isPremium ?: false
+                        )
                     }
                 }
-                5 -> PlaceholderScreen("Profil", "👤")
+                TAB_PROFILE -> {
+                    ProfileScreen(
+                        onNavigateToSettings = { selectedTab = TAB_SETTINGS },
+                        onLogout = onLogout,
+                        viewModel = profileViewModel
+                    )
+                }
+                TAB_SETTINGS -> {
+                    SettingsScreen(onBack = { selectedTab = TAB_PROFILE })
+                }
+                TAB_MY_STUDENTS -> {
+                    MyStudentsScreen(
+                        onBack = { selectedTab = TAB_HOME },
+                        onNavigateToAddTrainingPlan = { studentId ->
+                            preSelectedStudentId = studentId
+                            selectedTab = TAB_ADD_TRAINING
+                        },
+                        onNavigateToAddMealPlan = { studentId ->
+                            preSelectedStudentId = studentId
+                            selectedTab = TAB_ADD_MEAL
+                        },
+                        viewModel = myStudentsViewModel
+                    )
+                }
+                TAB_ADD_TRAINING -> {
+                    AddTrainingPlanScreen(
+                        onBack = {
+                            selectedTab = if (isTrainer) TAB_WORKOUT else TAB_HOME
+                            trainingPlanViewModel.loadPlans()
+                        },
+                        onSave = { request ->
+                            trainingPlanViewModel.createPlan(request)
+                            selectedTab = if (isTrainer) TAB_WORKOUT else TAB_HOME
+                        },
+                        students = if (isTrainer) students else emptyList(),
+                        preSelectedStudentId = preSelectedStudentId
+                    )
+                }
+                TAB_ADD_MEAL -> {
+                    AddMealPlanScreen(
+                        onBack = {
+                            selectedTab = if (isTrainer) TAB_FOOD else TAB_HOME
+                            mealPlanViewModel.loadPlans()
+                        },
+                        onSave = { request ->
+                            mealPlanViewModel.createPlan(request)
+                            selectedTab = if (isTrainer) TAB_FOOD else TAB_HOME
+                        },
+                        students = if (isTrainer) students else emptyList(),
+                        preSelectedStudentId = preSelectedStudentId
+                    )
+                }
+                TAB_NOTIFICATIONS -> {
+                    NotificationsScreen(
+                        viewModel = notificationsViewModel,
+                        onBack = { selectedTab = TAB_PROFILE }
+                    )
+                }
+                TAB_ANALYTICS -> {
+                    AnalyticsScreen(
+                        viewModel = analyticsViewModel,
+                        onBack = { selectedTab = TAB_HOME }
+                    )
+                }
+                TAB_SOCIAL -> {
+                    SocialFeedScreen(
+                        viewModel = socialViewModel,
+                        onBack = { selectedTab = TAB_HOME }
+                    )
+                }
+                TAB_PREMIUM -> {
+                    PremiumScreen(
+                        viewModel = premiumViewModel,
+                        onBack = { selectedTab = TAB_HOME }
+                    )
+                }
+                TAB_TRAINERS -> {
+                    TrainersScreen(
+                        viewModel = trainersViewModel,
+                        onBack = { selectedTab = TAB_HOME },
+                        onTrainerSelected = { selectedTab = TAB_TRAINER_DETAIL }
+                    )
+                }
+                TAB_TRAINER_DETAIL -> {
+                    TrainerDetailScreen(
+                        viewModel = trainersViewModel,
+                        onBack = {
+                            trainersViewModel.clearSelectedTrainer()
+                            selectedTab = TAB_TRAINERS
+                        }
+                    )
+                }
+                TAB_LIVE_SESSIONS -> {
+                    LiveSessionsScreen(
+                        viewModel = liveSessionsViewModel,
+                        onBack = { selectedTab = TAB_HOME },
+                        onSessionSelected = { selectedTab = TAB_LIVE_SESSION_DETAIL }
+                    )
+                }
+                TAB_LIVE_SESSION_DETAIL -> {
+                    LiveSessionDetailScreen(
+                        viewModel = liveSessionsViewModel,
+                        onBack = {
+                            liveSessionsViewModel.clearSelectedSession()
+                            selectedTab = TAB_LIVE_SESSIONS
+                        }
+                    )
+                }
+                TAB_MARKETPLACE -> {
+                    MarketplaceScreen(
+                        viewModel = marketplaceViewModel,
+                        onBack = { selectedTab = TAB_HOME },
+                        onProductSelected = { selectedTab = TAB_PRODUCT_DETAIL }
+                    )
+                }
+                TAB_PRODUCT_DETAIL -> {
+                    ProductDetailScreen(
+                        viewModel = marketplaceViewModel,
+                        onBack = {
+                            marketplaceViewModel.clearSelectedProduct()
+                            selectedTab = TAB_MARKETPLACE
+                        }
+                    )
+                }
+                TAB_NEWS -> {
+                    NewsScreen(
+                        viewModel = newsViewModel,
+                        onBack = { selectedTab = TAB_HOME },
+                        onArticleSelected = { selectedTab = TAB_NEWS_DETAIL }
+                    )
+                }
+                TAB_NEWS_DETAIL -> {
+                    NewsDetailScreen(
+                        viewModel = newsViewModel,
+                        onBack = {
+                            newsViewModel.clearSelectedArticle()
+                            selectedTab = TAB_NEWS
+                        }
+                    )
+                }
+                TAB_TRACKING -> {
+                    LiveTrackingScreen(
+                        viewModel = trackingViewModel,
+                        onBack = { selectedTab = TAB_HOME }
+                    )
+                }
             }
         }
 
         // ── iOS: CustomTabBar ─────────────────────────────────────────────────
-        CoreViaTabBar(
-            selectedTab = selectedTab,
-            isTrainer   = isTrainer,
-            onTabSelect = { selectedTab = it },
-            modifier    = Modifier.align(Alignment.BottomCenter)
-        )
+        // Yalnız əsas tab-larda göstər (sub-screen-lərdə gizlə, iOS kimi)
+        if (selectedTab in listOf(TAB_HOME, TAB_WORKOUT, TAB_FOOD, TAB_CHAT, TAB_MORE, TAB_PROFILE)) {
+            CoreViaTabBar(
+                selectedTab = selectedTab,
+                isTrainer   = isTrainer,
+                onTabSelect = { selectedTab = it },
+                modifier    = Modifier.align(Alignment.BottomCenter)
+            )
+        }
     }
 }
 
 // ─── iOS: CustomTabBar ────────────────────────────────────────────────────────
-// Glassmorphism + animated selected circle + "More" sheet
+// Glassmorphism + animated selected circle + "More" sheet (iOS: cəmi 2 item!)
 @Composable
 fun CoreViaTabBar(
     selectedTab: Int,
@@ -203,7 +538,7 @@ fun CoreViaTabBar(
 ) {
     var showMoreSheet by remember { mutableStateOf(false) }
 
-    // iOS: HStack tab bar
+    // iOS: HStack tab bar with glassmorphism
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -220,7 +555,6 @@ fun CoreViaTabBar(
                 shape = RoundedCornerShape(24.dp)
             )
             .background(
-                // glassmorphism — dark semi-transparent
                 color = Color(0xFF1C1C1E).copy(alpha = 0.95f),
                 shape = RoundedCornerShape(24.dp)
             )
@@ -235,38 +569,38 @@ fun CoreViaTabBar(
             onClick    = { onTabSelect(TAB_HOME) }
         )
 
-        // Tab 1: Workout / Plans
+        // Tab 1: Workout / Plans — iOS: figure.strengthtraining.traditional
         TabBarItem(
-            icon       = Icons.Filled.Star,
+            icon       = Icons.Filled.FitnessCenter,
             label      = if (isTrainer) "Planlar" else "Məşq",
             isSelected = selectedTab == TAB_WORKOUT,
             onClick    = { onTabSelect(TAB_WORKOUT) }
         )
 
-        // Tab 2: Food / Meal Plans
+        // Tab 2: Food / Meal Plans — iOS: fork.knife
         TabBarItem(
-            icon       = Icons.Filled.Favorite,
+            icon       = Icons.Filled.Restaurant,
             label      = if (isTrainer) "Qida Plan" else "Qida",
             isSelected = selectedTab == TAB_FOOD,
             onClick    = { onTabSelect(TAB_FOOD) }
         )
 
-        // Tab 3: Chat
+        // Tab 3: Chat — iOS: bubble.left.and.bubble.right
         TabBarItem(
-            icon       = Icons.Filled.Email,
+            icon       = Icons.Filled.Forum,
             label      = "Mesajlar",
             isSelected = selectedTab == TAB_CHAT,
             onClick    = { onTabSelect(TAB_CHAT) }
         )
 
-        // Tab 4: More (iOS: TabBarMoreButton with sheet)
+        // Tab 4: More (iOS: sheet with only 2 items)
         TabBarMoreButton(
             isSelected = selectedTab >= TAB_MORE,
             onClick    = { showMoreSheet = true }
         )
     }
 
-    // iOS: MoreMenuSheet — .sheet(isPresented:)
+    // iOS: MoreMenuSheet — .sheet(isPresented:) — yalnız 2 item!
     if (showMoreSheet) {
         MoreMenuSheet(
             isTrainer   = isTrainer,
@@ -277,7 +611,7 @@ fun CoreViaTabBar(
             },
             onProfile   = {
                 showMoreSheet = false
-                onTabSelect(5)
+                onTabSelect(TAB_PROFILE)
             }
         )
     }
@@ -304,15 +638,14 @@ fun TabBarItem(
     ) {
         // iOS: ZStack { Circle + Image }
         Box(
-            modifier = Modifier
-                .size(40.dp),
+            modifier = Modifier.size(40.dp),
             contentAlignment = Alignment.Center
         ) {
-            // iOS: if isSelected → Circle().fill(accent)
             if (isSelected) {
                 Box(
                     modifier = Modifier
                         .size(40.dp)
+                        .shadow(8.dp, CircleShape, spotColor = AppTheme.Colors.accent.copy(alpha = 0.4f))
                         .background(AppTheme.Colors.accent, CircleShape)
                 )
             }
@@ -324,7 +657,7 @@ fun TabBarItem(
             )
         }
 
-        // iOS: Text label
+        // iOS: Text label (10pt)
         Text(
             text       = label,
             fontSize   = 10.sp,
@@ -359,6 +692,7 @@ fun TabBarMoreButton(
                 Box(
                     modifier = Modifier
                         .size(40.dp)
+                        .shadow(8.dp, CircleShape, spotColor = AppTheme.Colors.accent.copy(alpha = 0.4f))
                         .background(
                             brush = Brush.linearGradient(
                                 colors = listOf(AppTheme.Colors.accent, AppTheme.Colors.accentDark)
@@ -384,7 +718,8 @@ fun TabBarMoreButton(
 }
 
 // ─── iOS: MoreMenuSheet ───────────────────────────────────────────────────────
-// iOS: .sheet(isPresented:) { MoreMenuSheet } .presentationDetents([.medium])
+// iOS kimi: YALNIZ 2 ITEM — Activities/Content + Profile
+// Digər feature-lar HomeView Quick Actions-dan açılır
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MoreMenuSheet(
@@ -409,6 +744,7 @@ fun MoreMenuSheet(
             // iOS: Header — blur circle + "···" icon
             Spacer(modifier = Modifier.height(20.dp))
             Box(contentAlignment = Alignment.Center) {
+                // Blur halo
                 Box(
                     modifier = Modifier
                         .size(80.dp)
@@ -423,13 +759,11 @@ fun MoreMenuSheet(
                         )
                         .blur(20.dp)
                 )
+                // Inner circle
                 Box(
                     modifier = Modifier
                         .size(70.dp)
-                        .background(
-                            Color(0xFF2C2C2E),
-                            CircleShape
-                        ),
+                        .background(Color(0xFF2C2C2E), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -450,18 +784,18 @@ fun MoreMenuSheet(
             )
             Spacer(modifier = Modifier.height(24.dp))
 
-            // iOS: Activities / Content menu item
+            // iOS: Item 1 — Activities (client) / Content (trainer)
             MoreMenuItem(
-                icon        = if (isTrainer) Icons.Filled.List else Icons.Filled.PlayArrow,
+                icon        = if (isTrainer) Icons.AutoMirrored.Filled.List else Icons.Filled.PlayArrow,
                 title       = if (isTrainer) "Kontent" else "Aktivliklər",
-                description = if (isTrainer) "Kontent idarə et" else "GPS məşq izləmə",
+                description = if (isTrainer) "Kontent idarə et" else "Müəllim tapşırıqları",
                 gradientColors = listOf(AppTheme.Colors.accent, AppTheme.Colors.accentDark),
                 onClick     = onActivities
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // iOS: Profile menu item
+            // iOS: Item 2 — Profile
             MoreMenuItem(
                 icon        = Icons.Filled.Person,
                 title       = "Profil",
@@ -552,7 +886,7 @@ fun MoreMenuItem(
             }
 
             Icon(
-                imageVector        = Icons.Filled.KeyboardArrowRight,
+                imageVector        = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
                 tint               = AppTheme.Colors.tertiaryText,
                 modifier           = Modifier.size(16.dp)

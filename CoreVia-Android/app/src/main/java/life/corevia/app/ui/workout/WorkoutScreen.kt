@@ -2,31 +2,42 @@ package life.corevia.app.ui.workout
 
 import life.corevia.app.ui.theme.AppTheme
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.automirrored.filled.DirectionsRun
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import life.corevia.app.data.models.Workout
-import life.corevia.app.ui.home.StatCard
 
 /**
- * iOS WorkoutView.swift-in Android ekvivalenti.
+ * iOS WorkoutView.swift — Android 1-ə-1 port
  *
- * Screen yalnız ViewModel-dən oxuyur.
- * ViewModel dəyişsə bu fayl silinmir — yalnız state adları güncəllənir.
+ * Bölmələr (iOS ilə eyni sıra):
+ *  1. Header: title + subtitle
+ *  2. Weekly Summary: 2x2 stat grid in card
+ *  3. Daily Goal Progress: progress + calories/minutes
+ *  4. Today's Workouts: WorkoutCard list
+ *  5. Upcoming/Past Workouts: prefix(3)
+ *  6. Empty State
+ *  7. GPS Tracking Button (premium)
+ *  8. Add Workout Button (gradient inline)
  */
 @Composable
 fun WorkoutScreen(
@@ -38,148 +49,368 @@ fun WorkoutScreen(
     val showAddWorkout by viewModel.showAddWorkout.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
-    // iOS: weekSummarySection hesablamaları
-    val weeklyMinutes = viewModel.weeklyMinutes
+    // iOS: week summary hesablamaları
+    val weeklyMinutes  = viewModel.weeklyMinutes
     val weeklyCalories = viewModel.weeklyCaloriesBurned
-    val weekCount = viewModel.weekWorkoutCount
+    val weekCount      = viewModel.weekWorkoutCount
+    val todayWorkouts  = viewModel.todayWorkouts
     val completedCount = workouts.count { it.isCompleted }
 
-    Scaffold(
-        containerColor = AppTheme.Colors.background,
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { viewModel.setShowAddWorkout(true) },
-                containerColor = AppTheme.Colors.accent,
-                shape = CircleShape
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Məşq əlavə et", tint = Color.White)
-            }
-        }
-    ) { padding ->
+    // iOS: todayProgress
+    val todayCompleted = todayWorkouts.count { it.isCompleted }
+    val todayTotal     = todayWorkouts.size
+    val todayProgress  = if (todayTotal > 0) todayCompleted.toFloat() / todayTotal else 0f
+
+    // iOS: today calories + minutes
+    val todayCalories = todayWorkouts.sumOf { it.caloriesBurned ?: 0 }
+    val todayMinutes  = todayWorkouts.sumOf { it.duration }
+
+    // iOS: pending workouts not today (prefix 3)
+    val pendingNotToday = workouts.filter { !it.isCompleted && !todayWorkouts.contains(it) }.take(3)
+
+    val scrollState = rememberScrollState()
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(AppTheme.Colors.background)
+    ) {
+        // iOS: ScrollView { VStack(spacing: 20) { ... } .padding() .padding(.bottom, 100) }
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .verticalScroll(scrollState)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // ─── Başlıq ───────────────────────────────────────────────────────
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Spacer(modifier = Modifier.height(40.dp))
+
+            // ── 1. Header (iOS: VStack alignment leading spacing 6) ─────────────
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Text(
-                    text = "Məşqlər",
-                    fontSize = 24.sp,
+                    text       = "Məşq İzləmə",
+                    fontSize   = 28.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color      = AppTheme.Colors.primaryText
                 )
-                // iOS: GPS tracking button (premium)
-                TextButton(onClick = onNavigateToLiveTracking) {
-                    Text(text = "📍 GPS", color = AppTheme.Colors.accent)
-                }
-            }
-
-            // ─── Həftəlik statistika ──────────────────────────────────────────
-            // iOS: weekSummarySection
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                StatCard(
-                    modifier = Modifier.weight(1f),
-                    value = "$weekCount",
-                    label = "Bu həftə",
-                    color = AppTheme.Colors.accent
-                )
-                StatCard(
-                    modifier = Modifier.weight(1f),
-                    value = "$completedCount",
-                    label = "Tamamlandı",
-                    color = AppTheme.Colors.success
-                )
-                StatCard(
-                    modifier = Modifier.weight(1f),
-                    value = "$weeklyMinutes",
-                    label = "Dəqiqə",
-                    color = AppTheme.Colors.warning
-                )
-                StatCard(
-                    modifier = Modifier.weight(1f),
-                    value = "$weeklyCalories",
-                    label = "Kalori",
-                    color = AppTheme.Colors.error
+                Text(
+                    text     = "Məşqlərinizi izləyin və inkişafınızı görün",
+                    fontSize = 12.sp,
+                    color    = AppTheme.Colors.secondaryText
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // ─── Xəta mesajı ─────────────────────────────────────────────────
+            // ── Error message ────────────────────────────────────────────────────
             errorMessage?.let { msg ->
-                Card(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp),
-                    colors = CardDefaults.cardColors(containerColor = AppTheme.Colors.error.copy(alpha = 0.15f))
+                        .background(AppTheme.Colors.error.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text     = msg,
+                        color    = AppTheme.Colors.error,
+                        modifier = Modifier.weight(1f),
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        text     = "✕",
+                        color    = AppTheme.Colors.error,
+                        modifier = Modifier.clickable { viewModel.clearError() }
+                    )
+                }
+            }
+
+            // ── 2. Weekly Summary (iOS: VStack in secondaryBackground, cornerRadius 16) ──
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(16.dp))
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text       = "Həftəlik Xülasə",
+                    fontSize   = 17.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color      = AppTheme.Colors.primaryText
+                )
+
+                // iOS: Row 1 — workouts + completed
+                Row(
+                    modifier              = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    WorkoutSummaryStatCard(
+                        modifier = Modifier.weight(1f),
+                        value    = "$weekCount",
+                        label    = "Məşqlər",
+                        color    = AppTheme.Colors.accent
+                    )
+                    WorkoutSummaryStatCard(
+                        modifier = Modifier.weight(1f),
+                        value    = "$completedCount",
+                        label    = "Tamamlandı",
+                        color    = AppTheme.Colors.success
+                    )
+                }
+
+                // iOS: Row 2 — minutes + calories
+                Row(
+                    modifier              = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    WorkoutSummaryStatCard(
+                        modifier = Modifier.weight(1f),
+                        value    = "$weeklyMinutes",
+                        label    = "Dəqiqə",
+                        color    = AppTheme.Colors.accent
+                    )
+                    WorkoutSummaryStatCard(
+                        modifier = Modifier.weight(1f),
+                        value    = "$weeklyCalories",
+                        label    = "Kalori",
+                        color    = Color(0xFFFF9500) // iOS: .orange
+                    )
+                }
+            }
+
+            // ── 3. Daily Goal Progress (iOS: VStack, secondaryBackground, cornerRadius 14) ──
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(14.dp))
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // iOS: HStack { title + Spacer + percentage }
+                Row(
+                    modifier              = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment     = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text       = "Günlük Hədəf",
+                        fontSize   = 17.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color      = AppTheme.Colors.primaryText
+                    )
+                    Text(
+                        text       = "${(todayProgress * 100).toInt()}%",
+                        fontSize   = 17.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color      = AppTheme.Colors.accent
+                    )
+                }
+
+                // iOS: ProgressView(value: todayProgress).tint(accent)
+                LinearProgressIndicator(
+                    progress  = { todayProgress },
+                    modifier  = Modifier
+                        .fillMaxWidth()
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(3.dp)),
+                    color     = AppTheme.Colors.accent,
+                    trackColor = AppTheme.Colors.accent.copy(alpha = 0.2f)
+                )
+
+                // iOS: HStack { flame+calories Spacer clock+minutes }
+                Row(
+                    modifier              = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment     = Alignment.CenterVertically
                     ) {
-                        Text(text = msg, color = AppTheme.Colors.error, modifier = Modifier.weight(1f))
-                        TextButton(onClick = { viewModel.clearError() }) {
-                            Text("X", color = AppTheme.Colors.error)
-                        }
+                        Icon(
+                            imageVector        = Icons.Default.LocalFireDepartment,
+                            contentDescription = null,
+                            modifier           = Modifier.size(12.dp),
+                            tint               = AppTheme.Colors.accent
+                        )
+                        Text(
+                            text     = "$todayCalories kcal",
+                            fontSize = 12.sp,
+                            color    = AppTheme.Colors.secondaryText
+                        )
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment     = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector        = Icons.Default.Schedule,
+                            contentDescription = null,
+                            modifier           = Modifier.size(12.dp),
+                            tint               = AppTheme.Colors.accent
+                        )
+                        Text(
+                            text     = "$todayMinutes dəq",
+                            fontSize = 12.sp,
+                            color    = AppTheme.Colors.secondaryText
+                        )
                     }
                 }
             }
 
-            // ─── Məşq siyahısı ────────────────────────────────────────────────
-            if (isLoading && workouts.isEmpty()) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = AppTheme.Colors.accent)
-                }
-            } else if (workouts.isEmpty()) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(text = "🏋️", fontSize = 48.sp)
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            text = "Hələ məşq yoxdur",
-                            color = AppTheme.Colors.secondaryText,
-                            fontSize = 16.sp
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "+ düyməsi ilə əlavə edin",
-                            color = AppTheme.Colors.accent,
-                            fontSize = 14.sp
+            // ── 4. Today's Workouts (iOS: VStack alignment leading spacing 12) ──
+            if (todayWorkouts.isNotEmpty()) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        text       = "Bugünkü Məşqlər",
+                        fontSize   = 17.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color      = AppTheme.Colors.primaryText
+                    )
+                    todayWorkouts.forEach { workout ->
+                        WorkoutCardIos(
+                            workout  = workout,
+                            onToggle = { viewModel.toggleComplete(workout) }
                         )
                     }
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    items(workouts, key = { it.id }) { workout ->
-                        WorkoutCard(
-                            workout = workout,
-                            onToggleComplete = { viewModel.toggleComplete(workout) },
-                            onDelete = { viewModel.deleteWorkout(workout.id) }
-                        )
-                    }
-                    item { Spacer(modifier = Modifier.height(80.dp)) }
                 }
             }
+
+            // ── 5. Upcoming/Past Workouts (iOS: prefix 3, non-today pending) ────
+            if (pendingNotToday.isNotEmpty()) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        text       = "Gələcək Məşqlər",
+                        fontSize   = 17.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color      = AppTheme.Colors.primaryText
+                    )
+                    pendingNotToday.forEach { workout ->
+                        WorkoutCardIos(
+                            workout  = workout,
+                            onToggle = { viewModel.toggleComplete(workout) }
+                        )
+                    }
+                }
+            }
+
+            // ── 6. Empty State ───────────────────────────────────────────────────
+            if (workouts.isEmpty() && !isLoading) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 60.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Icon(
+                        imageVector        = Icons.Default.FitnessCenter,
+                        contentDescription = null,
+                        modifier           = Modifier.size(60.dp),
+                        tint               = AppTheme.Colors.tertiaryText
+                    )
+                    Text(
+                        text       = "Hələ məşq yoxdur",
+                        fontSize   = 17.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color      = AppTheme.Colors.secondaryText
+                    )
+                    Text(
+                        text     = "İlk məşqinizi əlavə edin",
+                        fontSize = 12.sp,
+                        color    = AppTheme.Colors.tertiaryText
+                    )
+                }
+            }
+
+            // Loading
+            if (isLoading && workouts.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 40.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = AppTheme.Colors.accent)
+                }
+            }
+
+            // ── 7. GPS Tracking Button (iOS: premium green / locked gray) ────────
+            // iOS: Premium → green gradient NavigationLink
+            // iOS: Non-Premium → gray gradient with lock icon
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp)
+                    .shadow(8.dp, RoundedCornerShape(14.dp), spotColor = AppTheme.Colors.success.copy(alpha = 0.3f))
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(AppTheme.Colors.success, AppTheme.Colors.success.copy(alpha = 0.8f))
+                        ),
+                        shape = RoundedCornerShape(14.dp)
+                    )
+                    .clip(RoundedCornerShape(14.dp))
+                    .clickable { onNavigateToLiveTracking() }
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment     = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector        = Icons.Default.LocationOn,
+                        contentDescription = null,
+                        tint               = Color.White
+                    )
+                    Text(
+                        text       = "GPS ilə Qaçış/Gəzinti",
+                        fontWeight = FontWeight.Bold,
+                        color      = Color.White
+                    )
+                }
+            }
+
+            // ── 8. Add Workout Button (iOS: accent gradient, inline) ─────────────
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp)
+                    .shadow(8.dp, RoundedCornerShape(14.dp), spotColor = AppTheme.Colors.accent.copy(alpha = 0.3f))
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(AppTheme.Colors.accent, AppTheme.Colors.accent.copy(alpha = 0.8f))
+                        ),
+                        shape = RoundedCornerShape(14.dp)
+                    )
+                    .clip(RoundedCornerShape(14.dp))
+                    .clickable { viewModel.setShowAddWorkout(true) }
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment     = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector        = Icons.Default.AddCircle,
+                        contentDescription = null,
+                        tint               = Color.White
+                    )
+                    Text(
+                        text       = "Yeni Məşq",
+                        fontWeight = FontWeight.Bold,
+                        color      = Color.White
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(100.dp)) // Tab bar üçün yer
         }
     }
 
-    // ─── Add Workout Bottom Sheet ─────────────────────────────────────────────
+    // ─── Add Workout Bottom Sheet ────────────────────────────────────────────
     if (showAddWorkout) {
         AddWorkoutSheet(
             onDismiss = { viewModel.setShowAddWorkout(false) },
@@ -190,87 +421,152 @@ fun WorkoutScreen(
     }
 }
 
-// ─── WorkoutCard ──────────────────────────────────────────────────────────────
-// iOS: WorkoutCard view
+// ─── iOS: WeeklySummary Stat Card (VStack in cardBackground, cornerRadius 12) ──
 @Composable
-fun WorkoutCard(
-    workout: Workout,
-    onToggleComplete: () -> Unit,
-    onDelete: () -> Unit
+private fun WorkoutSummaryStatCard(
+    modifier: Modifier = Modifier,
+    value: String,
+    label: String,
+    color: Color
 ) {
-    var showDeleteConfirm by remember { mutableStateOf(false) }
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = AppTheme.Colors.secondaryBackground)
+    Column(
+        modifier = modifier
+            .background(AppTheme.Colors.cardBackground, RoundedCornerShape(12.dp))
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Tamamlandı checkbox
-            Checkbox(
-                checked = workout.isCompleted,
-                onCheckedChange = { onToggleComplete() },
-                colors = CheckboxDefaults.colors(
-                    checkedColor = AppTheme.Colors.success,
-                    uncheckedColor = AppTheme.Colors.tertiaryText
-                )
-            )
+        Text(
+            text       = value,
+            fontSize   = 22.sp,
+            fontWeight = FontWeight.Bold,
+            color      = color
+        )
+        Text(
+            text     = label,
+            fontSize = 10.sp,
+            color    = AppTheme.Colors.secondaryText
+        )
+    }
+}
 
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = workout.title,
-                    color = Color.White,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 15.sp
-                )
-                Text(
-                    text = "${workout.duration} dəq · ${workout.category}",
-                    color = AppTheme.Colors.secondaryText,
-                    fontSize = 13.sp
-                )
-                workout.caloriesBurned?.let {
-                    Text(
-                        text = "🔥 $it kal",
-                        color = AppTheme.Colors.error,
-                        fontSize = 12.sp
-                    )
-                }
-            }
-
-            IconButton(onClick = { showDeleteConfirm = true }) {
-                Icon(
-                    Icons.Default.Delete,
-                    contentDescription = "Sil",
-                    tint = AppTheme.Colors.tertiaryText
-                )
-            }
-        }
+// ─── iOS: WorkoutCard ─────────────────────────────────────────────────────────
+// HStack(spacing: 16) { circle icon + VStack(title, HStack(clock+duration, flame+calories)) + toggle }
+// background: secondaryBackground, cornerRadius: 14
+// border: success(0.3) when completed
+@Composable
+fun WorkoutCardIos(
+    workout: Workout,
+    onToggle: () -> Unit
+) {
+    // iOS: categoryColor based on workout.category
+    val categoryColor = when (workout.category.lowercase()) {
+        "strength"   -> AppTheme.Colors.accent
+        "cardio"     -> AppTheme.Colors.accentDark
+        "flexibility" -> AppTheme.Colors.accent
+        "endurance"  -> AppTheme.Colors.accentDark
+        else         -> AppTheme.Colors.accent
     }
 
-    if (showDeleteConfirm) {
-        AlertDialog(
-            onDismissRequest = { showDeleteConfirm = false },
-            containerColor = AppTheme.Colors.secondaryBackground,
-            title = { Text("Silinsin?", color = Color.White) },
-            text = { Text("\"${workout.title}\" silinəcək.", color = AppTheme.Colors.secondaryText) },
-            confirmButton = {
-                TextButton(onClick = {
-                    onDelete()
-                    showDeleteConfirm = false
-                }) {
-                    Text("Sil", color = AppTheme.Colors.error)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(14.dp))
+            .then(
+                if (workout.isCompleted) {
+                    Modifier.border(
+                        width = 1.dp,
+                        color = AppTheme.Colors.success.copy(alpha = 0.3f),
+                        shape = RoundedCornerShape(14.dp)
+                    )
+                } else Modifier
+            )
+            .padding(16.dp),
+        verticalAlignment     = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // iOS: ZStack { Circle(50) + category icon }
+        Box(
+            modifier = Modifier
+                .size(50.dp)
+                .background(categoryColor.copy(alpha = 0.2f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = when (workout.category.lowercase()) {
+                    "strength"   -> Icons.Default.FitnessCenter
+                    "cardio"     -> Icons.AutoMirrored.Filled.DirectionsRun
+                    "flexibility" -> Icons.Default.SelfImprovement
+                    "endurance"  -> Icons.Default.Speed
+                    else         -> Icons.Default.FitnessCenter
+                },
+                contentDescription = null,
+                modifier = Modifier.size(22.dp),
+                tint     = categoryColor
+            )
+        }
+
+        // iOS: VStack(alignment: .leading, spacing: 4) { title, HStack(clock+dur, flame+cal) }
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text       = workout.title,
+                color      = AppTheme.Colors.primaryText,
+                fontWeight = FontWeight.Bold,
+                fontSize   = 15.sp
+            )
+
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                // iOS: clock.fill + duration
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment     = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector        = Icons.Default.Schedule,
+                        contentDescription = null,
+                        modifier           = Modifier.size(10.dp),
+                        tint               = AppTheme.Colors.secondaryText
+                    )
+                    Text(
+                        text     = "${workout.duration} dəq",
+                        fontSize = 12.sp,
+                        color    = AppTheme.Colors.secondaryText
+                    )
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text("Ləğv et", color = AppTheme.Colors.accent)
+
+                // iOS: flame.fill + calories (if present)
+                workout.caloriesBurned?.let { cal ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment     = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector        = Icons.Default.LocalFireDepartment,
+                            contentDescription = null,
+                            modifier           = Modifier.size(10.dp),
+                            tint               = AppTheme.Colors.accent
+                        )
+                        Text(
+                            text     = "$cal kcal",
+                            fontSize = 12.sp,
+                            color    = AppTheme.Colors.accent
+                        )
+                    }
                 }
             }
+        }
+
+        // iOS: Button { checkmark.circle.fill or circle }
+        Icon(
+            imageVector = if (workout.isCompleted) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
+            contentDescription = "Tamamla",
+            modifier = Modifier
+                .size(28.dp)
+                .clickable { onToggle() },
+            tint = if (workout.isCompleted) AppTheme.Colors.success else AppTheme.Colors.tertiaryText
         )
     }
 }

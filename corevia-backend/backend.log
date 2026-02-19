@@ -2151,3 +2151,8 @@ WHERE otp_codes.email = $1::VARCHAR AND otp_codes.purpose = $2::VARCHAR AND otp_
 SMTP xətası: Timed out waiting for server ready message
 Email göndərilmədi: Timed out waiting for server ready message
 INFO:     127.0.0.1:64284 - "POST /api/v1/auth/login HTTP/1.1" 429 Too Many Requests
+Run time of job "send_meal_reminders (trigger: cron[hour='12', minute='0'], next run at: 2026-02-19 12:00:00 +04)" was missed by 21:40:44.051793
+Run time of job "send_workout_reminders (trigger: cron[hour='18', minute='0'], next run at: 2026-02-19 18:00:00 +04)" was missed by 15:40:44.057817
+Run time of job "send_meal_reminders (trigger: cron[hour='19', minute='0'], next run at: 2026-02-19 19:00:00 +04)" was missed by 14:40:44.058219
+Run time of job "check_expired_subscriptions (trigger: cron[hour='0', minute='30'], next run at: 2026-02-20 00:30:00 +04)" was missed by 9:10:44.058411
+Run time of job "send_meal_reminders (trigger: cron[hour='12', minute='0'], next run at: 2026-02-20 12:00:00 +04)" was missed by 0:23:34.899549

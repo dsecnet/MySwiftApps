@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import life.corevia.app.data.api.ErrorParser
 import life.corevia.app.data.models.*
 import life.corevia.app.data.repository.WorkoutRepository
 import java.time.LocalDate
@@ -103,7 +104,7 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
             _isLoading.value = true
             repository.getWorkouts().fold(
                 onSuccess = { _workouts.value = it },
-                onFailure = { _errorMessage.value = it.message }
+                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
             )
             _isLoading.value = false
         }
@@ -134,7 +135,7 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
                     _workouts.value = _workouts.value + it
                     _showAddWorkout.value = false
                 },
-                onFailure = { _errorMessage.value = it.message }
+                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
             )
             _isLoading.value = false
         }
@@ -157,7 +158,7 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
                         if (it.id == updated.id) updated else it
                     }
                 },
-                onFailure = { _errorMessage.value = it.message }
+                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
             )
         }
     }
@@ -169,7 +170,7 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
                 onSuccess = {
                     _workouts.value = _workouts.value.filter { it.id != workoutId }
                 },
-                onFailure = { _errorMessage.value = it.message }
+                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
             )
         }
     }

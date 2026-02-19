@@ -56,5 +56,6 @@ class TrainingPlanRepository(context: Context) {
             instance ?: synchronized(this) {
                 instance ?: TrainingPlanRepository(context.applicationContext).also { instance = it }
             }
+        fun clearInstance() { instance = null }
     }
 }

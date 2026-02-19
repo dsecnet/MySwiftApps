@@ -7,143 +7,395 @@ import retrofit2.http.*
 /**
  * iOS APIService.swift-in Android ekvivalenti.
  * Bütün endpoint-lər burada Retrofit annotasiyaları ilə təyin edilir.
- *
- * iOS-da: APIService.shared.request(endpoint:method:body:)
- * Android-da: ApiClient.api.login(request) — suspend fun
+ * Backend: https://api.corevia.life/
  */
 interface CoreViaApi {
 
-    // ─── Auth ──────────────────────────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════════════
+    // AUTH
+    // ═══════════════════════════════════════════════════════════════════════════
 
-    // iOS: POST /api/v1/auth/login → Step 1: OTP göndərilir (200 = OK)
+    // Step 1: Login → OTP göndərilir
     @POST("api/v1/auth/login")
     suspend fun login(@Body request: LoginRequest): okhttp3.ResponseBody
 
-    // iOS: POST /api/v1/auth/login-verify → Step 2: OTP doğrulama + token alınır
+    // Step 2: OTP doğrulama + token alınır
     @POST("api/v1/auth/login-verify")
     suspend fun loginVerify(@Body request: LoginVerifyRequest): AuthResponse
 
-    // iOS: POST /api/v1/auth/register
-    @POST("api/v1/auth/register")
-    suspend fun register(@Body request: RegisterRequest): AuthResponse
+    // Register Step 1: OTP göndər (iOS kimi yalnız email)
+    @POST("api/v1/auth/register-request")
+    suspend fun registerRequest(@Body request: RegisterOtpRequest): okhttp3.ResponseBody
 
-    // iOS: POST /api/v1/auth/refresh — JSON body ilə (header yox!)
-    // FIXED: iOS-da eyni bug düzəldildi — backend JSON body gözləyir
+    // Register Step 2: OTP ilə qeydiyyat tamamla (201 qaytarır, AuthResponse yoxdur)
+    @POST("api/v1/auth/register")
+    suspend fun register(@Body request: RegisterVerifyRequest): okhttp3.ResponseBody
+
+    // Token yenilə — JSON body ilə (header yox!)
     @POST("api/v1/auth/refresh")
     suspend fun refreshToken(@Body request: RefreshTokenRequest): AuthResponse
 
-    // ─── User ──────────────────────────────────────────────────────────────────
+    // Şifrəni unutdum — OTP göndər
+    @POST("api/v1/auth/forgot-password")
+    suspend fun forgotPassword(@Body request: ForgotPasswordRequest): okhttp3.ResponseBody
 
-    // iOS: GET /api/v1/users/me
-    @GET("api/v1/users/me")
+    // OTP doğrulama
+    @POST("api/v1/auth/verify-otp")
+    suspend fun verifyOtp(@Body request: VerifyOtpRequest): okhttp3.ResponseBody
+
+    // Şifrə sıfırlama
+    @POST("api/v1/auth/reset-password")
+    suspend fun resetPassword(@Body request: ResetPasswordRequest): okhttp3.ResponseBody
+
+    // Premium status yenilənmiş token al
+    @POST("api/v1/auth/refresh-claims")
+    suspend fun refreshClaims(): AuthResponse
+
+    // Trainer verifikasiya foto yüklə
+    @Multipart
+    @POST("api/v1/auth/verify-trainer")
+    suspend fun verifyTrainer(@Part file: MultipartBody.Part): okhttp3.ResponseBody
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // USERS
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // iOS: /api/v1/auth/me (NOT /api/v1/users/me!)
+    @GET("api/v1/auth/me")
     suspend fun getMe(): UserResponse
 
-    // iOS: PUT /api/v1/users/profile
     @PUT("api/v1/users/profile")
     suspend fun updateProfile(@Body request: ProfileUpdateRequest): UserResponse
 
-    // iOS: GET /api/v1/users/my-students (Trainer only)
     @GET("api/v1/users/my-students")
     suspend fun getMyStudents(): List<UserResponse>
 
-    // ─── Workouts ─────────────────────────────────────────────────────────────
+    @GET("api/v1/users/trainers")
+    suspend fun getTrainers(): List<UserResponse>
 
-    // iOS: GET /api/v1/workouts/
+    @GET("api/v1/users/trainer/{trainerId}")
+    suspend fun getTrainer(@Path("trainerId") trainerId: String): UserResponse
+
+    @POST("api/v1/users/assign-trainer/{trainerId}")
+    suspend fun assignTrainer(@Path("trainerId") trainerId: String): okhttp3.ResponseBody
+
+    @DELETE("api/v1/users/unassign-trainer")
+    suspend fun unassignTrainer(): okhttp3.ResponseBody
+
+    @POST("api/v1/users/assign-student/{studentId}")
+    suspend fun assignStudent(@Path("studentId") studentId: String): okhttp3.ResponseBody
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // WORKOUTS
+    // ═══════════════════════════════════════════════════════════════════════════
+
     @GET("api/v1/workouts/")
     suspend fun getWorkouts(): List<Workout>
 
-    // iOS: POST /api/v1/workouts/
     @POST("api/v1/workouts/")
     suspend fun createWorkout(@Body request: WorkoutCreateRequest): Workout
 
-    // iOS: PUT /api/v1/workouts/{id}
     @PUT("api/v1/workouts/{id}")
-    suspend fun updateWorkout(
-        @Path("id") id: String,
-        @Body request: WorkoutUpdateRequest
-    ): Workout
+    suspend fun updateWorkout(@Path("id") id: String, @Body request: WorkoutUpdateRequest): Workout
 
-    // iOS: DELETE /api/v1/workouts/{id}
     @DELETE("api/v1/workouts/{id}")
     suspend fun deleteWorkout(@Path("id") id: String)
 
-    // ─── Food Entries ─────────────────────────────────────────────────────────
-    // FIXED: Endpoint-lər düzəldildi — /api/v1/food/ (meal-plans yox!)
+    @GET("api/v1/workouts/today")
+    suspend fun getTodayWorkouts(): List<Workout>
 
-    // iOS: GET /api/v1/food/
+    @GET("api/v1/workouts/stats")
+    suspend fun getWorkoutStats(): WorkoutStatsResponse
+
+    @PATCH("api/v1/workouts/{id}/toggle")
+    suspend fun toggleWorkout(@Path("id") id: String): Workout
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // FOOD ENTRIES
+    // ═══════════════════════════════════════════════════════════════════════════
+
     @GET("api/v1/food/")
     suspend fun getFoodEntries(): List<FoodEntry>
 
-    // iOS: POST /api/v1/food/
     @POST("api/v1/food/")
     suspend fun createFoodEntry(@Body request: FoodEntryCreateRequest): FoodEntry
 
-    // iOS: PUT /api/v1/food/{id}
     @PUT("api/v1/food/{id}")
-    suspend fun updateFoodEntry(
-        @Path("id") id: String,
-        @Body request: FoodEntryCreateRequest
-    ): FoodEntry
+    suspend fun updateFoodEntry(@Path("id") id: String, @Body request: FoodEntryCreateRequest): FoodEntry
 
-    // iOS: DELETE /api/v1/food/{id}
     @DELETE("api/v1/food/{id}")
     suspend fun deleteFoodEntry(@Path("id") id: String)
 
-    // ─── Training Plans ───────────────────────────────────────────────────────
-    // FIXED: Endpoint-lər düzəldildi — /api/v1/plans/training (training-plans yox!)
+    @GET("api/v1/food/today")
+    suspend fun getTodayFoodEntries(): List<FoodEntry>
 
-    // iOS: GET /api/v1/plans/training
+    @GET("api/v1/food/daily-summary")
+    suspend fun getDailySummary(): DailyNutritionSummary
+
+    @Multipart
+    @POST("api/v1/food/analyze")
+    suspend fun analyzeFoodImage(@Part file: MultipartBody.Part): FoodAnalysisResult
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // TRAINING PLANS
+    // ═══════════════════════════════════════════════════════════════════════════
+
     @GET("api/v1/plans/training")
     suspend fun getTrainingPlans(): List<TrainingPlan>
 
-    // iOS: GET /api/v1/plans/training/{id}
     @GET("api/v1/plans/training/{id}")
     suspend fun getTrainingPlan(@Path("id") id: String): TrainingPlan
 
-    // iOS: POST /api/v1/plans/training
     @POST("api/v1/plans/training")
     suspend fun createTrainingPlan(@Body request: TrainingPlanCreateRequest): TrainingPlan
 
-    // iOS: PUT /api/v1/plans/training/{id}/complete
     @PUT("api/v1/plans/training/{id}/complete")
     suspend fun completeTrainingPlan(@Path("id") id: String): TrainingPlan
 
-    // iOS: DELETE /api/v1/plans/training/{id}
     @DELETE("api/v1/plans/training/{id}")
     suspend fun deleteTrainingPlan(@Path("id") id: String)
 
-    // ─── Meal Plans ──────────────────────────────────────────────────────────
-    // YENI: /api/v1/plans/meal
+    // ═══════════════════════════════════════════════════════════════════════════
+    // MEAL PLANS
+    // ═══════════════════════════════════════════════════════════════════════════
 
-    // iOS: GET /api/v1/plans/meal
     @GET("api/v1/plans/meal")
     suspend fun getMealPlans(): List<MealPlan>
 
-    // iOS: GET /api/v1/plans/meal/{id}
     @GET("api/v1/plans/meal/{id}")
     suspend fun getMealPlan(@Path("id") id: String): MealPlan
 
-    // iOS: POST /api/v1/plans/meal
     @POST("api/v1/plans/meal")
     suspend fun createMealPlan(@Body request: MealPlanCreateRequest): MealPlan
 
-    // iOS: PUT /api/v1/plans/meal/{id}/complete
     @PUT("api/v1/plans/meal/{id}/complete")
     suspend fun completeMealPlan(@Path("id") id: String): MealPlan
 
-    // iOS: DELETE /api/v1/plans/meal/{id}
     @DELETE("api/v1/plans/meal/{id}")
     suspend fun deleteMealPlan(@Path("id") id: String)
 
-    // ─── Image Upload (Multipart) ─────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CHAT
+    // ═══════════════════════════════════════════════════════════════════════════
 
-    // iOS: uploadImage(endpoint:imageData:) — Multipart POST
+    @POST("api/v1/chat/send")
+    suspend fun sendMessage(@Body request: SendMessageRequest): ChatMessage
+
+    @GET("api/v1/chat/history/{userId}")
+    suspend fun getChatHistory(@Path("userId") userId: String): List<ChatMessage>
+
+    @GET("api/v1/chat/conversations")
+    suspend fun getConversations(): List<Conversation>
+
+    @GET("api/v1/chat/limit")
+    suspend fun getMessageLimit(): MessageLimitResponse
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // NOTIFICATIONS
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    @GET("api/v1/notifications/")
+    suspend fun getNotifications(): List<AppNotification>
+
+    @GET("api/v1/notifications/unread-count")
+    suspend fun getUnreadCount(): UnreadCountResponse
+
+    @POST("api/v1/notifications/mark-read")
+    suspend fun markNotificationsRead(@Body request: MarkReadRequest): okhttp3.ResponseBody
+
+    @POST("api/v1/notifications/mark-all-read")
+    suspend fun markAllNotificationsRead(): okhttp3.ResponseBody
+
+    @DELETE("api/v1/notifications/{id}")
+    suspend fun deleteNotification(@Path("id") id: String)
+
+    @POST("api/v1/notifications/device-token")
+    suspend fun registerDeviceToken(@Body request: DeviceTokenRequest): okhttp3.ResponseBody
+
+    @HTTP(method = "DELETE", path = "api/v1/notifications/device-token", hasBody = true)
+    suspend fun unregisterDeviceToken(@Body request: DeviceTokenRequest): okhttp3.ResponseBody
+
+    @POST("api/v1/notifications/send")
+    suspend fun sendNotification(@Body request: SendNotificationRequest): okhttp3.ResponseBody
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ANALYTICS
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    @GET("api/v1/analytics/daily/{date}")
+    suspend fun getDailyAnalytics(@Path("date") date: String): DailyStats
+
+    @GET("api/v1/analytics/weekly")
+    suspend fun getWeeklyAnalytics(): WeeklyStats
+
+    @GET("api/v1/analytics/dashboard")
+    suspend fun getAnalyticsDashboard(): AnalyticsDashboard
+
+    @POST("api/v1/analytics/measurements")
+    suspend fun createMeasurement(@Body request: BodyMeasurementCreateRequest): BodyMeasurement
+
+    @GET("api/v1/analytics/measurements")
+    suspend fun getMeasurements(): List<BodyMeasurement>
+
+    @DELETE("api/v1/analytics/measurements/{id}")
+    suspend fun deleteMeasurement(@Path("id") id: String)
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SOCIAL
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    @POST("api/v1/social/posts")
+    suspend fun createPost(@Body request: CreatePostRequest): SocialPost
+
+    @GET("api/v1/social/feed")
+    suspend fun getSocialFeed(): List<SocialPost>
+
+    @GET("api/v1/social/posts/{postId}")
+    suspend fun getPost(@Path("postId") postId: String): SocialPost
+
+    @DELETE("api/v1/social/posts/{postId}")
+    suspend fun deletePost(@Path("postId") postId: String)
+
+    @POST("api/v1/social/posts/{postId}/like")
+    suspend fun likePost(@Path("postId") postId: String): okhttp3.ResponseBody
+
+    @DELETE("api/v1/social/posts/{postId}/like")
+    suspend fun unlikePost(@Path("postId") postId: String)
+
+    @POST("api/v1/social/posts/{postId}/comments")
+    suspend fun createComment(@Path("postId") postId: String, @Body request: CreateCommentRequest): SocialComment
+
+    @GET("api/v1/social/posts/{postId}/comments")
+    suspend fun getComments(@Path("postId") postId: String): List<SocialComment>
+
+    @DELETE("api/v1/social/comments/{commentId}")
+    suspend fun deleteComment(@Path("commentId") commentId: String)
+
+    @POST("api/v1/social/follow/{userId}")
+    suspend fun followUser(@Path("userId") userId: String): okhttp3.ResponseBody
+
+    @DELETE("api/v1/social/follow/{userId}")
+    suspend fun unfollowUser(@Path("userId") userId: String)
+
+    @GET("api/v1/social/profile/{userId}")
+    suspend fun getUserProfile(@Path("userId") userId: String): UserProfileSummary
+
+    @GET("api/v1/social/achievements")
+    suspend fun getAchievements(): List<Achievement>
+
     @Multipart
-    @POST("api/v1/users/me/profile-image")
+    @POST("api/v1/social/posts/{postId}/image")
+    suspend fun uploadPostImage(@Path("postId") postId: String, @Part file: MultipartBody.Part): SocialPost
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // PREMIUM
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    @GET("api/v1/premium/status")
+    suspend fun getPremiumStatus(): PremiumStatus
+
+    @GET("api/v1/premium/plans")
+    suspend fun getPremiumPlans(): List<PremiumPlan>
+
+    @POST("api/v1/premium/subscribe")
+    suspend fun subscribe(@Body request: SubscribeRequest): okhttp3.ResponseBody
+
+    @POST("api/v1/premium/activate")
+    suspend fun activatePremium(): okhttp3.ResponseBody
+
+    @POST("api/v1/premium/cancel")
+    suspend fun cancelSubscription(): okhttp3.ResponseBody
+
+    @POST("api/v1/premium/restore")
+    suspend fun restoreSubscription(): okhttp3.ResponseBody
+
+    @GET("api/v1/premium/history")
+    suspend fun getSubscriptionHistory(): List<SubscriptionHistory>
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // REVIEWS
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    @POST("api/v1/trainer/{trainerId}/reviews")
+    suspend fun createReview(@Path("trainerId") trainerId: String, @Body request: CreateReviewRequest): TrainerReview
+
+    @GET("api/v1/trainer/{trainerId}/reviews")
+    suspend fun getTrainerReviews(@Path("trainerId") trainerId: String): List<TrainerReview>
+
+    @GET("api/v1/trainer/{trainerId}/reviews/summary")
+    suspend fun getReviewSummary(@Path("trainerId") trainerId: String): ReviewSummary
+
+    @DELETE("api/v1/trainer/{trainerId}/reviews")
+    suspend fun deleteReview(@Path("trainerId") trainerId: String)
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // TRAINER STATS
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    @GET("api/v1/trainer/stats")
+    suspend fun getTrainerStats(): TrainerStatsResponse
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // FILE UPLOADS
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    @Multipart
+    @POST("api/v1/uploads/profile-image")
     suspend fun uploadProfileImage(@Part file: MultipartBody.Part): UserResponse
 
-    // iOS: uploadImageWithFields — Məşq analizı üçün multipart
+    @DELETE("api/v1/uploads/profile-image")
+    suspend fun deleteProfileImage(): okhttp3.ResponseBody
+
     @Multipart
-    @POST("api/v1/food/analyze-image")
-    suspend fun analyzeFoodImage(@Part file: MultipartBody.Part): FoodEntry
+    @POST("api/v1/uploads/food-image/{entryId}")
+    suspend fun uploadFoodImage(@Path("entryId") entryId: String, @Part file: MultipartBody.Part): FoodEntry
+
+    @Multipart
+    @POST("api/v1/uploads/certificate")
+    suspend fun uploadCertificate(@Part file: MultipartBody.Part): okhttp3.ResponseBody
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // LIVE SESSIONS
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    @GET("api/v1/live-sessions")
+    suspend fun getLiveSessions(): List<LiveSession>
+
+    @GET("api/v1/live-sessions/{sessionId}")
+    suspend fun getLiveSession(@Path("sessionId") sessionId: String): LiveSession
+
+    @POST("api/v1/live-sessions")
+    suspend fun createLiveSession(@Body request: CreateLiveSessionRequest): LiveSession
+
+    @POST("api/v1/live-sessions/{sessionId}/join")
+    suspend fun joinLiveSession(@Path("sessionId") sessionId: String): LiveSession
+
+    @POST("api/v1/live-sessions/{sessionId}/leave")
+    suspend fun leaveLiveSession(@Path("sessionId") sessionId: String): LiveSession
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // MARKETPLACE
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    @GET("api/v1/marketplace/products")
+    suspend fun getProducts(): List<Product>
+
+    @GET("api/v1/marketplace/products/{productId}")
+    suspend fun getProduct(@Path("productId") productId: String): Product
+
+    @POST("api/v1/marketplace/orders")
+    suspend fun createOrder(@Body request: CreateOrderRequest): Order
+
+    @GET("api/v1/marketplace/orders")
+    suspend fun getOrders(): List<Order>
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // NEWS
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    @GET("api/v1/news")
+    suspend fun getNews(): List<NewsArticle>
+
+    @GET("api/v1/news/{articleId}")
+    suspend fun getNewsArticle(@Path("articleId") articleId: String): NewsArticle
 }

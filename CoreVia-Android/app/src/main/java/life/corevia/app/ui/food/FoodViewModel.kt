@@ -7,13 +7,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import life.corevia.app.data.api.ErrorParser
 import life.corevia.app.data.models.*
 import life.corevia.app.data.repository.FoodRepository
 import java.time.LocalDate
 
 /**
- * iOS FoodManager.swift (@MainActor ObservableObject) →
+ * iOS FoodManager.swift (@MainActor ObservableObject) ->
  * Android FoodViewModel
+ * UPDATED: updateFoodEntry + successMessage elave edildi
  */
 class FoodViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -28,6 +30,9 @@ class FoodViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+
+    private val _successMessage = MutableStateFlow<String?>(null)
+    val successMessage: StateFlow<String?> = _successMessage.asStateFlow()
 
     // iOS: @Published var showAddFood = false
     private val _showAddFood = MutableStateFlow(false)
@@ -73,7 +78,7 @@ class FoodViewModel(application: Application) : AndroidViewModel(application) {
             _isLoading.value = true
             repository.getFoodEntries().fold(
                 onSuccess = { _foodEntries.value = it },
-                onFailure = { _errorMessage.value = it.message }
+                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
             )
             _isLoading.value = false
         }
@@ -105,8 +110,45 @@ class FoodViewModel(application: Application) : AndroidViewModel(application) {
                 onSuccess = {
                     _foodEntries.value = _foodEntries.value + it
                     _showAddFood.value = false
+                    _successMessage.value = "Qida elave edildi"
                 },
-                onFailure = { _errorMessage.value = it.message }
+                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
+            )
+            _isLoading.value = false
+        }
+    }
+
+    // iOS: func updateFoodEntry
+    fun updateFoodEntry(
+        id: String,
+        name: String,
+        calories: Int,
+        protein: Double?,
+        carbs: Double?,
+        fats: Double?,
+        mealType: String,
+        notes: String?
+    ) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val request = FoodEntryCreateRequest(
+                name = name,
+                calories = calories,
+                protein = protein,
+                carbs = carbs,
+                fats = fats,
+                mealType = mealType,
+                date = null,
+                notes = notes
+            )
+            repository.updateFoodEntry(id, request).fold(
+                onSuccess = { updated ->
+                    _foodEntries.value = _foodEntries.value.map {
+                        if (it.id == updated.id) updated else it
+                    }
+                    _successMessage.value = "Qida yenilendi"
+                },
+                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
             )
             _isLoading.value = false
         }
@@ -118,8 +160,9 @@ class FoodViewModel(application: Application) : AndroidViewModel(application) {
             repository.deleteFoodEntry(id).fold(
                 onSuccess = {
                     _foodEntries.value = _foodEntries.value.filter { it.id != id }
+                    _successMessage.value = "Qida silindi"
                 },
-                onFailure = { _errorMessage.value = it.message }
+                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
             )
         }
     }
@@ -127,4 +170,5 @@ class FoodViewModel(application: Application) : AndroidViewModel(application) {
     fun setCalorieGoal(goal: Int)    { _calorieGoal.value = goal }
     fun setShowAddFood(show: Boolean) { _showAddFood.value = show }
     fun clearError()                  { _errorMessage.value = null }
+    fun clearSuccess()                { _successMessage.value = null }
 }

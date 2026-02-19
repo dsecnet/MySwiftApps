@@ -29,6 +29,15 @@ class FoodRepository(context: Context) {
         }
     }
 
+    // iOS: FoodManager.updateFoodEntry(_:)
+    suspend fun updateFoodEntry(id: String, request: FoodEntryCreateRequest): Result<FoodEntry> {
+        return try {
+            Result.success(api.updateFoodEntry(id, request))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     // iOS: FoodManager.deleteFoodEntry(_:)
     suspend fun deleteFoodEntry(id: String): Result<Unit> {
         return try {
@@ -45,5 +54,6 @@ class FoodRepository(context: Context) {
             instance ?: synchronized(this) {
                 instance ?: FoodRepository(context.applicationContext).also { instance = it }
             }
+        fun clearInstance() { instance = null }
     }
 }

@@ -2,109 +2,181 @@ package life.corevia.app.data.repository
 
 import android.content.Context
 import life.corevia.app.data.api.ApiClient
+import life.corevia.app.data.api.ErrorParser
 import life.corevia.app.data.api.TokenManager
 import life.corevia.app.data.models.*
 
 /**
  * iOS AuthenticationManager.swift-in Android Repository ekvivalenti.
  *
- * 2-step login axını (iOS LoginView.swift loginAction() + verifyOTPAndLogin() ilə eyni):
- *  - sendLoginOtp(email, password) → POST /api/v1/auth/login → 200 OK (OTP göndərildi)
+ * 2-step login axını:
+ *  - sendLoginOtp(email, password) → POST /api/v1/auth/login → OTP göndərildi
  *  - verifyLoginOtp(email, otp)    → POST /api/v1/auth/login-verify → token alınır
  *
- * Qayda: ViewModel bu class-ı çağırır, Screen ViewModel-i çağırır.
- * Screen heç vaxt birbaşa ApiClient-ə toxunmur.
+ * 2-step register axını:
+ *  - sendRegisterOtp(name, email, password, userType) → POST /api/v1/auth/register-request → OTP göndərildi
+ *  - verifyRegisterOtp(name, email, password, userType, otp) → POST /api/v1/auth/register → token alınır
  *
- * Result<T> qaytarır — uğur da, xəta da structured şəkildə.
+ * 3-step forgot password:
+ *  - sendForgotPasswordOtp(email) → POST /api/v1/auth/forgot-password → OTP göndərildi
+ *  - verifyForgotPasswordOtp(email, otp) → POST /api/v1/auth/verify-otp → doğrulandı
+ *  - resetPassword(email, otp, newPassword) → POST /api/v1/auth/reset-password → şifrə dəyişdi
  */
 class AuthRepository(context: Context) {
 
     private val api = ApiClient.getInstance(context).api
     private val tokenManager = TokenManager.getInstance(context)
 
-    /**
-     * iOS loginAction() ilə eyni — Step 1:
-     * POST /api/v1/auth/login → 200 = OTP göndərildi
-     * Uğurda Result.success(Unit), xətada Result.failure(exception)
-     */
+    // ═══════════════════════════════════════════════════════════════════════════
+    // LOGIN (2-step)
+    // ═══════════════════════════════════════════════════════════════════════════
+
     suspend fun sendLoginOtp(email: String, password: String): Result<Unit> {
         return try {
-            api.login(LoginRequest(email, password))
+            val cleanEmail = email.trim().lowercase()
+            android.util.Log.d("AUTH", "Login OTP request → email=$cleanEmail")
+            api.login(LoginRequest(cleanEmail, password))
+            android.util.Log.d("AUTH", "Login OTP request → SUCCESS")
             Result.success(Unit)
         } catch (e: Exception) {
-            val message = parseErrorMessage(e) ?: "Email və ya şifrə səhvdir"
-            Result.failure(Exception(message))
+            android.util.Log.e("AUTH", "Login OTP request → FAIL: ${e.message}", e)
+            Result.failure(Exception(ErrorParser.parseMessage(e)))
         }
     }
 
-    /**
-     * iOS verifyOTPAndLogin() ilə eyni — Step 2:
-     * POST /api/v1/auth/login-verify + {email, otp_code} → token alınır + user məlumatı
-     */
     suspend fun verifyLoginOtp(email: String, otpCode: String): Result<UserResponse> {
         return try {
-            val response = api.loginVerify(LoginVerifyRequest(email, otpCode))
+            val cleanEmail = email.trim().lowercase()
+            val cleanOtp = otpCode.trim()
+            android.util.Log.d("AUTH", "Login verify → email=$cleanEmail otp=$cleanOtp")
+            val response = api.loginVerify(LoginVerifyRequest(cleanEmail, cleanOtp))
             tokenManager.accessToken = response.accessToken
             tokenManager.refreshToken = response.refreshToken
             val user = api.getMe()
+            android.util.Log.d("AUTH", "Login verify → SUCCESS user=${user.name}")
             Result.success(user)
         } catch (e: Exception) {
-            val message = parseErrorMessage(e) ?: "OTP səhvdir və ya vaxtı keçib"
-            Result.failure(Exception(message))
+            android.util.Log.e("AUTH", "Login verify → FAIL: ${e.message}", e)
+            Result.failure(Exception(ErrorParser.parseMessage(e)))
         }
     }
 
-    // iOS: AuthenticationManager.register(name:email:password:userType:)
-    suspend fun register(
-        name: String,
-        email: String,
-        password: String,
-        userType: String           // "client" | "trainer"
-    ): Result<UserResponse> {
+    // ═══════════════════════════════════════════════════════════════════════════
+    // REGISTER (2-step)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    suspend fun sendRegisterOtp(
+        name: String, email: String, password: String, userType: String
+    ): Result<Unit> {
         return try {
-            val response = api.register(
-                RegisterRequest(name, email, password, userType)
-            )
-            tokenManager.accessToken = response.accessToken
-            tokenManager.refreshToken = response.refreshToken
-            val user = api.getMe()
-            Result.success(user)
+            val cleanEmail = email.trim().lowercase()
+            android.util.Log.d("AUTH", "Register OTP request → email=$cleanEmail")
+            // iOS kimi: register-request endpointinə yalnız email göndərilir
+            api.registerRequest(RegisterOtpRequest(cleanEmail))
+            android.util.Log.d("AUTH", "Register OTP request → SUCCESS (OTP göndərildi)")
+            Result.success(Unit)
         } catch (e: Exception) {
-            val message = parseErrorMessage(e) ?: "Qeydiyyat uğursuz oldu"
-            Result.failure(Exception(message))
+            android.util.Log.e("AUTH", "Register OTP request → FAIL: ${e.message}", e)
+            Result.failure(Exception(ErrorParser.parseMessage(e)))
         }
     }
 
-    // iOS: KeychainManager.shared.isLoggedIn
+    suspend fun verifyRegisterOtp(
+        name: String, email: String, password: String, userType: String, otpCode: String
+    ): Result<Unit> {
+        return try {
+            val cleanEmail = email.trim().lowercase()
+            val cleanOtp = otpCode.trim()
+            android.util.Log.d("AUTH", "Register verify → email=$cleanEmail otp=$cleanOtp userType=$userType name=$name")
+            // iOS kimi: register endpoint 201 qaytarır, token yoxdur
+            api.register(
+                RegisterVerifyRequest(name, cleanEmail, password, userType, cleanOtp)
+            )
+            android.util.Log.d("AUTH", "Register verify → SUCCESS")
+            // Uğurlu — istifadəçi login ekranına yönləndirilir
+            Result.success(Unit)
+        } catch (e: Exception) {
+            android.util.Log.e("AUTH", "Register verify → FAIL: ${e.message}", e)
+            Result.failure(Exception(ErrorParser.parseMessage(e)))
+        }
+    }
+
+    // Köhnə register — geriyə uyğunluq (OTP olmadan birbaşa)
+    suspend fun register(
+        name: String, email: String, password: String, userType: String
+    ): Result<UserResponse> {
+        return sendRegisterOtp(name, email, password, userType).fold(
+            onSuccess = { Result.success(UserResponse("", name, email, userType, null)) },
+            onFailure = { Result.failure(it) }
+        )
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // FORGOT PASSWORD (3-step)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    suspend fun sendForgotPasswordOtp(email: String): Result<Unit> {
+        return try {
+            val cleanEmail = email.trim().lowercase()
+            api.forgotPassword(ForgotPasswordRequest(cleanEmail))
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(Exception(ErrorParser.parseMessage(e)))
+        }
+    }
+
+    suspend fun verifyForgotPasswordOtp(email: String, otpCode: String): Result<Unit> {
+        return try {
+            val cleanEmail = email.trim().lowercase()
+            val cleanOtp = otpCode.trim()
+            api.verifyOtp(VerifyOtpRequest(cleanEmail, cleanOtp))
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(Exception(ErrorParser.parseMessage(e)))
+        }
+    }
+
+    suspend fun resetPassword(email: String, otpCode: String, newPassword: String): Result<Unit> {
+        return try {
+            val cleanEmail = email.trim().lowercase()
+            val cleanOtp = otpCode.trim()
+            api.resetPassword(ResetPasswordRequest(cleanEmail, cleanOtp, newPassword))
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(Exception(ErrorParser.parseMessage(e)))
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // COMMON
+    // ═══════════════════════════════════════════════════════════════════════════
+
     fun isLoggedIn(): Boolean = tokenManager.isLoggedIn
 
-    // iOS: AuthenticationManager.logout()
     fun logout() {
         tokenManager.clearTokens()
+        // Clear all repository singletons so they reload fresh on next login
+        WorkoutRepository.clearInstance()
+        FoodRepository.clearInstance()
+        TrainingPlanRepository.clearInstance()
+        MealPlanRepository.clearInstance()
+        UserRepository.clearInstance()
+        ChatRepository.clearInstance()
+        NotificationRepository.clearInstance()
+        AnalyticsRepository.clearInstance()
+        SocialRepository.clearInstance()
+        PremiumRepository.clearInstance()
+        TrainerRepository.clearInstance()
+        LiveSessionRepository.clearInstance()
+        MarketplaceRepository.clearInstance()
+        NewsRepository.clearInstance()
     }
 
-    // iOS: UserProfileManager.shared.currentUser
     suspend fun getCurrentUser(): Result<UserResponse> {
         return try {
             Result.success(api.getMe())
         } catch (e: Exception) {
             Result.failure(e)
-        }
-    }
-
-    // HTTP xəta mesajını parse et (iOS: errorResponse?["detail"])
-    private fun parseErrorMessage(e: Exception): String? {
-        return when (e) {
-            is retrofit2.HttpException -> {
-                try {
-                    val errorBody = e.response()?.errorBody()?.string()
-                    if (!errorBody.isNullOrBlank()) {
-                        val json = org.json.JSONObject(errorBody)
-                        json.optString("detail").takeIf { it.isNotBlank() }
-                    } else null
-                } catch (_: Exception) { null }
-            }
-            else -> e.message
         }
     }
 

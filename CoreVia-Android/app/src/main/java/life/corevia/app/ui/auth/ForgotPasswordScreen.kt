@@ -14,8 +14,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -32,23 +36,34 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
 import life.corevia.app.ui.theme.AppTheme
 
 /**
  * iOS ForgotPasswordView.swift-in Android tam ekvivalenti.
- * 3-step şifrə bərpası:
- *  - Step 1: Email daxil et → POST /api/v1/auth/forgot-password
- *  - Step 2: OTP kodu (60s geri sayım)
- *  - Step 3: Yeni şifrə + POST /api/v1/auth/reset-password
+ * 3-step şifrə bərpası — real backend-ə bağlı:
+ *  - Step 1: Email → POST /api/v1/auth/forgot-password
+ *  - Step 2: OTP → POST /api/v1/auth/verify-otp
+ *  - Step 3: Yeni şifrə → POST /api/v1/auth/reset-password
+ *
+ * iOS ilə tam uyğun:
+ *  - Header: Material icons (envelope.fill, lock.shield.fill, key.fill), accent(0.1) circle bg
+ *  - Input fields: HStack border style, 20dp icon, cornerRadius 12
+ *  - Password toggle: eye / eye.slash Material icons
+ *  - Buttons: gradient accent→accent(0.8) or success→success(0.8)
+ *  - Password strength: 4 bar, cornerRadius 2
+ *  - 60s OTP countdown timer
  */
-enum class ForgotPasswordStep { EMAIL, OTP, NEW_PASSWORD }
+enum class ForgotPasswordStep { EMAIL, OTP_AND_PASSWORD }
 
 @Composable
 fun ForgotPasswordScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    authViewModel: AuthViewModel = viewModel()
 ) {
     val focusManager = LocalFocusManager.current
+    val uiState by authViewModel.uiState.collectAsState()
 
     var email by remember { mutableStateOf("") }
     var otpCode by remember { mutableStateOf("") }
@@ -57,12 +72,13 @@ fun ForgotPasswordScreen(
     var passwordVisible by remember { mutableStateOf(false) }
 
     var currentStep by remember { mutableStateOf(ForgotPasswordStep.EMAIL) }
-    var isLoading by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf("") }
-    var showError by remember { mutableStateOf(false) }
     var showSuccess by remember { mutableStateOf(false) }
 
-    // 60s countdown timer
+    val isLoading = uiState is AuthUiState.Loading
+    val showError = uiState is AuthUiState.Error
+    val errorMessage = if (uiState is AuthUiState.Error) (uiState as AuthUiState.Error).message else ""
+
+    // 60s countdown timer (iOS: otpCountdown)
     var otpCountdown by remember { mutableStateOf(0) }
     LaunchedEffect(otpCountdown) {
         if (otpCountdown > 0) {
@@ -71,7 +87,25 @@ fun ForgotPasswordScreen(
         }
     }
 
-    // Password strength
+    // React to state changes
+    // iOS flow: forgot-password → OTP göndərilir → user OTP + yeni şifrə daxil edir → reset-password
+    // verify-otp addımı YOX — iOS-da birbaşa reset-password-ə OTP göndərilir
+    LaunchedEffect(uiState) {
+        when (uiState) {
+            is AuthUiState.ForgotOtpSent -> {
+                currentStep = ForgotPasswordStep.OTP_AND_PASSWORD
+                otpCountdown = 60
+                authViewModel.resetToIdle()
+            }
+            is AuthUiState.PasswordReset -> {
+                showSuccess = true
+                authViewModel.resetToIdle()
+            }
+            else -> {}
+        }
+    }
+
+    // Password strength (iOS: 4-level — 0:weak, 1:medium, 2:good, 3:strong, 4:very strong)
     val passwordStrength = when {
         newPassword.length < 6 -> 0
         newPassword.length < 8 -> 1
@@ -94,23 +128,21 @@ fun ForgotPasswordScreen(
 
     val isPasswordValid = newPassword.length >= 6 && newPassword == confirmPassword
 
-    val stepIcon = when (currentStep) {
-        ForgotPasswordStep.EMAIL -> "✉️"
-        ForgotPasswordStep.OTP -> "🔒"
-        ForgotPasswordStep.NEW_PASSWORD -> "🔑"
+    // iOS: step-based icons & titles (SF Symbols → Material icons)
+    val stepIcon: ImageVector = when (currentStep) {
+        ForgotPasswordStep.EMAIL -> Icons.Default.Email
+        ForgotPasswordStep.OTP_AND_PASSWORD -> Icons.Default.Lock
     }
     val stepTitle = when (currentStep) {
         ForgotPasswordStep.EMAIL -> "Şifrəni Bərpa Et"
-        ForgotPasswordStep.OTP -> "Kodu Daxil Et"
-        ForgotPasswordStep.NEW_PASSWORD -> "Yeni Şifrə"
+        ForgotPasswordStep.OTP_AND_PASSWORD -> "Yeni Şifrə Təyin Et"
     }
     val stepDesc = when (currentStep) {
         ForgotPasswordStep.EMAIL -> "E-poçtunuza OTP kodu göndəriləcək"
-        ForgotPasswordStep.OTP -> "E-poçta göndərilən 6 rəqəmli kodu daxil edin"
-        ForgotPasswordStep.NEW_PASSWORD -> "Yeni şifrənizi daxil edin"
+        ForgotPasswordStep.OTP_AND_PASSWORD -> "E-poçta göndərilən kodu və yeni şifrənizi daxil edin"
     }
 
-    // Success dialog
+    // Success dialog (iOS: Alert "Uğurlu!")
     if (showSuccess) {
         AlertDialog(
             onDismissRequest = { onBack() },
@@ -130,13 +162,35 @@ fun ForgotPasswordScreen(
             .fillMaxSize()
             .background(AppTheme.Colors.background)
     ) {
-        // Top bar
+        // Top bar (iOS: NavigationView .inline title + dismiss)
         Row(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onBack) {
-                Text("← Geri", color = AppTheme.Colors.accent, fontSize = 15.sp)
+            // iOS: back button — chevron.left + "Geri", secondaryBackground, cornerRadius 10
+            Row(
+                modifier = Modifier
+                    .background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(10.dp))
+                    .clickable {
+                        authViewModel.resetToIdle()
+                        onBack()
+                    }
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = null,
+                    tint = AppTheme.Colors.accent,
+                    modifier = Modifier.size(14.dp)
+                )
+                Text(
+                    text = "Geri",
+                    color = AppTheme.Colors.accent,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Medium
+                )
             }
             Spacer(modifier = Modifier.weight(1f))
             Text("Şifrəni Bərpa Et", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.primaryText)
@@ -148,13 +202,23 @@ fun ForgotPasswordScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // Header (iOS: ZStack { Circle + icon })
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            // Header — iOS: circle icon + title + description
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.padding(top = 20.dp)
+            ) {
+                // iOS: Circle().fill(accent.opacity(0.1)), 80dp, icon 35sp
                 Box(
                     modifier = Modifier.size(80.dp).background(AppTheme.Colors.accent.copy(alpha = 0.1f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = stepIcon, fontSize = 35.sp)
+                    Icon(
+                        imageVector = stepIcon,
+                        contentDescription = null,
+                        tint = AppTheme.Colors.accent,
+                        modifier = Modifier.size(35.dp)
+                    )
                 }
                 Text(text = stepTitle, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = AppTheme.Colors.primaryText)
                 Text(text = stepDesc, fontSize = 14.sp, color = AppTheme.Colors.secondaryText, textAlign = TextAlign.Center)
@@ -173,17 +237,19 @@ fun ForgotPasswordScreen(
                 }
             }
 
-            // Step content
+            // Step content (iOS: AnimatedContent with fade)
             AnimatedContent(
                 targetState = currentStep,
                 transitionSpec = { fadeIn() togetherWith fadeOut() },
                 label = "stepContent"
             ) { step ->
                 when (step) {
+                    // ─── Step 1: Email ─────────────────────────────────────────
                     ForgotPasswordStep.EMAIL -> {
                         Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text("Email", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = AppTheme.Colors.secondaryText)
+                                // iOS: HStack { envelope.fill + TextField }, cornerRadius 12, border
                                 Row(
                                     modifier = Modifier.fillMaxWidth()
                                         .background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(12.dp))
@@ -194,7 +260,7 @@ fun ForgotPasswordScreen(
                                 ) {
                                     Icon(Icons.Default.Email, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(20.dp))
                                     OutlinedTextField(
-                                        value = email, onValueChange = { email = it },
+                                        value = email, onValueChange = { email = it; authViewModel.clearError() },
                                         placeholder = { Text("email@example.com", color = AppTheme.Colors.placeholderText) },
                                         modifier = Modifier.weight(1f),
                                         colors = OutlinedTextFieldDefaults.colors(
@@ -213,18 +279,15 @@ fun ForgotPasswordScreen(
                                 isLoading = isLoading
                             ) {
                                 focusManager.clearFocus()
-                                isLoading = true
-                                // Simulate API call — real implementation: api.forgotPassword(email)
-                                // TODO: connect to AuthRepository.sendForgotPasswordOtp(email)
-                                isLoading = false
-                                currentStep = ForgotPasswordStep.OTP
-                                otpCountdown = 60
+                                authViewModel.sendForgotPasswordOtp(email.trim())
                             }
                         }
                     }
 
-                    ForgotPasswordStep.OTP -> {
+                    // ─── Step 2: OTP + New Password (iOS: birbaşa reset-password, verify-otp yoxdur) ───
+                    ForgotPasswordStep.OTP_AND_PASSWORD -> {
                         Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                            // OTP field
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text("Təsdiq Kodu", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = AppTheme.Colors.secondaryText)
                                 Row(
@@ -235,48 +298,35 @@ fun ForgotPasswordScreen(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
-                                    Text("💬", fontSize = 20.sp)
+                                    Icon(Icons.Default.Email, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(20.dp))
                                     OutlinedTextField(
                                         value = otpCode,
-                                        onValueChange = { otpCode = it.filter { c -> c.isDigit() }.take(6) },
+                                        onValueChange = { otpCode = it.filter { c -> c.isDigit() }.take(6); authViewModel.clearError() },
                                         placeholder = { Text("6 rəqəmli kod", color = AppTheme.Colors.placeholderText) },
                                         modifier = Modifier.weight(1f),
                                         colors = OutlinedTextFieldDefaults.colors(
                                             focusedBorderColor = Color.Transparent, unfocusedBorderColor = Color.Transparent,
                                             focusedTextColor = AppTheme.Colors.primaryText, unfocusedTextColor = AppTheme.Colors.primaryText
                                         ),
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword, imeAction = ImeAction.Done),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword, imeAction = ImeAction.Next),
                                         singleLine = true
                                     )
                                 }
                             }
 
-                            // Resend (iOS: 60s countdown)
+                            // Resend countdown (iOS: 60s timer)
                             if (otpCountdown > 0) {
                                 Text("Yenidən göndər: ${otpCountdown}s", fontSize = 13.sp, color = AppTheme.Colors.tertiaryText,
                                     modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
                             } else {
                                 TextButton(onClick = {
                                     otpCountdown = 60
-                                    // TODO: resend OTP
+                                    authViewModel.sendForgotPasswordOtp(email.trim())
                                 }, modifier = Modifier.fillMaxWidth()) {
                                     Text("Kodu yenidən göndər", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = AppTheme.Colors.accent)
                                 }
                             }
 
-                            FpGradientButton(
-                                label = "Təsdiq Et",
-                                enabled = otpCode.length == 6 && !isLoading,
-                                isLoading = isLoading
-                            ) {
-                                focusManager.clearFocus()
-                                currentStep = ForgotPasswordStep.NEW_PASSWORD
-                            }
-                        }
-                    }
-
-                    ForgotPasswordStep.NEW_PASSWORD -> {
-                        Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
                             // New password
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text("Yeni Şifrə", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = AppTheme.Colors.secondaryText)
@@ -300,8 +350,11 @@ fun ForgotPasswordScreen(
                                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
                                         singleLine = true
                                     )
-                                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                        Text(if (passwordVisible) "👁" else "👁‍🗨", fontSize = 18.sp)
+                                    IconButton(onClick = { passwordVisible = !passwordVisible }, modifier = Modifier.size(32.dp)) {
+                                        Icon(
+                                            imageVector = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                                            contentDescription = null, tint = AppTheme.Colors.secondaryText, modifier = Modifier.size(18.dp)
+                                        )
                                     }
                                 }
                             }
@@ -335,7 +388,7 @@ fun ForgotPasswordScreen(
                                 }
                             }
 
-                            // Password strength (iOS: 4-bar indicator)
+                            // Password strength (iOS: 4 bars)
                             if (newPassword.isNotEmpty()) {
                                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -348,15 +401,19 @@ fun ForgotPasswordScreen(
                                 }
                             }
 
-                            // Şifrəni Yenilə button (iOS: success gradient)
+                            // iOS: birbaşa reset-password — verify-otp çağırmır!
+                            val canSubmit = otpCode.length == 6 && isPasswordValid && !isLoading
                             Box(
                                 modifier = Modifier.fillMaxWidth()
                                     .clip(RoundedCornerShape(12.dp))
                                     .background(Brush.horizontalGradient(listOf(
-                                        AppTheme.Colors.success.copy(alpha = if (isPasswordValid && !isLoading) 1f else 0.5f),
-                                        AppTheme.Colors.success.copy(alpha = if (isPasswordValid && !isLoading) 0.8f else 0.4f)
+                                        AppTheme.Colors.success.copy(alpha = if (canSubmit) 1f else 0.5f),
+                                        AppTheme.Colors.success.copy(alpha = if (canSubmit) 0.8f else 0.4f)
                                     )))
-                                    .run { if (isPasswordValid && !isLoading) this.then(Modifier) else this }
+                                    .then(if (canSubmit) Modifier.clickable {
+                                        focusManager.clearFocus()
+                                        authViewModel.resetPassword(email.trim(), otpCode, newPassword)
+                                    } else Modifier)
                                     .padding(vertical = 14.dp),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -374,7 +431,7 @@ fun ForgotPasswordScreen(
     }
 }
 
-// ─── Gradient button (iOS: LinearGradient accent → accent.opacity(0.8)) ────────
+// ─── Gradient button (iOS: accent gradient, cornerRadius 12, disabled opacity 0.6) ───
 @Composable
 private fun FpGradientButton(
     label: String,

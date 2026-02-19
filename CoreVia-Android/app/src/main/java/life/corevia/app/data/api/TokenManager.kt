@@ -44,6 +44,11 @@ class TokenManager private constructor(context: Context) {
     val isLoggedIn: Boolean
         get() = accessToken != null
 
+    // Onboarding flag
+    var hasCompletedOnboarding: Boolean
+        get() = prefs.getBoolean(KEY_ONBOARDING_COMPLETED, false)
+        set(value) = prefs.edit().putBoolean(KEY_ONBOARDING_COMPLETED, value).apply()
+
     // iOS: func clearTokens()
     fun clearTokens() {
         prefs.edit()
@@ -55,6 +60,7 @@ class TokenManager private constructor(context: Context) {
     companion object {
         private const val KEY_ACCESS_TOKEN = "access_token"
         private const val KEY_REFRESH_TOKEN = "refresh_token"
+        private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
 
         @Volatile
         private var instance: TokenManager? = null
