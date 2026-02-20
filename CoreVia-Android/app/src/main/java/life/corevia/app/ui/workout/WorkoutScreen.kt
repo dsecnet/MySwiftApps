@@ -10,8 +10,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.DirectionsRun
+import androidx.compose.material.icons.automirrored.outlined.DirectionsRun
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -229,7 +230,7 @@ fun WorkoutScreen(
                         verticalAlignment     = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector        = Icons.Default.LocalFireDepartment,
+                            imageVector        = Icons.Outlined.LocalFireDepartment,
                             contentDescription = null,
                             modifier           = Modifier.size(12.dp),
                             tint               = AppTheme.Colors.accent
@@ -245,7 +246,7 @@ fun WorkoutScreen(
                         verticalAlignment     = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector        = Icons.Default.Schedule,
+                            imageVector        = Icons.Outlined.Schedule,
                             contentDescription = null,
                             modifier           = Modifier.size(12.dp),
                             tint               = AppTheme.Colors.accent
@@ -305,7 +306,7 @@ fun WorkoutScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Icon(
-                        imageVector        = Icons.Default.FitnessCenter,
+                        imageVector        = Icons.Outlined.FitnessCenter,
                         contentDescription = null,
                         modifier           = Modifier.size(60.dp),
                         tint               = AppTheme.Colors.tertiaryText
@@ -360,7 +361,7 @@ fun WorkoutScreen(
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector        = Icons.Default.LocationOn,
+                        imageVector        = Icons.Outlined.LocationOn,
                         contentDescription = null,
                         tint               = Color.White
                     )
@@ -394,7 +395,7 @@ fun WorkoutScreen(
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector        = Icons.Default.AddCircle,
+                        imageVector        = Icons.Outlined.AddCircle,
                         contentDescription = null,
                         tint               = Color.White
                     )
@@ -494,11 +495,11 @@ fun WorkoutCardIos(
         ) {
             Icon(
                 imageVector = when (workout.category.lowercase()) {
-                    "strength"   -> Icons.Default.FitnessCenter
-                    "cardio"     -> Icons.AutoMirrored.Filled.DirectionsRun
-                    "flexibility" -> Icons.Default.SelfImprovement
-                    "endurance"  -> Icons.Default.Speed
-                    else         -> Icons.Default.FitnessCenter
+                    "strength"   -> Icons.Outlined.FitnessCenter
+                    "cardio"     -> Icons.AutoMirrored.Outlined.DirectionsRun
+                    "flexibility" -> Icons.Outlined.SelfImprovement
+                    "endurance"  -> Icons.Outlined.Speed
+                    else         -> Icons.Outlined.FitnessCenter
                 },
                 contentDescription = null,
                 modifier = Modifier.size(22.dp),
@@ -525,7 +526,7 @@ fun WorkoutCardIos(
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector        = Icons.Default.Schedule,
+                        imageVector        = Icons.Outlined.Schedule,
                         contentDescription = null,
                         modifier           = Modifier.size(10.dp),
                         tint               = AppTheme.Colors.secondaryText
@@ -544,7 +545,7 @@ fun WorkoutCardIos(
                         verticalAlignment     = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector        = Icons.Default.LocalFireDepartment,
+                            imageVector        = Icons.Outlined.LocalFireDepartment,
                             contentDescription = null,
                             modifier           = Modifier.size(10.dp),
                             tint               = AppTheme.Colors.accent
@@ -561,7 +562,7 @@ fun WorkoutCardIos(
 
         // iOS: Button { checkmark.circle.fill or circle }
         Icon(
-            imageVector = if (workout.isCompleted) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
+            imageVector = if (workout.isCompleted) Icons.Outlined.CheckCircle else Icons.Outlined.RadioButtonUnchecked,
             contentDescription = "Tamamla",
             modifier = Modifier
                 .size(28.dp)

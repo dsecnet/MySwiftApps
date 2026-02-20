@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
@@ -352,7 +353,7 @@ fun LoginUserTypeButton(
         ) {
             // iOS: person.fill (16pt) / person.2.fill (16pt)
             Icon(
-                imageVector = if (isClient) Icons.Default.Person else Icons.Default.Person,
+                imageVector = if (isClient) Icons.Outlined.Person else Icons.Outlined.Person,
                 contentDescription = null,
                 tint = textColor,
                 modifier = Modifier.size(16.dp)
@@ -399,7 +400,7 @@ fun LoginStep1Content(
                 placeholder = "email@example.com",
                 leadingIcon = {
                     Icon(
-                        imageVector = Icons.Default.Email,
+                        imageVector = Icons.Outlined.Email,
                         contentDescription = null,
                         tint = AppTheme.Colors.accent,
                         modifier = Modifier.size(20.dp)
@@ -420,7 +421,7 @@ fun LoginStep1Content(
                 placeholder = "••••••••",
                 leadingIcon = {
                     Icon(
-                        imageVector = Icons.Default.Lock,
+                        imageVector = Icons.Outlined.Lock,
                         contentDescription = null,
                         tint = AppTheme.Colors.accent,
                         modifier = Modifier.size(20.dp)
@@ -466,7 +467,7 @@ fun LoginStep1Content(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector = Icons.Default.Warning,
+                    imageVector = Icons.Outlined.Warning,
                     contentDescription = null,
                     tint = AppTheme.Colors.error,
                     modifier = Modifier.size(16.dp)
@@ -515,7 +516,7 @@ fun LoginStep1Content(
                 ) {
                     // iOS: person.fill (14pt) / person.2.fill (14pt)
                     Icon(
-                        imageVector = Icons.Default.Person,
+                        imageVector = Icons.Outlined.Person,
                         contentDescription = null,
                         tint = Color.White,
                         modifier = Modifier.size(14.dp)
@@ -656,7 +657,7 @@ fun OtpStep2Content(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector = Icons.Default.Warning,
+                    imageVector = Icons.Outlined.Warning,
                     contentDescription = null,
                     tint = AppTheme.Colors.error,
                     modifier = Modifier.size(16.dp)

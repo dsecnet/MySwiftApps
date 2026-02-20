@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
@@ -130,8 +131,8 @@ fun ForgotPasswordScreen(
 
     // iOS: step-based icons & titles (SF Symbols → Material icons)
     val stepIcon: ImageVector = when (currentStep) {
-        ForgotPasswordStep.EMAIL -> Icons.Default.Email
-        ForgotPasswordStep.OTP_AND_PASSWORD -> Icons.Default.Lock
+        ForgotPasswordStep.EMAIL -> Icons.Outlined.Email
+        ForgotPasswordStep.OTP_AND_PASSWORD -> Icons.Outlined.Lock
     }
     val stepTitle = when (currentStep) {
         ForgotPasswordStep.EMAIL -> "Şifrəni Bərpa Et"
@@ -258,7 +259,7 @@ fun ForgotPasswordScreen(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
-                                    Icon(Icons.Default.Email, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(20.dp))
+                                    Icon(Icons.Outlined.Email, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(20.dp))
                                     OutlinedTextField(
                                         value = email, onValueChange = { email = it; authViewModel.clearError() },
                                         placeholder = { Text("email@example.com", color = AppTheme.Colors.placeholderText) },
@@ -298,7 +299,7 @@ fun ForgotPasswordScreen(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
-                                    Icon(Icons.Default.Email, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(20.dp))
+                                    Icon(Icons.Outlined.Email, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(20.dp))
                                     OutlinedTextField(
                                         value = otpCode,
                                         onValueChange = { otpCode = it.filter { c -> c.isDigit() }.take(6); authViewModel.clearError() },
@@ -338,7 +339,7 @@ fun ForgotPasswordScreen(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
-                                    Icon(Icons.Default.Lock, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(20.dp))
+                                    Icon(Icons.Outlined.Lock, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(20.dp))
                                     OutlinedTextField(
                                         value = newPassword, onValueChange = { newPassword = it },
                                         modifier = Modifier.weight(1f),
@@ -373,7 +374,7 @@ fun ForgotPasswordScreen(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
-                                    Icon(Icons.Default.Lock, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(20.dp))
+                                    Icon(Icons.Outlined.Lock, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(20.dp))
                                     OutlinedTextField(
                                         value = confirmPassword, onValueChange = { confirmPassword = it },
                                         modifier = Modifier.weight(1f),

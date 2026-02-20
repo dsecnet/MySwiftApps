@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -49,21 +50,21 @@ fun OnboardingScreen(
             emoji = "🏋️",
             title = "CoreVia-ya Xoş Gəlmisiniz!",
             description = "Sağlamlıq və fitnes səyahətinizə başlayın. Şəxsi məşq planları, qida izləmə və daha çoxu.",
-            icon = Icons.Filled.Home,
+            icon = Icons.Outlined.Home,
             color = AppTheme.Colors.accent
         ),
         OnboardingPage(
             emoji = "💪",
             title = "Şəxsi Məşqlər",
             description = "Məqsədlərinizə uyğun məşq planları alın. İrəliləyişinizi izləyin və motivasiya olun.",
-            icon = Icons.Filled.Star,
+            icon = Icons.Outlined.Star,
             color = AppTheme.Colors.success
         ),
         OnboardingPage(
             emoji = "🥗",
             title = "Qida İzləmə",
             description = "Gündəlik qida qəbulunuzu izləyin. AI ilə qida analizi edin və sağlam qidalanın.",
-            icon = Icons.Filled.Favorite,
+            icon = Icons.Outlined.Favorite,
             color = AppTheme.Colors.warning
         ),
         OnboardingPage(

@@ -1,6 +1,7 @@
 package life.corevia.app.data.repository
 
 import android.content.Context
+import android.util.Log
 import life.corevia.app.data.api.ApiClient
 import life.corevia.app.data.models.*
 
@@ -87,8 +88,16 @@ class TrainerRepository(context: Context) {
 
     suspend fun getTrainerStats(): Result<TrainerStatsResponse> {
         return try {
-            Result.success(api.getTrainerStats())
+            val response = api.getTrainerStats()
+            Log.d("TrainerRepo", "Stats OK: subscribers=${response.totalSubscribers}, active=${response.activeStudents}, students=${response.students.size}, summary=${response.statsSummary}")
+            if (response.students.isNotEmpty()) {
+                response.students.forEachIndexed { i, s ->
+                    Log.d("TrainerRepo", "Student[$i]: id=${s.id}, name=${s.name}, workouts=${s.thisWeekWorkouts}")
+                }
+            }
+            Result.success(response)
         } catch (e: Exception) {
+            Log.e("TrainerRepo", "Stats ERROR: ${e.javaClass.simpleName}: ${e.message}", e)
             Result.failure(e)
         }
     }

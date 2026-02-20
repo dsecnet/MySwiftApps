@@ -11,8 +11,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -105,7 +105,7 @@ fun ChatDetailScreen(
                         )
                     } else {
                         Icon(
-                            imageVector = Icons.Filled.Person,
+                            imageVector = Icons.Outlined.Person,
                             contentDescription = null,
                             tint = Color.White,
                             modifier = Modifier.size(20.dp)
@@ -220,7 +220,7 @@ fun ChatDetailScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.Info,
+                            imageVector = Icons.Outlined.Info,
                             contentDescription = null,
                             tint = AppTheme.Colors.warning,
                             modifier = Modifier.size(16.dp)
@@ -332,7 +332,7 @@ fun MessageBubble(
         ) {
             Column {
                 Text(
-                    text = message.content,
+                    text = message.message,
                     color = if (isSent) Color.White else AppTheme.Colors.primaryText,
                     fontSize = 15.sp
                 )

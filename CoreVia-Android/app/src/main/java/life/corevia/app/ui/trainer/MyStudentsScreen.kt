@@ -9,9 +9,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -59,7 +59,7 @@ fun MyStudentsScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Geri", tint = Color.White)
+                Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Geri", tint = Color.White)
             }
             Text(
                 text = "Studentlərim",
@@ -94,7 +94,7 @@ fun MyStudentsScreen(
                 .padding(horizontal = 20.dp),
             placeholder = { Text("Student axtar...", color = AppTheme.Colors.placeholderText) },
             leadingIcon = {
-                Icon(Icons.Default.Search, null, tint = AppTheme.Colors.secondaryText)
+                Icon(Icons.Outlined.Search, null, tint = AppTheme.Colors.secondaryText)
             },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = AppTheme.Colors.accent,
@@ -221,7 +221,7 @@ fun StudentCard(
             }
 
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
                 contentDescription = null,
                 tint = AppTheme.Colors.tertiaryText,
                 modifier = Modifier.size(16.dp)
@@ -337,7 +337,7 @@ fun StudentDetailSheet(
                 colors = ButtonDefaults.buttonColors(containerColor = AppTheme.Colors.accent),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Icon(Icons.Default.Star, null, modifier = Modifier.size(18.dp))
+                Icon(Icons.Outlined.Star, null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Məşq Planı Yarat", fontWeight = FontWeight.SemiBold)
             }
@@ -350,7 +350,7 @@ fun StudentDetailSheet(
                 colors = ButtonDefaults.buttonColors(containerColor = AppTheme.Colors.success),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Icon(Icons.Default.Favorite, null, modifier = Modifier.size(18.dp))
+                Icon(Icons.Outlined.Favorite, null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Qida Planı Yarat", fontWeight = FontWeight.SemiBold)
             }

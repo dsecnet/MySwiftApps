@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
@@ -203,14 +204,14 @@ fun RegisterScreen(
                     RegisterInputField(
                         value = name, onValueChange = { name = it; viewModel.clearError() },
                         placeholder = "Ad və soyad",
-                        leadingIcon = { Icon(Icons.Default.Person, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(16.dp)) },
+                        leadingIcon = { Icon(Icons.Outlined.Person, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(16.dp)) },
                         hasValue = name.isNotEmpty()
                     )
                     // Email — iOS: envelope.fill icon
                     RegisterInputField(
                         value = email, onValueChange = { email = it; viewModel.clearError() },
                         placeholder = "E-poçt",
-                        leadingIcon = { Icon(Icons.Default.Email, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(16.dp)) },
+                        leadingIcon = { Icon(Icons.Outlined.Email, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(16.dp)) },
                         keyboardType = KeyboardType.Email, hasValue = email.isNotEmpty()
                     )
                     // Password — iOS: lock.fill icon + eye toggle
@@ -272,7 +273,7 @@ fun RegisterScreen(
                     Row(modifier = Modifier.fillMaxWidth()
                         .background(AppTheme.Colors.error.copy(alpha = 0.2f), RoundedCornerShape(10.dp)).padding(12.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Warning, null, tint = AppTheme.Colors.error, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Outlined.Warning, null, tint = AppTheme.Colors.error, modifier = Modifier.size(16.dp))
                         Text(errorMessage, fontSize = 13.sp, color = AppTheme.Colors.primaryText)
                     }
                 }
@@ -353,7 +354,7 @@ fun RegisterScreen(
                         Row(modifier = Modifier.fillMaxWidth()
                             .background(AppTheme.Colors.error.copy(alpha = 0.2f), RoundedCornerShape(10.dp)).padding(12.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Warning, null, tint = AppTheme.Colors.error, modifier = Modifier.size(16.dp))
+                            Icon(Icons.Outlined.Warning, null, tint = AppTheme.Colors.error, modifier = Modifier.size(16.dp))
                             Text(errorMessage, fontSize = 13.sp, color = AppTheme.Colors.primaryText)
                         }
                     }
@@ -423,7 +424,7 @@ fun RegisterUserTypeCard(
             .background(if (isSelected) AppTheme.Colors.accent.copy(alpha = 0.2f) else AppTheme.Colors.cardBackground, CircleShape),
             contentAlignment = Alignment.Center) {
             Icon(
-                imageVector = Icons.Default.Person,
+                imageVector = Icons.Outlined.Person,
                 contentDescription = null,
                 tint = iconColor,
                 modifier = Modifier.size(20.dp)
@@ -482,7 +483,7 @@ fun RegisterPasswordField(
         .border(1.dp, borderColor, RoundedCornerShape(12.dp)).padding(horizontal = 16.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         // iOS: lock.fill icon
-        Icon(Icons.Default.Lock, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(16.dp))
+        Icon(Icons.Outlined.Lock, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(16.dp))
         OutlinedTextField(
             value = value, onValueChange = onValueChange,
             placeholder = { Text(placeholder, color = AppTheme.Colors.placeholderText, fontSize = 14.sp) },

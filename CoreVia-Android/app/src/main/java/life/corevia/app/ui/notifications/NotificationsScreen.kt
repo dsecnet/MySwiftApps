@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -79,7 +80,7 @@ fun NotificationsScreen(
                     Column(modifier = Modifier.weight(1f)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                imageVector = Icons.Filled.Notifications,
+                                imageVector = Icons.Outlined.Notifications,
                                 contentDescription = null,
                                 tint = AppTheme.Colors.accent,
                                 modifier = Modifier.size(24.dp)
@@ -105,7 +106,7 @@ fun NotificationsScreen(
                     if (unreadCount > 0) {
                         IconButton(onClick = { viewModel.markAllRead() }) {
                             Icon(
-                                imageVector = Icons.Filled.Done,
+                                imageVector = Icons.Outlined.Done,
                                 contentDescription = "Hamısını oxu",
                                 tint = AppTheme.Colors.accent
                             )
@@ -301,7 +302,7 @@ fun NotificationCard(
                 modifier = Modifier.size(32.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Filled.Close,
+                    imageVector = Icons.Outlined.Close,
                     contentDescription = "Sil",
                     tint = AppTheme.Colors.tertiaryText,
                     modifier = Modifier.size(16.dp)
@@ -337,12 +338,12 @@ fun NotificationCard(
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 private fun notificationIcon(type: String): ImageVector {
     return when {
-        type.contains("workout") -> Icons.Filled.Star
-        type.contains("plan")    -> Icons.Filled.DateRange
-        type.contains("chat") || type.contains("message") -> Icons.Filled.Email
-        type.contains("food")    -> Icons.Filled.Favorite
-        type.contains("achievement") -> Icons.Filled.Star
-        else                     -> Icons.Filled.Notifications
+        type.contains("workout") -> Icons.Outlined.Star
+        type.contains("plan")    -> Icons.Outlined.DateRange
+        type.contains("chat") || type.contains("message") -> Icons.Outlined.Email
+        type.contains("food")    -> Icons.Outlined.Favorite
+        type.contains("achievement") -> Icons.Outlined.Star
+        else                     -> Icons.Outlined.Notifications
     }
 }
 

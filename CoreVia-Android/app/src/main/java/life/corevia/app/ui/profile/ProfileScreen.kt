@@ -13,8 +13,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -55,6 +56,8 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = viewModel()
 ) {
     val user by viewModel.user.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
     val successMessage by viewModel.successMessage.collectAsState()
     val profileCompletion = viewModel.profileCompletion
 
@@ -65,6 +68,12 @@ fun ProfileScreen(
         if (successMessage != null) {
             kotlinx.coroutines.delay(2000)
             viewModel.clearSuccess()
+        }
+    }
+    LaunchedEffect(errorMessage) {
+        if (errorMessage != null) {
+            kotlinx.coroutines.delay(5000)
+            viewModel.clearError()
         }
     }
 
@@ -85,6 +94,41 @@ fun ProfileScreen(
                 }
             }
         )
+    }
+
+    // Error state — API fail olduqda
+    if (errorMessage != null && user == null) {
+        Box(
+            modifier = Modifier.fillMaxSize().background(AppTheme.Colors.background),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text("⚠️", fontSize = 48.sp)
+                Text(errorMessage ?: "Xəta baş verdi", color = AppTheme.Colors.error, fontSize = 16.sp)
+                Button(
+                    onClick = { viewModel.loadUser() },
+                    colors = ButtonDefaults.buttonColors(containerColor = AppTheme.Colors.accent),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Yenidən cəhd et", color = Color.White, fontWeight = FontWeight.SemiBold)
+                }
+            }
+        }
+        return
+    }
+
+    // Loading state — user hələ yüklənməyib
+    if (isLoading && user == null) {
+        Box(
+            modifier = Modifier.fillMaxSize().background(AppTheme.Colors.background),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                CircularProgressIndicator(color = AppTheme.Colors.accent)
+                Text("Profil yüklənir...", color = AppTheme.Colors.secondaryText, fontSize = 14.sp)
+            }
+        }
+        return
     }
 
     Column(
@@ -123,7 +167,7 @@ fun ProfileScreen(
                         .clip(CircleShape).background(AppTheme.Colors.accent),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.CameraAlt, null, tint = Color.White, modifier = Modifier.size(14.dp))
+                    Icon(Icons.Outlined.CameraAlt, null, tint = Color.White, modifier = Modifier.size(14.dp))
                 }
                 // Premium crown
                 if (user?.isPremium == true) {
@@ -140,7 +184,7 @@ fun ProfileScreen(
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(user?.name ?: "Yüklənir...", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = AppTheme.Colors.primaryText)
                 if (user?.isPremium == true) {
-                    Icon(Icons.Default.Verified, null, tint = AppTheme.Colors.accentDark, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Filled.Verified, null, tint = AppTheme.Colors.accentDark, modifier = Modifier.size(16.dp))
                 }
             }
             Text(user?.email ?: "", fontSize = 13.sp, color = AppTheme.Colors.secondaryText)
@@ -167,7 +211,7 @@ fun ProfileScreen(
                     .padding(horizontal = 14.dp, vertical = 6.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                    Icon(Icons.Default.Edit, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(12.dp))
+                    Icon(Icons.Outlined.Edit, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(12.dp))
                     Text("Redaktə et", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.accent)
                 }
             }
@@ -206,7 +250,7 @@ fun ProfileScreen(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                     Box(Modifier.size(44.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.2f)), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.AutoAwesome, null, tint = Color.White, modifier = Modifier.size(20.dp))
+                        Icon(Icons.Outlined.AutoAwesome, null, tint = Color.White, modifier = Modifier.size(20.dp))
                     }
                     Column(Modifier.weight(1f)) {
                         Text("Premium-a keç", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
@@ -222,9 +266,9 @@ fun ProfileScreen(
         Text("Bugünkü nailiyyətlər", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.primaryText)
         Spacer(Modifier.height(12.dp))
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            TodayHighlightCard(Icons.Default.FitnessCenter, "0", "Məşqlər", AppTheme.Colors.accent)
-            TodayHighlightCard(Icons.Default.LocalFireDepartment, "0", "Kalori", AppTheme.Colors.accent)
-            TodayHighlightCard(Icons.Default.Restaurant, "0", "Yeməklər", AppTheme.Colors.success)
+            TodayHighlightCard(Icons.Outlined.FitnessCenter, "0", "Məşqlər", AppTheme.Colors.accent)
+            TodayHighlightCard(Icons.Outlined.LocalFireDepartment, "0", "Kalori", AppTheme.Colors.accent)
+            TodayHighlightCard(Icons.Outlined.Restaurant, "0", "Yeməklər", AppTheme.Colors.success)
         }
         Spacer(Modifier.height(16.dp))
 
@@ -232,8 +276,8 @@ fun ProfileScreen(
         Text("Həftəlik irəliləyiş", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.primaryText)
         Spacer(Modifier.height(12.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            CircularProgressCard(Modifier.weight(1f), 0f, 5f, "Məşqlər", AppTheme.Colors.accent, Icons.Default.FitnessCenter)
-            CircularProgressCard(Modifier.weight(1f), 0f, 2000f, "Kalori", AppTheme.Colors.accent, Icons.Default.LocalFireDepartment)
+            CircularProgressCard(Modifier.weight(1f), 0f, 5f, "Məşqlər", AppTheme.Colors.accent, Icons.Outlined.FitnessCenter)
+            CircularProgressCard(Modifier.weight(1f), 0f, 2000f, "Kalori", AppTheme.Colors.accent, Icons.Outlined.LocalFireDepartment)
         }
         Spacer(Modifier.height(16.dp))
 
@@ -241,9 +285,9 @@ fun ProfileScreen(
         Text("Məqsəd və ölçülər", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.primaryText)
         Spacer(Modifier.height(12.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            ClientStatCard(Modifier.weight(1f), Icons.Default.CalendarMonth, "${user?.age ?: 0}", "Yaş")
-            ClientStatCard(Modifier.weight(1f), Icons.Default.MonitorWeight, "${user?.weight?.toInt() ?: 0} kg", "Çəki")
-            ClientStatCard(Modifier.weight(1f), Icons.Default.Straighten, "${user?.height?.toInt() ?: 0} cm", "Boy")
+            ClientStatCard(Modifier.weight(1f), Icons.Outlined.CalendarMonth, "${user?.age ?: 0}", "Yaş")
+            ClientStatCard(Modifier.weight(1f), Icons.Outlined.MonitorWeight, "${user?.weight?.toInt() ?: 0} kg", "Çəki")
+            ClientStatCard(Modifier.weight(1f), Icons.Outlined.Straighten, "${user?.height?.toInt() ?: 0} cm", "Boy")
         }
         if (!user?.goal.isNullOrBlank()) {
             Spacer(Modifier.height(12.dp))
@@ -251,7 +295,7 @@ fun ProfileScreen(
                 Modifier.fillMaxWidth().background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(12.dp)).padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(Icons.Default.GpsFixed, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(18.dp))
+                Icon(Icons.Outlined.GpsFixed, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(18.dp))
                 Text("Məqsəd:", fontSize = 14.sp, color = AppTheme.Colors.secondaryText)
                 Text(user?.goal ?: "", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.primaryText)
             }
@@ -265,7 +309,7 @@ fun ProfileScreen(
                     .clickable { showEditSheet = true }.padding(14.dp),
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Icon(Icons.Default.Info, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(18.dp))
+                Icon(Icons.Outlined.Info, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(18.dp))
                 Column(Modifier.weight(1f)) {
                     Text("Profili tamamla", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.primaryText)
                     Text("Daha yaxşı nəticələr üçün məlumatlarınızı doldurun", fontSize = 12.sp, color = AppTheme.Colors.secondaryText)
@@ -282,7 +326,7 @@ fun ProfileScreen(
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Box(Modifier.size(44.dp).clip(CircleShape).background(AppTheme.Colors.accent.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.CalendarMonth, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Outlined.CalendarMonth, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(18.dp))
                 }
                 Column {
                     Text("Üzv olma tarixi", fontSize = 13.sp, color = AppTheme.Colors.secondaryText)
@@ -296,14 +340,14 @@ fun ProfileScreen(
         Text("Tənzimləmələr", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.primaryText)
         Spacer(Modifier.height(12.dp))
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            ProfileSettingsRow(Icons.Default.Notifications, "Bildirişlər", onClick = onNavigateToSettings)
-            ProfileSettingsRow(Icons.Default.Lock, "Təhlükəsizlik", onClick = onNavigateToSettings)
-            ProfileSettingsRow(Icons.Default.AutoAwesome, "Premium",
+            ProfileSettingsRow(Icons.Outlined.Notifications, "Bildirişlər", onClick = onNavigateToSettings)
+            ProfileSettingsRow(Icons.Outlined.Lock, "Təhlükəsizlik", onClick = onNavigateToSettings)
+            ProfileSettingsRow(Icons.Outlined.AutoAwesome, "Premium",
                 badge = if (user?.isPremium == true) "Aktiv" else null,
                 badgeColor = if (user?.isPremium == true) AppTheme.Colors.success else AppTheme.Colors.accentDark,
                 onClick = onNavigateToPremium
             )
-            ProfileSettingsRow(Icons.Default.Info, "Haqqında", onClick = onNavigateToSettings)
+            ProfileSettingsRow(Icons.Outlined.Info, "Haqqında", onClick = onNavigateToSettings)
         }
         Spacer(Modifier.height(16.dp))
 
@@ -318,7 +362,7 @@ fun ProfileScreen(
             )
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(vertical = 4.dp)) {
-                Icon(Icons.AutoMirrored.Filled.Logout, null, tint = AppTheme.Colors.error, modifier = Modifier.size(18.dp))
+                Icon(Icons.AutoMirrored.Outlined.Logout, null, tint = AppTheme.Colors.error, modifier = Modifier.size(18.dp))
                 Text("Çıxış", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.error)
             }
         }
@@ -396,7 +440,7 @@ private fun ClientStatCard(modifier: Modifier = Modifier, icon: ImageVector, val
 
 // ═══ ProfileSettingsRow ════════════════════════════════════════════════════
 @Composable
-private fun ProfileSettingsRow(icon: ImageVector, title: String, badge: String? = null, badgeColor: Color = Color.Gray, onClick: () -> Unit) {
+fun ProfileSettingsRow(icon: ImageVector, title: String, badge: String? = null, badgeColor: Color = Color.Gray, onClick: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
             .background(AppTheme.Colors.secondaryBackground).clickable(onClick = onClick).padding(16.dp),

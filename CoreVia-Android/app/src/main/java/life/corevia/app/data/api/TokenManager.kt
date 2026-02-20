@@ -44,6 +44,15 @@ class TokenManager private constructor(context: Context) {
     val isLoggedIn: Boolean
         get() = accessToken != null
 
+    // iOS: UserDefaults.set(user.userType, forKey: "userType")
+    // Login zamanı saxlanır, app açılanda dərhal mövcuddur (API gözləmədən)
+    var userType: String?
+        get() = prefs.getString(KEY_USER_TYPE, null)
+        set(value) = prefs.edit().putString(KEY_USER_TYPE, value).apply()
+
+    val isTrainer: Boolean
+        get() = userType == "trainer"
+
     // Onboarding flag
     var hasCompletedOnboarding: Boolean
         get() = prefs.getBoolean(KEY_ONBOARDING_COMPLETED, false)
@@ -54,12 +63,14 @@ class TokenManager private constructor(context: Context) {
         prefs.edit()
             .remove(KEY_ACCESS_TOKEN)
             .remove(KEY_REFRESH_TOKEN)
+            .remove(KEY_USER_TYPE)
             .apply()
     }
 
     companion object {
         private const val KEY_ACCESS_TOKEN = "access_token"
         private const val KEY_REFRESH_TOKEN = "refresh_token"
+        private const val KEY_USER_TYPE = "user_type"
         private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
 
         @Volatile

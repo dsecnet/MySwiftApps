@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -145,7 +146,7 @@ fun SettingsScreen(
                 SettingsToggle(
                     title = "Bildirişlər",
                     subtitle = "Bütün bildirişləri aktivləşdir",
-                    icon = Icons.Filled.Notifications,
+                    icon = Icons.Outlined.Notifications,
                     isChecked = notificationsEnabled,
                     onCheckedChange = { notificationsEnabled = it }
                 )
@@ -153,7 +154,7 @@ fun SettingsScreen(
                 SettingsToggle(
                     title = "Məşq xatırlatmaları",
                     subtitle = "Gündəlik məşq bildirişləri",
-                    icon = Icons.Filled.FitnessCenter,
+                    icon = Icons.Outlined.FitnessCenter,
                     isChecked = workoutReminders,
                     enabled = notificationsEnabled,
                     onCheckedChange = { workoutReminders = it }
@@ -162,7 +163,7 @@ fun SettingsScreen(
                 SettingsToggle(
                     title = "Yemək xatırlatmaları",
                     subtitle = "Qida izləmə bildirişləri",
-                    icon = Icons.Filled.Restaurant,
+                    icon = Icons.Outlined.Restaurant,
                     isChecked = mealReminders,
                     enabled = notificationsEnabled,
                     onCheckedChange = { mealReminders = it }
@@ -171,7 +172,7 @@ fun SettingsScreen(
                 SettingsToggle(
                     title = "Həftəlik hesabat",
                     subtitle = "Hər həftə irəliləyiş xülasəsi",
-                    icon = Icons.Filled.BarChart,
+                    icon = Icons.Outlined.BarChart,
                     isChecked = weeklyReport,
                     enabled = notificationsEnabled,
                     onCheckedChange = { weeklyReport = it }
@@ -202,7 +203,7 @@ fun SettingsScreen(
                 SettingsToggle(
                     title = "Biometrik giriş",
                     subtitle = "Sürətli daxil olma",
-                    icon = Icons.Filled.Fingerprint,
+                    icon = Icons.Outlined.Fingerprint,
                     isChecked = biometricEnabled,
                     onCheckedChange = { biometricEnabled = it }
                 )
@@ -214,21 +215,21 @@ fun SettingsScreen(
                     // Change password
                     SettingsActionRow(
                         title = "Şifrəni dəyiş",
-                        icon = Icons.Filled.Key,
+                        icon = Icons.Outlined.Key,
                         onClick = { showSetPasswordDialog = true }
                     )
                     HorizontalDivider(color = AppTheme.Colors.separator, modifier = Modifier.padding(horizontal = 16.dp))
                     // Remove password
                     SettingsActionRow(
                         title = "Şifrəni sil",
-                        icon = Icons.Filled.Delete,
+                        icon = Icons.Outlined.Delete,
                         textColor = AppTheme.Colors.error,
                         onClick = { showRemovePasswordDialog = true }
                     )
                 } else {
                     SettingsActionRow(
                         title = "Şifrə təyin et",
-                        icon = Icons.Filled.Lock,
+                        icon = Icons.Outlined.Lock,
                         onClick = { showSetPasswordDialog = true }
                     )
                 }
@@ -243,7 +244,7 @@ fun SettingsScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Shield,
+                        imageVector = Icons.Outlined.Shield,
                         contentDescription = null,
                         tint = AppTheme.Colors.accent,
                         modifier = Modifier.size(20.dp)
@@ -299,7 +300,7 @@ fun SettingsScreen(
                         )
                 )
                 Icon(
-                    imageVector = Icons.Filled.FitnessCenter,
+                    imageVector = Icons.Outlined.FitnessCenter,
                     contentDescription = null,
                     tint = Color.White,
                     modifier = Modifier.size(50.dp)
@@ -365,11 +366,11 @@ fun SettingsScreen(
                     color = AppTheme.Colors.primaryText
                 )
                 Spacer(modifier = Modifier.height(12.dp))
-                AboutFeatureRow(icon = Icons.Filled.FitnessCenter, title = "Məşq izləmə")
-                AboutFeatureRow(icon = Icons.Filled.Restaurant, title = "Qida izləmə")
-                AboutFeatureRow(icon = Icons.Filled.People, title = "Müəllim-tələbə sistemi")
-                AboutFeatureRow(icon = Icons.Filled.BarChart, title = "Detallı statistika")
-                AboutFeatureRow(icon = Icons.Filled.Notifications, title = "Xatırlatmalar")
+                AboutFeatureRow(icon = Icons.Outlined.FitnessCenter, title = "Məşq izləmə")
+                AboutFeatureRow(icon = Icons.Outlined.Restaurant, title = "Qida izləmə")
+                AboutFeatureRow(icon = Icons.Outlined.People, title = "Müəllim-tələbə sistemi")
+                AboutFeatureRow(icon = Icons.Outlined.BarChart, title = "Detallı statistika")
+                AboutFeatureRow(icon = Icons.Outlined.Notifications, title = "Xatırlatmalar")
             }
         }
 
@@ -377,7 +378,7 @@ fun SettingsScreen(
 
         // ── Links (iOS: AboutLinkButton) ────────────────────────────────
         AboutLinkRow(
-            icon = Icons.Filled.Language,
+            icon = Icons.Outlined.Language,
             title = "Veb sayt",
             onClick = {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://corevia.life"))
@@ -386,7 +387,7 @@ fun SettingsScreen(
         )
         Spacer(modifier = Modifier.height(8.dp))
         AboutLinkRow(
-            icon = Icons.Filled.Email,
+            icon = Icons.Outlined.Email,
             title = "Əlaqə",
             onClick = {
                 val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:support@corevia.life"))
@@ -395,7 +396,7 @@ fun SettingsScreen(
         )
         Spacer(modifier = Modifier.height(8.dp))
         AboutLinkRow(
-            icon = Icons.Filled.Description,
+            icon = Icons.Outlined.Description,
             title = "İstifadə şərtləri",
             onClick = {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://corevia.life/terms"))
@@ -404,7 +405,7 @@ fun SettingsScreen(
         )
         Spacer(modifier = Modifier.height(8.dp))
         AboutLinkRow(
-            icon = Icons.Filled.PrivacyTip,
+            icon = Icons.Outlined.PrivacyTip,
             title = "Məxfilik siyasəti",
             onClick = {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://corevia.life/privacy"))
@@ -520,7 +521,7 @@ fun SettingsActionRow(
             modifier = Modifier.weight(1f)
         )
         Icon(
-            imageVector = Icons.Filled.ChevronRight,
+            imageVector = Icons.Outlined.ChevronRight,
             contentDescription = null,
             tint = AppTheme.Colors.secondaryText,
             modifier = Modifier.size(16.dp)
@@ -564,7 +565,7 @@ private fun AboutFeatureRow(icon: ImageVector, title: String) {
             modifier = Modifier.weight(1f)
         )
         Icon(
-            imageVector = Icons.Filled.CheckCircle,
+            imageVector = Icons.Outlined.CheckCircle,
             contentDescription = null,
             tint = AppTheme.Colors.success,
             modifier = Modifier.size(20.dp)
@@ -633,7 +634,7 @@ private fun SetPasswordDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
-                    imageVector = Icons.Filled.Shield,
+                    imageVector = Icons.Outlined.Shield,
                     contentDescription = null,
                     tint = AppTheme.Colors.accent,
                     modifier = Modifier.size(60.dp)

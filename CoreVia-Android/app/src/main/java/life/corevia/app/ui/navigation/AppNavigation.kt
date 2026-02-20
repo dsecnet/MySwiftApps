@@ -10,8 +10,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.outlined.Chat
+import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -48,6 +50,7 @@ import life.corevia.app.ui.mealplan.MealPlanScreen
 import life.corevia.app.ui.mealplan.MealPlanViewModel
 import life.corevia.app.ui.profile.ProfileScreen
 import life.corevia.app.ui.profile.ProfileViewModel
+import life.corevia.app.ui.profile.TrainerProfileScreen
 import life.corevia.app.ui.settings.SettingsScreen
 import life.corevia.app.ui.trainer.MyStudentsScreen
 import life.corevia.app.ui.trainer.MyStudentsViewModel
@@ -82,6 +85,8 @@ import life.corevia.app.ui.news.NewsScreen
 import life.corevia.app.ui.news.NewsDetailScreen
 import life.corevia.app.ui.tracking.TrackingViewModel
 import life.corevia.app.ui.tracking.LiveTrackingScreen
+import life.corevia.app.ui.content.ContentViewModel
+import life.corevia.app.ui.content.TrainerContentScreen
 
 /**
  * iOS: ContentView + MainTabView + CustomTabBar
@@ -159,6 +164,7 @@ fun AppNavigation(tokenManager: TokenManager) {
     val marketplaceViewModel: MarketplaceViewModel     = viewModel()
     val newsViewModel: NewsViewModel                   = viewModel()
     val trackingViewModel: TrackingViewModel           = viewModel()
+    val contentViewModel: ContentViewModel             = viewModel()
 
     NavHost(
         navController    = navController,
@@ -200,8 +206,9 @@ fun AppNavigation(tokenManager: TokenManager) {
 
         // ── Main (iOS: MainTabView) ───────────────────────────────────────────
         composable(Routes.HOME) {
-            val user by profileViewModel.user.collectAsState()
-            val isTrainer = user?.userType == "trainer"
+            // iOS kimi: userType TokenManager-dan dərhal oxunur (API gözləmədən).
+            // Login zamanı saxlanılır, app açılanda dərhal doğru tip göstərilir.
+            val isTrainer = tokenManager.isTrainer
 
             MainTabView(
                 navController         = navController,
@@ -221,6 +228,7 @@ fun AppNavigation(tokenManager: TokenManager) {
                 marketplaceViewModel  = marketplaceViewModel,
                 newsViewModel         = newsViewModel,
                 trackingViewModel     = trackingViewModel,
+                contentViewModel      = contentViewModel,
                 isTrainer             = isTrainer,
                 onLogout = {
                     authViewModel.logout()
@@ -253,6 +261,7 @@ fun MainTabView(
     marketplaceViewModel: MarketplaceViewModel,
     newsViewModel: NewsViewModel,
     trackingViewModel: TrackingViewModel,
+    contentViewModel: ContentViewModel,
     isTrainer: Boolean = false,
     onLogout: () -> Unit = {}
 ) {
@@ -332,7 +341,10 @@ fun MainTabView(
                             viewModel = mealPlanViewModel
                         )
                     } else {
-                        FoodScreen(viewModel = foodViewModel)
+                        FoodScreen(
+                            viewModel = foodViewModel,
+                            isPremium = user?.isPremium == true
+                        )
                     }
                 }
                 TAB_CHAT -> {
@@ -357,20 +369,31 @@ fun MainTabView(
                 TAB_MORE -> {
                     // iOS: Tab 4 = Activities (client) / Content (trainer)
                     if (isTrainer) {
-                        PlaceholderScreen("Kontent", "📄")
+                        TrainerContentScreen(viewModel = contentViewModel)
                     } else {
                         ActivitiesScreen(
                             viewModel = activitiesViewModel,
-                            isPremium = user?.isPremium ?: false
+                            isPremium = user?.isPremium == true
                         )
                     }
                 }
                 TAB_PROFILE -> {
-                    ProfileScreen(
-                        onNavigateToSettings = { selectedTab = TAB_SETTINGS },
-                        onLogout = onLogout,
-                        viewModel = profileViewModel
-                    )
+                    if (isTrainer) {
+                        TrainerProfileScreen(
+                            onNavigateToSettings = { selectedTab = TAB_SETTINGS },
+                            onNavigateToMyStudents = { selectedTab = TAB_MY_STUDENTS },
+                            onLogout = onLogout,
+                            profileViewModel = profileViewModel,
+                            trainerHomeViewModel = trainerHomeViewModel
+                        )
+                    } else {
+                        ProfileScreen(
+                            onNavigateToSettings = { selectedTab = TAB_SETTINGS },
+                            onNavigateToPremium = { selectedTab = TAB_PREMIUM },
+                            onLogout = onLogout,
+                            viewModel = profileViewModel
+                        )
+                    }
                 }
                 TAB_SETTINGS -> {
                     SettingsScreen(onBack = { selectedTab = TAB_PROFILE })
@@ -563,7 +586,7 @@ fun CoreViaTabBar(
     ) {
         // Tab 0: Home
         TabBarItem(
-            icon       = Icons.Filled.Home,
+            icon       = Icons.Outlined.Home,
             label      = "Əsas",
             isSelected = selectedTab == TAB_HOME,
             onClick    = { onTabSelect(TAB_HOME) }
@@ -571,7 +594,7 @@ fun CoreViaTabBar(
 
         // Tab 1: Workout / Plans — iOS: figure.strengthtraining.traditional
         TabBarItem(
-            icon       = Icons.Filled.FitnessCenter,
+            icon       = Icons.Outlined.FitnessCenter,
             label      = if (isTrainer) "Planlar" else "Məşq",
             isSelected = selectedTab == TAB_WORKOUT,
             onClick    = { onTabSelect(TAB_WORKOUT) }
@@ -579,7 +602,7 @@ fun CoreViaTabBar(
 
         // Tab 2: Food / Meal Plans — iOS: fork.knife
         TabBarItem(
-            icon       = Icons.Filled.Restaurant,
+            icon       = Icons.Outlined.Restaurant,
             label      = if (isTrainer) "Qida Plan" else "Qida",
             isSelected = selectedTab == TAB_FOOD,
             onClick    = { onTabSelect(TAB_FOOD) }
@@ -587,7 +610,7 @@ fun CoreViaTabBar(
 
         // Tab 3: Chat — iOS: bubble.left.and.bubble.right
         TabBarItem(
-            icon       = Icons.Filled.Forum,
+            icon       = Icons.AutoMirrored.Outlined.Chat,
             label      = "Mesajlar",
             isSelected = selectedTab == TAB_CHAT,
             onClick    = { onTabSelect(TAB_CHAT) }
@@ -702,7 +725,7 @@ fun TabBarMoreButton(
                 )
             }
             Icon(
-                imageVector        = Icons.Filled.MoreVert,
+                imageVector        = Icons.Outlined.MoreHoriz,
                 contentDescription = "Daha çox",
                 modifier           = Modifier.size(if (isSelected) 20.dp else 18.dp),
                 tint               = if (isSelected) Color.White else AppTheme.Colors.secondaryText
@@ -767,7 +790,7 @@ fun MoreMenuSheet(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector        = Icons.Filled.MoreVert,
+                        imageVector        = Icons.Outlined.MoreHoriz,
                         contentDescription = null,
                         modifier           = Modifier.size(28.dp),
                         tint               = AppTheme.Colors.accent
@@ -786,7 +809,7 @@ fun MoreMenuSheet(
 
             // iOS: Item 1 — Activities (client) / Content (trainer)
             MoreMenuItem(
-                icon        = if (isTrainer) Icons.AutoMirrored.Filled.List else Icons.Filled.PlayArrow,
+                icon        = if (isTrainer) Icons.AutoMirrored.Outlined.List else Icons.Outlined.PlayArrow,
                 title       = if (isTrainer) "Kontent" else "Aktivliklər",
                 description = if (isTrainer) "Kontent idarə et" else "Müəllim tapşırıqları",
                 gradientColors = listOf(AppTheme.Colors.accent, AppTheme.Colors.accentDark),
@@ -797,7 +820,7 @@ fun MoreMenuSheet(
 
             // iOS: Item 2 — Profile
             MoreMenuItem(
-                icon        = Icons.Filled.Person,
+                icon        = Icons.Outlined.Person,
                 title       = "Profil",
                 description = "Hesabınızı idarə edin",
                 gradientColors = listOf(Color(0xFF34C759), Color(0xFF34C759).copy(alpha = 0.7f)),

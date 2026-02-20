@@ -6,7 +6,9 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import life.corevia.app.data.api.ErrorParser
 import life.corevia.app.data.models.MealPlan
 import life.corevia.app.data.models.MealPlanCreateRequest
@@ -44,50 +46,59 @@ class MealPlanViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun loadPlans() {
-        viewModelScope.launch {
-            _isLoading.value = true
+        _isLoading.value = true
+        viewModelScope.launch(Dispatchers.IO) {
             repository.getMealPlans().fold(
-                onSuccess = { _plans.value = it },
-                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
+                onSuccess = { withContext(Dispatchers.Main) { _plans.value = it } },
+                onFailure = { withContext(Dispatchers.Main) { _errorMessage.value = ErrorParser.parseMessage(it as Exception) } }
             )
-            _isLoading.value = false
+            withContext(Dispatchers.Main) { _isLoading.value = false }
         }
     }
 
     fun createPlan(request: MealPlanCreateRequest) {
-        viewModelScope.launch {
-            _isLoading.value = true
+        _isLoading.value = true
+        viewModelScope.launch(Dispatchers.IO) {
             repository.createMealPlan(request).fold(
                 onSuccess = {
-                    _successMessage.value = "Qida planı yaradıldı"
-                    loadPlans()
+                    withContext(Dispatchers.Main) { _successMessage.value = "Qida planı yaradıldı" }
+                    repository.getMealPlans().fold(
+                        onSuccess = { plans -> withContext(Dispatchers.Main) { _plans.value = plans } },
+                        onFailure = { /* ignore refresh error */ }
+                    )
                 },
-                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
+                onFailure = { withContext(Dispatchers.Main) { _errorMessage.value = ErrorParser.parseMessage(it as Exception) } }
             )
-            _isLoading.value = false
+            withContext(Dispatchers.Main) { _isLoading.value = false }
         }
     }
 
     fun completePlan(planId: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             repository.completeMealPlan(planId).fold(
                 onSuccess = {
-                    _successMessage.value = "Plan tamamlandı"
-                    loadPlans()
+                    withContext(Dispatchers.Main) { _successMessage.value = "Plan tamamlandı" }
+                    repository.getMealPlans().fold(
+                        onSuccess = { plans -> withContext(Dispatchers.Main) { _plans.value = plans } },
+                        onFailure = { /* ignore */ }
+                    )
                 },
-                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
+                onFailure = { withContext(Dispatchers.Main) { _errorMessage.value = ErrorParser.parseMessage(it as Exception) } }
             )
         }
     }
 
     fun deletePlan(planId: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             repository.deleteMealPlan(planId).fold(
                 onSuccess = {
-                    _successMessage.value = "Plan silindi"
-                    loadPlans()
+                    withContext(Dispatchers.Main) { _successMessage.value = "Plan silindi" }
+                    repository.getMealPlans().fold(
+                        onSuccess = { plans -> withContext(Dispatchers.Main) { _plans.value = plans } },
+                        onFailure = { /* ignore */ }
+                    )
                 },
-                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
+                onFailure = { withContext(Dispatchers.Main) { _errorMessage.value = ErrorParser.parseMessage(it as Exception) } }
             )
         }
     }

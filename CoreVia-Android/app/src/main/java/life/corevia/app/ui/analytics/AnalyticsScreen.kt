@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -79,7 +80,7 @@ fun AnalyticsScreen(
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(
-                            imageVector = Icons.Filled.Star,
+                            imageVector = Icons.Outlined.Star,
                             contentDescription = null,
                             tint = AppTheme.Colors.accent,
                             modifier = Modifier.size(28.dp)
@@ -164,7 +165,7 @@ fun AnalyticsScreen(
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Filled.Add,
+                                imageVector = Icons.Outlined.Add,
                                 contentDescription = null,
                                 modifier = Modifier.size(16.dp)
                             )
@@ -336,21 +337,21 @@ fun TodayStatsRow(today: DailyStats?, modifier: Modifier = Modifier) {
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         StatMiniCard(
-            icon = Icons.Filled.Star,
+            icon = Icons.Outlined.Star,
             value = "${today?.totalWorkouts ?: 0}",
             label = "Məşq",
             color = AppTheme.Colors.accent,
             modifier = Modifier.weight(1f)
         )
         StatMiniCard(
-            icon = Icons.Filled.PlayArrow,
+            icon = Icons.Outlined.PlayArrow,
             value = "${today?.totalDuration ?: 0} dəq",
             label = "Müddət",
             color = AppTheme.Colors.warning,
             modifier = Modifier.weight(1f)
         )
         StatMiniCard(
-            icon = Icons.Filled.Favorite,
+            icon = Icons.Outlined.Favorite,
             value = "${today?.totalCaloriesBurned ?: 0}",
             label = "Kalori",
             color = AppTheme.Colors.error,
@@ -525,7 +526,7 @@ fun MeasurementCard(
                     modifier = Modifier.size(28.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Delete,
+                        imageVector = Icons.Outlined.Delete,
                         contentDescription = "Sil",
                         tint = AppTheme.Colors.tertiaryText,
                         modifier = Modifier.size(16.dp)

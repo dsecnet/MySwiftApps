@@ -10,8 +10,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.People
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -95,7 +95,7 @@ fun TrainingPlanScreen(
                         shape = CircleShape,
                         modifier = Modifier.size(56.dp)
                     ) {
-                        Icon(Icons.Default.Add, "Məşq planı yarat", tint = Color.White)
+                        Icon(Icons.Outlined.Add, "Məşq planı yarat", tint = Color.White)
                     }
 
                     // Add workout for student button (iOS: person.2.fill, green)
@@ -110,7 +110,7 @@ fun TrainingPlanScreen(
                             verticalArrangement = Arrangement.Center
                         ) {
                             Icon(
-                                Icons.Default.People,
+                                Icons.Outlined.People,
                                 null,
                                 tint = Color.White,
                                 modifier = Modifier.size(18.dp)
@@ -319,19 +319,29 @@ fun TrainingPlanCard(
                         color = AppTheme.Colors.warning,
                         fontSize = 13.sp
                     )
+                    // iOS: assigned student name display
                     if (plan.assignedStudentId != null) {
                         Text(
-                            text = "👤 Assign olunub",
-                            color = AppTheme.Colors.secondaryText,
+                            text = "👤 ${plan.assignedStudentName ?: "Tələbəyə təyin olunub"}",
+                            color = AppTheme.Colors.accent,
                             fontSize = 12.sp
                         )
                     }
-                    if (plan.isCompleted) {
-                        Text(
-                            text = "✅ Tamamlandı",
-                            color = AppTheme.Colors.success,
-                            fontSize = 12.sp
-                        )
+                    // iOS: completion status (only show if assigned to student)
+                    if (plan.assignedStudentId != null) {
+                        if (plan.isCompleted) {
+                            Text(
+                                text = "✅ Tamamlandı",
+                                color = AppTheme.Colors.success,
+                                fontSize = 12.sp
+                            )
+                        } else {
+                            Text(
+                                text = "⏱️ Gözləmədə",
+                                color = Color(0xFFFFA500),
+                                fontSize = 12.sp
+                            )
+                        }
                     }
                 }
                 Column(horizontalAlignment = Alignment.End) {

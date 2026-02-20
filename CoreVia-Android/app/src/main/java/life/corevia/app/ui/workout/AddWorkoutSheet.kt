@@ -8,8 +8,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.DirectionsRun
+import androidx.compose.material.icons.automirrored.outlined.DirectionsRun
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -100,10 +101,10 @@ fun AddWorkoutSheet(
                         WorkoutCategoryButton(
                             modifier   = Modifier.weight(1f),
                             icon       = when (cat) {
-                                WorkoutCategory.CARDIO      -> Icons.AutoMirrored.Filled.DirectionsRun
-                                WorkoutCategory.STRENGTH    -> Icons.Default.FitnessCenter
-                                WorkoutCategory.FLEXIBILITY -> Icons.Default.SelfImprovement
-                                WorkoutCategory.ENDURANCE   -> Icons.Default.Speed
+                                WorkoutCategory.CARDIO      -> Icons.AutoMirrored.Outlined.DirectionsRun
+                                WorkoutCategory.STRENGTH    -> Icons.Outlined.FitnessCenter
+                                WorkoutCategory.FLEXIBILITY -> Icons.Outlined.SelfImprovement
+                                WorkoutCategory.ENDURANCE   -> Icons.Outlined.Speed
                             },
                             label      = when (cat) {
                                 WorkoutCategory.CARDIO      -> "Kardio"
@@ -131,7 +132,7 @@ fun AddWorkoutSheet(
                 ) {
                     // iOS: minus.circle.fill
                     Icon(
-                        imageVector        = Icons.Default.RemoveCircle,
+                        imageVector        = Icons.Outlined.RemoveCircle,
                         contentDescription = "Azalt",
                         modifier = Modifier
                             .size(32.dp)
@@ -149,7 +150,7 @@ fun AddWorkoutSheet(
 
                     // iOS: plus.circle.fill (gray when >= 1440)
                     Icon(
-                        imageVector        = Icons.Default.AddCircle,
+                        imageVector        = Icons.Outlined.AddCircle,
                         contentDescription = "Artır",
                         modifier = Modifier
                             .size(32.dp)

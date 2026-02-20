@@ -2156,3 +2156,37 @@ Run time of job "send_workout_reminders (trigger: cron[hour='18', minute='0'], n
 Run time of job "send_meal_reminders (trigger: cron[hour='19', minute='0'], next run at: 2026-02-19 19:00:00 +04)" was missed by 14:40:44.058219
 Run time of job "check_expired_subscriptions (trigger: cron[hour='0', minute='30'], next run at: 2026-02-20 00:30:00 +04)" was missed by 9:10:44.058411
 Run time of job "send_meal_reminders (trigger: cron[hour='12', minute='0'], next run at: 2026-02-20 12:00:00 +04)" was missed by 0:23:34.899549
+Run time of job "send_workout_reminders (trigger: cron[hour='18', minute='0'], next run at: 2026-02-20 18:00:00 +04)" was missed by 8:48:37.646561
+Run time of job "send_meal_reminders (trigger: cron[hour='19', minute='0'], next run at: 2026-02-20 19:00:00 +04)" was missed by 7:48:37.661049
+Run time of job "check_expired_subscriptions (trigger: cron[hour='0', minute='30'], next run at: 2026-02-21 00:30:00 +04)" was missed by 2:18:37.661871
+2026-02-20 11:40:04,607 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-02-20 11:40:04,613 INFO sqlalchemy.engine.Engine SELECT users.id, users.name, users.email, users.hashed_password, users.user_type, users.profile_image_url, users.is_active, users.created_at, users.updated_at, users.age, users.weight, users.height, users.goal, users.trainer_id, users.specialization, users.experience, users.rating, users.price_per_session, users.bio, users.verification_status, users.certificate_image_url, users.instagram_handle, users.verification_photo_url, users.verification_score, users.verification_attempts, users.last_verification_attempt, users.is_premium, users.is_admin 
+FROM users 
+WHERE users.email = $1::VARCHAR
+2026-02-20 11:40:04,614 INFO sqlalchemy.engine.Engine [cached since 1.782e+05s ago] ('vusaldadawov@gmail.com',)
+Failed login attempt for: vusaldadawov@gmail.com
+2026-02-20 11:40:04,652 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     127.0.0.1:54464 - "POST /api/v1/auth/login HTTP/1.1" 401 Unauthorized
+2026-02-20 11:40:12,981 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-02-20 11:40:12,982 INFO sqlalchemy.engine.Engine SELECT users.id, users.name, users.email, users.hashed_password, users.user_type, users.profile_image_url, users.is_active, users.created_at, users.updated_at, users.age, users.weight, users.height, users.goal, users.trainer_id, users.specialization, users.experience, users.rating, users.price_per_session, users.bio, users.verification_status, users.certificate_image_url, users.instagram_handle, users.verification_photo_url, users.verification_score, users.verification_attempts, users.last_verification_attempt, users.is_premium, users.is_admin 
+FROM users 
+WHERE users.email = $1::VARCHAR
+2026-02-20 11:40:12,982 INFO sqlalchemy.engine.Engine [cached since 1.782e+05s ago] ('vusaldadawov@gmail.com',)
+Failed login attempt for: vusaldadawov@gmail.com
+2026-02-20 11:40:12,987 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     127.0.0.1:54473 - "POST /api/v1/auth/login HTTP/1.1" 401 Unauthorized
+2026-02-20 11:40:34,676 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-02-20 11:40:34,682 INFO sqlalchemy.engine.Engine SELECT users.id, users.name, users.email, users.hashed_password, users.user_type, users.profile_image_url, users.is_active, users.created_at, users.updated_at, users.age, users.weight, users.height, users.goal, users.trainer_id, users.specialization, users.experience, users.rating, users.price_per_session, users.bio, users.verification_status, users.certificate_image_url, users.instagram_handle, users.verification_photo_url, users.verification_score, users.verification_attempts, users.last_verification_attempt, users.is_premium, users.is_admin 
+FROM users 
+WHERE users.email = $1::VARCHAR
+2026-02-20 11:40:34,682 INFO sqlalchemy.engine.Engine [cached since 1.782e+05s ago] ('dsecnet@gmail.com',)
+2026-02-20 11:40:34,880 INFO sqlalchemy.engine.Engine SELECT count(*) AS count_1 
+FROM otp_codes 
+WHERE otp_codes.email = $1::VARCHAR AND otp_codes.purpose = $2::VARCHAR AND otp_codes.created_at >= $3::TIMESTAMP WITH TIME ZONE
+2026-02-20 11:40:34,880 INFO sqlalchemy.engine.Engine [cached since 1.782e+05s ago] ('dsecnet@gmail.com', 'login_2fa', datetime.datetime(2026, 2, 20, 11, 35, 34, 877383))
+2026-02-20 11:40:34,891 INFO sqlalchemy.engine.Engine INSERT INTO otp_codes (id, email, code, purpose, is_used, expires_at, attempts) VALUES ($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::BOOLEAN, $6::TIMESTAMP WITH TIME ZONE, $7::INTEGER) RETURNING otp_codes.created_at
+2026-02-20 11:40:34,891 INFO sqlalchemy.engine.Engine [cached since 1.782e+05s ago] ('920e35b1-9719-4b4d-883a-d4101ed9a5e6', 'dsecnet@gmail.com', '421912', 'login_2fa', False, datetime.datetime(2026, 2, 20, 11, 50, 34, 888666), 0)
+2026-02-20 11:40:34,897 INFO sqlalchemy.engine.Engine COMMIT
+SMTP xətası: Timed out waiting for server ready message
+Email göndərilmədi: Timed out waiting for server ready message
+INFO:     127.0.0.1:54490 - "POST /api/v1/auth/login HTTP/1.1" 429 Too Many Requests

@@ -36,7 +36,7 @@ struct LiveTrackingView: View {
                     .frame(
                         height: (geometry.size.height
                                  - geometry.safeAreaInsets.top
-                                 - geometry.safeAreaInsets.bottom) * 0.4
+                                 - geometry.safeAreaInsets.bottom) * 0.35
                     )
 
                     .cornerRadius(20)
@@ -46,87 +46,87 @@ struct LiveTrackingView: View {
                 .background(AppTheme.Colors.background)
 
             // FIX 7: Large stats card section (60% of screen)
-            VStack(spacing: 16) {
+            VStack(spacing: 10) {
                 Text("Canlı İzləmə")
-                    .font(.system(size: 22, weight: .bold))
+                    .font(.system(size: 18, weight: .bold))
                     .foregroundColor(AppTheme.Colors.primaryText)
 
                 // Distance & Calories
-                HStack(spacing: 16) {
-                    VStack(spacing: 8) {
+                HStack(spacing: 10) {
+                    VStack(spacing: 4) {
                         Image(systemName: "figure.run")
-                            .font(.system(size: 32))
+                            .font(.system(size: 22))
                             .foregroundColor(.blue)
 
                         Text(String(format: "%.2f", locationManager.distance))
-                            .font(.system(size: 36, weight: .bold))
+                            .font(.system(size: 24, weight: .bold))
                             .foregroundColor(AppTheme.Colors.primaryText)
 
                         Text("Kilometr")
-                            .font(.system(size: 14))
+                            .font(.system(size: 12))
                             .foregroundColor(AppTheme.Colors.secondaryText)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding()
+                    .padding(10)
                     .background(AppTheme.Colors.cardBackground)
-                    .cornerRadius(16)
+                    .cornerRadius(14)
 
-                    VStack(spacing: 8) {
+                    VStack(spacing: 4) {
                         Image(systemName: "flame.fill")
-                            .font(.system(size: 32))
+                            .font(.system(size: 22))
                             .foregroundColor(.orange)
 
                         Text("\(locationManager.calories)")
-                            .font(.system(size: 36, weight: .bold))
+                            .font(.system(size: 24, weight: .bold))
                             .foregroundColor(AppTheme.Colors.primaryText)
 
                         Text("Kalori")
-                            .font(.system(size: 14))
+                            .font(.system(size: 12))
                             .foregroundColor(AppTheme.Colors.secondaryText)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding()
+                    .padding(10)
                     .background(AppTheme.Colors.cardBackground)
-                    .cornerRadius(16)
+                    .cornerRadius(14)
                 }
 
                 // Time & Speed
-                HStack(spacing: 16) {
-                    VStack(spacing: 8) {
+                HStack(spacing: 10) {
+                    VStack(spacing: 4) {
                         Image(systemName: "timer")
-                            .font(.system(size: 32))
+                            .font(.system(size: 22))
                             .foregroundColor(.green)
 
                         Text(timeString(from: locationManager.duration))
-                            .font(.system(size: 36, weight: .bold))
+                            .font(.system(size: 24, weight: .bold))
                             .foregroundColor(AppTheme.Colors.primaryText)
 
                         Text("Vaxt")
-                            .font(.system(size: 14))
+                            .font(.system(size: 12))
                             .foregroundColor(AppTheme.Colors.secondaryText)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding()
+                    .padding(10)
                     .background(AppTheme.Colors.cardBackground)
-                    .cornerRadius(16)
+                    .cornerRadius(14)
 
-                    VStack(spacing: 8) {
+                    VStack(spacing: 4) {
                         Image(systemName: "speedometer")
-                            .font(.system(size: 32))
+                            .font(.system(size: 22))
                             .foregroundColor(.purple)
 
                         Text(String(format: "%.1f", locationManager.speed))
-                            .font(.system(size: 36, weight: .bold))
+                            .font(.system(size: 24, weight: .bold))
                             .foregroundColor(AppTheme.Colors.primaryText)
 
                         Text("km/s")
-                            .font(.system(size: 14))
+                            .font(.system(size: 12))
                             .foregroundColor(AppTheme.Colors.secondaryText)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding()
+                    .padding(10)
                     .background(AppTheme.Colors.cardBackground)
-                    .cornerRadius(16)
+                    .cornerRadius(14)
                 }
 
                 Spacer()
@@ -200,7 +200,7 @@ struct LiveTrackingView: View {
             .frame(
                 height: (geometry.size.height
                          - geometry.safeAreaInsets.top
-                         - geometry.safeAreaInsets.bottom) * 0.5
+                         - geometry.safeAreaInsets.bottom) * 0.6
             )
             .background(AppTheme.Colors.secondaryBackground)
             }

@@ -74,8 +74,8 @@ dependencies {
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
 
-    // Google Maps Compose
-    implementation(libs.maps.compose)
+    // OpenStreetMap (osmdroid) — API key lazım deyil
+    implementation(libs.osmdroid)
 
     // GPS - FusedLocationProvider
     implementation(libs.play.services.location)

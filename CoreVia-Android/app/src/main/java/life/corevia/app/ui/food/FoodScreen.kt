@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -41,7 +42,8 @@ import life.corevia.app.data.models.MealType
  */
 @Composable
 fun FoodScreen(
-    viewModel: FoodViewModel = viewModel()
+    viewModel: FoodViewModel = viewModel(),
+    isPremium: Boolean = false
 ) {
     val foodEntries by viewModel.foodEntries.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -199,19 +201,19 @@ fun FoodScreen(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     FoodCalorieStat(
-                        icon  = Icons.Default.LocalFireDepartment,
+                        icon  = Icons.Outlined.LocalFireDepartment,
                         value = "$remaining",
                         label = "Qalan",
                         color = AppTheme.Colors.accent
                     )
                     FoodCalorieStat(
-                        icon  = Icons.Default.GpsFixed,
+                        icon  = Icons.Outlined.GpsFixed,
                         value = "${(progress * 100).toInt()}%",
                         label = "Tamamlandı",
                         color = AppTheme.Colors.accent
                     )
                     FoodCalorieStat(
-                        icon  = Icons.Default.Restaurant,
+                        icon  = Icons.Outlined.Restaurant,
                         value = "${todayEntries.size}",
                         label = "Yemək",
                         color = AppTheme.Colors.accent
@@ -231,7 +233,7 @@ fun FoodScreen(
                         verticalAlignment     = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector        = Icons.Default.Edit,
+                            imageVector        = Icons.Outlined.Edit,
                             contentDescription = null,
                             modifier           = Modifier.size(14.dp),
                             tint               = AppTheme.Colors.accent
@@ -329,7 +331,7 @@ fun FoodScreen(
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector        = Icons.Default.AddCircle,
+                        imageVector        = Icons.Outlined.AddCircle,
                         contentDescription = null,
                         modifier           = Modifier.size(20.dp),
                         tint               = Color.White
@@ -351,6 +353,7 @@ fun FoodScreen(
     if (showAddFood) {
         AddFoodSheet(
             onDismiss = { viewModel.setShowAddFood(false) },
+            isPremium = isPremium,
             onSave = { name, calories, protein, carbs, fats, mealType, notes ->
                 viewModel.addFoodEntry(name, calories, protein, carbs, fats, mealType, notes)
             }
@@ -463,10 +466,10 @@ private fun FoodMealSection(
         MealType.SNACK     -> AppTheme.Colors.mealSnack
     }
     val mealIcon = when (mealType) {
-        MealType.BREAKFAST -> Icons.Default.WbSunny
-        MealType.LUNCH     -> Icons.Default.LightMode
-        MealType.DINNER    -> Icons.Default.NightsStay
-        MealType.SNACK     -> Icons.Default.Cookie
+        MealType.BREAKFAST -> Icons.Outlined.WbSunny
+        MealType.LUNCH     -> Icons.Outlined.LightMode
+        MealType.DINNER    -> Icons.Outlined.NightsStay
+        MealType.SNACK     -> Icons.Outlined.Cookie
     }
     val mealLabel = when (mealType) {
         MealType.BREAKFAST -> "Səhər yeməyi"
@@ -517,7 +520,7 @@ private fun FoodMealSection(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(
-                    imageVector        = Icons.Default.AddCircle,
+                    imageVector        = Icons.Outlined.AddCircle,
                     contentDescription = null,
                     modifier           = Modifier.size(18.dp),
                     tint               = mealColor

@@ -6,7 +6,9 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import life.corevia.app.data.api.ErrorParser
 import life.corevia.app.data.models.*
 import life.corevia.app.data.repository.ChatRepository
@@ -53,13 +55,20 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     // ─── Actions ────────────────────────────────────────────────────────────────
 
     fun loadConversations() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            repository.getConversations().fold(
-                onSuccess = { _conversations.value = it },
-                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
-            )
-            _isLoading.value = false
+        _isLoading.value = true
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                repository.getConversations().fold(
+                    onSuccess = { withContext(Dispatchers.Main) { _conversations.value = it } },
+                    onFailure = { e ->
+                        val msg = if (e is Exception) ErrorParser.parseMessage(e) else e.message ?: "Xəta"
+                        withContext(Dispatchers.Main) { _errorMessage.value = msg }
+                    }
+                )
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) { _errorMessage.value = e.message ?: "Xəta baş verdi" }
+            }
+            withContext(Dispatchers.Main) { _isLoading.value = false }
         }
     }
 
@@ -71,38 +80,60 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun loadMessages(userId: String) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            repository.getChatHistory(userId).fold(
-                onSuccess = { _messages.value = it },
-                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
-            )
-            _isLoading.value = false
+        _isLoading.value = true
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                repository.getChatHistory(userId).fold(
+                    onSuccess = { withContext(Dispatchers.Main) { _messages.value = it } },
+                    onFailure = { e ->
+                        val msg = if (e is Exception) ErrorParser.parseMessage(e) else e.message ?: "Xəta"
+                        withContext(Dispatchers.Main) { _errorMessage.value = msg }
+                    }
+                )
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) { _errorMessage.value = e.message ?: "Xəta baş verdi" }
+            }
+            withContext(Dispatchers.Main) { _isLoading.value = false }
         }
     }
 
-    fun sendMessage(content: String) {
+    fun sendMessage(message: String) {
         val receiverId = _activeChatUserId.value ?: return
-        if (content.isBlank()) return
+        if (message.isBlank()) return
 
-        viewModelScope.launch {
-            repository.sendMessage(SendMessageRequest(receiverId, content)).fold(
-                onSuccess = { newMessage ->
-                    _messages.value = _messages.value + newMessage
-                    // Söhbətlər siyahısını yenilə
-                    loadConversations()
-                    // Limit yenilə
-                    loadMessageLimit()
-                },
-                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
-            )
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                repository.sendMessage(SendMessageRequest(receiverId, message)).fold(
+                    onSuccess = { newMessage ->
+                        withContext(Dispatchers.Main) {
+                            _messages.value = _messages.value + newMessage
+                        }
+                        // Söhbətlər siyahısını yenilə
+                        repository.getConversations().fold(
+                            onSuccess = { withContext(Dispatchers.Main) { _conversations.value = it } },
+                            onFailure = { /* ignore */ }
+                        )
+                        // Limit yenilə
+                        repository.getMessageLimit().fold(
+                            onSuccess = { withContext(Dispatchers.Main) { _messageLimit.value = it } },
+                            onFailure = { /* ignore */ }
+                        )
+                    },
+                    onFailure = { e ->
+                        val msg = if (e is Exception) ErrorParser.parseMessage(e) else e.message ?: "Xəta"
+                        withContext(Dispatchers.Main) { _errorMessage.value = msg }
+                    }
+                )
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) { _errorMessage.value = e.message ?: "Xəta baş verdi" }
+            }
         }
     }
 
     fun loadMessageLimit() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             repository.getMessageLimit().fold(
-                onSuccess = { _messageLimit.value = it },
+                onSuccess = { withContext(Dispatchers.Main) { _messageLimit.value = it } },
                 onFailure = { /* sessiz xəta */ }
             )
         }

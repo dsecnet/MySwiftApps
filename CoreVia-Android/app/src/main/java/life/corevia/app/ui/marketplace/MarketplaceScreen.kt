@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -70,7 +71,7 @@ fun MarketplaceScreen(
                         onValueChange = { viewModel.updateSearchQuery(it) },
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = { Text("Məhsul axtar...", color = AppTheme.Colors.tertiaryText) },
-                        leadingIcon = { Icon(Icons.Filled.Search, null, tint = AppTheme.Colors.tertiaryText) },
+                        leadingIcon = { Icon(Icons.Outlined.Search, null, tint = AppTheme.Colors.tertiaryText) },
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = AppTheme.Colors.accent,
                             unfocusedBorderColor = AppTheme.Colors.cardBackground,
@@ -195,7 +196,7 @@ fun ProductCard(product: Product, onClick: () -> Unit) {
                 )
                 Spacer(Modifier.weight(1f))
                 if (product.rating != null) {
-                    Icon(Icons.Filled.Star, null, Modifier.size(12.dp), tint = AppTheme.Colors.warning)
+                    Icon(Icons.Outlined.Star, null, Modifier.size(12.dp), tint = AppTheme.Colors.warning)
                     Spacer(Modifier.width(2.dp))
                     Text("${product.rating}", fontSize = 11.sp, color = AppTheme.Colors.secondaryText)
                 }

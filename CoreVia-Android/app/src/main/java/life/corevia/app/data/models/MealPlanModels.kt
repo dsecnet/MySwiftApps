@@ -21,6 +21,7 @@ data class MealPlan(
     val id: String,
     @SerializedName("trainer_id")           val trainerId: String? = null,
     @SerializedName("assigned_student_id")  val assignedStudentId: String? = null,
+    @SerializedName("assigned_student_name") val assignedStudentName: String? = null,
     val title: String,
     @SerializedName("plan_type")            val planType: String,           // "weight_loss" | "weight_gain" | "strength_training"
     @SerializedName("daily_calorie_target") val dailyCalorieTarget: Int = 2000,

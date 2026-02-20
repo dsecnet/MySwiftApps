@@ -9,6 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -110,7 +111,7 @@ fun ProductDetailScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Filled.Star, null, Modifier.size(20.dp), tint = AppTheme.Colors.warning)
+                            Icon(Icons.Outlined.Star, null, Modifier.size(20.dp), tint = AppTheme.Colors.warning)
                             Spacer(Modifier.height(4.dp))
                             Text("$rating / 5", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.primaryText)
                         }
@@ -125,7 +126,7 @@ fun ProductDetailScreen(
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
-                            if (currentProduct.inStock) Icons.Filled.Check else Icons.Filled.Close,
+                            if (currentProduct.inStock) Icons.Filled.Check else Icons.Outlined.Close,
                             null, Modifier.size(20.dp),
                             tint = if (currentProduct.inStock) AppTheme.Colors.success else AppTheme.Colors.error
                         )
@@ -186,7 +187,7 @@ fun ProductDetailScreen(
                 if (isLoading) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                 } else {
-                    Icon(Icons.Filled.ShoppingCart, null, Modifier.size(20.dp))
+                    Icon(Icons.Outlined.ShoppingCart, null, Modifier.size(20.dp))
                     Spacer(Modifier.width(8.dp))
                     Text("Sifariş ver — ${currentProduct.price} ₼", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }

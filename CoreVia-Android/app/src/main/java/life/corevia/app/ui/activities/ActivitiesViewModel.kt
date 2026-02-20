@@ -3,6 +3,9 @@ package life.corevia.app.ui.activities
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,33 +40,35 @@ class ActivitiesViewModel(application: Application) : AndroidViewModel(applicati
     private val _successMessage = MutableStateFlow<String?>(null)
     val successMessage: StateFlow<String?> = _successMessage.asStateFlow()
 
-    // iOS: assignedTrainingPlans — only plans assigned to current user (trainerId != null)
+    // iOS: assignedTrainingPlans — only plans assigned by trainer (trainerId != null)
+    // iOS ActivitiesView.swift: let assignedTraining = trainingPlanManager.plans.filter { $0.trainerId != nil }
     val assignedTrainingPlans: List<TrainingPlan>
-        get() = _trainingPlans.value.filter { it.assignedStudentId != null }
+        get() = _trainingPlans.value.filter { it.trainerId != null }
 
     val assignedMealPlans: List<MealPlan>
-        get() = _mealPlans.value.filter { it.assignedStudentId != null }
+        get() = _mealPlans.value.filter { it.trainerId != null }
 
     init {
         loadAll()
     }
 
     fun loadAll() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            // Paralel yüklə
-            launch {
+        _isLoading.value = true
+        viewModelScope.launch(Dispatchers.IO) {
+            // Paralel yüklə, hər ikisi bitənə qədər gözlə
+            val trainingJob = async {
                 trainingPlanRepo.getTrainingPlans().fold(
                     onSuccess = { _trainingPlans.value = it },
                     onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
                 )
             }
-            launch {
+            val mealJob = async {
                 mealPlanRepo.getMealPlans().fold(
                     onSuccess = { _mealPlans.value = it },
                     onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
                 )
             }
+            awaitAll(trainingJob, mealJob)
             _isLoading.value = false
         }
     }

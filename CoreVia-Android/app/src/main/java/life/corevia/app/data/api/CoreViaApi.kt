@@ -336,6 +336,22 @@ interface CoreViaApi {
     suspend fun getTrainerStats(): TrainerStatsResponse
 
     // ═══════════════════════════════════════════════════════════════════════════
+    // CONTENT (iOS: TrainerContentView + ContentManager)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    @GET("api/v1/content/my")
+    suspend fun getMyContent(): List<ContentResponse>
+
+    @GET("api/v1/content/trainer/{trainerId}")
+    suspend fun getTrainerContent(@Path("trainerId") trainerId: String): List<ContentResponse>
+
+    @POST("api/v1/content/")
+    suspend fun createContent(@Body request: ContentCreateRequest): ContentResponse
+
+    @DELETE("api/v1/content/{contentId}")
+    suspend fun deleteContent(@Path("contentId") contentId: String)
+
+    // ═══════════════════════════════════════════════════════════════════════════
     // FILE UPLOADS
     // ═══════════════════════════════════════════════════════════════════════════
 

@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -73,7 +74,7 @@ fun SocialFeedScreen(
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Icon(
-                        imageVector = Icons.Filled.Person,
+                        imageVector = Icons.Outlined.Person,
                         contentDescription = null,
                         tint = AppTheme.Colors.accent,
                         modifier = Modifier.size(28.dp)
@@ -151,7 +152,7 @@ fun SocialFeedScreen(
             containerColor = AppTheme.Colors.accent,
             contentColor = Color.White
         ) {
-            Icon(Icons.Filled.Add, contentDescription = "Yeni post")
+            Icon(Icons.Outlined.Add, contentDescription = "Yeni post")
         }
 
         // ── Create Post Sheet ───────────────────────────────────────────────────
@@ -308,7 +309,7 @@ fun PostCard(
                     modifier = Modifier.clickable(onClick = onLike)
                 ) {
                     Icon(
-                        imageVector = if (post.isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                        imageVector = if (post.isLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                         contentDescription = "Bəyən",
                         tint = if (post.isLiked) AppTheme.Colors.accent else AppTheme.Colors.tertiaryText,
                         modifier = Modifier.size(20.dp)
@@ -327,7 +328,7 @@ fun PostCard(
                     modifier = Modifier.clickable(onClick = onComment)
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Email,
+                        imageVector = Icons.Outlined.Email,
                         contentDescription = "Şərh",
                         tint = AppTheme.Colors.tertiaryText,
                         modifier = Modifier.size(20.dp)
@@ -348,7 +349,7 @@ fun PostCard(
                     modifier = Modifier.size(24.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.MoreVert,
+                        imageVector = Icons.Outlined.MoreVert,
                         contentDescription = "Daha çox",
                         tint = AppTheme.Colors.tertiaryText,
                         modifier = Modifier.size(16.dp)

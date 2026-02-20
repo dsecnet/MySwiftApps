@@ -17,7 +17,7 @@ import life.corevia.app.data.repository.AuthRepository
  *
  * Login: 2-step (email+password → OTP → token)
  * Register: 2-step (register-request → OTP → token)
- * Forgot Password: 3-step (email → OTP → new password)
+ * Forgot Password: 2-step (email → OTP+new password birlikdə, iOS ilə eyni)
  */
 class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -100,16 +100,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun verifyForgotPasswordOtp(email: String, otpCode: String) {
-        _uiState.value = AuthUiState.Loading
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.verifyForgotPasswordOtp(email, otpCode).fold(
-                onSuccess = { withContext(Dispatchers.Main) { _uiState.value = AuthUiState.ForgotOtpVerified } },
-                onFailure = { withContext(Dispatchers.Main) { _uiState.value = AuthUiState.Error(it.message ?: "OTP səhvdir") } }
-            )
-        }
-    }
-
     fun resetPassword(email: String, otpCode: String, newPassword: String) {
         _uiState.value = AuthUiState.Loading
         viewModelScope.launch(Dispatchers.IO) {
@@ -148,7 +138,6 @@ sealed class AuthUiState {
     object OtpSent            : AuthUiState()    // Login Step 2
     object RegisterOtpSent    : AuthUiState()    // Register Step 2
     object ForgotOtpSent      : AuthUiState()    // Forgot Password Step 2
-    object ForgotOtpVerified  : AuthUiState()    // Forgot Password Step 3
     object RegisterSuccess    : AuthUiState()    // Qeydiyyat uğurlu — login ekranına yönləndir
     object PasswordReset      : AuthUiState()    // Şifrə uğurla dəyişdi
     object LoggedOut          : AuthUiState()

@@ -1,6 +1,7 @@
 package life.corevia.app.data.repository
 
 import android.content.Context
+import android.util.Log
 import life.corevia.app.data.api.ApiClient
 import life.corevia.app.data.models.*
 
@@ -13,8 +14,14 @@ class ChatRepository(context: Context) {
 
     suspend fun getConversations(): Result<List<Conversation>> {
         return try {
-            Result.success(api.getConversations())
+            val result = api.getConversations()
+            Log.d("ChatRepo", "getConversations OK: ${result.size} conversations")
+            result.forEachIndexed { i, c ->
+                Log.d("ChatRepo", "Conv[$i]: userId=${c.userId}, name=${c.userName}, lastMsg=${c.lastMessage}, time=${c.lastMessageTime}, unread=${c.unreadCount}")
+            }
+            Result.success(result)
         } catch (e: Exception) {
+            Log.e("ChatRepo", "getConversations FAIL: ${e.javaClass.simpleName}: ${e.message}", e)
             Result.failure(e)
         }
     }

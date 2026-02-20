@@ -12,6 +12,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -120,7 +121,7 @@ fun AddFoodSheet(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.CameraAlt,
+                            imageVector = Icons.Outlined.CameraAlt,
                             contentDescription = null,
                             tint = Color.White,
                             modifier = Modifier.size(32.dp)
@@ -152,7 +153,7 @@ fun AddFoodSheet(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
-                                Icon(Icons.Filled.CameraAlt, null, tint = Color.White, modifier = Modifier.size(16.dp))
+                                Icon(Icons.Outlined.CameraAlt, null, tint = Color.White, modifier = Modifier.size(16.dp))
                                 Text("Şəkil çək", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                             }
                         }
@@ -163,7 +164,7 @@ fun AddFoodSheet(
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Filled.Lock,
+                                imageVector = Icons.Outlined.Lock,
                                 contentDescription = null,
                                 tint = AppTheme.Colors.secondaryText,
                                 modifier = Modifier.size(14.dp)

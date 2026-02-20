@@ -6,7 +6,9 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import life.corevia.app.data.api.ErrorParser
 import life.corevia.app.data.models.UserResponse
 import life.corevia.app.data.repository.UserRepository
@@ -45,13 +47,13 @@ class MyStudentsViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun loadStudents() {
-        viewModelScope.launch {
-            _isLoading.value = true
+        _isLoading.value = true
+        viewModelScope.launch(Dispatchers.IO) {
             repository.getMyStudents().fold(
-                onSuccess = { _students.value = it },
-                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
+                onSuccess = { withContext(Dispatchers.Main) { _students.value = it } },
+                onFailure = { withContext(Dispatchers.Main) { _errorMessage.value = ErrorParser.parseMessage(it as Exception) } }
             )
-            _isLoading.value = false
+            withContext(Dispatchers.Main) { _isLoading.value = false }
         }
     }
 

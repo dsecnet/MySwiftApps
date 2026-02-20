@@ -9,8 +9,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -62,7 +62,7 @@ fun ConversationsScreen(
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = Icons.Filled.Email,
+                            imageVector = Icons.Outlined.Email,
                             contentDescription = null,
                             tint = AppTheme.Colors.accent,
                             modifier = Modifier.size(28.dp)
@@ -213,7 +213,7 @@ fun ConversationCard(
                     )
                 } else {
                     Icon(
-                        imageVector = Icons.Filled.Person,
+                        imageVector = Icons.Outlined.Person,
                         contentDescription = null,
                         tint = Color.White,
                         modifier = Modifier.size(24.dp)
@@ -244,9 +244,9 @@ fun ConversationCard(
 
             // Unread badge + time
             Column(horizontalAlignment = Alignment.End) {
-                if (conversation.lastMessageAt != null) {
+                if (conversation.lastMessageTime != null) {
                     Text(
-                        text = formatChatTime(conversation.lastMessageAt),
+                        text = formatChatTime(conversation.lastMessageTime),
                         fontSize = 11.sp,
                         color = if (conversation.unreadCount > 0) AppTheme.Colors.accent
                         else AppTheme.Colors.tertiaryText

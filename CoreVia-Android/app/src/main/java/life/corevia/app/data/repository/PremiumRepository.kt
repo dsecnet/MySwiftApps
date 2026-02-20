@@ -36,6 +36,16 @@ class PremiumRepository(context: Context) {
         }
     }
 
+    // iOS: POST /api/v1/premium/activate (body yoxdur)
+    suspend fun activate(): Result<Unit> {
+        return try {
+            api.activatePremium()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun cancel(): Result<Unit> {
         return try {
             api.cancelSubscription()

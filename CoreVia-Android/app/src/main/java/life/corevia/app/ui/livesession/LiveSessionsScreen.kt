@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -117,7 +118,7 @@ fun SessionCard(session: LiveSession, onClick: () -> Unit) {
                 Spacer(Modifier.weight(1f))
                 Text("${session.currentParticipants}/${session.maxParticipants}", fontSize = 12.sp, color = AppTheme.Colors.secondaryText)
                 Spacer(Modifier.width(4.dp))
-                Icon(Icons.Filled.Person, null, Modifier.size(14.dp), tint = AppTheme.Colors.secondaryText)
+                Icon(Icons.Outlined.Person, null, Modifier.size(14.dp), tint = AppTheme.Colors.secondaryText)
             }
             Spacer(Modifier.height(8.dp))
             Text(session.title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = AppTheme.Colors.primaryText)
@@ -126,7 +127,7 @@ fun SessionCard(session: LiveSession, onClick: () -> Unit) {
             }
             Spacer(Modifier.height(4.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.PlayArrow, null, Modifier.size(14.dp), tint = AppTheme.Colors.tertiaryText)
+                Icon(Icons.Outlined.PlayArrow, null, Modifier.size(14.dp), tint = AppTheme.Colors.tertiaryText)
                 Spacer(Modifier.width(4.dp))
                 Text("${session.durationMinutes} dəq", fontSize = 12.sp, color = AppTheme.Colors.tertiaryText)
                 Spacer(Modifier.width(12.dp))

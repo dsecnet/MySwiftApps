@@ -10,7 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -89,7 +89,7 @@ fun MealPlanScreen(
                     containerColor = AppTheme.Colors.success,
                     shape = CircleShape
                 ) {
-                    Icon(Icons.Default.Add, "Qida planı yarat", tint = Color.White)
+                    Icon(Icons.Outlined.Add, "Qida planı yarat", tint = Color.White)
                 }
             }
         }
@@ -268,8 +268,21 @@ fun MealPlanCard(
                         color = AppTheme.Colors.secondaryText,
                         fontSize = 12.sp
                     )
-                    if (plan.isCompleted) {
-                        Text(text = "✅ Tamamlandı", color = AppTheme.Colors.success, fontSize = 12.sp)
+                    // iOS: assigned student name display
+                    if (plan.assignedStudentId != null) {
+                        Text(
+                            text = "👤 ${plan.assignedStudentName ?: "Tələbəyə təyin olunub"}",
+                            color = AppTheme.Colors.accent,
+                            fontSize = 12.sp
+                        )
+                    }
+                    // iOS: completion status (only show if assigned to student)
+                    if (plan.assignedStudentId != null) {
+                        if (plan.isCompleted) {
+                            Text(text = "✅ Tamamlandı", color = AppTheme.Colors.success, fontSize = 12.sp)
+                        } else {
+                            Text(text = "⏱️ Gözləmədə", color = Color(0xFFFFA500), fontSize = 12.sp)
+                        }
                     }
                 }
                 Column(horizontalAlignment = Alignment.End) {

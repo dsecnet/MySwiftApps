@@ -62,6 +62,21 @@ class PremiumViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    // iOS: activatePremium() — POST /api/v1/premium/activate (body yoxdur)
+    fun activatePremium() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            repository.activate().fold(
+                onSuccess = {
+                    _successMessage.value = "Premium uğurla aktivləşdirildi!"
+                    loadStatus()
+                },
+                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
+            )
+            _isLoading.value = false
+        }
+    }
+
     fun subscribe(planId: String) {
         viewModelScope.launch {
             _isLoading.value = true

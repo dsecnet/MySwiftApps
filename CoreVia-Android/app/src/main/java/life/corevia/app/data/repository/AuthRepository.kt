@@ -53,7 +53,9 @@ class AuthRepository(context: Context) {
             tokenManager.accessToken = response.accessToken
             tokenManager.refreshToken = response.refreshToken
             val user = api.getMe()
-            android.util.Log.d("AUTH", "Login verify → SUCCESS user=${user.name}")
+            // iOS kimi: userType-ı dərhal saxla (app açılanda API gözləmədən istifadə olunur)
+            tokenManager.userType = user.userType
+            android.util.Log.d("AUTH", "Login verify → SUCCESS user=${user.name} userType=${user.userType}")
             Result.success(user)
         } catch (e: Exception) {
             android.util.Log.e("AUTH", "Login verify → FAIL: ${e.message}", e)

@@ -9,8 +9,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -53,7 +53,7 @@ fun AddTrainingPlanScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Geri", tint = Color.White)
+                Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Geri", tint = Color.White)
             }
             Text(
                 text = "Məşq Planı Yarat",
@@ -193,7 +193,7 @@ fun AddTrainingPlanScreen(
                 ) {
                     Text("Məşqlər (${workouts.size})", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                     TextButton(onClick = { showAddExercise = true }) {
-                        Icon(Icons.Default.Add, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Outlined.Add, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(4.dp))
                         Text("Əlavə et", color = AppTheme.Colors.accent)
                     }
@@ -224,7 +224,7 @@ fun AddTrainingPlanScreen(
                         IconButton(onClick = {
                             workouts = workouts.toMutableList().also { it.removeAt(index) }
                         }) {
-                            Icon(Icons.Default.Delete, null, tint = AppTheme.Colors.error, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Outlined.Delete, null, tint = AppTheme.Colors.error, modifier = Modifier.size(18.dp))
                         }
                     }
                 }

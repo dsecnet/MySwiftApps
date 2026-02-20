@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.DirectionsRun
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -129,9 +130,9 @@ fun PremiumScreen(
                                 .padding(20.dp),
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            InfoRow(Icons.Default.CalendarMonth, "Plan", status?.planName ?: "Aylıq")
+                            InfoRow(Icons.Outlined.CalendarMonth, "Plan", status?.planName ?: "Aylıq")
                             HorizontalDivider(color = AppTheme.Colors.tertiaryText.copy(alpha = 0.3f))
-                            InfoRow(Icons.Default.CreditCard, "Qiymət", "9.99 ₼/ay")
+                            InfoRow(Icons.Outlined.CreditCard, "Qiymət", "9.99 ₼/ay")
                         }
 
                         // iOS: Cancel Button — error, bordered, cornerRadius 20
@@ -145,7 +146,7 @@ fun PremiumScreen(
                             ),
                             contentPadding = PaddingValues(vertical = 16.dp)
                         ) {
-                            Icon(Icons.Default.Close, null, Modifier.size(18.dp))
+                            Icon(Icons.Outlined.Close, null, Modifier.size(18.dp))
                             Spacer(Modifier.width(8.dp))
                             Text("Abunəliyi ləğv et", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                         }
@@ -166,7 +167,7 @@ fun PremiumScreen(
                                     AppTheme.Colors.accent.copy(alpha = 0.2f)
                                 ))),
                             contentAlignment = Alignment.Center
-                        ) { Icon(Icons.Default.AutoAwesome, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(60.dp)) }
+                        ) { Icon(Icons.Outlined.AutoAwesome, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(60.dp)) }
 
                         // iOS: .system(size: 32, weight: .bold)
                         Text("Premium", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = AppTheme.Colors.primaryText, textAlign = TextAlign.Center)
@@ -193,7 +194,7 @@ fun PremiumScreen(
 
                         // iOS: Activate Button (gradient, cornerRadius 20, shadow)
                         Button(
-                            onClick = { viewModel.subscribe(plans.firstOrNull()?.id ?: "monthly") },
+                            onClick = { viewModel.activatePremium() },
                             modifier = Modifier.fillMaxWidth().height(56.dp)
                                 .shadow(12.dp, RoundedCornerShape(20.dp), spotColor = AppTheme.Colors.accentDark.copy(alpha = 0.4f)),
                             shape = RoundedCornerShape(20.dp),
@@ -225,10 +226,10 @@ fun PremiumScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         FeatureRow(Icons.AutoMirrored.Filled.DirectionsRun, "GPS İzləmə & Aktivliklər", "Real vaxtda GPS izləmə ilə qaçış, gəzinti və velosiped sürmə")
                         FeatureRow(Icons.AutoMirrored.Filled.Chat, "Müəllimlə Söhbət", "Şəxsi müəlliminizlə birbaşa mesajlaşma")
-                        FeatureRow(Icons.Default.CameraAlt, "AI Qida Analizi", "Kamera ilə qidanızı çəkin, kalorini avtomatik hesablayın")
-                        FeatureRow(Icons.Default.Person, "Şəxsi Müəllim", "Peşəkar müəllim seçin və fərdi plan alın")
-                        FeatureRow(Icons.Default.BarChart, "Ətraflı Statistika", "Həftəlik və aylıq irəliləyiş hesabatları")
-                        FeatureRow(Icons.Default.AutoAwesome, "AI Tövsiyələr", "Süni intellekt ilə fərdi məşq və qidalanma tövsiyələri")
+                        FeatureRow(Icons.Outlined.CameraAlt, "AI Qida Analizi", "Kamera ilə qidanızı çəkin, kalorini avtomatik hesablayın")
+                        FeatureRow(Icons.Outlined.Person, "Şəxsi Müəllim", "Peşəkar müəllim seçin və fərdi plan alın")
+                        FeatureRow(Icons.Outlined.BarChart, "Ətraflı Statistika", "Həftəlik və aylıq irəliləyiş hesabatları")
+                        FeatureRow(Icons.Outlined.AutoAwesome, "AI Tövsiyələr", "Süni intellekt ilə fərdi məşq və qidalanma tövsiyələri")
                     }
                 }
             }

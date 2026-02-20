@@ -8,8 +8,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -72,7 +72,7 @@ fun TrainerDetailScreen(
                         ) {
                             IconButton(onClick = onBack) {
                                 Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                                     contentDescription = "Geri",
                                     tint = AppTheme.Colors.accent
                                 )
@@ -125,7 +125,7 @@ fun TrainerDetailScreen(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 repeat(5) { index ->
                                     Icon(
-                                        imageVector = Icons.Filled.Star,
+                                        imageVector = Icons.Outlined.Star,
                                         contentDescription = null,
                                         tint = if (index < summary.averageRating.toInt())
                                             AppTheme.Colors.starFilled
@@ -312,7 +312,7 @@ fun ReviewCard(
                     Row {
                         repeat(5) { index ->
                             Icon(
-                                imageVector = Icons.Filled.Star,
+                                imageVector = Icons.Outlined.Star,
                                 contentDescription = null,
                                 tint = if (index < review.rating) AppTheme.Colors.starFilled
                                 else AppTheme.Colors.starEmpty,

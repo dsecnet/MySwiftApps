@@ -39,17 +39,17 @@ class ApiClient private constructor(context: Context) {
         val original: Request = chain.request()
         val token = tokenManager.accessToken
 
-        val request = if (token != null) {
-            original.newBuilder()
-                .header("Authorization", "Bearer $token")
-                .header("Content-Type", "application/json")
-                .build()
-        } else {
-            original.newBuilder()
-                .header("Content-Type", "application/json")
-                .build()
+        // Multipart request-lərdə Content-Type-ı override etmə (boundary itər)
+        val isMultipart = original.body?.contentType()?.type == "multipart"
+
+        val builder = original.newBuilder()
+        if (token != null) {
+            builder.header("Authorization", "Bearer $token")
         }
-        chain.proceed(request)
+        if (!isMultipart) {
+            builder.header("Content-Type", "application/json")
+        }
+        chain.proceed(builder.build())
     }
 
     // ─── Token Authenticator (401 Auto-Refresh) ────────────────────────────────

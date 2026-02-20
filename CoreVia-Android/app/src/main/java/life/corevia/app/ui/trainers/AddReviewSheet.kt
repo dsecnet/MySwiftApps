@@ -5,7 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -63,7 +63,7 @@ fun AddReviewSheet(
             ) {
                 repeat(5) { index ->
                     Icon(
-                        imageVector = Icons.Filled.Star,
+                        imageVector = Icons.Outlined.Star,
                         contentDescription = "Ulduz ${index + 1}",
                         tint = if (index < rating) AppTheme.Colors.starFilled
                         else AppTheme.Colors.starEmpty,

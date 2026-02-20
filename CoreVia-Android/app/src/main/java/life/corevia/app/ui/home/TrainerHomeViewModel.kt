@@ -6,7 +6,9 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import life.corevia.app.data.api.ErrorParser
 import life.corevia.app.data.models.TrainerStatsResponse
 import life.corevia.app.data.repository.TrainerRepository
@@ -33,14 +35,14 @@ class TrainerHomeViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun fetchStats() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            _errorMessage.value = null
+        _isLoading.value = true
+        _errorMessage.value = null
+        viewModelScope.launch(Dispatchers.IO) {
             repository.getTrainerStats().fold(
-                onSuccess = { _stats.value = it },
-                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
+                onSuccess = { withContext(Dispatchers.Main) { _stats.value = it } },
+                onFailure = { withContext(Dispatchers.Main) { _errorMessage.value = ErrorParser.parseMessage(it as Exception) } }
             )
-            _isLoading.value = false
+            withContext(Dispatchers.Main) { _isLoading.value = false }
         }
     }
 }

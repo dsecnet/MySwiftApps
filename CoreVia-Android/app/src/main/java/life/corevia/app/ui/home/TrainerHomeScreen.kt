@@ -10,7 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -173,7 +173,7 @@ private fun TrainerHeaderSection(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector        = Icons.Default.Refresh,
+                imageVector        = Icons.Outlined.Refresh,
                 contentDescription = "Yenilə",
                 modifier           = Modifier.size(16.dp),
                 tint               = AppTheme.Colors.secondaryText
@@ -199,14 +199,14 @@ private fun TrainerStatsCardsSection(
         ) {
             DashboardStatCard(
                 modifier = Modifier.weight(1f),
-                icon     = Icons.Default.People,
+                icon     = Icons.Outlined.People,
                 value    = "$totalSubscribers",
                 label    = "Ümumi Abunəçilər",
                 color    = AppTheme.Colors.accent
             )
             DashboardStatCard(
                 modifier = Modifier.weight(1f),
-                icon     = Icons.Default.PersonSearch,
+                icon     = Icons.Outlined.PersonSearch,
                 value    = "$activeStudents",
                 label    = "Aktiv Tələbələr",
                 color    = AppTheme.Colors.accent
@@ -220,14 +220,14 @@ private fun TrainerStatsCardsSection(
         ) {
             DashboardStatCard(
                 modifier = Modifier.weight(1f),
-                icon     = Icons.Default.CreditCard,
+                icon     = Icons.Outlined.CreditCard,
                 value    = "$currency ${monthlyEarnings.toInt()}",
                 label    = "Aylıq Gəlir",
                 color    = AppTheme.Colors.accent
             )
             DashboardStatCard(
                 modifier = Modifier.weight(1f),
-                icon     = Icons.Default.Description,
+                icon     = Icons.Outlined.Description,
                 value    = "$totalPlans",
                 label    = "Ümumi Planlar",
                 color    = AppTheme.Colors.accentDark
@@ -306,7 +306,7 @@ private fun TrainerEmptyStudentsSection() {
     ) {
         // iOS: Image(systemName: "person.2.slash").font(.system(size: 44))
         Icon(
-            imageVector        = Icons.Default.PersonOff,
+            imageVector        = Icons.Outlined.PersonOff,
             contentDescription = null,
             modifier           = Modifier.size(44.dp),
             tint               = AppTheme.Colors.secondaryText.copy(alpha = 0.5f)
@@ -424,7 +424,7 @@ private fun DashboardStudentRow(student: DashboardStudentSummary) {
                         verticalAlignment     = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector        = Icons.Default.FitnessCenter,
+                            imageVector        = Icons.Outlined.FitnessCenter,
                             contentDescription = null,
                             modifier           = Modifier.size(10.dp),
                             tint               = AppTheme.Colors.secondaryText
@@ -469,7 +469,7 @@ private fun DashboardStudentRow(student: DashboardStudentSummary) {
                                  else AppTheme.Colors.secondaryText
                 )
                 Icon(
-                    imageVector        = Icons.Default.LocalFireDepartment,
+                    imageVector        = Icons.Outlined.LocalFireDepartment,
                     contentDescription = null,
                     modifier           = Modifier.size(12.dp),
                     tint               = if (student.thisWeekWorkouts > 0) AppTheme.Colors.accent
@@ -495,7 +495,7 @@ private fun TrainerStatsSummarySection(summary: DashboardStatsSummary) {
             verticalAlignment     = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector        = Icons.Default.BarChart,
+                imageVector        = Icons.Outlined.BarChart,
                 contentDescription = null,
                 modifier           = Modifier.size(18.dp),
                 tint               = AppTheme.Colors.accent
@@ -517,19 +517,19 @@ private fun TrainerStatsSummarySection(summary: DashboardStatsSummary) {
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             SummaryRow(
-                icon  = Icons.Default.FitnessCenter,
+                icon  = Icons.Outlined.FitnessCenter,
                 label = "Ort. Məşq/Həftə",
                 value = String.format("%.1f", summary.avgStudentWorkoutsPerWeek),
                 color = AppTheme.Colors.accent
             )
             SummaryRow(
-                icon  = Icons.Default.LocalFireDepartment,
+                icon  = Icons.Outlined.LocalFireDepartment,
                 label = "Ümumi Məşqlər",
                 value = "${summary.totalWorkoutsAllStudents}",
                 color = AppTheme.Colors.accent
             )
             SummaryRow(
-                icon  = Icons.Default.MonitorWeight,
+                icon  = Icons.Outlined.MonitorWeight,
                 label = "Ort. Çəki",
                 value = if (summary.avgStudentWeight > 0) "${String.format("%.1f", summary.avgStudentWeight)} kq" else "—",
                 color = AppTheme.Colors.accent
