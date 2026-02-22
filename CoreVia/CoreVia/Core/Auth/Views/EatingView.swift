@@ -12,25 +12,36 @@ struct FoodView: View {
     // FIX A: NEW - Trainer button state
     @StateObject private var profileManager = UserProfileManager.shared
     @State private var showAddFoodForStudent = false
-    
+
+    // Su izləmə
+    @State private var waterGlasses: Int = UserDefaults.standard.integer(forKey: "waterGlasses_\(dateKey)")
+    private let waterGoal: Int = 8
+
+    private static var dateKey: String {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        return f.string(from: Date())
+    }
+
     var body: some View {
         ZStack {
             AppTheme.Colors.background.ignoresSafeArea()
-            
+
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 24) {
                     headerSection
                     dailyProgressSection
+                    waterTrackingSection
                     macroBreakdownSection
-                    
+
                     ForEach(MealType.allCases, id: \.self) { mealType in
                         mealSection(for: mealType)
                     }
-                    
+
                     addButton
                 }
                 .padding()
-                .padding(.bottom, 100)  // FIX 3: Keep existing padding, button now at TOP of VStack
+                .padding(.bottom, 100)
             }
         }
         .sheet(isPresented: $showAddFood) {
@@ -62,87 +73,195 @@ struct FoodView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
     
-    // MARK: - Daily Progress Section
+    // MARK: - Daily Progress Section (compact)
     private var dailyProgressSection: some View {
-        VStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .stroke(AppTheme.Colors.separator, lineWidth: 20)
-                    .frame(width: 180, height: 180)
-                
-                Circle()
-                    .trim(from: 0, to: min(foodManager.todayProgress, 1.0))
-                    .stroke(
-                        LinearGradient(
-                            colors: progressGradientColors,
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        style: StrokeStyle(lineWidth: 20, lineCap: .round)
-                    )
-                    .frame(width: 180, height: 180)
-                    .rotationEffect(.degrees(-90))
-                    .animation(.spring(), value: foodManager.todayProgress)
-                
-                VStack(spacing: 4) {
-                    Text("\(foodManager.todayTotalCalories)")
-                        .font(.system(size: 40, weight: .bold))
-                        .foregroundColor(AppTheme.Colors.primaryText)
-                    
-                    Text("/ \(foodManager.dailyCalorieGoal)")
-                        .font(.system(size: 16))
-                        .foregroundColor(AppTheme.Colors.secondaryText)
-                    
-                    Text("kcal")
-                        .font(.system(size: 14))
-                        .foregroundColor(AppTheme.Colors.tertiaryText)
+        VStack(spacing: 10) {
+            HStack(spacing: 16) {
+                // Compact circular progress
+                ZStack {
+                    Circle()
+                        .stroke(AppTheme.Colors.separator, lineWidth: 10)
+                        .frame(width: 90, height: 90)
+
+                    Circle()
+                        .trim(from: 0, to: min(foodManager.todayProgress, 1.0))
+                        .stroke(
+                            LinearGradient(
+                                colors: progressGradientColors,
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            style: StrokeStyle(lineWidth: 10, lineCap: .round)
+                        )
+                        .frame(width: 90, height: 90)
+                        .rotationEffect(.degrees(-90))
+                        .animation(.spring(), value: foodManager.todayProgress)
+
+                    VStack(spacing: 1) {
+                        Text("\(foodManager.todayTotalCalories)")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(AppTheme.Colors.primaryText)
+
+                        Text("kcal")
+                            .font(.system(size: 10))
+                            .foregroundColor(AppTheme.Colors.tertiaryText)
+                    }
+                }
+
+                // Stats on the right
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "target")
+                            .font(.system(size: 12))
+                            .foregroundColor(AppTheme.Colors.accent)
+                        Text("\(foodManager.dailyCalorieGoal) kcal")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(AppTheme.Colors.primaryText)
+                        Text(loc.localized("food_edit_goal").lowercased())
+                            .font(.system(size: 11))
+                            .foregroundColor(AppTheme.Colors.secondaryText)
+                    }
+
+                    HStack(spacing: 6) {
+                        Image(systemName: "flame.fill")
+                            .font(.system(size: 12))
+                            .foregroundColor(AppTheme.Colors.accent)
+                        Text("\(foodManager.remainingCalories)")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(AppTheme.Colors.primaryText)
+                        Text(loc.localized("food_remaining").lowercased())
+                            .font(.system(size: 11))
+                            .foregroundColor(AppTheme.Colors.secondaryText)
+                    }
+
+                    HStack(spacing: 6) {
+                        Image(systemName: "chart.bar.fill")
+                            .font(.system(size: 12))
+                            .foregroundColor(AppTheme.Colors.accent)
+                        Text("\(Int(foodManager.todayProgress * 100))%")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(AppTheme.Colors.primaryText)
+                        Text(loc.localized("food_completed").lowercased())
+                            .font(.system(size: 11))
+                            .foregroundColor(AppTheme.Colors.secondaryText)
+                    }
+
+                    Button {
+                        showEditGoal = true
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "pencil.circle.fill")
+                                .font(.system(size: 12))
+                            Text(loc.localized("food_edit_goal"))
+                                .font(.system(size: 12, weight: .semibold))
+                        }
+                        .foregroundColor(AppTheme.Colors.accent)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(AppTheme.Colors.accent.opacity(0.1))
+                        .cornerRadius(14)
+                    }
+                }
+
+                Spacer()
+            }
+        }
+        .padding(12)
+        .background(AppTheme.Colors.secondaryBackground)
+        .cornerRadius(14)
+    }
+    
+    // MARK: - Su İzləmə Section
+    private var waterTrackingSection: some View {
+        VStack(spacing: 12) {
+            HStack {
+                Image(systemName: "drop.fill")
+                    .foregroundColor(.blue)
+                Text(loc.localized("food_water_tracking"))
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(AppTheme.Colors.primaryText)
+
+                Spacer()
+
+                Text("\(waterGlasses)/\(waterGoal)")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.blue)
+            }
+
+            HStack(spacing: 6) {
+                ForEach(0..<waterGoal, id: \.self) { index in
+                    Image(systemName: index < waterGlasses ? "drop.fill" : "drop")
+                        .font(.system(size: 20))
+                        .foregroundColor(index < waterGlasses ? .blue : AppTheme.Colors.separator)
+                        .onTapGesture {
+                            withAnimation(.spring()) {
+                                if waterGlasses == index + 1 {
+                                    waterGlasses = index
+                                } else {
+                                    waterGlasses = index + 1
+                                }
+                                saveWaterCount()
+                            }
+                        }
                 }
             }
-            .padding(.vertical, 20)
-            
-            HStack(spacing: 20) {
-                CalorieStat(
-                    icon: "flame.fill",
-                    value: "\(foodManager.remainingCalories)",
-                    label: loc.localized("food_remaining"),
-                    color: AppTheme.Colors.accent
-                )
 
-                CalorieStat(
-                    icon: "target",
-                    value: "\(Int(foodManager.todayProgress * 100))%",
-                    label: loc.localized("food_completed"),
-                    color: AppTheme.Colors.accent
-                )
+            // Progress bar
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(AppTheme.Colors.separator)
+                        .frame(height: 6)
 
-                CalorieStat(
-                    icon: "fork.knife",
-                    value: "\(foodManager.todayEntries.count)",
-                    label: loc.localized("food_meal"),
-                    color: AppTheme.Colors.accent
-                )
-            }
-            
-            Button {
-                showEditGoal = true
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "pencil.circle.fill")
-                    Text(loc.localized("food_edit_goal"))
+                    Capsule()
+                        .fill(Color.blue)
+                        .frame(width: geo.size.width * CGFloat(waterGlasses) / CGFloat(waterGoal), height: 6)
+                        .animation(.spring(), value: waterGlasses)
                 }
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(AppTheme.Colors.accent)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(AppTheme.Colors.accent.opacity(0.1))
-                .cornerRadius(20)
+            }
+            .frame(height: 6)
+
+            HStack {
+                Button {
+                    if waterGlasses > 0 {
+                        withAnimation { waterGlasses -= 1; saveWaterCount() }
+                    }
+                } label: {
+                    Image(systemName: "minus.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundColor(waterGlasses > 0 ? .blue : AppTheme.Colors.separator)
+                }
+                .disabled(waterGlasses == 0)
+
+                Spacer()
+
+                Text("\(waterGlasses * 250) ml")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(AppTheme.Colors.secondaryText)
+
+                Spacer()
+
+                Button {
+                    if waterGlasses < waterGoal {
+                        withAnimation { waterGlasses += 1; saveWaterCount() }
+                    }
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundColor(waterGlasses < waterGoal ? .blue : AppTheme.Colors.separator)
+                }
+                .disabled(waterGlasses >= waterGoal)
             }
         }
         .padding()
         .background(AppTheme.Colors.secondaryBackground)
         .cornerRadius(16)
     }
-    
+
+    private func saveWaterCount() {
+        UserDefaults.standard.set(waterGlasses, forKey: "waterGlasses_\(FoodView.dateKey)")
+    }
+
     // MARK: - Macro Breakdown Section
     private var macroBreakdownSection: some View {
         VStack(alignment: .leading, spacing: 12) {

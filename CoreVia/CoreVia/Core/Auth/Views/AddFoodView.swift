@@ -34,11 +34,15 @@ struct AddFoodView: View {
     @State private var showSuccessAlert: Bool = false
 
     @State private var showCamera = false
+    @State private var showGallery = false
+    @State private var showImageSourcePicker = false
     @State private var capturedImage: UIImage? = nil
     @State private var isAnalyzing = false
     @State private var analysisComplete = false
     @State private var showError = false
     @State private var errorMessage = ""
+    @State private var analysisConfidence: Double = 0.0
+    @State private var analysisPortionSize: String = ""
 
     @ObservedObject private var loc = LocalizationManager.shared
     @ObservedObject private var settingsManager = SettingsManager.shared
@@ -108,12 +112,28 @@ struct AddFoodView: View {
                 .sheet(isPresented: $showCamera) {
                     CameraPicker(image: $capturedImage)
                 }
+                .sheet(isPresented: $showGallery) {
+                    ImagePicker(image: $capturedImage)
+                }
                 .sheet(isPresented: $showPremium) {
                     PremiumView()
                 }
+                .confirmationDialog(
+                    loc.localized("food_choose_source"),
+                    isPresented: $showImageSourcePicker,
+                    titleVisibility: .visible
+                ) {
+                    Button(loc.localized("food_source_camera")) {
+                        showCamera = true
+                    }
+                    Button(loc.localized("food_source_gallery")) {
+                        showGallery = true
+                    }
+                    Button(loc.localized("common_close"), role: .cancel) {}
+                }
                 .onChange(of: capturedImage) { newImage in
                     if newImage != nil {
-                        startMockAnalysis()
+                        analyzeWithAI()
                     }
                 }
                 .onChange(of: calories) { val in
@@ -220,28 +240,61 @@ struct AddFoodView: View {
                             Text(loc.localized("food_analyzing"))
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(AppTheme.Colors.secondaryText)
+
+                            Text("AI qidanı analiz edir...")
+                                .font(.system(size: 12))
+                                .foregroundColor(AppTheme.Colors.tertiaryText)
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(AppTheme.Colors.secondaryBackground)
                         .cornerRadius(12)
                     } else if analysisComplete {
-                        HStack(spacing: 12) {
-                            Image(systemName: "checkmark.circle.fill")
-                                .font(.system(size: 24))
-                                .foregroundColor(AppTheme.Colors.success)
+                        VStack(spacing: 12) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(AppTheme.Colors.success)
 
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(loc.localized("food_analysis_done"))
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundColor(AppTheme.Colors.primaryText)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(loc.localized("food_analysis_done"))
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(AppTheme.Colors.primaryText)
 
-                                Text(loc.localized("food_results_filled"))
-                                    .font(.system(size: 12))
-                                    .foregroundColor(AppTheme.Colors.secondaryText)
+                                    Text(loc.localized("food_results_filled"))
+                                        .font(.system(size: 12))
+                                        .foregroundColor(AppTheme.Colors.secondaryText)
+                                }
+
+                                Spacer()
                             }
 
-                            Spacer()
+                            // Confidence & Portion info
+                            if analysisConfidence > 0 || !analysisPortionSize.isEmpty {
+                                HStack(spacing: 16) {
+                                    if analysisConfidence > 0 {
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "chart.bar.fill")
+                                                .font(.system(size: 12))
+                                                .foregroundColor(confidenceColor)
+                                            Text("Dəqiqlik: \(Int(analysisConfidence * 100))%")
+                                                .font(.system(size: 12, weight: .medium))
+                                                .foregroundColor(confidenceColor)
+                                        }
+                                    }
+
+                                    if !analysisPortionSize.isEmpty {
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "scalemass.fill")
+                                                .font(.system(size: 12))
+                                                .foregroundColor(AppTheme.Colors.secondaryText)
+                                            Text(analysisPortionSize)
+                                                .font(.system(size: 12, weight: .medium))
+                                                .foregroundColor(AppTheme.Colors.secondaryText)
+                                        }
+                                    }
+                                }
+                            }
                         }
                         .padding()
                         .background(AppTheme.Colors.success.opacity(0.1))
@@ -255,9 +308,11 @@ struct AddFoodView: View {
                     Button {
                         capturedImage = nil
                         analysisComplete = false
+                        analysisConfidence = 0
+                        analysisPortionSize = ""
                     } label: {
                         HStack(spacing: 8) {
-                            Image(systemName: "camera.rotate")
+                            Image(systemName: "arrow.triangle.2.circlepath.camera")
                                 .font(.system(size: 14))
                             Text(loc.localized("food_retake"))
                                 .font(.system(size: 14, weight: .semibold))
@@ -271,23 +326,55 @@ struct AddFoodView: View {
                 }
             } else {
                 Button {
-                    showCamera = true
+                    showImageSourcePicker = true
                 } label: {
                     VStack(spacing: 14) {
-                        ZStack {
-                            Circle()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [AppTheme.Colors.accent.opacity(0.2), AppTheme.Colors.accent.opacity(0.1)],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                                .frame(width: 70, height: 70)
+                        HStack(spacing: 20) {
+                            VStack(spacing: 8) {
+                                ZStack {
+                                    Circle()
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [AppTheme.Colors.accent.opacity(0.2), AppTheme.Colors.accent.opacity(0.1)],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        )
+                                        .frame(width: 56, height: 56)
 
-                            Image(systemName: "camera.fill")
-                                .font(.system(size: 28))
-                                .foregroundColor(AppTheme.Colors.accent)
+                                    Image(systemName: "camera.fill")
+                                        .font(.system(size: 24))
+                                        .foregroundColor(AppTheme.Colors.accent)
+                                }
+                                Text(loc.localized("food_source_camera"))
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(AppTheme.Colors.secondaryText)
+                            }
+
+                            Text("/")
+                                .font(.system(size: 20))
+                                .foregroundColor(AppTheme.Colors.tertiaryText)
+
+                            VStack(spacing: 8) {
+                                ZStack {
+                                    Circle()
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [AppTheme.Colors.accent.opacity(0.2), AppTheme.Colors.accent.opacity(0.1)],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        )
+                                        .frame(width: 56, height: 56)
+
+                                    Image(systemName: "photo.on.rectangle")
+                                        .font(.system(size: 24))
+                                        .foregroundColor(AppTheme.Colors.accent)
+                                }
+                                Text(loc.localized("food_source_gallery"))
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(AppTheme.Colors.secondaryText)
+                            }
                         }
 
                         VStack(spacing: 4) {
@@ -311,6 +398,13 @@ struct AddFoodView: View {
                 }
             }
         }
+    }
+
+    // Confidence rəng hesablaması
+    private var confidenceColor: Color {
+        if analysisConfidence >= 0.8 { return AppTheme.Colors.success }
+        if analysisConfidence >= 0.5 { return .orange }
+        return AppTheme.Colors.accent
     }
 
     // MARK: - Locked Camera Content (premium lazimdir)
@@ -610,17 +704,39 @@ struct AddFoodView: View {
         fats = "\(Int(item.fats))"
     }
 
-    // MARK: - AI Analiz (Backend)
-    private func startMockAnalysis() {
+    // MARK: - AI Analiz (Backend - Claude Vision API)
+
+    /// Şəkli resize edib JPEG data-ya çevirir (max 1024x1024, quality 0.7)
+    private func prepareImageForUpload(_ image: UIImage) -> Data? {
+        let maxSize: CGFloat = 1024
+        let size = image.size
+
+        // Resize lazımdırsa
+        if size.width > maxSize || size.height > maxSize {
+            let scale = min(maxSize / size.width, maxSize / size.height)
+            let newSize = CGSize(width: size.width * scale, height: size.height * scale)
+            let renderer = UIGraphicsImageRenderer(size: newSize)
+            let resized = renderer.image { _ in
+                image.draw(in: CGRect(origin: .zero, size: newSize))
+            }
+            return resized.jpegData(compressionQuality: 0.7)
+        }
+
+        return image.jpegData(compressionQuality: 0.7)
+    }
+
+    private func analyzeWithAI() {
         guard let image = capturedImage else { return }
 
         isAnalyzing = true
         analysisComplete = false
+        analysisConfidence = 0
+        analysisPortionSize = ""
 
         Task {
             do {
-                // Convert UIImage to JPEG data
-                guard let imageData = image.jpegData(compressionQuality: 0.7) else {
+                // Şəkli resize et və JPEG-ə çevir
+                guard let imageData = prepareImageForUpload(image) else {
                     await MainActor.run {
                         self.isAnalyzing = false
                         self.errorMessage = "Şəkil emal edilmədi."
@@ -629,18 +745,21 @@ struct AddFoodView: View {
                     return
                 }
 
-                // FIX C: Create multipart request with CORRECT endpoint
+                print("📸 AI Analysis: Image size = \(imageData.count / 1024) KB")
+
+                // Multipart request yarat
                 let boundary = UUID().uuidString
                 var request = URLRequest(url: URL(string: "\(APIService.shared.baseURL)/api/v1/food/analyze")!)
                 request.httpMethod = "POST"
                 request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+                request.timeoutInterval = 60 // AI analysis vaxt ala bilər
 
-                // Add auth token
-                if let token = AuthManager.shared.accessToken {
+                // Auth token — KeychainManager-dən (APIService ilə eyni)
+                if let token = KeychainManager.shared.accessToken {
                     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
                 }
 
-                // Build multipart body
+                // Multipart body
                 var body = Data()
                 body.append("--\(boundary)\r\n".data(using: .utf8)!)
                 body.append("Content-Disposition: form-data; name=\"file\"; filename=\"food.jpg\"\r\n".data(using: .utf8)!)
@@ -650,23 +769,38 @@ struct AddFoodView: View {
 
                 request.httpBody = body
 
-                // Send request
+                // Request göndər
                 let (data, response) = try await URLSession.shared.data(for: request)
 
                 guard let httpResponse = response as? HTTPURLResponse else {
                     throw NSError(domain: "Invalid response", code: 0)
                 }
 
-                if httpResponse.statusCode != 200 {
-                    throw NSError(domain: "Server error", code: httpResponse.statusCode)
+                // Debug log
+                if let rawJSON = String(data: data.prefix(500), encoding: .utf8) {
+                    print("📥 AI Response (\(httpResponse.statusCode)): \(rawJSON)")
                 }
 
-                // Parse response
+                if httpResponse.statusCode == 401 {
+                    // Token expired - refresh et
+                    let refreshed = await refreshAndRetryAnalysis(imageData: imageData)
+                    if !refreshed {
+                        throw NSError(domain: "unauthorized", code: 401)
+                    }
+                    return
+                }
+
+                if httpResponse.statusCode != 200 {
+                    let detail = try? JSONDecoder().decode(ErrorDetail.self, from: data)
+                    throw NSError(domain: detail?.detail ?? "Server xətası", code: httpResponse.statusCode)
+                }
+
+                // Response parse et
                 let result = try JSONDecoder().decode(AIFoodAnalysisResponse.self, from: data)
 
                 await MainActor.run {
                     if result.success {
-                        // FIX C: Handle backend direct format {food_name, calories, protein, carbs, fats}
+                        // Qida adı
                         if let directName = result.food_name, !directName.isEmpty {
                             self.foodName = directName
                         } else if let foods = result.foods, !foods.isEmpty {
@@ -675,16 +809,21 @@ struct AddFoodView: View {
                             self.foodName = "Analiz edilmiş qida"
                         }
 
-                        // Use direct fields first, fall back to total_ fields
+                        // Kalori və makro dəyərləri
                         self.calories = "\(result.calories ?? result.total_calories ?? 0)"
                         self.protein = String(format: "%.1f", result.protein ?? result.total_protein ?? 0.0)
                         self.carbs = String(format: "%.1f", result.carbs ?? result.total_carbs ?? 0.0)
                         self.fats = String(format: "%.1f", result.fats ?? result.total_fats ?? 0.0)
 
+                        // Confidence və portion
+                        self.analysisConfidence = result.confidence ?? 0.0
+                        self.analysisPortionSize = result.portion_size ?? ""
+
                         withAnimation {
                             self.isAnalyzing = false
                             self.analysisComplete = true
                         }
+                        print("✅ AI Analysis uğurlu: \(self.foodName) - \(self.calories) kcal")
                     } else {
                         self.isAnalyzing = false
                         self.errorMessage = result.error ?? "Analiz uğursuz oldu."
@@ -693,21 +832,99 @@ struct AddFoodView: View {
                 }
 
             } catch {
-                // FIX C: Better error messages in Azerbaijani
                 await MainActor.run {
                     self.isAnalyzing = false
                     let errorDesc = error.localizedDescription
-                    if errorDesc.contains("network") || errorDesc.contains("internet") {
-                        self.errorMessage = "Şəbəkə bağlantısı yoxdur"
-                    } else if errorDesc.contains("unauthorized") || errorDesc.contains("401") {
+                    let nsError = error as NSError
+
+                    if nsError.domain == "unauthorized" || nsError.code == 401 {
                         self.errorMessage = "Giriş səhvi. Yenidən daxil olun"
+                    } else if errorDesc.contains("network") || errorDesc.contains("internet") || errorDesc.contains("timed out") {
+                        self.errorMessage = "Şəbəkə bağlantısı yoxdur. İnternet bağlantınızı yoxlayın"
+                    } else if nsError.code == 422 {
+                        self.errorMessage = "Şəkil tanınmadı. Başqa şəkil çəkin"
                     } else {
                         self.errorMessage = "Server xətası. Zəhmət olmasa sonra cəhd edin"
                     }
                     self.showError = true
-                    print("❌ AI Analysis Error: \(errorDesc)")
+                    print("❌ AI Analysis Error: \(error)")
                 }
             }
+        }
+    }
+
+    /// Token expired olduqda refresh edib yenidən cəhd edir
+    private func refreshAndRetryAnalysis(imageData: Data) async -> Bool {
+        guard let refreshToken = KeychainManager.shared.refreshToken else { return false }
+
+        do {
+            // Refresh token
+            guard let url = URL(string: "\(APIService.shared.baseURL)/api/v1/auth/refresh") else { return false }
+            var refreshReq = URLRequest(url: url)
+            refreshReq.httpMethod = "POST"
+            refreshReq.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            refreshReq.httpBody = try JSONSerialization.data(withJSONObject: ["refresh_token": refreshToken])
+
+            let (refreshData, refreshResponse) = try await URLSession.shared.data(for: refreshReq)
+            guard let httpResp = refreshResponse as? HTTPURLResponse, httpResp.statusCode == 200 else { return false }
+
+            let authResp = try JSONDecoder().decode(AuthResponse.self, from: refreshData)
+            KeychainManager.shared.accessToken = authResp.accessToken
+            KeychainManager.shared.refreshToken = authResp.refreshToken
+
+            // Yeni token ilə yenidən analiz et
+            let boundary = UUID().uuidString
+            var retryReq = URLRequest(url: URL(string: "\(APIService.shared.baseURL)/api/v1/food/analyze")!)
+            retryReq.httpMethod = "POST"
+            retryReq.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+            retryReq.setValue("Bearer \(authResp.accessToken)", forHTTPHeaderField: "Authorization")
+            retryReq.timeoutInterval = 60
+
+            var body = Data()
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"file\"; filename=\"food.jpg\"\r\n".data(using: .utf8)!)
+            body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+            body.append(imageData)
+            body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+            retryReq.httpBody = body
+
+            let (data, response) = try await URLSession.shared.data(for: retryReq)
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else { return false }
+
+            let result = try JSONDecoder().decode(AIFoodAnalysisResponse.self, from: data)
+
+            await MainActor.run {
+                if result.success {
+                    if let directName = result.food_name, !directName.isEmpty {
+                        self.foodName = directName
+                    } else if let foods = result.foods, !foods.isEmpty {
+                        self.foodName = foods.map { $0.name }.joined(separator: ", ")
+                    }
+                    self.calories = "\(result.calories ?? result.total_calories ?? 0)"
+                    self.protein = String(format: "%.1f", result.protein ?? result.total_protein ?? 0.0)
+                    self.carbs = String(format: "%.1f", result.carbs ?? result.total_carbs ?? 0.0)
+                    self.fats = String(format: "%.1f", result.fats ?? result.total_fats ?? 0.0)
+                    self.analysisConfidence = result.confidence ?? 0.0
+                    self.analysisPortionSize = result.portion_size ?? ""
+
+                    withAnimation {
+                        self.isAnalyzing = false
+                        self.analysisComplete = true
+                    }
+                } else {
+                    self.isAnalyzing = false
+                    self.errorMessage = result.error ?? "Analiz uğursuz oldu."
+                    self.showError = true
+                }
+            }
+            return true
+        } catch {
+            await MainActor.run {
+                self.isAnalyzing = false
+                self.errorMessage = "Sessiya bitib. Yenidən giriş edin."
+                self.showError = true
+            }
+            return false
         }
     }
 }

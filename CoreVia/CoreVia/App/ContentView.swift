@@ -51,9 +51,18 @@ struct ContentView: View {
                 }
             }
         }
+        .onAppear {
+            // App açılanda login olubsa onboarding statusu yoxla
+            if authManager.isLoggedIn {
+                Task { await onboardingManager.checkStatus() }
+            }
+        }
         .onChange(of: authManager.isLoggedIn) { loggedIn in
             if loggedIn {
                 Task { await onboardingManager.checkStatus() }
+            } else {
+                // Logout olduqda onboarding cache-i təmizlə
+                onboardingManager.resetOnLogout()
             }
         }
     }

@@ -86,13 +86,24 @@ struct OnboardingStatusResponse: Codable {
 class OnboardingManager: ObservableObject {
     static let shared = OnboardingManager()
 
+    private static let completedKey = "onboarding_completed"
+
     @Published var options: OnboardingOptionsResponse?
-    @Published var isCompleted = false
+    @Published var isCompleted: Bool {
+        didSet {
+            // Lokal yadda saxla ki app bağlananda da itməsin
+            UserDefaults.standard.set(isCompleted, forKey: Self.completedKey)
+        }
+    }
     @Published var isLoading = false
     @Published var errorMessage: String?
 
     private let api = APIService.shared
-    private init() {}
+
+    private init() {
+        // Əvvəlcə lokal cache-dən oxu (sürətli başlanğıc)
+        isCompleted = UserDefaults.standard.bool(forKey: Self.completedKey)
+    }
 
     @MainActor
     func fetchOptions() async {
@@ -117,7 +128,7 @@ class OnboardingManager: ObservableObject {
             )
             isCompleted = result?.isCompleted ?? false
         } catch {
-            isCompleted = false
+            // Xəta olsa lokal cache-ə etibar et, false-a sıfırlama
         }
     }
 
@@ -144,5 +155,12 @@ class OnboardingManager: ObservableObject {
             errorMessage = error.localizedDescription
             return false
         }
+    }
+
+    /// Logout olduqda lokal cache-i təmizlə
+    func resetOnLogout() {
+        isCompleted = false
+        UserDefaults.standard.removeObject(forKey: Self.completedKey)
+        options = nil
     }
 }

@@ -558,10 +558,12 @@ async def delete_account(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Hesabı soft-delete edir (is_active=False).
+    Hesabı silir.
 
     1. Şifrə təsdiqlənir
-    2. is_active = False set olunur
+    2. Əlaqəli data-lar silinir (workouts, food_entries, settings)
+    3. Trainer-dirsə, tələbələrin trainer_id-si null olur
+    4. User tamamilə silinir (hard delete)
     """
 
     if not verify_password(request.password, current_user.hashed_password):
@@ -570,10 +572,21 @@ async def delete_account(
             detail="Şifrə səhvdir"
         )
 
-    current_user.is_active = False
+    user_id = current_user.id
+    user_type = current_user.user_type
+
+    # Trainer-dirsə, tələbələrin trainer_id-sini null et
+    if user_type == UserType.trainer:
+        from sqlalchemy import update
+        await db.execute(
+            update(User).where(User.trainer_id == user_id).values(trainer_id=None)
+        )
+
+    # User-i sil (cascade ilə workouts, food_entries, settings də silinəcək)
+    await db.delete(current_user)
     await db.commit()
 
-    logger.info(f"Account soft-deleted for user: {current_user.id}")
+    logger.info(f"Account permanently deleted for user: {user_id} (type: {user_type})")
 
     return {
         "success": True,

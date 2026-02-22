@@ -317,6 +317,14 @@ struct StudentDetailView: View {
 
     @State private var showAddTrainingPlan: Bool = false
     @State private var showAddMealPlan: Bool = false
+    @State private var showAddTask: Bool = false
+    @State private var newTaskTitle: String = ""
+    @State private var newTaskDescription: String = ""
+    @State private var newTaskType: StudentTaskType = .workout
+
+    // Task data (lokal state — backend olmadığı üçün)
+    @State private var tasks: [StudentTask] = []
+    @State private var tasksInitialized: Bool = false
 
     // Mock training statistics (seeded by student id for consistency)
     private var workoutsThisWeek: Int {
@@ -348,6 +356,7 @@ struct StudentDetailView: View {
                         studentHeader
                         progressOverview
                         trainingStats
+                        taskSection
                         assignedPlansSection
                         createPlanButtons
                     }
@@ -575,6 +584,106 @@ struct StudentDetailView: View {
         }
     }
 
+    // MARK: - Task Section (Trainer → Tələbəyə tapşırıq)
+    private var taskSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text(loc.localized("student_tasks_title"))
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(AppTheme.Colors.primaryText)
+
+                Spacer()
+
+                Button {
+                    showAddTask = true
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 14))
+                        Text(loc.localized("student_tasks_add"))
+                            .font(.system(size: 13, weight: .semibold))
+                    }
+                    .foregroundColor(AppTheme.Colors.accent)
+                }
+            }
+
+            if tasks.isEmpty {
+                HStack {
+                    Image(systemName: "checklist")
+                        .foregroundColor(AppTheme.Colors.tertiaryText)
+                    Text(loc.localized("student_tasks_empty"))
+                        .font(.system(size: 14))
+                        .foregroundColor(AppTheme.Colors.secondaryText)
+                    Spacer()
+                }
+                .padding()
+                .background(AppTheme.Colors.secondaryBackground)
+                .cornerRadius(12)
+            } else {
+                VStack(spacing: 10) {
+                    ForEach(tasks) { task in
+                        StudentTaskCard(
+                            title: task.title,
+                            type: task.type,
+                            isCompleted: task.isCompleted
+                        ) {
+                            toggleTask(task.id)
+                        }
+                    }
+                }
+            }
+        }
+        .onAppear { initializeTasksIfNeeded() }
+        .sheet(isPresented: $showAddTask) {
+            AddStudentTaskSheet(
+                studentName: student.name,
+                taskTitle: $newTaskTitle,
+                taskDescription: $newTaskDescription,
+                taskType: $newTaskType
+            ) {
+                // Task əlavə et
+                let newTask = StudentTask(
+                    title: newTaskTitle,
+                    type: newTaskType,
+                    isCompleted: false
+                )
+                tasks.append(newTask)
+                saveTasks()
+                showAddTask = false
+                newTaskTitle = ""
+                newTaskDescription = ""
+            }
+        }
+    }
+
+    private func initializeTasksIfNeeded() {
+        guard !tasksInitialized else { return }
+        tasksInitialized = true
+        tasks = StudentTask.load(forStudentId: student.id)
+        if tasks.isEmpty {
+            // Default tapşırıqlar
+            tasks = [
+                StudentTask(title: "Gündəlik 30 dəq məşq", type: .workout, isCompleted: false),
+                StudentTask(title: "2L su iç", type: .nutrition, isCompleted: false),
+                StudentTask(title: "7 saat yuxu", type: .lifestyle, isCompleted: false)
+            ]
+            saveTasks()
+        }
+    }
+
+    private func toggleTask(_ taskId: UUID) {
+        if let index = tasks.firstIndex(where: { $0.id == taskId }) {
+            withAnimation(.spring(response: 0.3)) {
+                tasks[index].isCompleted.toggle()
+            }
+            saveTasks()
+        }
+    }
+
+    private func saveTasks() {
+        StudentTask.save(tasks, forStudentId: student.id)
+    }
+
     // MARK: - Create Plan Buttons
     private var createPlanButtons: some View {
         VStack(spacing: 12) {
@@ -689,6 +798,221 @@ struct AssignedPlanRow: View {
         .padding()
         .background(AppTheme.Colors.secondaryBackground)
         .cornerRadius(12)
+    }
+}
+
+// MARK: - Student Task Model (lokal persist)
+struct StudentTask: Identifiable, Codable {
+    var id: UUID = UUID()
+    var title: String
+    var type: StudentTaskType
+    var isCompleted: Bool
+
+    private static func storageKey(forStudentId studentId: String) -> String {
+        "student_tasks_\(studentId)"
+    }
+
+    static func load(forStudentId studentId: String) -> [StudentTask] {
+        guard let data = UserDefaults.standard.data(forKey: storageKey(forStudentId: studentId)),
+              let tasks = try? JSONDecoder().decode([StudentTask].self, from: data) else {
+            return []
+        }
+        return tasks
+    }
+
+    static func save(_ tasks: [StudentTask], forStudentId studentId: String) {
+        if let data = try? JSONEncoder().encode(tasks) {
+            UserDefaults.standard.set(data, forKey: storageKey(forStudentId: studentId))
+        }
+    }
+}
+
+// MARK: - Student Task Type
+enum StudentTaskType: String, CaseIterable, Codable {
+    case workout = "workout"
+    case nutrition = "nutrition"
+    case lifestyle = "lifestyle"
+
+    var icon: String {
+        switch self {
+        case .workout: return "figure.strengthtraining.traditional"
+        case .nutrition: return "fork.knife"
+        case .lifestyle: return "moon.stars.fill"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .workout: return AppTheme.Colors.accent
+        case .nutrition: return .green
+        case .lifestyle: return .purple
+        }
+    }
+
+    var localizedName: String {
+        let loc = LocalizationManager.shared
+        switch self {
+        case .workout: return loc.localized("task_type_workout")
+        case .nutrition: return loc.localized("task_type_nutrition")
+        case .lifestyle: return loc.localized("task_type_lifestyle")
+        }
+    }
+}
+
+// MARK: - Student Task Card
+struct StudentTaskCard: View {
+    let title: String
+    let type: StudentTaskType
+    let isCompleted: Bool
+    var onToggle: (() -> Void)? = nil
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Button {
+                onToggle?()
+            } label: {
+                Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 22))
+                    .foregroundColor(isCompleted ? AppTheme.Colors.success : AppTheme.Colors.separator)
+            }
+
+            Image(systemName: type.icon)
+                .font(.system(size: 16))
+                .foregroundColor(type.color)
+                .frame(width: 32, height: 32)
+                .background(type.color.opacity(0.1))
+                .cornerRadius(8)
+
+            Text(title)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(isCompleted ? AppTheme.Colors.secondaryText : AppTheme.Colors.primaryText)
+                .strikethrough(isCompleted)
+
+            Spacer()
+
+            Text(type.localizedName)
+                .font(.system(size: 11))
+                .foregroundColor(type.color)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(type.color.opacity(0.1))
+                .cornerRadius(8)
+        }
+        .padding()
+        .background(AppTheme.Colors.secondaryBackground)
+        .cornerRadius(12)
+    }
+}
+
+// MARK: - Add Student Task Sheet
+struct AddStudentTaskSheet: View {
+    let studentName: String
+    @Binding var taskTitle: String
+    @Binding var taskDescription: String
+    @Binding var taskType: StudentTaskType
+    let onSave: () -> Void
+
+    @Environment(\.dismiss) var dismiss
+    @ObservedObject private var loc = LocalizationManager.shared
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                AppTheme.Colors.background.ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Kimin üçün
+                        HStack(spacing: 8) {
+                            Image(systemName: "person.fill")
+                                .foregroundColor(AppTheme.Colors.accent)
+                            Text("\(studentName) \(loc.localized("student_tasks_for"))")
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundColor(AppTheme.Colors.secondaryText)
+                            Spacer()
+                        }
+                        .padding()
+                        .background(AppTheme.Colors.accent.opacity(0.1))
+                        .cornerRadius(12)
+
+                        // Task növü
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(loc.localized("student_tasks_type"))
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundColor(AppTheme.Colors.primaryText)
+
+                            HStack(spacing: 10) {
+                                ForEach(StudentTaskType.allCases, id: \.self) { type in
+                                    Button {
+                                        taskType = type
+                                    } label: {
+                                        VStack(spacing: 6) {
+                                            Image(systemName: type.icon)
+                                                .font(.system(size: 20))
+                                            Text(type.localizedName)
+                                                .font(.system(size: 12, weight: .medium))
+                                        }
+                                        .foregroundColor(taskType == type ? .white : type.color)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 12)
+                                        .background(taskType == type ? type.color : type.color.opacity(0.1))
+                                        .cornerRadius(12)
+                                    }
+                                }
+                            }
+                        }
+
+                        // Task başlığı
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(loc.localized("student_tasks_name"))
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundColor(AppTheme.Colors.primaryText)
+
+                            TextField(loc.localized("student_tasks_name_placeholder"), text: $taskTitle)
+                                .padding()
+                                .background(AppTheme.Colors.secondaryBackground)
+                                .cornerRadius(12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(AppTheme.Colors.separator, lineWidth: 1)
+                                )
+                        }
+
+                        // Əlavə qeyd
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(loc.localized("student_tasks_description"))
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundColor(AppTheme.Colors.primaryText)
+
+                            TextEditor(text: $taskDescription)
+                                .frame(height: 80)
+                                .padding(8)
+                                .background(AppTheme.Colors.secondaryBackground)
+                                .cornerRadius(12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(AppTheme.Colors.separator, lineWidth: 1)
+                                )
+                        }
+                    }
+                    .padding()
+                }
+            }
+            .navigationTitle(loc.localized("student_tasks_new"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(loc.localized("common_cancel")) { dismiss() }
+                        .foregroundColor(AppTheme.Colors.accent)
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(loc.localized("common_save")) { onSave() }
+                        .foregroundColor(AppTheme.Colors.accent)
+                        .fontWeight(.bold)
+                        .disabled(taskTitle.isEmpty)
+                }
+            }
+        }
     }
 }
 

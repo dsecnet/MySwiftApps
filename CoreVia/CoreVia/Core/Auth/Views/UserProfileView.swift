@@ -28,6 +28,13 @@ struct ClientProfileView: View {
     @State private var showAddFood = false
     @State private var showCancelPremiumAlert = false
 
+    // Delete Account
+    @State private var showDeleteAccountAlert = false
+    @State private var showDeletePasswordSheet = false
+    @State private var deletePassword: String = ""
+    @State private var deleteError: String? = nil
+    @State private var isDeleting: Bool = false
+
     var body: some View {
         ZStack {
             AppTheme.Colors.background.ignoresSafeArea()
@@ -115,6 +122,35 @@ struct ClientProfileView: View {
             }
         } message: {
             Text(loc.localized("premium_cancel_message"))
+        }
+        // Delete Account
+        .alert(loc.localized("delete_account_title"), isPresented: $showDeleteAccountAlert) {
+            Button(loc.localized("common_cancel"), role: .cancel) { }
+            Button(loc.localized("common_delete"), role: .destructive) {
+                showDeletePasswordSheet = true
+            }
+        } message: {
+            Text(loc.localized("delete_account_warning"))
+        }
+        .sheet(isPresented: $showDeletePasswordSheet) {
+            DeleteAccountSheet(
+                password: $deletePassword,
+                error: $deleteError,
+                isDeleting: $isDeleting
+            ) {
+                Task {
+                    isDeleting = true
+                    deleteError = nil
+                    let result = await AuthManager.shared.deleteAccount(password: deletePassword)
+                    isDeleting = false
+                    if result.success {
+                        showDeletePasswordSheet = false
+                        deletePassword = ""
+                    } else {
+                        deleteError = result.error ?? loc.localized("delete_account_error")
+                    }
+                }
+            }
         }
     }
 
@@ -505,13 +541,13 @@ struct ClientProfileView: View {
 
     // MARK: - Goals Section (compact)
     private var goalsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(loc.localized("profile_goals"))
-                .font(.system(size: 16, weight: .semibold))
+                .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
-            VStack(spacing: 12) {
-                HStack(spacing: 12) {
+            VStack(spacing: 6) {
+                HStack(spacing: 6) {
                     ClientStatCard(
                         icon: "calendar",
                         value: "\(profileManager.userProfile.age ?? 0)",
@@ -530,19 +566,22 @@ struct ClientProfileView: View {
                 }
 
                 if let goal = profileManager.userProfile.goal {
-                    HStack {
+                    HStack(spacing: 8) {
                         Image(systemName: "target")
+                            .font(.system(size: 13))
                             .foregroundColor(AppTheme.Colors.accent)
                         Text(loc.localized("profile_goal_label"))
+                            .font(.system(size: 13))
                             .foregroundColor(AppTheme.Colors.secondaryText)
                         Text(goal)
+                            .font(.system(size: 13, weight: .semibold))
                             .foregroundColor(AppTheme.Colors.primaryText)
-                            .fontWeight(.semibold)
                         Spacer()
                     }
-                    .padding()
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 8)
                     .background(AppTheme.Colors.secondaryBackground)
-                    .cornerRadius(12)
+                    .cornerRadius(10)
                 }
 
                 // Complete profile prompt when fields are missing
@@ -553,28 +592,28 @@ struct ClientProfileView: View {
                     Button {
                         showEditProfile = true
                     } label: {
-                        HStack(spacing: 12) {
+                        HStack(spacing: 10) {
                             Image(systemName: "exclamationmark.circle.fill")
-                                .font(.system(size: 18))
+                                .font(.system(size: 15))
                                 .foregroundColor(AppTheme.Colors.accent)
-                            VStack(alignment: .leading, spacing: 2) {
+                            VStack(alignment: .leading, spacing: 1) {
                                 Text(loc.localized("profile_complete_profile"))
-                                    .font(.system(size: 14, weight: .semibold))
+                                    .font(.system(size: 13, weight: .semibold))
                                     .foregroundColor(AppTheme.Colors.primaryText)
                                 Text(loc.localized("profile_complete_desc"))
-                                    .font(.system(size: 12))
+                                    .font(.system(size: 11))
                                     .foregroundColor(AppTheme.Colors.secondaryText)
                             }
                             Spacer()
                             Image(systemName: "chevron.right")
                                 .foregroundColor(AppTheme.Colors.tertiaryText)
-                                .font(.system(size: 13))
+                                .font(.system(size: 12))
                         }
-                        .padding(14)
+                        .padding(10)
                         .background(AppTheme.Colors.accent.opacity(0.08))
-                        .cornerRadius(12)
+                        .cornerRadius(10)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 12)
+                            RoundedRectangle(cornerRadius: 10)
                                 .stroke(AppTheme.Colors.accent.opacity(0.2), lineWidth: 1)
                         )
                     }
@@ -673,6 +712,16 @@ struct ClientProfileView: View {
                 ) {
                     showAbout = true
                 }
+
+                // Delete Account
+                SettingsRow(
+                    icon: "trash.fill",
+                    title: loc.localized("delete_account_title"),
+                    iconColor: AppTheme.Colors.error,
+                    titleColor: AppTheme.Colors.error
+                ) {
+                    showDeleteAccountAlert = true
+                }
             }
         }
     }
@@ -696,6 +745,23 @@ struct ClientProfileView: View {
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(AppTheme.Colors.error, lineWidth: 1)
             )
+        }
+    }
+
+    // MARK: - Delete Account Button
+    private var deleteAccountButton: some View {
+        Button {
+            showDeleteAccountAlert = true
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "trash.fill")
+                    .font(.system(size: 14))
+                Text(loc.localized("delete_account_title"))
+                    .font(.system(size: 14, weight: .medium))
+            }
+            .foregroundColor(AppTheme.Colors.error.opacity(0.7))
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
         }
     }
 }

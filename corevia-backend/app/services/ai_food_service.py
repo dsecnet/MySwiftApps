@@ -151,7 +151,16 @@ Otvet TOLKO v etom JSON formate:
                 )
 
             if response.status_code != 200:
-                logger.error(f"Anthropic API error {response.status_code}: {response.text[:200]}")
+                error_text = response.text[:300]
+                logger.error(f"Anthropic API error {response.status_code}: {error_text}")
+
+                # Kredit balansı problemi
+                if "credit balance" in error_text.lower() or "billing" in error_text.lower():
+                    return {
+                        "success": False,
+                        "error": "AI xidməti müvəqqəti əlçatmazdır. Zəhmət olmasa sonra yenidən cəhd edin."
+                    }
+
                 return {
                     "success": False,
                     "error": f"AI servisi cavab vermedi (status: {response.status_code})"

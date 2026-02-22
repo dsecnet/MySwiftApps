@@ -26,6 +26,13 @@ struct TrainerProfileView: View {
     @State private var showAbout = false
     @State private var showAllStudents = false
 
+    // Delete Account
+    @State private var showDeleteAccountAlert = false
+    @State private var showDeletePasswordSheet = false
+    @State private var deletePassword: String = ""
+    @State private var deleteError: String? = nil
+    @State private var isDeleting: Bool = false
+
     var body: some View {
         ZStack {
             AppTheme.Colors.background.ignoresSafeArea()
@@ -89,6 +96,35 @@ struct TrainerProfileView: View {
             }
         } message: {
             Text(loc.localized("profile_logout_confirm"))
+        }
+        // Delete Account
+        .alert(loc.localized("delete_account_title"), isPresented: $showDeleteAccountAlert) {
+            Button(loc.localized("common_cancel"), role: .cancel) { }
+            Button(loc.localized("common_delete"), role: .destructive) {
+                showDeletePasswordSheet = true
+            }
+        } message: {
+            Text(loc.localized("delete_account_warning"))
+        }
+        .sheet(isPresented: $showDeletePasswordSheet) {
+            DeleteAccountSheet(
+                password: $deletePassword,
+                error: $deleteError,
+                isDeleting: $isDeleting
+            ) {
+                Task {
+                    isDeleting = true
+                    deleteError = nil
+                    let result = await AuthManager.shared.deleteAccount(password: deletePassword)
+                    isDeleting = false
+                    if result.success {
+                        showDeletePasswordSheet = false
+                        deletePassword = ""
+                    } else {
+                        deleteError = result.error ?? loc.localized("delete_account_error")
+                    }
+                }
+            }
         }
     }
 
@@ -703,6 +739,16 @@ struct TrainerProfileView: View {
                 ) {
                     showAbout = true
                 }
+
+                // Delete Account
+                SettingsRow(
+                    icon: "trash.fill",
+                    title: loc.localized("delete_account_title"),
+                    iconColor: AppTheme.Colors.error,
+                    titleColor: AppTheme.Colors.error
+                ) {
+                    showDeleteAccountAlert = true
+                }
             }
         }
     }
@@ -726,6 +772,23 @@ struct TrainerProfileView: View {
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(AppTheme.Colors.error, lineWidth: 1)
             )
+        }
+    }
+
+    // MARK: - Delete Account Button
+    private var deleteAccountButton: some View {
+        Button {
+            showDeleteAccountAlert = true
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "trash.fill")
+                    .font(.system(size: 14))
+                Text(loc.localized("delete_account_title"))
+                    .font(.system(size: 14, weight: .medium))
+            }
+            .foregroundColor(AppTheme.Colors.error.opacity(0.7))
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
         }
     }
 }

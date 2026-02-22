@@ -542,6 +542,116 @@ struct AboutLinkButton: View {
     }
 }
 
+// MARK: - Delete Account Sheet
+struct DeleteAccountSheet: View {
+    @Binding var password: String
+    @Binding var error: String?
+    @Binding var isDeleting: Bool
+    let onConfirm: () -> Void
+
+    @Environment(\.dismiss) var dismiss
+    @ObservedObject private var loc = LocalizationManager.shared
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                AppTheme.Colors.background.ignoresSafeArea()
+
+                VStack(spacing: 24) {
+                    // Warning icon
+                    VStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(AppTheme.Colors.error.opacity(0.1))
+                                .frame(width: 80, height: 80)
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.system(size: 36))
+                                .foregroundColor(AppTheme.Colors.error)
+                        }
+
+                        Text(loc.localized("delete_account_title"))
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundColor(AppTheme.Colors.primaryText)
+
+                        Text(loc.localized("delete_account_confirm_desc"))
+                            .font(.system(size: 14))
+                            .foregroundColor(AppTheme.Colors.secondaryText)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                    }
+
+                    // Password field
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(loc.localized("delete_account_password"))
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(AppTheme.Colors.primaryText)
+
+                        SecureField(loc.localized("delete_account_password_placeholder"), text: $password)
+                            .padding()
+                            .background(AppTheme.Colors.secondaryBackground)
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(error != nil ? AppTheme.Colors.error : AppTheme.Colors.separator, lineWidth: 1)
+                            )
+                    }
+                    .padding(.horizontal)
+
+                    // Error message
+                    if let error = error {
+                        HStack(spacing: 6) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 14))
+                            Text(error)
+                                .font(.system(size: 13))
+                        }
+                        .foregroundColor(AppTheme.Colors.error)
+                        .padding(.horizontal)
+                    }
+
+                    // Delete button
+                    Button {
+                        onConfirm()
+                    } label: {
+                        HStack {
+                            if isDeleting {
+                                ProgressView()
+                                    .tint(.white)
+                            } else {
+                                Image(systemName: "trash.fill")
+                                Text(loc.localized("delete_account_confirm"))
+                                    .fontWeight(.bold)
+                            }
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(password.count >= 6 ? AppTheme.Colors.error : AppTheme.Colors.separator)
+                        .cornerRadius(12)
+                    }
+                    .disabled(password.count < 6 || isDeleting)
+                    .padding(.horizontal)
+
+                    Spacer()
+                }
+                .padding(.top, 20)
+            }
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(loc.localized("common_cancel")) {
+                        password = ""
+                        error = nil
+                        dismiss()
+                    }
+                    .foregroundColor(AppTheme.Colors.accent)
+                }
+            }
+        }
+    }
+}
+
 // #Preview("Notifications") { // iOS 17+ only
 //     NotificationsSettingsView()
 // }
@@ -553,4 +663,4 @@ struct AboutLinkButton: View {
 // #Preview("About") { // iOS 17+ only
 //     AboutView()
 // }
-// 
+//

@@ -325,11 +325,15 @@ async def complete_training_plan(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Tələbə assign olunmuş məşq planını tamamlandı kimi işarələyir"""
+    """Tələbə və ya trainer assign olunmuş məşq planını tamamlandı kimi işarələyir"""
+    from sqlalchemy import or_
     result = await db.execute(
         select(TrainingPlan).options(selectinload(TrainingPlan.workouts)).where(
             TrainingPlan.id == plan_id,
-            TrainingPlan.assigned_student_id == current_user.id,
+            or_(
+                TrainingPlan.assigned_student_id == current_user.id,
+                TrainingPlan.trainer_id == current_user.id,
+            )
         )
     )
     plan = result.scalar_one_or_none()
@@ -347,11 +351,15 @@ async def complete_meal_plan(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Tələbə assign olunmuş yemək planını tamamlandı kimi işarələyir"""
+    """Tələbə və ya trainer assign olunmuş yemək planını tamamlandı kimi işarələyir"""
+    from sqlalchemy import or_
     result = await db.execute(
         select(MealPlan).options(selectinload(MealPlan.items)).where(
             MealPlan.id == plan_id,
-            MealPlan.assigned_student_id == current_user.id,
+            or_(
+                MealPlan.assigned_student_id == current_user.id,
+                MealPlan.trainer_id == current_user.id,
+            )
         )
     )
     plan = result.scalar_one_or_none()

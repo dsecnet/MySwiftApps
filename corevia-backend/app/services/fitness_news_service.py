@@ -28,8 +28,11 @@ class FitnessNewsService:
     CACHE_DURATION = timedelta(hours=2)  # 2 saat cache
 
     def __init__(self):
-        self.claude_api_key = os.getenv("ANTHROPIC_API_KEY")
-        if self.claude_api_key:
+        # Pydantic settings-dən oxu (.env faylını avtomatik yükləyir)
+        from app.config import get_settings
+        _settings = get_settings()
+        self.claude_api_key = _settings.anthropic_api_key or os.getenv("ANTHROPIC_API_KEY")
+        if self.claude_api_key and len(self.claude_api_key) > 20:
             self.client = anthropic.Anthropic(api_key=self.claude_api_key)
         else:
             self.client = None

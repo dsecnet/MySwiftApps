@@ -63,6 +63,10 @@ struct UserResponse: Codable {
     }
 }
 
+struct DeleteAccountBody: Encodable {
+    let password: String
+}
+
 // MARK: - Auth Manager
 
 class AuthManager: ObservableObject {
@@ -232,6 +236,26 @@ class AuthManager: ObservableObject {
         return isPremium
     }
 
+    // MARK: - Delete Account
+
+    @MainActor
+    func deleteAccount(password: String) async -> (success: Bool, error: String?) {
+        do {
+            try await api.requestVoid(
+                endpoint: "/api/v1/auth/delete-account",
+                method: "DELETE",
+                body: DeleteAccountBody(password: password)
+            )
+            // Uğurla silindikdən sonra logout et
+            logout()
+            return (true, nil)
+        } catch let error as APIError {
+            return (false, error.errorDescription)
+        } catch {
+            return (false, error.localizedDescription)
+        }
+    }
+
     // MARK: - Logout
 
     @MainActor
@@ -246,5 +270,8 @@ class AuthManager: ObservableObject {
         // Clear cached data so next login loads fresh
         TrainingPlanManager.shared.clearAllPlans()
         MealPlanManager.shared.clearAllPlans()
+
+        // Onboarding cache-i təmizlə (yeni user fərqli onboarding statusuna malik ola bilər)
+        OnboardingManager.shared.resetOnLogout()
     }
 }

@@ -9,10 +9,13 @@ struct WorkoutView: View {
     @ObservedObject private var loc = LocalizationManager.shared
     @ObservedObject private var settingsManager = SettingsManager.shared
     
+    @State private var showLiveTracking: Bool = false
+
     var body: some View {
         ZStack {
             AppTheme.Colors.background.ignoresSafeArea()
 
+            VStack(spacing: 0) {
             ScrollView {
                 VStack(spacing: 20) {
 
@@ -193,81 +196,14 @@ struct WorkoutView: View {
                         .padding(.vertical, 60)
                     }
 
-                    // MARK: - GPS Tracking Button (Premium)
-                    if settingsManager.isPremium {
-                        NavigationLink {
-                            LiveTrackingView()
-                        } label: {
-                            HStack {
-                                Image(systemName: "location.fill")
-                                Text("GPS ilə Qaçış/Gəzinti")
-                                    .bold()
-                            }
-                            .foregroundColor(.white)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(
-                                LinearGradient(
-                                    colors: [Color.green, Color.green.opacity(0.8)],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .cornerRadius(14)
-                            .shadow(color: Color.green.opacity(0.3), radius: 8)
-                        }
-                        .padding(.top, 10)
-                    } else {
-                        Button {
-                            showPremiumPrompt = true
-                        } label: {
-                            HStack {
-                                Image(systemName: "lock.fill")
-                                Text("GPS Tracking (Premium)")
-                                    .bold()
-                            }
-                            .foregroundColor(.white)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(
-                                LinearGradient(
-                                    colors: [Color.gray, Color.gray.opacity(0.8)],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .cornerRadius(14)
-                        }
-                        .padding(.top, 10)
-                    }
-
-                    // MARK: - Add Workout Button
-                    Button {
-                        showAddWorkout = true
-                    } label: {
-                        HStack {
-                            Image(systemName: "plus.circle.fill")
-                            Text(loc.localized("workout_new"))
-                                .bold()
-                        }
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(
-                            LinearGradient(
-                                colors: [AppTheme.Colors.accent, AppTheme.Colors.accent.opacity(0.8)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .cornerRadius(14)
-                        .shadow(color: AppTheme.Colors.accent.opacity(0.3), radius: 8)
-                    }
-                    .padding(.top, 10)
                 }
                 .padding()
-                .padding(.bottom, 100)
+                .padding(.bottom, 20)
             }
+
+            // MARK: - Fixed GPS Tracking Button (altda sabit)
+            gpsTrackingBar
+            } // VStack end
         }
         .sheet(isPresented: $showAddWorkout) {
             AddWorkoutView()
@@ -275,6 +211,93 @@ struct WorkoutView: View {
         .sheet(isPresented: $showPremiumPrompt) {
             PremiumView()
         }
+        .sheet(isPresented: $showLiveTracking) {
+            NavigationStack {
+                LiveTrackingView()
+            }
+        }
+    }
+
+    // MARK: - Fixed Bottom Bar (GPS + Add Workout)
+    private var gpsTrackingBar: some View {
+        VStack(spacing: 8) {
+            // GPS Tracking Button
+            if settingsManager.isPremium {
+                Button {
+                    showLiveTracking = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "location.fill")
+                            .font(.system(size: 15))
+                        Text("GPS ilə Qaçış/Gəzinti")
+                            .font(.system(size: 15, weight: .bold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(
+                        LinearGradient(
+                            colors: [Color.green, Color.green.opacity(0.8)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(12)
+                }
+            } else {
+                Button {
+                    showPremiumPrompt = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 14))
+                        Text("GPS Tracking (Premium)")
+                            .font(.system(size: 15, weight: .bold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(
+                        LinearGradient(
+                            colors: [Color.gray, Color.gray.opacity(0.8)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(12)
+                }
+            }
+
+            // Add Workout Button (GPS-in altında)
+            Button {
+                showAddWorkout = true
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 15))
+                    Text(loc.localized("workout_new"))
+                        .font(.system(size: 15, weight: .bold))
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(
+                    LinearGradient(
+                        colors: [AppTheme.Colors.accent, AppTheme.Colors.accent.opacity(0.8)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .cornerRadius(12)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+        .padding(.bottom, 80) // tab bar üçün yer
+        .background(
+            AppTheme.Colors.background
+                .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: -4)
+        )
     }
 
     // FIX 11: NEW - Helper functions for weekly statistics

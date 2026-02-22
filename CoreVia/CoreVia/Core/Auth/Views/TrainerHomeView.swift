@@ -29,9 +29,11 @@ struct TrainerHomeView: View {
                         }
                     }
 
-                    // quickActionsSection — gizlədildi (user tələbi)
+                    // Quick Actions for Trainer
+                    trainerQuickActionsSection
                 }
                 .padding()
+                .padding(.bottom, 70) // tab bar üçün yer
             }
 
             if dashboardManager.isLoading && dashboardManager.stats == nil {
@@ -221,27 +223,56 @@ struct TrainerHomeView: View {
         }
     }
 
-    // MARK: - Quick Actions
+    // MARK: - Quick Actions (hidden old version)
     private var quickActionsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        EmptyView()
+    }
+
+    // MARK: - Trainer Quick Actions (kompakt)
+    private var trainerQuickActionsSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
             Text(loc.localized("trainer_quick_actions"))
-                .font(.system(size: 18, weight: .bold))
+                .font(.system(size: 16, weight: .bold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
-            HStack(spacing: 12) {
-                DashboardQuickAction(
-                    title: loc.localized("trainer_new_training"),
-                    icon: "figure.strengthtraining.traditional",
-                    color: AppTheme.Colors.accent
-                )
+            LazyVGrid(columns: [
+                GridItem(.flexible(), spacing: 8),
+                GridItem(.flexible(), spacing: 8),
+                GridItem(.flexible(), spacing: 8),
+                GridItem(.flexible(), spacing: 8)
+            ], spacing: 8) {
+                NavigationLink(destination: MyStudentsView()) {
+                    CompactDashboardAction(
+                        title: loc.localized("trainer_my_students"),
+                        icon: "person.2.fill",
+                        color: AppTheme.Colors.accent
+                    )
+                }
 
-                DashboardQuickAction(
-                    title: loc.localized("trainer_new_meal"),
-                    icon: "fork.knife",
-                    color: AppTheme.Colors.accent
-                )
+                NavigationLink(destination: TrainingPlanView()) {
+                    CompactDashboardAction(
+                        title: loc.localized("trainer_new_training"),
+                        icon: "figure.strengthtraining.traditional",
+                        color: AppTheme.Colors.accent
+                    )
+                }
+
+                NavigationLink(destination: MealPlanView()) {
+                    CompactDashboardAction(
+                        title: loc.localized("trainer_new_meal"),
+                        icon: "fork.knife",
+                        color: AppTheme.Colors.accent
+                    )
+                }
+
+                NavigationLink(destination: SocialFeedView()) {
+                    CompactDashboardAction(
+                        title: loc.localized("social_title"),
+                        icon: "person.3.fill",
+                        color: AppTheme.Colors.accent
+                    )
+                }
             }
-
         }
     }
 }
@@ -391,7 +422,7 @@ struct SummaryRow: View {
     }
 }
 
-// MARK: - Dashboard Quick Action
+// MARK: - Dashboard Quick Action (legacy)
 struct DashboardQuickAction: View {
     let title: String
     let icon: String
@@ -419,6 +450,38 @@ struct DashboardQuickAction: View {
         .background(AppTheme.Colors.secondaryBackground)
         .cornerRadius(14)
         .shadow(color: color.opacity(0.08), radius: 6, x: 0, y: 3)
+    }
+}
+
+// MARK: - Compact Dashboard Quick Action (4-sütun)
+struct CompactDashboardAction: View {
+    let title: String
+    let icon: String
+    let color: Color
+
+    var body: some View {
+        VStack(spacing: 6) {
+            ZStack {
+                Circle()
+                    .fill(color.opacity(0.12))
+                    .frame(width: 34, height: 34)
+                Image(systemName: icon)
+                    .font(.system(size: 14))
+                    .foregroundColor(color)
+            }
+
+            Text(title)
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(AppTheme.Colors.primaryText)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 10)
+        .padding(.horizontal, 4)
+        .background(AppTheme.Colors.secondaryBackground)
+        .cornerRadius(10)
     }
 }
 

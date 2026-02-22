@@ -395,9 +395,11 @@ struct LoginView: View {
                 request.httpMethod = "POST"
                 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
+                let userType = selectedUserType == .trainer ? "trainer" : "client"
                 let body: [String: String] = [
                     "email": email.trimmingCharacters(in: .whitespaces).lowercased(),
-                    "password": password
+                    "password": password,
+                    "user_type": userType
                 ]
                 request.httpBody = try JSONEncoder().encode(body)
 

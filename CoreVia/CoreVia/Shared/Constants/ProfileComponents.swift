@@ -31,30 +31,33 @@ struct TypeButton: View {
     }
 }
 
-// MARK: - Client Stat Card
+// MARK: - Client Stat Card (Compact)
 struct ClientStatCard: View {
     let icon: String
     let value: String
     let label: String
-    
+
     var body: some View {
-        VStack(spacing: 8) {
+        HStack(spacing: 8) {
             Image(systemName: icon)
-                .font(.system(size: 20))
+                .font(.system(size: 14))
                 .foregroundColor(AppTheme.Colors.accent)
-            
-            Text(value)
-                .font(.system(size: 16, weight: .bold))
-                .foregroundColor(AppTheme.Colors.primaryText)
-            
-            Text(label)
-                .font(.system(size: 12))
-                .foregroundColor(AppTheme.Colors.secondaryText)
+                .frame(width: 20)
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(value)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(AppTheme.Colors.primaryText)
+                Text(label)
+                    .font(.system(size: 10))
+                    .foregroundColor(AppTheme.Colors.secondaryText)
+            }
         }
-        .frame(maxWidth: .infinity)
-        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
         .background(AppTheme.Colors.secondaryBackground)
-        .cornerRadius(12)
+        .cornerRadius(10)
     }
 }
 
@@ -92,17 +95,19 @@ struct SettingsRow: View {
     let title: String
     var badge: String? = nil
     var badgeColor: Color = .gray
+    var iconColor: Color? = nil
+    var titleColor: Color? = nil
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             HStack {
                 Image(systemName: icon)
-                    .foregroundColor(AppTheme.Colors.accent)
+                    .foregroundColor(iconColor ?? AppTheme.Colors.accent)
                     .frame(width: 24)
-                
+
                 Text(title)
-                    .foregroundColor(AppTheme.Colors.primaryText)
+                    .foregroundColor(titleColor ?? AppTheme.Colors.primaryText)
                 
                 Spacer()
                 
