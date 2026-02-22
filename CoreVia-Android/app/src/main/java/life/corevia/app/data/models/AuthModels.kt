@@ -7,7 +7,8 @@ import com.google.gson.annotations.SerializedName
 // iOS: struct LoginRequest: Encodable
 data class LoginRequest(
     val email: String,
-    val password: String
+    val password: String,
+    @SerializedName("user_type") val userType: String
 )
 
 // iOS: struct LoginVerifyRequest: Encodable — Step 2 OTP doğrulama
@@ -63,6 +64,37 @@ data class AuthResponse(
     @SerializedName("access_token")  val accessToken: String,
     @SerializedName("refresh_token") val refreshToken: String,
     @SerializedName("token_type")    val tokenType: String = "Bearer"
+)
+
+// ─── Settings Models ─────────────────────────────────────────────────────────
+
+data class UserSettingsResponse(
+    @SerializedName("notifications_enabled") val notificationsEnabled: Boolean = true,
+    @SerializedName("workout_reminders")     val workoutReminders: Boolean = true,
+    @SerializedName("meal_reminders")        val mealReminders: Boolean = true,
+    @SerializedName("weekly_reports")        val weeklyReports: Boolean = false,
+    val language: String = "az",
+    @SerializedName("dark_mode")             val darkMode: Boolean = false
+)
+
+data class UserSettingsUpdateRequest(
+    @SerializedName("notifications_enabled") val notificationsEnabled: Boolean? = null,
+    @SerializedName("workout_reminders")     val workoutReminders: Boolean? = null,
+    @SerializedName("meal_reminders")        val mealReminders: Boolean? = null,
+    @SerializedName("weekly_reports")        val weeklyReports: Boolean? = null,
+    val language: String? = null,
+    @SerializedName("dark_mode")             val darkMode: Boolean? = null
+)
+
+// ─── Password & Account Models ───────────────────────────────────────────────
+
+data class ChangePasswordRequest(
+    @SerializedName("current_password") val currentPassword: String,
+    @SerializedName("new_password")     val newPassword: String
+)
+
+data class DeleteAccountRequest(
+    val password: String
 )
 
 // iOS: struct UserResponse: Codable

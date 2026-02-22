@@ -12,11 +12,28 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import life.corevia.app.data.models.TrackingPoint
 import life.corevia.app.data.models.TrackingSession
+import life.corevia.app.data.models.WorkoutCreateRequest
+import life.corevia.app.data.repository.WorkoutRepository
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class TrackingViewModel(application: Application) : AndroidViewModel(application) {
 
+    private val workoutRepository = WorkoutRepository.getInstance(application.applicationContext)
+
     private val _isTracking = MutableStateFlow(false)
     val isTracking: StateFlow<Boolean> = _isTracking.asStateFlow()
+
+    // Save state — UI feedback üçün
+    private val _saveStatus = MutableStateFlow<SaveStatus>(SaveStatus.Idle)
+    val saveStatus: StateFlow<SaveStatus> = _saveStatus.asStateFlow()
+
+    sealed class SaveStatus {
+        data object Idle : SaveStatus()
+        data object Saving : SaveStatus()
+        data object Success : SaveStatus()
+        data class Error(val message: String) : SaveStatus()
+    }
 
     private val _isPaused = MutableStateFlow(false)
     val isPaused: StateFlow<Boolean> = _isPaused.asStateFlow()
@@ -88,6 +105,66 @@ class TrackingViewModel(application: Application) : AndroidViewModel(application
             route = _route.value
         )
         _sessions.value = _sessions.value + session
+
+        // Save to backend as workout
+        saveSessionToBackend(session)
+    }
+
+    private fun saveSessionToBackend(session: TrackingSession) {
+        _saveStatus.value = SaveStatus.Saving
+
+        viewModelScope.launch {
+            try {
+                // Activity type → başlıq
+                val title = when (session.activityType) {
+                    "running" -> "GPS Qaçış"
+                    "walking" -> "GPS Gəzinti"
+                    "cycling" -> "GPS Velosiped"
+                    else      -> "GPS Aktivlik"
+                }
+
+                // Məsafə formatı
+                val distanceStr = if (session.distance >= 1000) {
+                    String.format("%.2f km", session.distance / 1000)
+                } else {
+                    String.format("%.0f m", session.distance)
+                }
+
+                // Orta sürət
+                val avgSpeedKmh = session.avgSpeed * 3.6
+                val speedStr = String.format("%.1f km/s", avgSpeedKmh)
+
+                // Duration saniyədən dəqiqəyə
+                val durationMinutes = (session.duration / 60).coerceAtLeast(1)
+
+                // ISO 8601 timestamp
+                val now = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+
+                val request = WorkoutCreateRequest(
+                    title = title,
+                    category = "cardio",
+                    duration = durationMinutes,
+                    caloriesBurned = session.caloriesBurned,
+                    notes = "Məsafə: $distanceStr | Orta sürət: $speedStr | GPS ilə izləndi",
+                    date = now
+                )
+
+                val result = workoutRepository.createWorkout(request)
+                if (result.isSuccess) {
+                    _saveStatus.value = SaveStatus.Success
+                } else {
+                    _saveStatus.value = SaveStatus.Error(
+                        result.exceptionOrNull()?.message ?: "Naməlum xəta"
+                    )
+                }
+            } catch (e: Exception) {
+                _saveStatus.value = SaveStatus.Error(e.message ?: "Naməlum xəta")
+            }
+        }
+    }
+
+    fun clearSaveStatus() {
+        _saveStatus.value = SaveStatus.Idle
     }
 
     private fun startTimer() {

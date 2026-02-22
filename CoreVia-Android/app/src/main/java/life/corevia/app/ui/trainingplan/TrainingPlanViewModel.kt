@@ -40,6 +40,10 @@ class TrainingPlanViewModel(application: Application) : AndroidViewModel(applica
     private val _selectedFilter = MutableStateFlow<String?>(null)
     val selectedFilter: StateFlow<String?> = _selectedFilter.asStateFlow()
 
+    // Selected plan for editing
+    private val _selectedPlan = MutableStateFlow<TrainingPlan?>(null)
+    val selectedPlan: StateFlow<TrainingPlan?> = _selectedPlan.asStateFlow()
+
     // iOS: var filteredPlans: [TrainingPlan] { computed }
     val filteredPlans: List<TrainingPlan>
         get() = _selectedFilter.value?.let { filter ->
@@ -112,6 +116,25 @@ class TrainingPlanViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
+    fun updatePlan(planId: String, request: TrainingPlanCreateRequest) {
+        _isLoading.value = true
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.updateTrainingPlan(planId, request).fold(
+                onSuccess = {
+                    withContext(Dispatchers.Main) { _successMessage.value = "Məşq planı yeniləndi" }
+                    repository.getTrainingPlans().fold(
+                        onSuccess = { plans -> withContext(Dispatchers.Main) { _plans.value = plans } },
+                        onFailure = { /* ignore refresh error */ }
+                    )
+                },
+                onFailure = { withContext(Dispatchers.Main) { _errorMessage.value = ErrorParser.parseMessage(it as Exception) } }
+            )
+            withContext(Dispatchers.Main) { _isLoading.value = false }
+        }
+    }
+
+    fun selectPlan(plan: TrainingPlan) { _selectedPlan.value = plan }
+    fun clearSelectedPlan() { _selectedPlan.value = null }
     fun setFilter(planType: String?) { _selectedFilter.value = planType }
     fun clearError() { _errorMessage.value = null }
     fun clearSuccess() { _successMessage.value = null }

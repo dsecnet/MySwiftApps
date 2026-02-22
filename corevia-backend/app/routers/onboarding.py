@@ -50,10 +50,16 @@ async def complete_onboarding(
     )
     existing = result.scalar_one_or_none()
 
+    # Trainer üçün: specialization → preferred_trainer_type, fitness_goal opsional
+    trainer_type = data.preferred_trainer_type or data.specialization
+
     if existing:
-        existing.fitness_goal = data.fitness_goal
-        existing.fitness_level = data.fitness_level
-        existing.preferred_trainer_type = data.preferred_trainer_type
+        if data.fitness_goal is not None:
+            existing.fitness_goal = data.fitness_goal
+        if data.fitness_level is not None:
+            existing.fitness_level = data.fitness_level
+        if trainer_type is not None:
+            existing.preferred_trainer_type = trainer_type
         existing.is_completed = True
         existing.completed_at = datetime.utcnow()
         onboarding = existing
@@ -62,16 +68,33 @@ async def complete_onboarding(
             user_id=current_user.id,
             fitness_goal=data.fitness_goal,
             fitness_level=data.fitness_level,
-            preferred_trainer_type=data.preferred_trainer_type,
+            preferred_trainer_type=trainer_type,
             is_completed=True,
             completed_at=datetime.utcnow(),
         )
         db.add(onboarding)
 
-    # User-in goal-unu da yenile
-    current_user.goal = data.fitness_goal
+    # User profilini yenilə
+    if data.fitness_goal is not None:
+        current_user.goal = data.fitness_goal
+    if data.gender is not None:
+        current_user.gender = data.gender
+    if data.age is not None:
+        current_user.age = data.age
+    if data.weight is not None:
+        current_user.weight = data.weight
+    if data.height is not None:
+        current_user.height = data.height
+    # Trainer-specific: bio, specialization
+    if data.bio is not None and hasattr(current_user, "bio"):
+        current_user.bio = data.bio
+    if data.specialization is not None and hasattr(current_user, "specialization"):
+        current_user.specialization = data.specialization
+    if data.experience is not None and hasattr(current_user, "experience"):
+        current_user.experience = data.experience
 
-    await db.flush()
+    await db.commit()
+    await db.refresh(onboarding)
     return onboarding
 
 

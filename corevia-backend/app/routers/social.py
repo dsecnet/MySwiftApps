@@ -502,3 +502,159 @@ async def get_my_achievements(
     )
     achievements = result.scalars().all()
     return [AchievementResponse.model_validate(a) for a in achievements]
+
+
+@router.get("/achievements/all")
+async def get_all_achievements(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get all available achievements with user's progress"""
+    from app.models.workout import Workout
+
+    # Get user's earned achievements
+    result = await db.execute(
+        select(Achievement).where(Achievement.user_id == current_user.id)
+    )
+    earned = {a.achievement_type: a for a in result.scalars().all()}
+
+    # Count user's workouts for progress
+    workout_count_result = await db.execute(
+        select(func.count(Workout.id)).where(Workout.user_id == current_user.id)
+    )
+    workout_count = workout_count_result.scalar() or 0
+
+    # Count user's posts
+    post_count_result = await db.execute(
+        select(func.count(Post.id)).where(Post.user_id == current_user.id)
+    )
+    post_count = post_count_result.scalar() or 0
+
+    # Define all possible achievements
+    all_achievements = [
+        {
+            "achievement_type": "first_workout",
+            "title": "İlk Məşq",
+            "description": "İlk məşqinizi tamamlayın",
+            "icon": "fitness_center",
+            "target": 1,
+            "current": min(workout_count, 1),
+        },
+        {
+            "achievement_type": "10_workouts",
+            "title": "Məşq Həvəskarı",
+            "description": "10 məşq tamamlayın",
+            "icon": "local_fire_department",
+            "target": 10,
+            "current": min(workout_count, 10),
+        },
+        {
+            "achievement_type": "50_workouts",
+            "title": "Məşq Ustası",
+            "description": "50 məşq tamamlayın",
+            "icon": "emoji_events",
+            "target": 50,
+            "current": min(workout_count, 50),
+        },
+        {
+            "achievement_type": "100_workouts",
+            "title": "Məşq Legendası",
+            "description": "100 məşq tamamlayın",
+            "icon": "military_tech",
+            "target": 100,
+            "current": min(workout_count, 100),
+        },
+        {
+            "achievement_type": "first_post",
+            "title": "İlk Post",
+            "description": "İlk postunuzu paylaşın",
+            "icon": "forum",
+            "target": 1,
+            "current": min(post_count, 1),
+        },
+        {
+            "achievement_type": "10_posts",
+            "title": "Aktiv Paylaşımçı",
+            "description": "10 post paylaşın",
+            "icon": "share",
+            "target": 10,
+            "current": min(post_count, 10),
+        },
+        {
+            "achievement_type": "social_butterfly",
+            "title": "Sosial Kəpənək",
+            "description": "5 nəfəri izləyin",
+            "icon": "people",
+            "target": 5,
+            "current": 0,
+        },
+        {
+            "achievement_type": "consistency",
+            "title": "Ardıcıllıq",
+            "description": "7 gün ardıcıl məşq edin",
+            "icon": "calendar_month",
+            "target": 7,
+            "current": 0,
+        },
+    ]
+
+    # Build response
+    response = []
+    for ach in all_achievements:
+        is_earned = ach["achievement_type"] in earned
+        earned_data = earned.get(ach["achievement_type"])
+        response.append({
+            "id": earned_data.id if earned_data else ach["achievement_type"],
+            "achievement_type": ach["achievement_type"],
+            "title": ach["title"],
+            "description": ach["description"],
+            "icon": ach["icon"],
+            "is_unlocked": is_earned,
+            "progress": ach["current"] / ach["target"] if ach["target"] > 0 else 0,
+            "target": ach["target"],
+            "current": ach["current"],
+            "earned_at": earned_data.earned_at.isoformat() if earned_data else None,
+        })
+
+    return response
+
+
+@router.get("/profile/{user_id}/posts", response_model=list[PostResponse])
+async def get_user_posts(
+    user_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get posts by a specific user"""
+    result = await db.execute(
+        select(Post)
+        .where(and_(Post.user_id == user_id, Post.is_public == True))
+        .order_by(desc(Post.created_at))
+        .limit(50)
+    )
+    posts = result.scalars().all()
+
+    post_responses = []
+    for post in posts:
+        author_result = await db.execute(select(User).where(User.id == post.user_id))
+        author = author_result.scalar_one_or_none()
+
+        like_result = await db.execute(
+            select(PostLike).where(
+                and_(PostLike.post_id == post.id, PostLike.user_id == current_user.id)
+            )
+        )
+        is_liked = like_result.scalar_one_or_none() is not None
+
+        post_response = PostResponse.model_validate(post)
+        if author:
+            post_response.author = PostAuthor(
+                id=author.id,
+                name=author.name,
+                profile_image_url=author.profile_image_url,
+                user_type=author.user_type.value,
+            )
+        post_response.is_liked = is_liked
+        post_responses.append(post_response)
+
+    return post_responses

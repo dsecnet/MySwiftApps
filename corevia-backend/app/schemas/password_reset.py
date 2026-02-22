@@ -20,3 +20,12 @@ class OTPResponse(BaseModel):
     success: bool
     message: str
     code: str | None = None  # Only in mock mode
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str = Field(..., description="Current password")
+    new_password: str = Field(..., min_length=6, description="New password (min 6 chars)")
+
+
+class DeleteAccountRequest(BaseModel):
+    password: str = Field(..., description="Password confirmation for account deletion")

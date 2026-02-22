@@ -10,7 +10,8 @@ class NewsRepository(context: Context) {
 
     suspend fun getNews(): Result<List<NewsArticle>> {
         return try {
-            Result.success(api.getNews())
+            val response = api.getNews()
+            Result.success(response.articles)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -19,6 +20,31 @@ class NewsRepository(context: Context) {
     suspend fun getArticle(articleId: String): Result<NewsArticle> {
         return try {
             Result.success(api.getNewsArticle(articleId))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun bookmarkArticle(articleId: String, title: String?): Result<NewsBookmark> {
+        return try {
+            Result.success(api.bookmarkArticle(BookmarkRequest(articleId, title)))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun removeBookmark(articleId: String): Result<Unit> {
+        return try {
+            api.removeBookmark(articleId)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getBookmarks(): Result<List<NewsBookmark>> {
+        return try {
+            Result.success(api.getBookmarks())
         } catch (e: Exception) {
             Result.failure(e)
         }

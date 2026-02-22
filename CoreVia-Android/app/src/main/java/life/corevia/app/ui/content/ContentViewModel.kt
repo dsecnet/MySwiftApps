@@ -73,6 +73,30 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    fun updateContent(contentId: String, title: String, body: String?, isPremiumOnly: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            withContext(Dispatchers.Main) { _isLoading.value = true }
+            val request = ContentCreateRequest(
+                title = title,
+                body = body,
+                contentType = "text",
+                isPremiumOnly = isPremiumOnly
+            )
+            repository.updateContent(contentId, request).fold(
+                onSuccess = {
+                    withContext(Dispatchers.Main) { _successMessage.value = "Kontent yeniləndi" }
+                    // Refresh list
+                    repository.getMyContent().fold(
+                        onSuccess = { list -> withContext(Dispatchers.Main) { _myContents.value = list } },
+                        onFailure = { /* ignore refresh error */ }
+                    )
+                },
+                onFailure = { withContext(Dispatchers.Main) { _errorMessage.value = ErrorParser.parseMessage(it as Exception) } }
+            )
+            withContext(Dispatchers.Main) { _isLoading.value = false }
+        }
+    }
+
     fun deleteContent(contentId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.deleteContent(contentId).fold(

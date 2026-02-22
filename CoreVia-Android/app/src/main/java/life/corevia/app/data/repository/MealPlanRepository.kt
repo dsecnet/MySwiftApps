@@ -30,6 +30,15 @@ class MealPlanRepository(context: Context) {
         }
     }
 
+    // Update meal plan (title, items, etc.)
+    suspend fun updateMealPlan(planId: String, request: MealPlanCreateRequest): Result<MealPlan> {
+        return try {
+            Result.success(api.updateMealPlan(planId, request))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     // iOS: MealPlanManager.completePlan(_:)
     suspend fun completeMealPlan(planId: String): Result<MealPlan> {
         return try {

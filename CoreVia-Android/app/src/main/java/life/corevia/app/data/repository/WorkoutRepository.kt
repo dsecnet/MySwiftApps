@@ -52,6 +52,15 @@ class WorkoutRepository(context: Context) {
         }
     }
 
+    // iOS: WorkoutManager.loadStats()
+    suspend fun getWorkoutStats(): Result<WorkoutStatsResponse> {
+        return try {
+            Result.success(api.getWorkoutStats())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     companion object {
         @Volatile private var instance: WorkoutRepository? = null
         fun getInstance(context: Context): WorkoutRepository =

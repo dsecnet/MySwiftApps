@@ -1,6 +1,7 @@
 package life.corevia.app.ui.social
 
 import android.app.Application
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +15,7 @@ import life.corevia.app.data.repository.SocialRepository
 /**
  * iOS SocialManager.swift-in Android ViewModel ekvivalenti.
  *
- * Feed + post CRUD + like + comments + follow.
+ * Feed + post CRUD + like + comments + follow + profile + achievements.
  */
 class SocialViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -46,6 +47,17 @@ class SocialViewModel(application: Application) : AndroidViewModel(application) 
     private val _selectedPostId = MutableStateFlow<String?>(null)
     val selectedPostId: StateFlow<String?> = _selectedPostId.asStateFlow()
 
+    // User Profile state
+    private val _selectedUserProfile = MutableStateFlow<UserProfileSummary?>(null)
+    val selectedUserProfile: StateFlow<UserProfileSummary?> = _selectedUserProfile.asStateFlow()
+
+    private val _userPosts = MutableStateFlow<List<SocialPost>>(emptyList())
+    val userPosts: StateFlow<List<SocialPost>> = _userPosts.asStateFlow()
+
+    // Achievements state
+    private val _achievements = MutableStateFlow<List<Achievement>>(emptyList())
+    val achievements: StateFlow<List<Achievement>> = _achievements.asStateFlow()
+
     init {
         loadFeed()
     }
@@ -65,15 +77,32 @@ class SocialViewModel(application: Application) : AndroidViewModel(application) 
 
     // ─── Post CRUD ──────────────────────────────────────────────────────────────
 
-    fun createPost(content: String, postType: String = "general") {
+    fun createPost(content: String, postType: String = "general", imageUri: Uri? = null) {
         if (content.isBlank()) return
         viewModelScope.launch {
             _isLoading.value = true
             repository.createPost(CreatePostRequest(content, postType)).fold(
                 onSuccess = { newPost ->
-                    _posts.value = listOf(newPost) + _posts.value
-                    _showCreatePost.value = false
-                    _successMessage.value = "Post paylaşıldı"
+                    // Şəkil varsa yüklə
+                    if (imageUri != null) {
+                        repository.uploadPostImage(newPost.id, imageUri).fold(
+                            onSuccess = { updatedPost ->
+                                _posts.value = listOf(updatedPost) + _posts.value
+                                _showCreatePost.value = false
+                                _successMessage.value = "Post paylaşıldı"
+                            },
+                            onFailure = {
+                                // Post yaradıldı amma şəkil yüklənmədi
+                                _posts.value = listOf(newPost) + _posts.value
+                                _showCreatePost.value = false
+                                _successMessage.value = "Post paylaşıldı (şəkil yüklənmədi)"
+                            }
+                        )
+                    } else {
+                        _posts.value = listOf(newPost) + _posts.value
+                        _showCreatePost.value = false
+                        _successMessage.value = "Post paylaşıldı"
+                    }
                 },
                 onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
             )
@@ -165,6 +194,82 @@ class SocialViewModel(application: Application) : AndroidViewModel(application) 
         _showComments.value = false
         _selectedPostId.value = null
         _comments.value = emptyList()
+    }
+
+    // ─── Follow/Unfollow ────────────────────────────────────────────────────────
+
+    fun followUser(userId: String) {
+        viewModelScope.launch {
+            repository.followUser(userId).fold(
+                onSuccess = {
+                    _successMessage.value = "İzlənilir"
+                    // Profil açıqdırsa yenilə
+                    _selectedUserProfile.value?.let { profile ->
+                        if (profile.id == userId) {
+                            _selectedUserProfile.value = profile.copy(
+                                isFollowing = true,
+                                followerCount = profile.followerCount + 1
+                            )
+                        }
+                    }
+                },
+                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
+            )
+        }
+    }
+
+    fun unfollowUser(userId: String) {
+        viewModelScope.launch {
+            repository.unfollowUser(userId).fold(
+                onSuccess = {
+                    _successMessage.value = "İzləmə dayandırıldı"
+                    _selectedUserProfile.value?.let { profile ->
+                        if (profile.id == userId) {
+                            _selectedUserProfile.value = profile.copy(
+                                isFollowing = false,
+                                followerCount = (profile.followerCount - 1).coerceAtLeast(0)
+                            )
+                        }
+                    }
+                },
+                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
+            )
+        }
+    }
+
+    // ─── User Profile ───────────────────────────────────────────────────────────
+
+    fun loadUserProfile(userId: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            repository.getUserProfile(userId).fold(
+                onSuccess = { _selectedUserProfile.value = it },
+                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
+            )
+            repository.getUserPosts(userId).fold(
+                onSuccess = { _userPosts.value = it },
+                onFailure = { /* sessiz */ }
+            )
+            _isLoading.value = false
+        }
+    }
+
+    fun clearUserProfile() {
+        _selectedUserProfile.value = null
+        _userPosts.value = emptyList()
+    }
+
+    // ─── Achievements ───────────────────────────────────────────────────────────
+
+    fun loadAchievements() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            repository.getAllAchievements().fold(
+                onSuccess = { _achievements.value = it },
+                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
+            )
+            _isLoading.value = false
+        }
     }
 
     // ─── Utils ──────────────────────────────────────────────────────────────────

@@ -34,9 +34,10 @@ class UserRegister(BaseModel):
 
 
 class UserLogin(BaseModel):
-    """Step 1: Login with email + password, receives OTP"""
+    """Step 1: Login with email + password + user_type, receives OTP"""
     email: EmailStr
     password: str = Field(..., min_length=1, max_length=128)
+    user_type: UserType
 
 
 class LoginVerifyOTP(BaseModel):

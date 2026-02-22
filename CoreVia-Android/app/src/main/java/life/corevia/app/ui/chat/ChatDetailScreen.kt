@@ -1,6 +1,7 @@
 package life.corevia.app.ui.chat
 
 import life.corevia.app.ui.theme.AppTheme
+import life.corevia.app.ui.theme.CoreViaAnimatedBackground
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,6 +12,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
@@ -53,10 +56,10 @@ fun ChatDetailScreen(
         }
     }
 
+    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.accent) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppTheme.Colors.background)
     ) {
         // ── Header ──────────────────────────────────────────────────────────────
         Box(
@@ -301,6 +304,7 @@ fun ChatDetailScreen(
             }
         }
     }
+    } // CoreViaAnimatedBackground
 }
 
 // ─── MessageBubble ───────────────────────────────────────────────────────────
@@ -337,13 +341,29 @@ fun MessageBubble(
                     fontSize = 15.sp
                 )
                 Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = formatMessageTime(message.createdAt),
-                    color = if (isSent) Color.White.copy(alpha = 0.7f)
-                    else AppTheme.Colors.tertiaryText,
-                    fontSize = 10.sp,
-                    modifier = Modifier.align(Alignment.End)
-                )
+                // Vaxt + oxundu isaresi
+                Row(
+                    modifier = Modifier.align(Alignment.End),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
+                    Text(
+                        text = formatMessageTime(message.createdAt),
+                        color = if (isSent) Color.White.copy(alpha = 0.7f)
+                        else AppTheme.Colors.tertiaryText,
+                        fontSize = 10.sp
+                    )
+                    // Gonderilmis mesajlarda oxundu isaresi (double checkmark)
+                    if (isSent) {
+                        Icon(
+                            imageVector = if (message.isRead) Icons.Filled.DoneAll else Icons.Filled.Done,
+                            contentDescription = if (message.isRead) "Oxundu" else "Gonderildi",
+                            tint = if (message.isRead) Color.White
+                            else Color.White.copy(alpha = 0.5f),
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
+                }
             }
         }
     }
@@ -351,6 +371,7 @@ fun MessageBubble(
 
 private fun formatMessageTime(dateString: String): String {
     return try {
+        if (dateString.length < 16) return ""
         dateString.substring(11, 16)  // "14:30"
     } catch (e: Exception) {
         ""

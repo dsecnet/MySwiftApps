@@ -22,6 +22,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import life.corevia.app.data.models.*
+import life.corevia.app.ui.theme.CoreViaAnimatedBackground
 
 /**
  * iOS AddMealPlanView.swift — Android full-screen port
@@ -42,10 +43,10 @@ fun AddMealPlanScreen(
     var items by remember { mutableStateOf(listOf<MealPlanItemCreateRequest>()) }
     var showAddItem by remember { mutableStateOf(false) }
 
+    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.accent) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppTheme.Colors.background)
     ) {
         // ─── Header ─────────────────────────────────────────────────────────
         Spacer(modifier = Modifier.height(56.dp))
@@ -56,13 +57,13 @@ fun AddMealPlanScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Geri", tint = Color.White)
+                Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Geri", tint = AppTheme.Colors.primaryText)
             }
             Text(
                 text = "Qida Planı Yarat",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White,
+                color = AppTheme.Colors.primaryText,
                 modifier = Modifier.weight(1f)
             )
             TextButton(
@@ -104,8 +105,8 @@ fun AddMealPlanScreen(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = AppTheme.Colors.success,
                         unfocusedBorderColor = AppTheme.Colors.separator,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
+                        focusedTextColor = AppTheme.Colors.primaryText,
+                        unfocusedTextColor = AppTheme.Colors.primaryText,
                         cursorColor = AppTheme.Colors.success
                     ),
                     singleLine = true
@@ -151,8 +152,8 @@ fun AddMealPlanScreen(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = AppTheme.Colors.success,
                         unfocusedBorderColor = AppTheme.Colors.separator,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
+                        focusedTextColor = AppTheme.Colors.primaryText,
+                        unfocusedTextColor = AppTheme.Colors.primaryText,
                         cursorColor = AppTheme.Colors.success
                     ),
                     singleLine = true,
@@ -181,7 +182,7 @@ fun AddMealPlanScreen(
                                     unselectedColor = AppTheme.Colors.secondaryText
                                 )
                             )
-                            Text("Heç kim", color = Color.White, fontSize = 14.sp, modifier = Modifier.padding(start = 8.dp))
+                            Text("Heç kim", color = AppTheme.Colors.primaryText, fontSize = 14.sp, modifier = Modifier.padding(start = 8.dp))
                         }
                         students.forEach { student ->
                             Row(
@@ -199,7 +200,7 @@ fun AddMealPlanScreen(
                                         unselectedColor = AppTheme.Colors.secondaryText
                                     )
                                 )
-                                Text(student.name, color = Color.White, fontSize = 14.sp, modifier = Modifier.padding(start = 8.dp))
+                                Text(student.name, color = AppTheme.Colors.primaryText, fontSize = 14.sp, modifier = Modifier.padding(start = 8.dp))
                             }
                         }
                     }
@@ -213,7 +214,7 @@ fun AddMealPlanScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Yeməklər (${items.size})", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Text("Yeməklər (${items.size})", color = AppTheme.Colors.primaryText, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                     TextButton(onClick = { showAddItem = true }) {
                         Icon(Icons.Outlined.Add, null, tint = AppTheme.Colors.success, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(4.dp))
@@ -236,7 +237,7 @@ fun AddMealPlanScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(item.name, color = Color.White, fontWeight = FontWeight.Medium, fontSize = 14.sp)
+                            Text(item.name, color = AppTheme.Colors.primaryText, fontWeight = FontWeight.Medium, fontSize = 14.sp)
                             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 Text(
                                     when (item.mealType) {
@@ -271,8 +272,8 @@ fun AddMealPlanScreen(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = AppTheme.Colors.success,
                         unfocusedBorderColor = AppTheme.Colors.separator,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
+                        focusedTextColor = AppTheme.Colors.primaryText,
+                        unfocusedTextColor = AppTheme.Colors.primaryText,
                         cursorColor = AppTheme.Colors.success
                     ),
                     minLines = 3,
@@ -283,6 +284,7 @@ fun AddMealPlanScreen(
             item { Spacer(modifier = Modifier.height(80.dp)) }
         }
     }
+    } // CoreViaAnimatedBackground
 
     // ─── Add Meal Item Sheet ────────────────────────────────────────────────
     if (showAddItem) {
@@ -328,7 +330,7 @@ fun AddMealItemSheet(
                 .padding(horizontal = 20.dp)
                 .padding(bottom = 40.dp)
         ) {
-            Text("Yemək Əlavə Et", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text("Yemək Əlavə Et", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = AppTheme.Colors.primaryText)
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
@@ -339,8 +341,8 @@ fun AddMealItemSheet(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = AppTheme.Colors.success,
                     unfocusedBorderColor = AppTheme.Colors.separator,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
+                    focusedTextColor = AppTheme.Colors.primaryText,
+                    unfocusedTextColor = AppTheme.Colors.primaryText,
                     cursorColor = AppTheme.Colors.success
                 ),
                 singleLine = true
@@ -376,8 +378,8 @@ fun AddMealItemSheet(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = AppTheme.Colors.success,
                     unfocusedBorderColor = AppTheme.Colors.separator,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
+                    focusedTextColor = AppTheme.Colors.primaryText,
+                    unfocusedTextColor = AppTheme.Colors.primaryText,
                     cursorColor = AppTheme.Colors.success
                 ),
                 singleLine = true,
@@ -394,8 +396,8 @@ fun AddMealItemSheet(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = AppTheme.Colors.accent,
                         unfocusedBorderColor = AppTheme.Colors.separator,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
+                        focusedTextColor = AppTheme.Colors.primaryText,
+                        unfocusedTextColor = AppTheme.Colors.primaryText,
                         cursorColor = AppTheme.Colors.accent
                     ),
                     singleLine = true,
@@ -409,8 +411,8 @@ fun AddMealItemSheet(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = AppTheme.Colors.warning,
                         unfocusedBorderColor = AppTheme.Colors.separator,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
+                        focusedTextColor = AppTheme.Colors.primaryText,
+                        unfocusedTextColor = AppTheme.Colors.primaryText,
                         cursorColor = AppTheme.Colors.warning
                     ),
                     singleLine = true,
@@ -424,8 +426,8 @@ fun AddMealItemSheet(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = AppTheme.Colors.error,
                         unfocusedBorderColor = AppTheme.Colors.separator,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
+                        focusedTextColor = AppTheme.Colors.primaryText,
+                        unfocusedTextColor = AppTheme.Colors.primaryText,
                         cursorColor = AppTheme.Colors.error
                     ),
                     singleLine = true,

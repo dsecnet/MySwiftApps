@@ -1,6 +1,7 @@
 package life.corevia.app.ui.profile
 
 import life.corevia.app.ui.theme.AppTheme
+import life.corevia.app.ui.theme.CoreViaAnimatedBackground
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -89,7 +90,7 @@ fun TrainerProfileScreen(
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
             containerColor = AppTheme.Colors.secondaryBackground,
-            title = { Text("Çıxış", color = Color.White) },
+            title = { Text("Çıxış", color = AppTheme.Colors.primaryText) },
             text = { Text("Hesabdan çıxmaq istədiyinizdən əminsiniz?", color = AppTheme.Colors.secondaryText) },
             confirmButton = {
                 TextButton(onClick = { showLogoutDialog = false; onLogout() }) {
@@ -139,10 +140,10 @@ fun TrainerProfileScreen(
         return
     }
 
+    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.accent) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppTheme.Colors.background)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp)
             .padding(top = 8.dp, bottom = 100.dp),
@@ -244,16 +245,18 @@ fun TrainerProfileScreen(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // iOS: Circular progress indicator (56dp)
+                val separatorColor = AppTheme.Colors.separator
+                val accentColor = AppTheme.Colors.accent
                 Box(Modifier.size(56.dp), contentAlignment = Alignment.Center) {
                     Canvas(Modifier.size(56.dp)) {
                         drawCircle(
-                            color = AppTheme.Colors.separator,
+                            color = separatorColor,
                             style = Stroke(width = 6.dp.toPx())
                         )
                     }
                     Canvas(Modifier.size(56.dp)) {
                         drawArc(
-                            color = AppTheme.Colors.accent,
+                            color = accentColor,
                             startAngle = -90f,
                             sweepAngle = 360f * trainerCompletion,
                             useCenter = false,
@@ -501,6 +504,7 @@ fun TrainerProfileScreen(
             }
         }
     }
+    } // CoreViaAnimatedBackground
 
     // Edit profile sheet
     if (showEditSheet) {
@@ -618,6 +622,7 @@ private data class SpecialtyTag(
     val color: Color
 )
 
+@Composable
 private fun parseSpecialtyTags(specialization: String?): List<SpecialtyTag> {
     val spec = specialization?.lowercase() ?: return listOf(
         SpecialtyTag("Fitness", Icons.Outlined.FitnessCenter, AppTheme.Colors.catFitness)

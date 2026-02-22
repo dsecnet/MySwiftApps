@@ -1,6 +1,12 @@
 package life.corevia.app.ui.food
 
+import android.Manifest
+import android.content.Context
+import android.net.Uri
+import android.os.Environment
 import life.corevia.app.ui.theme.AppTheme
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,19 +27,23 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import life.corevia.app.data.models.MealType
+import java.io.File
+import java.io.FileOutputStream
 
 /**
- * iOS AddFoodView.swift — Android 1-ə-1 port (BottomSheet)
+ * iOS AddFoodView.swift — Android 1-e-1 port (BottomSheet)
  *
- * Yeni bölmələr:
- *  - Camera section (premium: AI food photo analysis)
- *  - Quick Add: 6 preset foods (egg, banana, chicken, apple, oatmeal, juice)
+ * Yeni bolmeler:
+ *  - Camera section (AI food photo analysis) — TAM IMPLEMENT
+ *  - Quick Add: 6 preset foods
  *  - Meal type selector
  *  - Food name + calories + macros + notes
  *  - Save button
@@ -42,7 +52,7 @@ import life.corevia.app.data.models.MealType
 @Composable
 fun AddFoodSheet(
     onDismiss: () -> Unit,
-    isPremium: Boolean = false,
+    isPremium: Boolean = true,
     onSave: (
         name: String,
         calories: Int,
@@ -51,7 +61,9 @@ fun AddFoodSheet(
         fats: Double?,
         mealType: String,
         notes: String?
-    ) -> Unit
+    ) -> Unit,
+    onAnalyzeImage: ((File) -> Unit)? = null,
+    isAnalyzing: Boolean = false
 ) {
     var name by remember { mutableStateOf("") }
     var caloriesText by remember { mutableStateOf("") }
@@ -60,6 +72,50 @@ fun AddFoodSheet(
     var fatsText by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
     var selectedMealType by remember { mutableStateOf(MealType.LUNCH.value) }
+
+    val context = LocalContext.current
+
+    // Camera photo URI
+    var photoUri by remember { mutableStateOf<Uri?>(null) }
+
+    // Camera launcher
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && photoUri != null) {
+            val file = uriToFile(context, photoUri!!)
+            if (file != null) {
+                onAnalyzeImage?.invoke(file)
+            }
+        }
+    }
+
+    // Gallery launcher
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            val file = uriToFile(context, it)
+            if (file != null) {
+                onAnalyzeImage?.invoke(file)
+            }
+        }
+    }
+
+    // Camera permission launcher
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            val file = createImageFile(context)
+            photoUri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.provider",
+                file
+            )
+            cameraLauncher.launch(photoUri!!)
+        }
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -83,14 +139,14 @@ fun AddFoodSheet(
         ) {
             // ── Title ──────────────────────────────────────────────────────────
             Text(
-                text = "Qida Əlavə Et",
+                text = "Qida Elave Et",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = AppTheme.Colors.primaryText
             )
 
             // ═══════════════════════════════════════════════════════════════════
-            // SECTION: Camera AI Analysis (iOS: cameraSection)
+            // SECTION: Camera AI Analysis
             // ═══════════════════════════════════════════════════════════════════
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -112,41 +168,51 @@ fun AddFoodSheet(
                             .size(70.dp)
                             .clip(CircleShape)
                             .background(
-                                if (isPremium) Brush.linearGradient(
+                                Brush.linearGradient(
                                     colors = listOf(AppTheme.Colors.accent, AppTheme.Colors.accent.copy(alpha = 0.6f))
-                                ) else Brush.linearGradient(
-                                    colors = listOf(AppTheme.Colors.secondaryText.copy(alpha = 0.3f), AppTheme.Colors.secondaryText.copy(alpha = 0.15f))
                                 )
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.CameraAlt,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(32.dp)
-                        )
+                        if (isAnalyzing) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.size(28.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Outlined.CameraAlt,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
                     }
 
                     Text(
-                        text = "AI ilə qida analizi",
+                        text = if (isAnalyzing) "AI analiz edir..." else "AI ile qida analizi",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = AppTheme.Colors.primaryText
                     )
                     Text(
-                        text = "Yeməyin şəklini çəkin, AI kalori və makroları təyin etsin",
+                        text = if (isAnalyzing) "Claude AI sekli analiz edir, gozleyin..."
+                               else "Yemeyin seklini cekin, AI kalori ve makrolari teyin etsin",
                         fontSize = 13.sp,
                         color = AppTheme.Colors.secondaryText,
                         textAlign = TextAlign.Center
                     )
 
-                    if (isPremium) {
+                    if (!isAnalyzing) {
+                        // Camera button
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(12.dp))
                                 .background(AppTheme.Colors.accent)
-                                .clickable { /* TODO: Open camera */ }
+                                .clickable {
+                                    permissionLauncher.launch(Manifest.permission.CAMERA)
+                                }
                                 .padding(horizontal = 20.dp, vertical = 10.dp)
                         ) {
                             Row(
@@ -154,43 +220,42 @@ fun AddFoodSheet(
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 Icon(Icons.Outlined.CameraAlt, null, tint = Color.White, modifier = Modifier.size(16.dp))
-                                Text("Şəkil çək", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                                Text("Sekil cek", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                             }
                         }
-                    } else {
-                        // Locked state
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+
+                        // Gallery button
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .border(1.dp, AppTheme.Colors.accent, RoundedCornerShape(12.dp))
+                                .clickable {
+                                    galleryLauncher.launch("image/*")
+                                }
+                                .padding(horizontal = 20.dp, vertical = 8.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Lock,
-                                contentDescription = null,
-                                tint = AppTheme.Colors.secondaryText,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Text(
-                                text = "Premium xüsusiyyəti",
-                                fontSize = 13.sp,
-                                color = AppTheme.Colors.secondaryText,
-                                fontWeight = FontWeight.Medium
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(Icons.Outlined.PhotoLibrary, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(16.dp))
+                                Text("Qalereyadan sec", color = AppTheme.Colors.accent, fontWeight = FontWeight.Medium, fontSize = 13.sp)
+                            }
                         }
                     }
                 }
             }
 
             // ═══════════════════════════════════════════════════════════════════
-            // SECTION: Quick Add (iOS: quickAddSection — 6 preset foods)
+            // SECTION: Quick Add
             // ═══════════════════════════════════════════════════════════════════
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    text = "Sürətli əlavə",
+                    text = "Suretli elave",
                     fontSize = 14.sp,
                     color = AppTheme.Colors.secondaryText
                 )
 
-                // iOS: 2 rows of 3 QuickAddButton
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -198,7 +263,7 @@ fun AddFoodSheet(
                     ) {
                         QuickAddButton(
                             modifier = Modifier.weight(1f),
-                            emoji = "🥚",
+                            emoji = "\uD83E\uDD5A",
                             name = "Yumurta",
                             calories = 78,
                             onClick = {
@@ -211,7 +276,7 @@ fun AddFoodSheet(
                         )
                         QuickAddButton(
                             modifier = Modifier.weight(1f),
-                            emoji = "🍌",
+                            emoji = "\uD83C\uDF4C",
                             name = "Banan",
                             calories = 89,
                             onClick = {
@@ -224,11 +289,11 @@ fun AddFoodSheet(
                         )
                         QuickAddButton(
                             modifier = Modifier.weight(1f),
-                            emoji = "🍗",
+                            emoji = "\uD83C\uDF57",
                             name = "Toyuq",
                             calories = 239,
                             onClick = {
-                                name = "Toyuq döşü"
+                                name = "Toyuq dosu"
                                 caloriesText = "239"
                                 proteinText = "27"
                                 carbsText = "0"
@@ -242,7 +307,7 @@ fun AddFoodSheet(
                     ) {
                         QuickAddButton(
                             modifier = Modifier.weight(1f),
-                            emoji = "🍎",
+                            emoji = "\uD83C\uDF4E",
                             name = "Alma",
                             calories = 52,
                             onClick = {
@@ -255,7 +320,7 @@ fun AddFoodSheet(
                         )
                         QuickAddButton(
                             modifier = Modifier.weight(1f),
-                            emoji = "🥣",
+                            emoji = "\uD83E\uDD63",
                             name = "Yulaf",
                             calories = 154,
                             onClick = {
@@ -268,11 +333,11 @@ fun AddFoodSheet(
                         )
                         QuickAddButton(
                             modifier = Modifier.weight(1f),
-                            emoji = "🧃",
-                            name = "Şirə",
+                            emoji = "\uD83E\uDDC3",
+                            name = "Sire",
                             calories = 112,
                             onClick = {
-                                name = "Portağal şirəsi"
+                                name = "Portagal siresi"
                                 caloriesText = "112"
                                 proteinText = "2"
                                 carbsText = "26"
@@ -284,25 +349,25 @@ fun AddFoodSheet(
             }
 
             // ═══════════════════════════════════════════════════════════════════
-            // SECTION: Meal Type Selector (iOS: MealTypeButton row)
+            // SECTION: Meal Type Selector
             // ═══════════════════════════════════════════════════════════════════
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Öğün", color = AppTheme.Colors.secondaryText, fontSize = 14.sp)
+                Text("Ogun", color = AppTheme.Colors.secondaryText, fontSize = 14.sp)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     MealType.entries.forEach { meal ->
                         val emoji = when (meal) {
-                            MealType.BREAKFAST -> "🌅"
-                            MealType.LUNCH -> "☀️"
-                            MealType.DINNER -> "🌙"
-                            MealType.SNACK -> "🍿"
+                            MealType.BREAKFAST -> "\u2600\uFE0F"
+                            MealType.LUNCH -> "\u2600\uFE0F"
+                            MealType.DINNER -> "\uD83C\uDF19"
+                            MealType.SNACK -> "\uD83C\uDF7F"
                         }
                         val label = when (meal) {
-                            MealType.BREAKFAST -> "Səhər"
+                            MealType.BREAKFAST -> "Seher"
                             MealType.LUNCH -> "Nahar"
-                            MealType.DINNER -> "Axşam"
+                            MealType.DINNER -> "Axsam"
                             MealType.SNACK -> "Ara"
                         }
                         val isSelected = selectedMealType == meal.value
@@ -337,14 +402,14 @@ fun AddFoodSheet(
             }
 
             // ═══════════════════════════════════════════════════════════════════
-            // SECTION: Food Name (iOS: FoodInputField)
+            // SECTION: Food Name
             // ═══════════════════════════════════════════════════════════════════
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Qida adı", color = AppTheme.Colors.secondaryText, fontSize = 14.sp)
+                Text("Qida adi", color = AppTheme.Colors.secondaryText, fontSize = 14.sp)
                 OutlinedTextField(
                     value = name,
                     onValueChange = { if (it.length <= 200) name = it },
-                    placeholder = { Text("məs: Toyuq döşü", color = AppTheme.Colors.tertiaryText) },
+                    placeholder = { Text("mes: Toyuq dosu", color = AppTheme.Colors.tertiaryText) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     colors = foodTextFieldColors(),
@@ -353,7 +418,7 @@ fun AddFoodSheet(
             }
 
             // ═══════════════════════════════════════════════════════════════════
-            // SECTION: Calories (iOS: FoodInputField with NumberPad)
+            // SECTION: Calories
             // ═══════════════════════════════════════════════════════════════════
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Kalori *", color = AppTheme.Colors.secondaryText, fontSize = 14.sp)
@@ -363,7 +428,7 @@ fun AddFoodSheet(
                         val filtered = it.filter { c -> c.isDigit() }
                         if ((filtered.toIntOrNull() ?: 0) <= 10000) caloriesText = filtered
                     },
-                    placeholder = { Text("məs: 250", color = AppTheme.Colors.tertiaryText) },
+                    placeholder = { Text("mes: 250", color = AppTheme.Colors.tertiaryText) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     colors = foodTextFieldColors(),
@@ -373,10 +438,10 @@ fun AddFoodSheet(
             }
 
             // ═══════════════════════════════════════════════════════════════════
-            // SECTION: Macros (iOS: MacroInputField row — horizontal)
+            // SECTION: Macros
             // ═══════════════════════════════════════════════════════════════════
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Makrolar (istəyə bağlı)", color = AppTheme.Colors.secondaryText, fontSize = 14.sp)
+                Text("Makrolar (isteye bagli)", color = AppTheme.Colors.secondaryText, fontSize = 14.sp)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -406,7 +471,7 @@ fun AddFoodSheet(
                     OutlinedTextField(
                         value = fatsText,
                         onValueChange = { fatsText = it },
-                        label = { Text("Yağ", color = AppTheme.Colors.tertiaryText, fontSize = 11.sp) },
+                        label = { Text("Yag", color = AppTheme.Colors.tertiaryText, fontSize = 11.sp) },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
                         colors = foodTextFieldColors(),
@@ -418,14 +483,14 @@ fun AddFoodSheet(
             }
 
             // ═══════════════════════════════════════════════════════════════════
-            // SECTION: Notes (iOS: TextEditor, max 1000)
+            // SECTION: Notes
             // ═══════════════════════════════════════════════════════════════════
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Qeydlər (istəyə bağlı)", color = AppTheme.Colors.secondaryText, fontSize = 14.sp)
+                Text("Qeydler (isteye bagli)", color = AppTheme.Colors.secondaryText, fontSize = 14.sp)
                 OutlinedTextField(
                     value = notes,
                     onValueChange = { if (it.length <= 1000) notes = it },
-                    placeholder = { Text("Əlavə qeydlər...", color = AppTheme.Colors.tertiaryText) },
+                    placeholder = { Text("Elave qeydler...", color = AppTheme.Colors.tertiaryText) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 80.dp),
@@ -437,7 +502,7 @@ fun AddFoodSheet(
             }
 
             // ═══════════════════════════════════════════════════════════════════
-            // SECTION: Save Button (iOS: gradient + shadow)
+            // SECTION: Save Button
             // ═══════════════════════════════════════════════════════════════════
             val isValid = name.isNotBlank() && caloriesText.isNotBlank()
             Box(
@@ -486,7 +551,29 @@ fun AddFoodSheet(
     }
 }
 
-// ── QuickAddButton (iOS: QuickAddButton — emoji + name + calories) ──────────
+// ── Helper: Create temp image file for camera ──────────────────────────────
+private fun createImageFile(context: Context): File {
+    val dir = File(context.cacheDir, "camera_photos")
+    if (!dir.exists()) dir.mkdirs()
+    return File.createTempFile("food_", ".jpg", dir)
+}
+
+// ── Helper: Copy URI content to a temp file ────────────────────────────────
+private fun uriToFile(context: Context, uri: Uri): File? {
+    return try {
+        val inputStream = context.contentResolver.openInputStream(uri) ?: return null
+        val file = createImageFile(context)
+        FileOutputStream(file).use { output ->
+            inputStream.copyTo(output)
+        }
+        inputStream.close()
+        file
+    } catch (e: Exception) {
+        null
+    }
+}
+
+// ── QuickAddButton ────────────────────────────────────────────────────────
 @Composable
 private fun QuickAddButton(
     modifier: Modifier = Modifier,
@@ -526,7 +613,7 @@ private fun QuickAddButton(
 private fun foodTextFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedBorderColor = AppTheme.Colors.success,
     unfocusedBorderColor = AppTheme.Colors.separator,
-    focusedTextColor = Color.White,
-    unfocusedTextColor = Color.White,
+    focusedTextColor = AppTheme.Colors.primaryText,
+    unfocusedTextColor = AppTheme.Colors.primaryText,
     cursorColor = AppTheme.Colors.success
 )

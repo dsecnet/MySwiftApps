@@ -3,18 +3,20 @@ News Router - Fitness xəbərləri API
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from pydantic import BaseModel
+from sqlalchemy import select, and_, desc
+from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
 import logging
 
 from app.database import get_db
 from app.models.user import User
+from app.models.news import NewsBookmark
 from app.utils.security import get_current_user
 from app.services.fitness_news_service import fitness_news_service
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/news", tags=["Fitness News"])
+router = APIRouter(prefix="/api/v1/news", tags=["Fitness News"])
 
 
 class NewsArticle(BaseModel):
@@ -143,3 +145,93 @@ async def refresh_news_cache(
             status_code=500,
             detail=f"Xəbərləri yeniləyərkən xəta: {str(e)}"
         )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# BOOKMARKS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class BookmarkRequest(BaseModel):
+    article_id: str
+    article_title: Optional[str] = None
+
+
+class BookmarkResponse(BaseModel):
+    id: str
+    article_id: str
+    article_title: Optional[str]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+@router.post("/bookmarks", response_model=BookmarkResponse, status_code=201)
+async def bookmark_article(
+    request: BookmarkRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Xəbəri əlfəcinlə (bookmark)"""
+    # Check if already bookmarked
+    existing = await db.execute(
+        select(NewsBookmark).where(
+            and_(
+                NewsBookmark.user_id == current_user.id,
+                NewsBookmark.article_id == request.article_id
+            )
+        )
+    )
+    if existing.scalar_one_or_none():
+        raise HTTPException(status_code=400, detail="Artıq əlfəcinlənib")
+
+    bookmark = NewsBookmark(
+        user_id=current_user.id,
+        article_id=request.article_id,
+        article_title=request.article_title,
+    )
+    db.add(bookmark)
+    await db.commit()
+    await db.refresh(bookmark)
+
+    return BookmarkResponse.model_validate(bookmark)
+
+
+@router.delete("/bookmarks/{article_id}")
+async def remove_bookmark(
+    article_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Əlfəcini sil"""
+    result = await db.execute(
+        select(NewsBookmark).where(
+            and_(
+                NewsBookmark.user_id == current_user.id,
+                NewsBookmark.article_id == article_id
+            )
+        )
+    )
+    bookmark = result.scalar_one_or_none()
+    if not bookmark:
+        raise HTTPException(status_code=404, detail="Əlfəcin tapılmadı")
+
+    await db.delete(bookmark)
+    await db.commit()
+
+    return {"message": "Əlfəcin silindi"}
+
+
+@router.get("/bookmarks", response_model=List[BookmarkResponse])
+async def get_bookmarks(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """İstifadəçinin əlfəcinlərini gətir"""
+    result = await db.execute(
+        select(NewsBookmark)
+        .where(NewsBookmark.user_id == current_user.id)
+        .order_by(desc(NewsBookmark.created_at))
+    )
+    bookmarks = result.scalars().all()
+    return [BookmarkResponse.model_validate(b) for b in bookmarks]

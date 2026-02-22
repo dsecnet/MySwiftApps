@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.People
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import life.corevia.app.data.models.PlanType
 import life.corevia.app.data.models.TrainingPlan
+import life.corevia.app.ui.theme.CoreViaAnimatedBackground
 
 /**
  * iOS TrainingPlanView.swift-in Android ekvivalenti.
@@ -35,6 +37,7 @@ import life.corevia.app.data.models.TrainingPlan
 fun TrainingPlanScreen(
     isTrainer: Boolean = false,
     onNavigateToAddTrainingPlan: () -> Unit = {},
+    onNavigateToEditTrainingPlan: (TrainingPlan) -> Unit = {},
     onNavigateToAddWorkoutForStudent: () -> Unit = {},
     onDeletePlan: (String) -> Unit = {},
     viewModel: TrainingPlanViewModel = viewModel()
@@ -53,7 +56,7 @@ fun TrainingPlanScreen(
         AlertDialog(
             onDismissRequest = { deletingPlanId = null },
             containerColor = AppTheme.Colors.secondaryBackground,
-            title = { Text("Planı sil?", color = Color.White) },
+            title = { Text("Planı sil?", color = AppTheme.Colors.primaryText) },
             text = { Text("Bu məşq planını silmək istədiyinizdən əminsiniz?", color = AppTheme.Colors.secondaryText) },
             confirmButton = {
                 TextButton(onClick = {
@@ -79,8 +82,9 @@ fun TrainingPlanScreen(
         }
     }
 
+    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.accent) {
     Scaffold(
-        containerColor = AppTheme.Colors.background,
+        containerColor = Color.Transparent,
         floatingActionButton = {
             if (isTrainer) {
                 // iOS: Dual FABs — "Add Plan" + "Add Workout for Student"
@@ -141,7 +145,7 @@ fun TrainingPlanScreen(
                     text = "Məşq Planları",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = AppTheme.Colors.primaryText
                 )
                 Text(
                     text = "Məşq planlarınızı idarə edin",
@@ -245,7 +249,12 @@ fun TrainingPlanScreen(
             } else if (filteredPlans.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(text = "📋", fontSize = 48.sp)
+                        Icon(
+                            imageVector = Icons.Outlined.Description,
+                            contentDescription = null,
+                            modifier = Modifier.size(48.dp),
+                            tint = AppTheme.Colors.tertiaryText
+                        )
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
                             text = "Plan tapılmadı",
@@ -267,6 +276,7 @@ fun TrainingPlanScreen(
                             onToggle = {
                                 expandedPlanId = if (expandedPlanId == plan.id) null else plan.id
                             },
+                            onEdit = { onNavigateToEditTrainingPlan(plan) },
                             onDelete = { deletingPlanId = plan.id }
                         )
                     }
@@ -275,6 +285,7 @@ fun TrainingPlanScreen(
             }
         }
     }
+    } // CoreViaAnimatedBackground
 }
 
 // ─── TrainingPlanCard ─────────────────────────────────────────────────────────
@@ -285,6 +296,7 @@ fun TrainingPlanCard(
     isExpanded: Boolean,
     isTrainer: Boolean = false,
     onToggle: () -> Unit,
+    onEdit: () -> Unit = {},
     onDelete: () -> Unit = {}
 ) {
     val planTypeLabel = when (plan.planType) {
@@ -310,7 +322,7 @@ fun TrainingPlanCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = plan.title,
-                        color = Color.White,
+                        color = AppTheme.Colors.primaryText,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp
                     )
@@ -392,19 +404,35 @@ fun TrainingPlanCard(
                     )
                 }
 
-                // Delete button (trainer only)
+                // Edit & Delete buttons (trainer only)
                 if (isTrainer) {
                     Spacer(modifier = Modifier.height(12.dp))
-                    OutlinedButton(
-                        onClick = onDelete,
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = AppTheme.Colors.error),
-                        border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-                            brush = androidx.compose.ui.graphics.SolidColor(AppTheme.Colors.error.copy(alpha = 0.5f))
-                        )
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("🗑️ Sil", fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.error)
+                        OutlinedButton(
+                            onClick = onEdit,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = AppTheme.Colors.accent),
+                            border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
+                                brush = androidx.compose.ui.graphics.SolidColor(AppTheme.Colors.accent.copy(alpha = 0.5f))
+                            )
+                        ) {
+                            Text("Redakt\u0259 et", fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.accent)
+                        }
+                        OutlinedButton(
+                            onClick = onDelete,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = AppTheme.Colors.error),
+                            border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
+                                brush = androidx.compose.ui.graphics.SolidColor(AppTheme.Colors.error.copy(alpha = 0.5f))
+                            )
+                        ) {
+                            Text("Sil", fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.error)
+                        }
                     }
                 }
             }

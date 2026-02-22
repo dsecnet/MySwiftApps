@@ -289,7 +289,7 @@ private fun WorkoutCategoryButton(
 private fun sheetTextFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedBorderColor   = AppTheme.Colors.accent,
     unfocusedBorderColor = AppTheme.Colors.separator,
-    focusedTextColor     = Color.White,
-    unfocusedTextColor   = Color.White,
+    focusedTextColor     = AppTheme.Colors.primaryText,
+    unfocusedTextColor   = AppTheme.Colors.primaryText,
     cursorColor          = AppTheme.Colors.accent
 )

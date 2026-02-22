@@ -1,6 +1,7 @@
 package life.corevia.app.ui.activities
 
 import life.corevia.app.ui.theme.AppTheme
+import life.corevia.app.ui.theme.CoreViaAnimatedBackground
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -9,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.DirectionsRun
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -26,6 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import life.corevia.app.ui.theme.coreViaCard
 import life.corevia.app.data.models.MealPlan
 import life.corevia.app.data.models.PlanType
 import life.corevia.app.data.models.TrainingPlan
@@ -61,11 +64,11 @@ fun ActivitiesScreen(
         }
     }
 
+    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.accent) {
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize()
-                .background(AppTheme.Colors.background),
+                .fillMaxSize(),
             contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -292,7 +295,7 @@ fun ActivitiesScreen(
                             text = "📋 Məşq Planları",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color.White
+                            color = AppTheme.Colors.primaryText
                         )
                     }
                     items(assignedTraining, key = { "t_${it.id}" }) { plan ->
@@ -309,7 +312,7 @@ fun ActivitiesScreen(
                             text = "🍽️ Qida Planları",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color.White
+                            color = AppTheme.Colors.primaryText
                         )
                     }
                     items(assignedMeals, key = { "m_${it.id}" }) { plan ->
@@ -330,7 +333,12 @@ fun ActivitiesScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(text = "🏃", fontSize = 48.sp)
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Outlined.DirectionsRun,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(48.dp),
+                                    tint = AppTheme.Colors.tertiaryText
+                                )
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Text(
                                     text = "Hələ tapşırıq yoxdur",
@@ -365,6 +373,7 @@ fun ActivitiesScreen(
             item { Spacer(modifier = Modifier.height(80.dp)) }
         }
     }
+    } // CoreViaAnimatedBackground
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -438,7 +447,7 @@ fun AssignedTrainingPlanCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(plan.title, color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                    Text(plan.title, color = AppTheme.Colors.primaryText, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                     Text(planTypeLabel, color = AppTheme.Colors.warning, fontSize = 13.sp)
                     Text("${plan.workouts.size} məşq", color = AppTheme.Colors.secondaryText, fontSize = 12.sp)
                 }
@@ -508,7 +517,7 @@ fun AssignedMealPlanCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(plan.title, color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                    Text(plan.title, color = AppTheme.Colors.primaryText, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                     Text(planTypeLabel, color = AppTheme.Colors.success, fontSize = 13.sp)
                     Text(
                         "🔥 ${plan.dailyCalorieTarget} kal/gün • ${plan.items.size} yemək",

@@ -72,6 +72,30 @@ class LiveSessionsViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
+    private val _selectedFilter = MutableStateFlow<String?>(null)
+    val selectedFilter: StateFlow<String?> = _selectedFilter.asStateFlow()
+
+    fun selectFilter(filter: String?) { _selectedFilter.value = filter }
+
+    val filteredSessions: List<LiveSession>
+        get() {
+            val filter = _selectedFilter.value
+            return if (filter != null) {
+                _sessions.value.filter { it.status == filter }
+            } else {
+                _sessions.value
+            }
+        }
+
+    val upcomingSessions: List<LiveSession>
+        get() = _sessions.value.filter { it.status == "scheduled" }
+
+    val liveSessions: List<LiveSession>
+        get() = _sessions.value.filter { it.status == "live" }
+
+    val endedSessions: List<LiveSession>
+        get() = _sessions.value.filter { it.status in listOf("completed", "ended") }
+
     fun clearSelectedSession() { _selectedSession.value = null }
     fun clearError() { _errorMessage.value = null }
     fun clearSuccess() { _successMessage.value = null }

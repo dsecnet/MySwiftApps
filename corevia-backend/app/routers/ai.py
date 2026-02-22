@@ -24,10 +24,7 @@ async def analyze_food(
     """Sekili upload et, AI ile analiz et — Premium lazimdir"""
     content = await file.read()
 
-    analysis = analyze_food_image(content)
-
-    if hasattr(analysis, "__await__"):
-        analysis = await analysis
+    analysis = await analyze_food_image(content)
 
     if "error" in analysis:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=analysis["error"])
@@ -44,9 +41,7 @@ async def analyze_and_save(
     """Sekili upload et, AI analiz et, saxla — Premium lazimdir"""
     content = await file.read()
 
-    analysis = analyze_food_image(content)
-    if hasattr(analysis, "__await__"):
-        analysis = await analysis
+    analysis = await analyze_food_image(content)
 
     if "error" in analysis:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=analysis["error"])
@@ -77,7 +72,8 @@ async def analyze_and_save(
         ai_confidence=analysis.get("confidence", 0),
     )
     db.add(entry)
-    await db.flush()
+    await db.commit()
+    await db.refresh(entry)
     return entry
 
 
@@ -130,9 +126,7 @@ async def get_recommendations(
         },
     }
 
-    recommendations = get_user_recommendations(user_data)
-    if hasattr(recommendations, "__await__"):
-        recommendations = await recommendations
+    recommendations = await get_user_recommendations(user_data)
 
     if "error" in recommendations:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=recommendations["error"])

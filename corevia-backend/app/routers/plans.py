@@ -121,9 +121,37 @@ async def update_meal_plan(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Meal plan tapilmadi")
 
     update_data = plan_data.model_dump(exclude_unset=True)
+
+    # Handle items separately — delete existing and create new ones
+    new_items = update_data.pop("items", None)
     for field, value in update_data.items():
         setattr(plan, field, value)
-    return plan
+
+    if new_items is not None:
+        # Delete existing items
+        for existing_item in plan.items:
+            await db.delete(existing_item)
+        await db.flush()
+
+        # Create new items
+        for item_data in new_items:
+            item = MealPlanItem(
+                meal_plan_id=plan.id,
+                name=item_data["name"],
+                calories=item_data["calories"],
+                protein=item_data.get("protein"),
+                carbs=item_data.get("carbs"),
+                fats=item_data.get("fats"),
+                meal_type=item_data["meal_type"],
+            )
+            db.add(item)
+        await db.flush()
+
+    # Re-fetch with items loaded
+    result = await db.execute(
+        select(MealPlan).options(selectinload(MealPlan.items)).where(MealPlan.id == plan.id)
+    )
+    return result.scalar_one()
 
 
 @router.delete("/meal/{plan_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -242,9 +270,35 @@ async def update_training_plan(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Training plan tapilmadi")
 
     update_data = plan_data.model_dump(exclude_unset=True)
+
+    # Handle workouts separately — delete existing and create new ones
+    new_workouts = update_data.pop("workouts", None)
     for field, value in update_data.items():
         setattr(plan, field, value)
-    return plan
+
+    if new_workouts is not None:
+        # Delete existing workouts
+        for existing_workout in plan.workouts:
+            await db.delete(existing_workout)
+        await db.flush()
+
+        # Create new workouts
+        for workout_data in new_workouts:
+            workout = PlanWorkout(
+                training_plan_id=plan.id,
+                name=workout_data["name"],
+                sets=workout_data["sets"],
+                reps=workout_data["reps"],
+                duration=workout_data.get("duration"),
+            )
+            db.add(workout)
+        await db.flush()
+
+    # Re-fetch with workouts loaded
+    result = await db.execute(
+        select(TrainingPlan).options(selectinload(TrainingPlan.workouts)).where(TrainingPlan.id == plan.id)
+    )
+    return result.scalar_one()
 
 
 @router.delete("/training/{plan_id}", status_code=status.HTTP_204_NO_CONTENT)

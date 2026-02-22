@@ -1,6 +1,7 @@
 package life.corevia.app.ui.chat
 
 import life.corevia.app.ui.theme.AppTheme
+import life.corevia.app.ui.theme.CoreViaAnimatedBackground
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -37,10 +38,10 @@ fun ConversationsScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
+    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.accent) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppTheme.Colors.background)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
 
@@ -167,6 +168,7 @@ fun ConversationsScreen(
             )
         }
     }
+    } // CoreViaAnimatedBackground
 }
 
 // ─── ConversationCard ────────────────────────────────────────────────────────
@@ -273,13 +275,49 @@ fun ConversationCard(
     }
 }
 
-// ─── Time formatter ──────────────────────────────────────────────────────────
+// ─── Time formatter (nisbi vaxt: indi, 5d əvvəl, dünən, tarix) ──────────────
 private fun formatChatTime(dateString: String): String {
     return try {
+        if (dateString.length < 16) return dateString.take(10)
         val date = dateString.take(10)  // "2026-02-19"
         val time = dateString.substring(11, 16)  // "14:30"
-        val today = java.time.LocalDate.now().toString()
-        if (date == today) time else date.substring(5) // "02-19"
+        val today = java.time.LocalDate.now()
+        val msgDate = java.time.LocalDate.parse(date)
+
+        // Saat ve deqiqe parcala
+        val msgHour = dateString.substring(11, 13).toIntOrNull() ?: 0
+        val msgMin = dateString.substring(14, 16).toIntOrNull() ?: 0
+        val now = java.time.LocalDateTime.now()
+
+        when {
+            msgDate == today -> {
+                // Bugunki mesaj: nisbi vaxt goster
+                val diffMinutes = java.time.Duration.between(
+                    java.time.LocalDateTime.of(msgDate, java.time.LocalTime.of(msgHour, msgMin)),
+                    now
+                ).toMinutes()
+                when {
+                    diffMinutes < 1 -> "indi"
+                    diffMinutes < 60 -> "${diffMinutes}d əvvəl"
+                    else -> time
+                }
+            }
+            msgDate == today.minusDays(1) -> "dünən"
+            msgDate.isAfter(today.minusDays(7)) -> {
+                // Son 7 gun icerisinde: gun adi
+                val dayName = when (msgDate.dayOfWeek) {
+                    java.time.DayOfWeek.MONDAY -> "B.e."
+                    java.time.DayOfWeek.TUESDAY -> "Ç.a."
+                    java.time.DayOfWeek.WEDNESDAY -> "Ç."
+                    java.time.DayOfWeek.THURSDAY -> "C.a."
+                    java.time.DayOfWeek.FRIDAY -> "C."
+                    java.time.DayOfWeek.SATURDAY -> "Ş."
+                    java.time.DayOfWeek.SUNDAY -> "B."
+                }
+                dayName
+            }
+            else -> date.substring(5) // "02-19"
+        }
     } catch (e: Exception) {
         ""
     }

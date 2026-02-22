@@ -1,6 +1,7 @@
 package life.corevia.app.ui.marketplace
 
 import life.corevia.app.ui.theme.AppTheme
+import life.corevia.app.ui.theme.CoreViaAnimatedBackground
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -46,7 +47,8 @@ fun MarketplaceScreen(
         "accessories" to "Aksesuar"
     )
 
-    Box(modifier = Modifier.fillMaxSize().background(AppTheme.Colors.background)) {
+    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.accent) {
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             // Header
             Box(
@@ -161,6 +163,7 @@ fun MarketplaceScreen(
             LaunchedEffect(msg) { kotlinx.coroutines.delay(2000); viewModel.clearSuccess() }
         }
     }
+    } // CoreViaAnimatedBackground
 }
 
 @Composable

@@ -1,6 +1,10 @@
 package life.corevia.app.ui.home
 
 import life.corevia.app.ui.theme.AppTheme
+import life.corevia.app.ui.theme.CoreViaAnimatedBackground
+import life.corevia.app.ui.theme.CoreViaSectionHeader
+import life.corevia.app.ui.theme.CoreViaGradientProgressBar
+import life.corevia.app.ui.theme.coreViaCard
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -49,10 +53,10 @@ fun TrainerHomeScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val scrollState = rememberScrollState()
 
+    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.accent) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppTheme.Colors.background)
     ) {
         // iOS: ScrollView(showsIndicators: false) { VStack(spacing: 20) { ... } .padding() }
         Column(
@@ -87,6 +91,9 @@ fun TrainerHomeScreen(
                     // iOS: emptyStudentsSection
                     TrainerEmptyStudentsSection()
                 } else {
+                    // Student Progress Overview section (new)
+                    StudentProgressOverviewSection(students = students)
+
                     // iOS: studentProgressSection
                     TrainerStudentProgressSection(students = students)
 
@@ -94,10 +101,13 @@ fun TrainerHomeScreen(
                     stats?.statsSummary?.let { summary ->
                         TrainerStatsSummarySection(summary = summary)
                     }
+
+                    // Recent Activity Feed section (new)
+                    RecentActivitySection(students = students)
                 }
             }
 
-            Spacer(modifier = Modifier.height(100.dp)) // Tab bar üçün yer
+            Spacer(modifier = Modifier.height(100.dp)) // Tab bar ucun yer
         }
 
         // iOS: loading overlay — ProgressView when isLoading && stats == nil
@@ -108,6 +118,7 @@ fun TrainerHomeScreen(
             )
         }
     }
+    } // CoreViaAnimatedBackground
 }
 
 // ─── iOS: headerSection ──────────────────────────────────────────────────────
@@ -150,11 +161,13 @@ private fun TrainerHeaderSection(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Text(
-                text     = "Salam 👋",
-                fontSize = 14.sp,
-                color    = AppTheme.Colors.secondaryText
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(text = "Salam", fontSize = 14.sp, color = AppTheme.Colors.secondaryText)
+                Icon(Icons.Outlined.WavingHand, null, modifier = Modifier.size(14.dp), tint = AppTheme.Colors.accent)
+            }
             Text(
                 text       = userName.ifEmpty { "Məşqçi" },
                 fontSize   = 22.sp,
@@ -247,13 +260,7 @@ private fun DashboardStatCard(
 ) {
     Column(
         modifier = modifier
-            .shadow(
-                elevation   = 8.dp,
-                shape       = RoundedCornerShape(14.dp),
-                ambientColor = color.copy(alpha = 0.08f),
-                spotColor   = color.copy(alpha = 0.08f)
-            )
-            .background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(14.dp))
+            .coreViaCard(accentColor = color)
             .padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -299,7 +306,7 @@ private fun TrainerEmptyStudentsSection() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(16.dp))
+            .coreViaCard(cornerRadius = 16.dp)
             .padding(horizontal = 20.dp, vertical = 30.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -332,24 +339,16 @@ private fun TrainerEmptyStudentsSection() {
 @Composable
 private fun TrainerStudentProgressSection(students: List<DashboardStudentSummary>) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        // iOS: HStack { title + Spacer + student count }
-        Row(
-            modifier              = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment     = Alignment.CenterVertically
-        ) {
-            Text(
-                text       = "Tələbə İnkişafı",
-                fontSize   = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color      = AppTheme.Colors.primaryText
-            )
-            Text(
-                text     = "${students.size} tələbə",
-                fontSize = 13.sp,
-                color    = AppTheme.Colors.secondaryText
-            )
-        }
+        CoreViaSectionHeader(
+            title = "Tələbə İnkişafı",
+            trailing = {
+                Text(
+                    text     = "${students.size} tələbə",
+                    fontSize = 13.sp,
+                    color    = AppTheme.Colors.secondaryText
+                )
+            }
+        )
 
         // iOS: ForEach(students) { DashboardStudentRow }
         students.forEach { student ->
@@ -366,12 +365,7 @@ private fun DashboardStudentRow(student: DashboardStudentSummary) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(14.dp))
-            .border(
-                width = 1.dp,
-                color = avatarColor.copy(alpha = 0.1f),
-                shape = RoundedCornerShape(14.dp)
-            )
+            .coreViaCard(accentColor = avatarColor)
             .padding(12.dp),
         verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp)
@@ -512,7 +506,7 @@ private fun TrainerStatsSummarySection(summary: DashboardStatsSummary) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(14.dp))
+                .coreViaCard()
                 .padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
@@ -576,3 +570,256 @@ private fun SummaryRow(
         )
     }
 }
+
+// ─── Student Progress Overview ──────────────────────────────────────────────
+@Composable
+private fun StudentProgressOverviewSection(students: List<DashboardStudentSummary>) {
+    val activeCount = students.count { it.thisWeekWorkouts > 0 }
+    val inactiveCount = students.size - activeCount
+    val activePercentage = if (students.isNotEmpty()) activeCount.toFloat() / students.size.toFloat() else 0f
+
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        CoreViaSectionHeader(
+            title = "Telebe Icmali",
+            subtitle = "Bu hefteki aktivlik"
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .coreViaCard()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            // Active vs Inactive row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                // Active students
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .background(AppTheme.Colors.success.copy(alpha = 0.15f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.DirectionsRun,
+                            contentDescription = null,
+                            tint = AppTheme.Colors.success,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "$activeCount",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = AppTheme.Colors.success
+                    )
+                    Text(
+                        text = "Aktiv",
+                        fontSize = 11.sp,
+                        color = AppTheme.Colors.secondaryText
+                    )
+                }
+
+                // Inactive students
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .background(AppTheme.Colors.warning.copy(alpha = 0.15f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.HourglassEmpty,
+                            contentDescription = null,
+                            tint = AppTheme.Colors.warning,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "$inactiveCount",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = AppTheme.Colors.warning
+                    )
+                    Text(
+                        text = "Passiv",
+                        fontSize = 11.sp,
+                        color = AppTheme.Colors.secondaryText
+                    )
+                }
+
+                // Total workouts
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .background(AppTheme.Colors.accent.copy(alpha = 0.15f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.FitnessCenter,
+                            contentDescription = null,
+                            tint = AppTheme.Colors.accent,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "${students.sumOf { it.thisWeekWorkouts }}",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = AppTheme.Colors.accent
+                    )
+                    Text(
+                        text = "Mesq",
+                        fontSize = 11.sp,
+                        color = AppTheme.Colors.secondaryText
+                    )
+                }
+            }
+
+            // Progress bar
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Aktivlik faizi",
+                        fontSize = 13.sp,
+                        color = AppTheme.Colors.secondaryText
+                    )
+                    Text(
+                        text = "${(activePercentage * 100).toInt()}%",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = AppTheme.Colors.accent
+                    )
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+                CoreViaGradientProgressBar(
+                    progress = activePercentage,
+                    modifier = Modifier.fillMaxWidth(),
+                    height = 8.dp
+                )
+            }
+        }
+    }
+}
+
+// ─── Recent Activity Feed ───────────────────────────────────────────────────
+@Composable
+private fun RecentActivitySection(students: List<DashboardStudentSummary>) {
+    // Generate mock activity items from student data
+    val successColor = AppTheme.Colors.success
+    val accentColor = AppTheme.Colors.accent
+    val activities = remember(students, successColor, accentColor) {
+        buildList {
+            students.filter { it.thisWeekWorkouts > 0 }.take(5).forEach { student ->
+                add(
+                    ActivityItem(
+                        name = student.name,
+                        initials = student.initials,
+                        action = "${student.thisWeekWorkouts} mesq tamamladi",
+                        icon = Icons.Outlined.FitnessCenter,
+                        color = successColor
+                    )
+                )
+            }
+            students.filter { it.goal != null }.take(3).forEach { student ->
+                add(
+                    ActivityItem(
+                        name = student.name,
+                        initials = student.initials,
+                        action = "Hedef: ${student.goal}",
+                        icon = Icons.Outlined.Flag,
+                        color = accentColor
+                    )
+                )
+            }
+        }.take(6)
+    }
+
+    if (activities.isNotEmpty()) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            CoreViaSectionHeader(
+                title = "Son Aktivlik",
+                subtitle = "Telebelerinizin son hereketleri"
+            )
+
+            activities.forEach { activity ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .coreViaCard()
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Avatar
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(
+                                brush = Brush.linearGradient(
+                                    colors = listOf(
+                                        AppTheme.Colors.accent.copy(alpha = 0.4f),
+                                        AppTheme.Colors.accent
+                                    )
+                                ),
+                                shape = CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = activity.initials,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+
+                    // Name + action
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = activity.name,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = AppTheme.Colors.primaryText,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = activity.action,
+                            fontSize = 12.sp,
+                            color = AppTheme.Colors.secondaryText,
+                            maxLines = 1
+                        )
+                    }
+
+                    // Action icon
+                    Icon(
+                        imageVector = activity.icon,
+                        contentDescription = null,
+                        tint = activity.color,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+private data class ActivityItem(
+    val name: String,
+    val initials: String,
+    val action: String,
+    val icon: ImageVector,
+    val color: Color
+)

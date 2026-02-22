@@ -5,91 +5,96 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 
 /**
- * iOS AppTheme.swift-ə uyğun CoreVia Material3 Theme.
- * Dynamic color söndürülüb — iOS-dakı kimi sabit qırmızı tema.
+ * CoreVia Material3 Theme — Qırmızı rəng sistemi.
+ * Dark + Light mode dəstəyi.
  *
- * iOS: AppTheme.Colors.accent = Color.red (#FF3B30)
- * Bütün primary rənglər iOS accent (red) ilə əvəz edilib.
+ * CompositionLocalProvider ilə AppTheme.Colors avtomatik dark/light qaytarır.
  */
 
-// ─── Dark Color Scheme (iOS dark mode-a uyğun) ────────────────────────────────
+// ─── Dark Color Scheme (Material3) ──────────────────────────────────────────
 private val CoreViaDarkColorScheme = darkColorScheme(
-    primary          = AppTheme.Colors.accent,           // #FF3B30
-    onPrimary        = Color.White,
-    primaryContainer = AppTheme.Colors.accentDark,       // #B20000
+    primary            = DarkCoreViaColors.accent,
+    onPrimary          = Color.White,
+    primaryContainer   = DarkCoreViaColors.accentDark,
     onPrimaryContainer = Color.White,
 
-    secondary        = AppTheme.Colors.accentDark,
-    onSecondary      = Color.White,
-    secondaryContainer = AppTheme.Colors.accentLight,
-    onSecondaryContainer = AppTheme.Colors.accent,
+    secondary          = DarkCoreViaColors.accentDark,
+    onSecondary        = Color.White,
+    secondaryContainer = DarkCoreViaColors.accentLight,
+    onSecondaryContainer = DarkCoreViaColors.accent,
 
-    tertiary         = AppTheme.Colors.success,          // #34C759
-    onTertiary       = Color.White,
+    tertiary           = DarkCoreViaColors.success,
+    onTertiary         = Color.White,
 
-    background       = AppTheme.Colors.background,       // #000000
-    onBackground     = AppTheme.Colors.primaryText,      // #FFFFFF
+    background         = DarkCoreViaColors.background,
+    onBackground       = DarkCoreViaColors.primaryText,
 
-    surface          = AppTheme.Colors.secondaryBackground, // #1C1C1E
-    onSurface        = AppTheme.Colors.primaryText,
+    surface            = DarkCoreViaColors.secondaryBackground,
+    onSurface          = DarkCoreViaColors.primaryText,
 
-    surfaceVariant   = AppTheme.Colors.cardBackground,   // #2C2C2E
-    onSurfaceVariant = AppTheme.Colors.secondaryText,    // #8E8E93
+    surfaceVariant     = DarkCoreViaColors.cardBackground,
+    onSurfaceVariant   = DarkCoreViaColors.secondaryText,
 
-    outline          = AppTheme.Colors.separator,        // #38383A
-    outlineVariant   = AppTheme.Colors.separator.copy(alpha = 0.5f),
+    outline            = DarkCoreViaColors.separator,
+    outlineVariant     = DarkCoreViaColors.separator.copy(alpha = 0.5f),
 
-    error            = AppTheme.Colors.error,            // #E63333
-    onError          = Color.White,
-    errorContainer   = AppTheme.Colors.error.copy(alpha = 0.15f),
-    onErrorContainer = AppTheme.Colors.error,
+    error              = DarkCoreViaColors.error,
+    onError            = Color.White,
+    errorContainer     = DarkCoreViaColors.error.copy(alpha = 0.15f),
+    onErrorContainer   = DarkCoreViaColors.error,
 )
 
-// ─── Light Color Scheme ────────────────────────────────────────────────────────
+// ─── Light Color Scheme (Material3) ─────────────────────────────────────────
 private val CoreViaLightColorScheme = lightColorScheme(
-    primary          = AppTheme.Colors.accent,
-    onPrimary        = Color.White,
-    primaryContainer = AppTheme.Colors.accentLight,
-    onPrimaryContainer = AppTheme.Colors.accentDark,
+    primary            = LightCoreViaColors.accent,
+    onPrimary          = Color.White,
+    primaryContainer   = LightCoreViaColors.accentLight,
+    onPrimaryContainer = LightCoreViaColors.accentDark,
 
-    secondary        = AppTheme.Colors.accentDark,
-    onSecondary      = Color.White,
-    secondaryContainer = AppTheme.Colors.accentLight,
-    onSecondaryContainer = AppTheme.Colors.accentDark,
+    secondary          = LightCoreViaColors.accentDark,
+    onSecondary        = Color.White,
+    secondaryContainer = LightCoreViaColors.accentLight,
+    onSecondaryContainer = LightCoreViaColors.accentDark,
 
-    tertiary         = AppTheme.Colors.success,
-    onTertiary       = Color.White,
+    tertiary           = LightCoreViaColors.success,
+    onTertiary         = Color.White,
 
-    background       = Color(0xFFF2F2F7),               // iOS: systemBackground (light)
-    onBackground     = Color(0xFF000000),
+    background         = LightCoreViaColors.background,
+    onBackground       = LightCoreViaColors.primaryText,
 
-    surface          = Color(0xFFFFFFFF),
-    onSurface        = Color(0xFF000000),
+    surface            = LightCoreViaColors.secondaryBackground,
+    onSurface          = LightCoreViaColors.primaryText,
 
-    surfaceVariant   = Color(0xFFE5E5EA),               // iOS: secondarySystemBackground (light)
-    onSurfaceVariant = Color(0xFF3C3C43),
+    surfaceVariant     = LightCoreViaColors.cardBackground,
+    onSurfaceVariant   = LightCoreViaColors.secondaryText,
 
-    outline          = Color(0xFFC6C6C8),               // iOS: separator (light)
+    outline            = LightCoreViaColors.separator,
+    outlineVariant     = LightCoreViaColors.separator.copy(alpha = 0.5f),
 
-    error            = AppTheme.Colors.error,
-    onError          = Color.White,
+    error              = LightCoreViaColors.error,
+    onError            = Color.White,
+    errorContainer     = LightCoreViaColors.error.copy(alpha = 0.15f),
+    onErrorContainer   = LightCoreViaColors.error,
 )
 
-// ─── Theme Composable ─────────────────────────────────────────────────────────
+// ─── Theme Composable ────────────────────────────────────────────────────────
 @Composable
 fun CoreViaTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    // iOS kimi: dynamic color yoxdur, həmişə öz rəng sistemi
     val colorScheme = if (darkTheme) CoreViaDarkColorScheme else CoreViaLightColorScheme
+    val coreViaColors = if (darkTheme) DarkCoreViaColors else LightCoreViaColors
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography  = Typography,
-        content     = content
-    )
+    CompositionLocalProvider(LocalCoreViaColors provides coreViaColors) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography  = Typography,
+            content     = content
+        )
+    }
 }

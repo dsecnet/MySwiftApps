@@ -1,108 +1,354 @@
 package life.corevia.app.ui.theme
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// CoreVia Qırmızı Rəng Sistemi — Dark + Light Theme
+// ═══════════════════════════════════════════════════════════════════════════════
+
 /**
- * iOS AppTheme.swift-in Android tam ekvivalenti.
- * Bütün rənglər iOS-dan götürülüb — eyni hex dəyərlər.
- *
- * iOS:  AppTheme.Colors.accent
- * Android: AppTheme.accent
+ * Bütün rəngləri saxlayan data class.
+ * Dark və Light versiyaları ayrı-ayrı təyin edilir.
+ * CompositionLocal ilə hər yerdə əlçatan olur.
  */
+data class CoreViaColors(
+    // === Base ===
+    val background: Color,
+    val secondaryBackground: Color,
+    val cardBackground: Color,
+    val primaryText: Color,
+    val secondaryText: Color,
+    val tertiaryText: Color,
+    val placeholderText: Color,
+    val separator: Color,
+
+    // === Brand (Qırmızı) ===
+    val accent: Color,
+    val accentDark: Color,
+    val accentLight: Color,
+
+    // === Semantic ===
+    val success: Color,
+    val warning: Color,
+    val error: Color,
+    val info: Color,
+
+    // === Interactive ===
+    val buttonPrimary: Color,
+    val buttonSecondary: Color,
+    val link: Color,
+
+    // === Category (workout categories) ===
+    val catFitness: Color,
+    val catStrength: Color,
+    val catCardio: Color,
+    val catYoga: Color,
+    val catNutrition: Color,
+
+    // === Meal type ===
+    val mealBreakfast: Color,
+    val mealLunch: Color,
+    val mealDinner: Color,
+    val mealSnack: Color,
+
+    // === Plan type ===
+    val planWeightLoss: Color,
+    val planWeightGain: Color,
+    val planStrength: Color,
+
+    // === Activity type ===
+    val actWalking: Color,
+    val actRunning: Color,
+    val actCycling: Color,
+
+    // === Progress ===
+    val progressHigh: Color,
+    val progressMedium: Color,
+    val progressLow: Color,
+
+    // === Stats & icons ===
+    val statIcon: Color,
+    val statDistance: Color,
+    val statSpeed: Color,
+
+    // === Gradients ===
+    val gradientStart: Color,
+    val gradientEnd: Color,
+    val premiumGradientStart: Color,
+    val premiumGradientEnd: Color,
+
+    // === Avatar palette ===
+    val avatarPalette: List<Color>,
+
+    // === Star rating ===
+    val starFilled: Color,
+    val starEmpty: Color,
+
+    // === Badge ===
+    val badgeVerified: Color,
+    val badgePending: Color,
+    val badgeRejected: Color,
+)
+
+// ─── Dark Theme Rəngləri (Qara + Qırmızı) ──────────────────────────────────
+val DarkCoreViaColors = CoreViaColors(
+    // Base
+    background          = Color(0xFF0A0A0A),          // Dərin qara (OLED)
+    secondaryBackground = Color(0xFF1A1A1A),          // Tünd boz
+    cardBackground      = Color(0xFF222222),          // Kart
+    primaryText         = Color(0xFFFFFFFF),          // Ağ
+    secondaryText       = Color(0xFF9E9E9E),          // Boz
+    tertiaryText        = Color(0xFF6B6B6B),          // Tünd boz
+    placeholderText     = Color(0xFF5A5A5A),          // Placeholder
+    separator           = Color(0xFF333333),          // Separator
+
+    // Brand (Qırmızı)
+    accent              = Color(0xFFFF3B30),          // Apple Red (əsas)
+    accentDark          = Color(0xFFCC2D25),          // Tünd qırmızı
+    accentLight         = Color(0xFFFF3B30).copy(alpha = 0.15f),
+
+    // Semantic
+    success             = Color(0xFF34C759),          // Yaşıl
+    warning             = Color(0xFFFFB800),          // Narıncı-sarı
+    error               = Color(0xFFFF3B30),          // Qırmızı
+    info                = Color(0xFF6B6B6B),          // Neytral
+
+    // Interactive
+    buttonPrimary       = Color(0xFFFF3B30),
+    buttonSecondary     = Color(0xFF1A1A1A),
+    link                = Color(0xFFFF3B30),
+
+    // Category
+    catFitness          = Color(0xFFFF3B30),
+    catStrength         = Color(0xFFE03428),
+    catCardio           = Color(0xFFFF5247),
+    catYoga             = Color(0xFFCC2D25),
+    catNutrition        = Color(0xFFB32720),
+
+    // Meal
+    mealBreakfast       = Color(0xFFFF3B30),
+    mealLunch           = Color(0xFFE03428),
+    mealDinner          = Color(0xFFCC2D25),
+    mealSnack           = Color(0xFFFF5247),
+
+    // Plan
+    planWeightLoss      = Color(0xFFFF5247),
+    planWeightGain      = Color(0xFFCC2D25),
+    planStrength        = Color(0xFFFF3B30),
+
+    // Activity
+    actWalking          = Color(0xFFE03428),
+    actRunning          = Color(0xFFFF3B30),
+    actCycling          = Color(0xFFCC2D25),
+
+    // Progress
+    progressHigh        = Color(0xFF34C759),
+    progressMedium      = Color(0xFFFF3B30).copy(alpha = 0.7f),
+    progressLow         = Color(0xFFFF3B30),
+
+    // Stats
+    statIcon            = Color(0xFFFF3B30),
+    statDistance         = Color(0xFF5B9BD5),          // Mavi
+    statSpeed            = Color(0xFF9B72CF),          // Bənövşəyi
+
+    // Gradients
+    gradientStart       = Color(0xFFFF3B30).copy(alpha = 0.3f),
+    gradientEnd         = Color(0xFFCC2D25),
+    premiumGradientStart = Color(0xFF3D0000),
+    premiumGradientEnd  = Color(0xFFFF3B30),
+
+    // Avatar
+    avatarPalette = listOf(
+        Color(0xFFFF3B30),
+        Color(0xFFFF5247),
+        Color(0xFFE03428),
+        Color(0xFFCC2D25),
+        Color(0xFFB32720),
+        Color(0xFF991F1A),
+        Color(0xFFFF6961),
+        Color(0xFFFF7B73),
+    ),
+
+    // Star
+    starFilled          = Color(0xFFFF3B30),
+    starEmpty           = Color(0xFF6B6B6B),
+
+    // Badge
+    badgeVerified       = Color(0xFF34C759),
+    badgePending        = Color(0xFFFFB800),
+    badgeRejected       = Color(0xFFFF3B30),
+)
+
+// ─── Light Theme Rəngləri (Ağ fon + Qırmızı) ──────────────────────────────
+val LightCoreViaColors = CoreViaColors(
+    // Base — təmiz ağ fon, yüksək kontrast
+    background          = Color(0xFFFAFAFA),          // Təmiz ağ
+    secondaryBackground = Color(0xFFFFFFFF),          // Ağ kart/surface
+    cardBackground      = Color(0xFFFFFFFF),          // Ağ kart
+    primaryText         = Color(0xFF1A1A1A),          // Qara text
+    secondaryText       = Color(0xFF5C5C5C),          // Tünd boz
+    tertiaryText        = Color(0xFF8A8A8A),          // Orta boz
+    placeholderText     = Color(0xFFAAAAAA),          // Açıq boz placeholder
+    separator           = Color(0xFFE5E5E5),          // Neytral separator
+
+    // Brand — qırmızı, yüksək kontrast ağ fonda
+    accent              = Color(0xFFE02D22),          // Açıq qırmızı (əsas)
+    accentDark          = Color(0xFFB32720),          // Tünd qırmızı
+    accentLight         = Color(0xFFE02D22).copy(alpha = 0.10f),
+
+    // Semantic — tünd versiyalar ağ fonda yaxşı oxunur
+    success             = Color(0xFF1E8E3E),          // Tünd yaşıl
+    warning             = Color(0xFFCC8400),          // Tünd narıncı
+    error               = Color(0xFFC62828),          // Tünd qırmızı
+    info                = Color(0xFF757575),          // Neytral boz
+
+    // Interactive
+    buttonPrimary       = Color(0xFFE02D22),
+    buttonSecondary     = Color(0xFFF5F5F5),
+    link                = Color(0xFFE02D22),
+
+    // Category — qırmızı tonlar
+    catFitness          = Color(0xFFE02D22),
+    catStrength         = Color(0xFFC62828),
+    catCardio           = Color(0xFFEF4136),
+    catYoga             = Color(0xFFB32720),
+    catNutrition        = Color(0xFF991F1A),
+
+    // Meal — qırmızı tonlar
+    mealBreakfast       = Color(0xFFE02D22),
+    mealLunch           = Color(0xFFC62828),
+    mealDinner          = Color(0xFFB32720),
+    mealSnack           = Color(0xFFEF4136),
+
+    // Plan
+    planWeightLoss      = Color(0xFFEF4136),
+    planWeightGain      = Color(0xFFB32720),
+    planStrength        = Color(0xFFE02D22),
+
+    // Activity
+    actWalking          = Color(0xFFC62828),
+    actRunning          = Color(0xFFE02D22),
+    actCycling          = Color(0xFFB32720),
+
+    // Progress
+    progressHigh        = Color(0xFF1E8E3E),
+    progressMedium      = Color(0xFFE02D22).copy(alpha = 0.7f),
+    progressLow         = Color(0xFFE02D22),
+
+    // Stats
+    statIcon            = Color(0xFFE02D22),
+    statDistance         = Color(0xFF2E7AB8),          // Tünd mavi
+    statSpeed            = Color(0xFF7B4FB0),          // Tünd bənövşəyi
+
+    // Gradients — ağ fon üçün incə gradient
+    gradientStart       = Color(0xFFE02D22).copy(alpha = 0.15f),
+    gradientEnd         = Color(0xFFC62828),
+    premiumGradientStart = Color(0xFFFFF0F0),
+    premiumGradientEnd  = Color(0xFFE02D22),
+
+    // Avatar
+    avatarPalette = listOf(
+        Color(0xFFE02D22),
+        Color(0xFFEF4136),
+        Color(0xFFC62828),
+        Color(0xFFB32720),
+        Color(0xFF991F1A),
+        Color(0xFFFF5247),
+        Color(0xFFFF6961),
+        Color(0xFFFF7B73),
+    ),
+
+    // Star
+    starFilled          = Color(0xFFE02D22),
+    starEmpty           = Color(0xFFCCCCCC),
+
+    // Badge
+    badgeVerified       = Color(0xFF1E8E3E),
+    badgePending        = Color(0xFFCC8400),
+    badgeRejected       = Color(0xFFC62828),
+)
+
+// ─── CompositionLocal ────────────────────────────────────────────────────────
+val LocalCoreViaColors = staticCompositionLocalOf { DarkCoreViaColors }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// AppTheme — əvvəlki API-ni qoruyur: AppTheme.Colors.accent
+// ═══════════════════════════════════════════════════════════════════════════════
 object AppTheme {
 
-    // ─── Base (Light / Dark mode adaptive) ────────────────────────────────────
-    // iOS: Color(UIColor.systemBackground) — avtomatik light/dark
-    // Android: MaterialTheme.colorScheme istifadə edilir (CoreViaTheme-də təyin edilib)
-    // Lakin dark mode üçün sabit rənglər:
-
+    /**
+     * AppTheme.Colors.accent — bütün ekranlar bunu istifadə edir.
+     * CompositionLocal-dan oxuyur, theme-ə görə dark/light qaytarır.
+     */
     object Colors {
-        // === Base ===
-        val background          = Color(0xFF000000)          // iOS: systemBackground (dark)
-        val secondaryBackground = Color(0xFF1C1C1E)          // iOS: secondarySystemBackground (dark)
-        val cardBackground      = Color(0xFF2C2C2E)          // iOS: tertiarySystemBackground (dark)
-        val primaryText         = Color(0xFFFFFFFF)          // iOS: label (dark)
-        val secondaryText       = Color(0xFF8E8E93)          // iOS: secondaryLabel (dark)
-        val tertiaryText        = Color(0xFF636366)          // iOS: tertiaryLabel (dark)
-        val placeholderText     = Color(0xFF3C3C43).copy(alpha = 0.6f)
-        val separator           = Color(0xFF38383A)          // iOS: separator (dark)
+        // Composable kontekst lazımdır — inline getter istifadə edirik
+        val background: Color          @Composable get() = LocalCoreViaColors.current.background
+        val secondaryBackground: Color @Composable get() = LocalCoreViaColors.current.secondaryBackground
+        val cardBackground: Color      @Composable get() = LocalCoreViaColors.current.cardBackground
+        val primaryText: Color         @Composable get() = LocalCoreViaColors.current.primaryText
+        val secondaryText: Color       @Composable get() = LocalCoreViaColors.current.secondaryText
+        val tertiaryText: Color        @Composable get() = LocalCoreViaColors.current.tertiaryText
+        val placeholderText: Color     @Composable get() = LocalCoreViaColors.current.placeholderText
+        val separator: Color           @Composable get() = LocalCoreViaColors.current.separator
 
-        // === Brand (iOS: Color.red) ===
-        val accent              = Color(0xFFFF3B30)          // iOS: Color.red  (Apple system red)
-        val accentDark          = Color(0xFFB20000)          // iOS: Color(red:0.7, green:0.0, blue:0.0)
-        val accentLight         = Color(0xFFFF3B30).copy(alpha = 0.15f)  // iOS: .red.opacity(0.15)
+        val accent: Color              @Composable get() = LocalCoreViaColors.current.accent
+        val accentDark: Color          @Composable get() = LocalCoreViaColors.current.accentDark
+        val accentLight: Color         @Composable get() = LocalCoreViaColors.current.accentLight
 
-        // === Semantic ===
-        val success             = Color(0xFF34C759)          // iOS: Color(red:0.2, green:0.78, blue:0.35)
-        val warning             = Color(0xFFFFCC00)          // iOS: Color(red:1.0, green:0.8, blue:0.0)
-        val error               = Color(0xFFE63333)          // iOS: Color(red:0.9, green:0.2, blue:0.2)
-        val info                = Color(0xFF4D4D4D)          // iOS: Color(red:0.3, green:0.3, blue:0.3)
+        val success: Color             @Composable get() = LocalCoreViaColors.current.success
+        val warning: Color             @Composable get() = LocalCoreViaColors.current.warning
+        val error: Color               @Composable get() = LocalCoreViaColors.current.error
+        val info: Color                @Composable get() = LocalCoreViaColors.current.info
 
-        // === Interactive ===
-        val buttonPrimary       = Color(0xFFFF3B30)          // iOS: Color.red
-        val buttonSecondary     = Color(0xFF1C1C1E)          // iOS: secondarySystemBackground
-        val link                = Color(0xFFFF3B30)
+        val buttonPrimary: Color       @Composable get() = LocalCoreViaColors.current.buttonPrimary
+        val buttonSecondary: Color     @Composable get() = LocalCoreViaColors.current.buttonSecondary
+        val link: Color                @Composable get() = LocalCoreViaColors.current.link
 
-        // === Category (workout categories) ===
-        val catFitness          = Color(0xFFFF3B30)          // iOS: Color.red
-        val catStrength         = Color(0xFFD93326)          // iOS: Color(red:0.85, green:0.2, blue:0.15)
-        val catCardio           = Color(0xFFF24D4D)          // iOS: Color(red:0.95, green:0.3, blue:0.3)
-        val catYoga             = Color(0xFF991A1A)          // iOS: Color(red:0.6, green:0.1, blue:0.1)
-        val catNutrition        = Color(0xFF660000)          // iOS: Color(red:0.4, green:0.0, blue:0.0)
+        val catFitness: Color          @Composable get() = LocalCoreViaColors.current.catFitness
+        val catStrength: Color         @Composable get() = LocalCoreViaColors.current.catStrength
+        val catCardio: Color           @Composable get() = LocalCoreViaColors.current.catCardio
+        val catYoga: Color             @Composable get() = LocalCoreViaColors.current.catYoga
+        val catNutrition: Color        @Composable get() = LocalCoreViaColors.current.catNutrition
 
-        // === Meal type ===
-        val mealBreakfast       = Color(0xFFE65940)          // iOS: Color(red:0.9, green:0.35, blue:0.25)
-        val mealLunch           = Color(0xFFCC3333)          // iOS: Color(red:0.8, green:0.2, blue:0.2)
-        val mealDinner          = Color(0xFF8C1A1A)          // iOS: Color(red:0.55, green:0.1, blue:0.1)
-        val mealSnack           = Color(0xFFB22626)          // iOS: Color(red:0.7, green:0.15, blue:0.15)
+        val mealBreakfast: Color       @Composable get() = LocalCoreViaColors.current.mealBreakfast
+        val mealLunch: Color           @Composable get() = LocalCoreViaColors.current.mealLunch
+        val mealDinner: Color          @Composable get() = LocalCoreViaColors.current.mealDinner
+        val mealSnack: Color           @Composable get() = LocalCoreViaColors.current.mealSnack
 
-        // === Plan type ===
-        val planWeightLoss      = Color(0xFFD94033)          // iOS: Color(red:0.85, green:0.25, blue:0.2)
-        val planWeightGain      = Color(0xFFB21A1A)          // iOS: Color(red:0.7, green:0.1, blue:0.1)
-        val planStrength        = Color(0xFFFF3B30)          // iOS: Color.red
+        val planWeightLoss: Color      @Composable get() = LocalCoreViaColors.current.planWeightLoss
+        val planWeightGain: Color      @Composable get() = LocalCoreViaColors.current.planWeightGain
+        val planStrength: Color        @Composable get() = LocalCoreViaColors.current.planStrength
 
-        // === Activity type ===
-        val actWalking          = Color(0xFFCC2626)          // iOS: Color(red:0.8, green:0.15, blue:0.15)
-        val actRunning          = Color(0xFFFF3B30)          // iOS: Color.red
-        val actCycling          = Color(0xFF8C0D0D)          // iOS: Color(red:0.55, green:0.05, blue:0.05)
+        val actWalking: Color          @Composable get() = LocalCoreViaColors.current.actWalking
+        val actRunning: Color          @Composable get() = LocalCoreViaColors.current.actRunning
+        val actCycling: Color          @Composable get() = LocalCoreViaColors.current.actCycling
 
-        // === Progress ===
-        val progressHigh        = Color(0xFF34C759)          // iOS: green (success)
-        val progressMedium      = Color(0xFFFF3B30).copy(alpha = 0.7f)
-        val progressLow         = Color(0xFFFF3B30)
+        val progressHigh: Color        @Composable get() = LocalCoreViaColors.current.progressHigh
+        val progressMedium: Color      @Composable get() = LocalCoreViaColors.current.progressMedium
+        val progressLow: Color         @Composable get() = LocalCoreViaColors.current.progressLow
 
-        // === Stats & icons ===
-        val statIcon            = Color(0xFFFF3B30)
+        val statIcon: Color            @Composable get() = LocalCoreViaColors.current.statIcon
+        val statDistance: Color         @Composable get() = LocalCoreViaColors.current.statDistance
+        val statSpeed: Color           @Composable get() = LocalCoreViaColors.current.statSpeed
 
-        // === Gradients (başlanğıc/son rənglər) ===
-        val gradientStart       = Color(0xFFFF3B30).copy(alpha = 0.3f)
-        val gradientEnd         = Color(0xFFFF3B30)
-        val premiumGradientStart = Color(0xFF260000)         // iOS: Color(red:0.15, green:0.0, blue:0.0)
-        val premiumGradientEnd  = Color(0xFFFF3B30)
+        val gradientStart: Color       @Composable get() = LocalCoreViaColors.current.gradientStart
+        val gradientEnd: Color         @Composable get() = LocalCoreViaColors.current.gradientEnd
+        val premiumGradientStart: Color @Composable get() = LocalCoreViaColors.current.premiumGradientStart
+        val premiumGradientEnd: Color  @Composable get() = LocalCoreViaColors.current.premiumGradientEnd
 
-        // === Avatar palette ===
-        val avatarPalette = listOf(
-            Color(0xFFFF3B30),   // iOS: Color.red
-            Color(0xFFD93326),   // iOS: Color(red:0.85, green:0.2, blue:0.15)
-            Color(0xFFB21A1A),   // iOS: Color(red:0.7, green:0.1, blue:0.1)
-            Color(0xFF8C0D0D),   // iOS: Color(red:0.55, green:0.05, blue:0.05)
-            Color(0xFF660000),   // iOS: Color(red:0.4, green:0.0, blue:0.0)
-            Color(0xFFF24D4D),   // iOS: Color(red:0.95, green:0.3, blue:0.3)
-            Color(0xFF991A1A),   // iOS: Color(red:0.6, green:0.1, blue:0.1)
-            Color(0xFFBF2626),   // iOS: Color(red:0.75, green:0.15, blue:0.15)
-        )
+        val avatarPalette: List<Color> @Composable get() = LocalCoreViaColors.current.avatarPalette
 
-        // === Star rating ===
-        val starFilled          = Color(0xFFFF3B30)
-        val starEmpty           = Color(0xFF636366)          // iOS: systemGray4
+        val starFilled: Color          @Composable get() = LocalCoreViaColors.current.starFilled
+        val starEmpty: Color           @Composable get() = LocalCoreViaColors.current.starEmpty
 
-        // === Badge ===
-        val badgeVerified       = Color(0xFF34C759)          // iOS: green
-        val badgePending        = Color(0xFFE68A1A)          // iOS: Color(red:0.9, green:0.55, blue:0.1)
-        val badgeRejected       = Color(0xFFFF3B30)
+        val badgeVerified: Color       @Composable get() = LocalCoreViaColors.current.badgeVerified
+        val badgePending: Color        @Composable get() = LocalCoreViaColors.current.badgePending
+        val badgeRejected: Color       @Composable get() = LocalCoreViaColors.current.badgeRejected
     }
 
-    // ─── Spacing (iOS AppTheme.Spacing) ──────────────────────────────────────
+    // ─── Spacing ─────────────────────────────────────────────────────────────
     object Spacing {
         val sm = 8
         val md = 12
@@ -110,10 +356,17 @@ object AppTheme {
         val xl = 24
     }
 
-    // ─── Corner Radius (iOS AppTheme.CornerRadius) ────────────────────────────
+    // ─── Corner Radius ───────────────────────────────────────────────────────
     object CornerRadius {
         val sm = 8
         val md = 12
         val lg = 16
+    }
+
+    // ─── Card Style ──────────────────────────────────────────────────────────
+    object CardStyle {
+        val defaultElevation = 4
+        val borderAlpha = 0.08f
+        val shadowAlpha = 0.06f
     }
 }

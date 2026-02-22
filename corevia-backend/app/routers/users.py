@@ -26,6 +26,8 @@ async def update_profile(
     for field, value in update_data.items():
         if field in ALLOWED_PROFILE_FIELDS:
             setattr(current_user, field, value)
+    await db.commit()
+    await db.refresh(current_user)
     return current_user
 
 
@@ -80,6 +82,8 @@ async def assign_trainer(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trainer tapilmadi")
 
     current_user.trainer_id = trainer_id
+    await db.commit()
+    await db.refresh(current_user)
     return current_user
 
 
@@ -95,6 +99,8 @@ async def unassign_trainer(
             detail="Yalniz client trainer legv ede biler",
         )
     current_user.trainer_id = None
+    await db.commit()
+    await db.refresh(current_user)
     return current_user
 
 

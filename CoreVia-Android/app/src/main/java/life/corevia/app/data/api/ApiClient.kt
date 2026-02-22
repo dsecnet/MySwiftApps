@@ -28,6 +28,9 @@ class ApiClient private constructor(context: Context) {
 
     private val tokenManager = TokenManager.getInstance(context)
 
+    // 401 sonrası logout callback — MainActivity-dən set olunur
+    var onUnauthorized: (() -> Unit)? = null
+
     // ─── Base URL ──────────────────────────────────────────────────────────────
     // iOS: #if targetEnvironment(simulator) → localhost, else → api.corevia.life
     // Android-da BuildConfig.DEBUG ilə eyni effekt:
@@ -76,7 +79,11 @@ class ApiClient private constructor(context: Context) {
                     .header("Content-Type", "application/json")
                     .build()
 
-                okhttp3.OkHttpClient().newCall(refreshRequest).execute()
+                okhttp3.OkHttpClient.Builder()
+                    .connectTimeout(15, TimeUnit.SECONDS)
+                    .readTimeout(15, TimeUnit.SECONDS)
+                    .build()
+                    .newCall(refreshRequest).execute()
             } catch (e: Exception) {
                 tokenManager.clearTokens()
                 return null
@@ -85,6 +92,7 @@ class ApiClient private constructor(context: Context) {
             if (!refreshResponse.isSuccessful) {
                 // iOS: KeychainManager.shared.clearTokens() → return false
                 tokenManager.clearTokens()
+                android.os.Handler(android.os.Looper.getMainLooper()).post { onUnauthorized?.invoke() }
                 return null
             }
 
@@ -148,6 +156,14 @@ class ApiClient private constructor(context: Context) {
             return instance ?: synchronized(this) {
                 instance ?: ApiClient(context.applicationContext).also { instance = it }
             }
+        }
+
+        /**
+         * Logout zamanı çağırılır — köhnə OkHttpClient və Retrofit instance-ını sıfırlayır.
+         * Növbəti getInstance() yeni instance yaradacaq, yeni token ilə.
+         */
+        fun clearInstance() {
+            instance = null
         }
     }
 }

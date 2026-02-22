@@ -1,6 +1,7 @@
 package life.corevia.app.ui.trainers
 
 import life.corevia.app.ui.theme.AppTheme
+import life.corevia.app.ui.theme.CoreViaAnimatedBackground
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -40,10 +41,10 @@ fun TrainerDetailScreen(
 
     val currentTrainer = trainer ?: return
 
+    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.accent) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppTheme.Colors.background)
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -267,6 +268,7 @@ fun TrainerDetailScreen(
             ) { Text(error, color = Color.White) }
         }
     }
+    } // CoreViaAnimatedBackground
 }
 
 @Composable

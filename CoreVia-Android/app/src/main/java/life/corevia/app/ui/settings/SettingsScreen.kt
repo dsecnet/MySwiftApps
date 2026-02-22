@@ -1,6 +1,7 @@
 package life.corevia.app.ui.settings
 
 import life.corevia.app.ui.theme.AppTheme
+import life.corevia.app.ui.theme.CoreViaAnimatedBackground
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
@@ -31,74 +32,96 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 /**
- * iOS SettingsView.swift — Android 1-ə-1 port
+ * iOS SettingsView.swift — Android 1-to-1 port
  *
- * iOS-da Settings 3 alt-ekrandan ibarətdir:
- *  - NotificationsSettingsView
- *  - SecuritySettingsView (biometric, PIN, 2FA)
- *  - AboutView (logo, features, links, copyright)
+ * Sections:
+ *  - Notifications (toggles persisted via API)
+ *  - Security (biometric, change password, delete account)
+ *  - About (logo, features, links, copyright)
  *
- * Android-da hamısını bir ScrollView-da göstəririk (iOS sheet-ləri əvəzinə inline).
+ * Connected to SettingsViewModel for API persistence.
  */
 @Composable
 fun SettingsScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onLogout: () -> Unit = {},
+    viewModel: SettingsViewModel = viewModel()
 ) {
     val context = LocalContext.current
+    val settings by viewModel.settings.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+    val successMessage by viewModel.successMessage.collectAsState()
+    val accountDeleted by viewModel.accountDeleted.collectAsState()
 
-    // ── Notification preferences (iOS: @AppStorage) ────────────────────────────
-    var notificationsEnabled by remember { mutableStateOf(true) }
-    var workoutReminders by remember { mutableStateOf(true) }
-    var mealReminders by remember { mutableStateOf(true) }
-    var weeklyReport by remember { mutableStateOf(false) }
+    // Notification preferences — driven by ViewModel
+    val notificationsEnabled = settings?.notificationsEnabled ?: true
+    val workoutReminders = settings?.workoutReminders ?: true
+    val mealReminders = settings?.mealReminders ?: true
+    val weeklyReport = settings?.weeklyReports ?: false
 
-    // ── Security preferences ───────────────────────────────────────────────────
+    // Security preferences (local only)
     var biometricEnabled by remember { mutableStateOf(false) }
-    var hasPassword by remember { mutableStateOf(false) }
-    var showSetPasswordDialog by remember { mutableStateOf(false) }
-    var showRemovePasswordDialog by remember { mutableStateOf(false) }
 
-    // ── Set Password Dialog ────────────────────────────────────────────────────
-    if (showSetPasswordDialog) {
-        SetPasswordDialog(
-            isChanging = hasPassword,
-            onDismiss = { showSetPasswordDialog = false },
-            onSave = {
-                hasPassword = true
-                showSetPasswordDialog = false
+    // Dialogs
+    var showChangePasswordDialog by remember { mutableStateOf(false) }
+    var showDeleteAccountDialog by remember { mutableStateOf(false) }
+
+    // Handle account deletion — navigate to logout
+    LaunchedEffect(accountDeleted) {
+        if (accountDeleted) {
+            onLogout()
+        }
+    }
+
+    // Auto-clear messages
+    LaunchedEffect(successMessage) {
+        if (successMessage != null) {
+            kotlinx.coroutines.delay(3000)
+            viewModel.clearSuccess()
+        }
+    }
+    LaunchedEffect(errorMessage) {
+        if (errorMessage != null) {
+            kotlinx.coroutines.delay(5000)
+            viewModel.clearError()
+        }
+    }
+
+    // ── Change Password Dialog ──────────────────────────────────────────────────
+    if (showChangePasswordDialog) {
+        ChangePasswordDialog(
+            isLoading = isLoading,
+            onDismiss = { showChangePasswordDialog = false },
+            onSave = { currentPw, newPw ->
+                viewModel.changePassword(currentPw, newPw)
+                showChangePasswordDialog = false
             }
         )
     }
 
-    // ── Remove Password Dialog ─────────────────────────────────────────────────
-    if (showRemovePasswordDialog) {
-        AlertDialog(
-            onDismissRequest = { showRemovePasswordDialog = false },
-            containerColor = AppTheme.Colors.secondaryBackground,
-            title = { Text("Şifrəni sil", color = Color.White) },
-            text = { Text("Tətbiq şifrəsini silmək istədiyinizə əminsiniz?", color = AppTheme.Colors.secondaryText) },
-            confirmButton = {
-                TextButton(onClick = {
-                    hasPassword = false
-                    showRemovePasswordDialog = false
-                }) {
-                    Text("Sil", color = AppTheme.Colors.error)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showRemovePasswordDialog = false }) {
-                    Text("Ləğv et", color = AppTheme.Colors.secondaryText)
-                }
+    // ── Delete Account Dialog ───────────────────────────────────────────────────
+    if (showDeleteAccountDialog) {
+        DeleteAccountDialog(
+            isLoading = isLoading,
+            onDismiss = { showDeleteAccountDialog = false },
+            onConfirm = { password ->
+                viewModel.deleteAccount(password)
+                showDeleteAccountDialog = false
             }
         )
     }
 
+    // ── Snackbar for success/error ──────────────────────────────────────────────
+    // (Using inline messages instead of Snackbar for simplicity)
+
+    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.accent) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppTheme.Colors.background)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp)
     ) {
@@ -113,24 +136,52 @@ fun SettingsScreen(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Geri",
-                    tint = Color.White
+                    tint = AppTheme.Colors.primaryText
                 )
             }
             Text(
-                text = "Tənzimləmələr",
+                text = "Tenzimlemeler",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = AppTheme.Colors.primaryText
+            )
+        }
+
+        // ── Success/Error messages ──────────────────────────────────────────
+        successMessage?.let { msg ->
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = msg,
+                color = AppTheme.Colors.success,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(AppTheme.Colors.success.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                    .padding(12.dp)
+            )
+        }
+        errorMessage?.let { msg ->
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = msg,
+                color = AppTheme.Colors.error,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(AppTheme.Colors.error.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                    .padding(12.dp)
             )
         }
 
         Spacer(modifier = Modifier.height(20.dp))
 
         // ═══════════════════════════════════════════════════════════════════
-        // SECTION 1: Bildirişlər (iOS: NotificationsSettingsView)
+        // SECTION 1: Bildirisler (iOS: NotificationsSettingsView)
         // ═══════════════════════════════════════════════════════════════════
         Text(
-            text = "Bildirişlər",
+            text = "Bildirisler",
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
             color = AppTheme.Colors.secondaryText,
@@ -144,38 +195,38 @@ fun SettingsScreen(
         ) {
             Column(modifier = Modifier.padding(4.dp)) {
                 SettingsToggle(
-                    title = "Bildirişlər",
-                    subtitle = "Bütün bildirişləri aktivləşdir",
+                    title = "Bildirisler",
+                    subtitle = "Butun bildirisleri aktivlesdir",
                     icon = Icons.Outlined.Notifications,
                     isChecked = notificationsEnabled,
-                    onCheckedChange = { notificationsEnabled = it }
+                    onCheckedChange = { viewModel.updateNotificationsEnabled(it) }
                 )
                 HorizontalDivider(color = AppTheme.Colors.separator, modifier = Modifier.padding(horizontal = 16.dp))
                 SettingsToggle(
-                    title = "Məşq xatırlatmaları",
-                    subtitle = "Gündəlik məşq bildirişləri",
+                    title = "Mesq xatirlatmalari",
+                    subtitle = "Gundelik mesq bildirisleri",
                     icon = Icons.Outlined.FitnessCenter,
                     isChecked = workoutReminders,
                     enabled = notificationsEnabled,
-                    onCheckedChange = { workoutReminders = it }
+                    onCheckedChange = { viewModel.updateWorkoutReminders(it) }
                 )
                 HorizontalDivider(color = AppTheme.Colors.separator, modifier = Modifier.padding(horizontal = 16.dp))
                 SettingsToggle(
-                    title = "Yemək xatırlatmaları",
-                    subtitle = "Qida izləmə bildirişləri",
+                    title = "Yemek xatirlatmalari",
+                    subtitle = "Qida izleme bildirisleri",
                     icon = Icons.Outlined.Restaurant,
                     isChecked = mealReminders,
                     enabled = notificationsEnabled,
-                    onCheckedChange = { mealReminders = it }
+                    onCheckedChange = { viewModel.updateMealReminders(it) }
                 )
                 HorizontalDivider(color = AppTheme.Colors.separator, modifier = Modifier.padding(horizontal = 16.dp))
                 SettingsToggle(
-                    title = "Həftəlik hesabat",
-                    subtitle = "Hər həftə irəliləyiş xülasəsi",
+                    title = "Heftelik hesabat",
+                    subtitle = "Her hefte irelileyis xulasesi",
                     icon = Icons.Outlined.BarChart,
                     isChecked = weeklyReport,
                     enabled = notificationsEnabled,
-                    onCheckedChange = { weeklyReport = it }
+                    onCheckedChange = { viewModel.updateWeeklyReport(it) }
                 )
             }
         }
@@ -183,10 +234,10 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         // ═══════════════════════════════════════════════════════════════════
-        // SECTION 2: Təhlükəsizlik (iOS: SecuritySettingsView)
+        // SECTION 2: Tehlukesizlik (iOS: SecuritySettingsView)
         // ═══════════════════════════════════════════════════════════════════
         Text(
-            text = "Təhlükəsizlik",
+            text = "Tehlukesizlik",
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
             color = AppTheme.Colors.secondaryText,
@@ -199,10 +250,10 @@ fun SettingsScreen(
             colors = CardDefaults.cardColors(containerColor = AppTheme.Colors.secondaryBackground)
         ) {
             Column(modifier = Modifier.padding(4.dp)) {
-                // ── Biometric (iOS: Face ID toggle) ────────────────────────
+                // Biometric
                 SettingsToggle(
-                    title = "Biometrik giriş",
-                    subtitle = "Sürətli daxil olma",
+                    title = "Biometrik giris",
+                    subtitle = "Suretli daxil olma",
                     icon = Icons.Outlined.Fingerprint,
                     isChecked = biometricEnabled,
                     onCheckedChange = { biometricEnabled = it }
@@ -210,33 +261,16 @@ fun SettingsScreen(
 
                 HorizontalDivider(color = AppTheme.Colors.separator, modifier = Modifier.padding(horizontal = 16.dp))
 
-                // ── Password (iOS: 4-digit PIN) ────────────────────────────
-                if (hasPassword) {
-                    // Change password
-                    SettingsActionRow(
-                        title = "Şifrəni dəyiş",
-                        icon = Icons.Outlined.Key,
-                        onClick = { showSetPasswordDialog = true }
-                    )
-                    HorizontalDivider(color = AppTheme.Colors.separator, modifier = Modifier.padding(horizontal = 16.dp))
-                    // Remove password
-                    SettingsActionRow(
-                        title = "Şifrəni sil",
-                        icon = Icons.Outlined.Delete,
-                        textColor = AppTheme.Colors.error,
-                        onClick = { showRemovePasswordDialog = true }
-                    )
-                } else {
-                    SettingsActionRow(
-                        title = "Şifrə təyin et",
-                        icon = Icons.Outlined.Lock,
-                        onClick = { showSetPasswordDialog = true }
-                    )
-                }
+                // Change password (account password via API)
+                SettingsActionRow(
+                    title = "Sifreni deyis",
+                    icon = Icons.Outlined.Key,
+                    onClick = { showChangePasswordDialog = true }
+                )
 
                 HorizontalDivider(color = AppTheme.Colors.separator, modifier = Modifier.padding(horizontal = 16.dp))
 
-                // ── 2FA (iOS: "Coming soon") ───────────────────────────────
+                // 2FA (Coming soon)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -251,41 +285,50 @@ fun SettingsScreen(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "İki faktorlu doğrulama",
-                        color = Color.White,
+                        text = "Iki faktorlu dogrulama",
+                        color = AppTheme.Colors.primaryText,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.weight(1f)
                     )
                     Text(
-                        text = "Tezliklə",
+                        text = "Tezlikle",
                         color = AppTheme.Colors.secondaryText,
                         fontSize = 12.sp
                     )
                 }
+
+                HorizontalDivider(color = AppTheme.Colors.separator, modifier = Modifier.padding(horizontal = 16.dp))
+
+                // Delete account
+                SettingsActionRow(
+                    title = "Hesabi sil",
+                    icon = Icons.Outlined.DeleteForever,
+                    textColor = AppTheme.Colors.error,
+                    onClick = { showDeleteAccountDialog = true }
+                )
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         // ═══════════════════════════════════════════════════════════════════
-        // SECTION 3: Haqqında (iOS: AboutView — full version)
+        // SECTION 3: Haqqinda (iOS: AboutView — full version)
         // ═══════════════════════════════════════════════════════════════════
         Text(
-            text = "Haqqında",
+            text = "Haqqinda",
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
             color = AppTheme.Colors.secondaryText,
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
-        // ── Logo + App Name (iOS: gradient circle + icon) ──────────────
+        // Logo + App Name
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(contentAlignment = Alignment.Center) {
-                // Gradient circle
                 Box(
                     modifier = Modifier
                         .size(120.dp)
@@ -327,7 +370,7 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // ── Description card ────────────────────────────────────────────
+        // Description card
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
@@ -335,14 +378,14 @@ fun SettingsScreen(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "Tətbiq haqqında",
+                    text = "Tetbiq haqqinda",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = AppTheme.Colors.primaryText
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "CoreVia idman və qidalanma izləmə tətbiqidir. Müəllim-tələbə sistemi, statistika, GPS izləmə və daha çox xüsusiyyətlər.",
+                    text = "CoreVia idman ve qidalanma izleme tetbiqidir. Muellim-telebe sistemi, statistika, GPS izleme ve daha cox xususiyyetler.",
                     fontSize = 15.sp,
                     color = AppTheme.Colors.secondaryText,
                     lineHeight = 22.sp
@@ -352,7 +395,7 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ── Features (iOS: AboutFeatureRow with checkmarks) ─────────────
+        // Features
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
@@ -360,23 +403,23 @@ fun SettingsScreen(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "Xüsusiyyətlər",
+                    text = "Xususiyyetler",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = AppTheme.Colors.primaryText
                 )
                 Spacer(modifier = Modifier.height(12.dp))
-                AboutFeatureRow(icon = Icons.Outlined.FitnessCenter, title = "Məşq izləmə")
-                AboutFeatureRow(icon = Icons.Outlined.Restaurant, title = "Qida izləmə")
-                AboutFeatureRow(icon = Icons.Outlined.People, title = "Müəllim-tələbə sistemi")
-                AboutFeatureRow(icon = Icons.Outlined.BarChart, title = "Detallı statistika")
-                AboutFeatureRow(icon = Icons.Outlined.Notifications, title = "Xatırlatmalar")
+                AboutFeatureRow(icon = Icons.Outlined.FitnessCenter, title = "Mesq izleme")
+                AboutFeatureRow(icon = Icons.Outlined.Restaurant, title = "Qida izleme")
+                AboutFeatureRow(icon = Icons.Outlined.People, title = "Muellim-telebe sistemi")
+                AboutFeatureRow(icon = Icons.Outlined.BarChart, title = "Detalli statistika")
+                AboutFeatureRow(icon = Icons.Outlined.Notifications, title = "Xatirlatmalar")
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ── Links (iOS: AboutLinkButton) ────────────────────────────────
+        // Links
         AboutLinkRow(
             icon = Icons.Outlined.Language,
             title = "Veb sayt",
@@ -388,7 +431,7 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(8.dp))
         AboutLinkRow(
             icon = Icons.Outlined.Email,
-            title = "Əlaqə",
+            title = "Elaqe",
             onClick = {
                 val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:support@corevia.life"))
                 context.startActivity(intent)
@@ -397,7 +440,7 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(8.dp))
         AboutLinkRow(
             icon = Icons.Outlined.Description,
-            title = "İstifadə şərtləri",
+            title = "Istifade sertleri",
             onClick = {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://corevia.life/terms"))
                 context.startActivity(intent)
@@ -406,7 +449,7 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(8.dp))
         AboutLinkRow(
             icon = Icons.Outlined.PrivacyTip,
-            title = "Məxfilik siyasəti",
+            title = "Mexfilik siyaseti",
             onClick = {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://corevia.life/privacy"))
                 context.startActivity(intent)
@@ -415,18 +458,18 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // ── Copyright (iOS: bottom text) ────────────────────────────────
+        // Copyright
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "© 2026 CoreVia",
+                text = "\u00A9 2026 CoreVia",
                 fontSize = 13.sp,
                 color = AppTheme.Colors.tertiaryText
             )
             Text(
-                text = "Bakıda sevgi ilə hazırlandı ❤️",
+                text = "Bakida sevgi ile hazirlandi",
                 fontSize = 12.sp,
                 color = AppTheme.Colors.tertiaryText
             )
@@ -434,6 +477,7 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(100.dp))
     }
+    } // CoreViaAnimatedBackground
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -468,7 +512,7 @@ fun SettingsToggle(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                color = if (enabled) Color.White else Color.White.copy(alpha = 0.5f),
+                color = if (enabled) AppTheme.Colors.primaryText else AppTheme.Colors.primaryText.copy(alpha = 0.5f),
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -496,7 +540,7 @@ fun SettingsToggle(
 fun SettingsActionRow(
     title: String,
     icon: ImageVector,
-    textColor: Color = Color.White,
+    textColor: Color = AppTheme.Colors.primaryText,
     onClick: () -> Unit
 ) {
     Row(
@@ -538,7 +582,7 @@ fun SettingsInfoRow(label: String, value: String) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(text = label, color = AppTheme.Colors.secondaryText, fontSize = 14.sp)
-        Text(text = value, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+        Text(text = value, color = AppTheme.Colors.primaryText, fontSize = 14.sp, fontWeight = FontWeight.Medium)
     }
 }
 
@@ -613,15 +657,16 @@ private fun AboutLinkRow(icon: ImageVector, title: String, onClick: () -> Unit) 
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// Set Password Dialog (iOS: SetPasswordView — 4-digit PIN)
+// Change Password Dialog
 // ═══════════════════════════════════════════════════════════════════════════════
 @Composable
-private fun SetPasswordDialog(
-    isChanging: Boolean,
+private fun ChangePasswordDialog(
+    isLoading: Boolean,
     onDismiss: () -> Unit,
-    onSave: () -> Unit
+    onSave: (currentPassword: String, newPassword: String) -> Unit
 ) {
-    var password by remember { mutableStateOf("") }
+    var currentPassword by remember { mutableStateOf("") }
+    var newPassword by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
@@ -634,73 +679,72 @@ private fun SetPasswordDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.Shield,
+                    imageVector = Icons.Outlined.Key,
                     contentDescription = null,
                     tint = AppTheme.Colors.accent,
-                    modifier = Modifier.size(60.dp)
+                    modifier = Modifier.size(48.dp)
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = if (isChanging) "Şifrəni dəyiş" else "Şifrə təyin et",
-                    fontSize = 24.sp,
+                    text = "Sifreni deyis",
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = AppTheme.Colors.primaryText
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "4 rəqəmli şifrə daxil edin",
-                    fontSize = 14.sp,
-                    color = AppTheme.Colors.secondaryText
                 )
             }
         },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                // Password field
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("Şifrə", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.primaryText)
-                    PinDots(length = password.length)
-                    OutlinedTextField(
-                        value = password,
-                        onValueChange = { if (it.length <= 4 && it.all { c -> c.isDigit() }) password = it },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(1.dp), // Hidden — just for keyboard
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                        visualTransformation = PasswordVisualTransformation(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color.Transparent,
-                            unfocusedBorderColor = Color.Transparent,
-                            focusedTextColor = Color.Transparent,
-                            unfocusedTextColor = Color.Transparent
-                        )
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(
+                    value = currentPassword,
+                    onValueChange = { currentPassword = it },
+                    label = { Text("Cari sifre", color = AppTheme.Colors.secondaryText) },
+                    modifier = Modifier.fillMaxWidth(),
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = AppTheme.Colors.accent,
+                        unfocusedBorderColor = AppTheme.Colors.separator,
+                        focusedTextColor = AppTheme.Colors.primaryText,
+                        unfocusedTextColor = AppTheme.Colors.primaryText,
+                        cursorColor = AppTheme.Colors.accent
                     )
-                }
-
-                // Confirm password field
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("Təkrar şifrə", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.primaryText)
-                    PinDots(length = confirmPassword.length)
-                    OutlinedTextField(
-                        value = confirmPassword,
-                        onValueChange = { if (it.length <= 4 && it.all { c -> c.isDigit() }) confirmPassword = it },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(1.dp),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                        visualTransformation = PasswordVisualTransformation(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color.Transparent,
-                            unfocusedBorderColor = Color.Transparent,
-                            focusedTextColor = Color.Transparent,
-                            unfocusedTextColor = Color.Transparent
-                        )
+                )
+                OutlinedTextField(
+                    value = newPassword,
+                    onValueChange = { newPassword = it },
+                    label = { Text("Yeni sifre", color = AppTheme.Colors.secondaryText) },
+                    modifier = Modifier.fillMaxWidth(),
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = AppTheme.Colors.accent,
+                        unfocusedBorderColor = AppTheme.Colors.separator,
+                        focusedTextColor = AppTheme.Colors.primaryText,
+                        unfocusedTextColor = AppTheme.Colors.primaryText,
+                        cursorColor = AppTheme.Colors.accent
                     )
-                }
-
-                // Error
+                )
+                OutlinedTextField(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it },
+                    label = { Text("Yeni sifreni tekrarla", color = AppTheme.Colors.secondaryText) },
+                    modifier = Modifier.fillMaxWidth(),
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = AppTheme.Colors.accent,
+                        unfocusedBorderColor = AppTheme.Colors.separator,
+                        focusedTextColor = AppTheme.Colors.primaryText,
+                        unfocusedTextColor = AppTheme.Colors.primaryText,
+                        cursorColor = AppTheme.Colors.accent
+                    )
+                )
                 errorMessage?.let {
-                    Text(it, color = AppTheme.Colors.error, fontSize = 13.sp, textAlign = TextAlign.Center)
+                    Text(it, color = AppTheme.Colors.error, fontSize = 13.sp)
                 }
             }
         },
@@ -708,47 +752,122 @@ private fun SetPasswordDialog(
             TextButton(
                 onClick = {
                     when {
-                        password.length != 4 -> errorMessage = "Şifrə 4 rəqəm olmalıdır"
-                        password != confirmPassword -> errorMessage = "Şifrələr uyğun gəlmir"
-                        else -> onSave()
+                        currentPassword.isBlank() -> errorMessage = "Cari sifreni daxil edin"
+                        newPassword.length < 6 -> errorMessage = "Yeni sifre en az 6 simvol olmalidir"
+                        newPassword != confirmPassword -> errorMessage = "Sifreler uygun gelmir"
+                        else -> onSave(currentPassword, newPassword)
                     }
                 },
-                enabled = password.length == 4 && confirmPassword.length == 4
+                enabled = !isLoading
             ) {
-                Text("Saxla", color = AppTheme.Colors.accent, fontWeight = FontWeight.Bold)
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        color = AppTheme.Colors.accent,
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text("Deyis", color = AppTheme.Colors.accent, fontWeight = FontWeight.Bold)
+                }
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Ləğv et", color = AppTheme.Colors.secondaryText)
+                Text("Legv et", color = AppTheme.Colors.secondaryText)
             }
         }
     )
 }
 
-// ── iOS PinCodeField — 4 filled/empty dots ──────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// Delete Account Dialog
+// ═══════════════════════════════════════════════════════════════════════════════
 @Composable
-private fun PinDots(length: Int) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        repeat(4) { index ->
-            Box(
-                modifier = Modifier
-                    .size(60.dp)
-                    .background(AppTheme.Colors.background, RoundedCornerShape(12.dp)),
-                contentAlignment = Alignment.Center
+private fun DeleteAccountDialog(
+    isLoading: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: (password: String) -> Unit
+) {
+    var password by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = AppTheme.Colors.secondaryBackground,
+        title = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (length > index) {
-                    Box(
-                        modifier = Modifier
-                            .size(16.dp)
-                            .background(AppTheme.Colors.accent, CircleShape)
+                Icon(
+                    imageVector = Icons.Outlined.Warning,
+                    contentDescription = null,
+                    tint = AppTheme.Colors.error,
+                    modifier = Modifier.size(48.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Hesabi sil",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = AppTheme.Colors.error
+                )
+            }
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = "Bu emeliyyat geri qaytarila bilmez. Hesabiniz ve butun melumatlariniz silinecek.",
+                    color = AppTheme.Colors.secondaryText,
+                    fontSize = 14.sp
+                )
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Sifreni daxil edin", color = AppTheme.Colors.secondaryText) },
+                    modifier = Modifier.fillMaxWidth(),
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = AppTheme.Colors.error,
+                        unfocusedBorderColor = AppTheme.Colors.separator,
+                        focusedTextColor = AppTheme.Colors.primaryText,
+                        unfocusedTextColor = AppTheme.Colors.primaryText,
+                        cursorColor = AppTheme.Colors.error
                     )
+                )
+                errorMessage?.let {
+                    Text(it, color = AppTheme.Colors.error, fontSize = 13.sp)
                 }
             }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    if (password.isBlank()) {
+                        errorMessage = "Sifreni daxil edin"
+                    } else {
+                        onConfirm(password)
+                    }
+                },
+                enabled = !isLoading
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        color = AppTheme.Colors.error,
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text("Hesabi sil", color = AppTheme.Colors.error, fontWeight = FontWeight.Bold)
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Legv et", color = AppTheme.Colors.secondaryText)
+            }
         }
-    }
+    )
 }

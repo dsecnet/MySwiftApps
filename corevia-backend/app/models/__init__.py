@@ -12,6 +12,14 @@ from app.models.chat import ChatMessage, DailyMessageCount
 from app.models.content import TrainerContent, ContentType
 from app.models.onboarding import UserOnboarding
 from app.models.otp import OTPCode
+from app.models.social import Post, PostLike, PostComment, Follow, Achievement, PostType
+from app.models.news import NewsBookmark
+from app.models.live_session import (
+    LiveSession, SessionParticipant, SessionExercise,
+    ParticipantExercise, SessionStats, PoseDetectionLog,
+)
+from app.models.marketplace import MarketplaceProduct, ProductPurchase, ProductReview, ProductType
+from app.models.analytics import DailyStats, WeeklyStats, BodyMeasurement
 
 __all__ = [
     "User", "UserType", "VerificationStatus",
@@ -28,4 +36,10 @@ __all__ = [
     "TrainerContent", "ContentType",
     "UserOnboarding",
     "OTPCode",
+    "Post", "PostLike", "PostComment", "Follow", "Achievement", "PostType",
+    "NewsBookmark",
+    "LiveSession", "SessionParticipant", "SessionExercise",
+    "ParticipantExercise", "SessionStats", "PoseDetectionLog",
+    "MarketplaceProduct", "ProductPurchase", "ProductReview", "ProductType",
+    "DailyStats", "WeeklyStats", "BodyMeasurement",
 ]

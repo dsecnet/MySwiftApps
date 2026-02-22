@@ -3,6 +3,7 @@ package life.corevia.app.ui.tracking
 import android.Manifest
 import android.content.pm.PackageManager
 import life.corevia.app.ui.theme.AppTheme
+import life.corevia.app.ui.theme.CoreViaAnimatedBackground
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -11,6 +12,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.DirectionsRun
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -21,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -28,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import life.corevia.app.ui.theme.coreViaCard
+import life.corevia.app.ui.theme.CoreViaIconBadge
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
@@ -59,6 +64,16 @@ fun LiveTrackingScreen(
     val calories by viewModel.calories.collectAsState()
     val activityType by viewModel.activityType.collectAsState()
     val route by viewModel.route.collectAsState()
+    val saveStatus by viewModel.saveStatus.collectAsState()
+
+    // Save status — auto-dismiss after 3 seconds
+    LaunchedEffect(saveStatus) {
+        if (saveStatus is TrackingViewModel.SaveStatus.Success ||
+            saveStatus is TrackingViewModel.SaveStatus.Error) {
+            kotlinx.coroutines.delay(3000)
+            viewModel.clearSaveStatus()
+        }
+    }
 
     // iOS: showsUserLocation = true → runtime permission lazımdır
     val context = LocalContext.current
@@ -89,7 +104,8 @@ fun LiveTrackingScreen(
         Configuration.getInstance().userAgentValue = context.packageName
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(AppTheme.Colors.background)) {
+    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.accent) {
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
 
             // ─── Back Button (top-left overlay) ─────────────────────────
@@ -143,7 +159,7 @@ fun LiveTrackingScreen(
                     .shadow(5.dp, RoundedCornerShape(20.dp))
                     .clip(RoundedCornerShape(20.dp))
             ) {
-                val polylineColor = Color(0xFF2196F3).copy(alpha = 0.7f).toArgb()
+                val polylineColor = AppTheme.Colors.statDistance.copy(alpha = 0.7f).toArgb()
 
                 AndroidView(
                     modifier = Modifier.fillMaxSize(),
@@ -246,17 +262,17 @@ fun LiveTrackingScreen(
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     LiveStatCard(
                         modifier = Modifier.weight(1f),
-                        emoji = "🏃",
+                        icon = Icons.AutoMirrored.Outlined.DirectionsRun,
                         value = viewModel.formatDistance(distance),
                         label = "Kilometr",
-                        color = Color(0xFF2196F3)
+                        color = AppTheme.Colors.statDistance
                     )
                     LiveStatCard(
                         modifier = Modifier.weight(1f),
-                        emoji = "🔥",
+                        icon = Icons.Outlined.LocalFireDepartment,
                         value = "$calories",
                         label = "Kalori",
-                        color = Color(0xFFFF9800)
+                        color = AppTheme.Colors.warning
                     )
                 }
 
@@ -264,17 +280,17 @@ fun LiveTrackingScreen(
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     LiveStatCard(
                         modifier = Modifier.weight(1f),
-                        emoji = "⏱",
+                        icon = Icons.Outlined.Timer,
                         value = viewModel.formatTime(elapsedSeconds),
                         label = "Vaxt",
-                        color = Color(0xFF4CAF50)
+                        color = AppTheme.Colors.success
                     )
                     LiveStatCard(
                         modifier = Modifier.weight(1f),
-                        emoji = "⚡",
+                        icon = Icons.Outlined.Bolt,
                         value = viewModel.formatSpeed(currentSpeed),
                         label = "km/s",
-                        color = Color(0xFF9C27B0)
+                        color = AppTheme.Colors.statSpeed
                     )
                 }
 
@@ -291,7 +307,7 @@ fun LiveTrackingScreen(
                         Button(
                             onClick = { viewModel.startTracking() },
                             modifier = Modifier.fillMaxWidth().height(56.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                            colors = ButtonDefaults.buttonColors(containerColor = AppTheme.Colors.success),
                             shape = RoundedCornerShape(16.dp)
                         ) {
                             Icon(Icons.Outlined.PlayArrow, null, Modifier.size(28.dp))
@@ -305,7 +321,7 @@ fun LiveTrackingScreen(
                             Button(
                                 onClick = { viewModel.resumeTracking() },
                                 modifier = Modifier.weight(1f).height(64.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                                colors = ButtonDefaults.buttonColors(containerColor = AppTheme.Colors.success),
                                 shape = RoundedCornerShape(16.dp)
                             ) {
                                 Icon(Icons.Outlined.PlayArrow, null, Modifier.size(24.dp))
@@ -339,10 +355,59 @@ fun LiveTrackingScreen(
                     }
                 }
 
+                // ─── Save Status Feedback ────────────────────────────────
+                when (val status = saveStatus) {
+                    is TrackingViewModel.SaveStatus.Saving -> {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            CircularProgressIndicator(
+                                color = AppTheme.Colors.accent,
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text("Məşq bazaya yazılır...", fontSize = 13.sp, color = AppTheme.Colors.secondaryText)
+                        }
+                    }
+                    is TrackingViewModel.SaveStatus.Success -> {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(AppTheme.Colors.success.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
+                                .padding(12.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Outlined.CheckCircle, null, tint = AppTheme.Colors.success, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Məşq uğurla yadda saxlanıldı!", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.success)
+                        }
+                    }
+                    is TrackingViewModel.SaveStatus.Error -> {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(AppTheme.Colors.error.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
+                                .padding(12.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Outlined.Warning, null, tint = AppTheme.Colors.error, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Xəta: ${status.message}", fontSize = 13.sp, color = AppTheme.Colors.error)
+                        }
+                    }
+                    else -> { /* Idle — heç nə göstərmə */ }
+                }
+
                 Spacer(Modifier.height(40.dp))
             }
         }
     }
+    } // CoreViaAnimatedBackground
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -351,7 +416,7 @@ fun LiveTrackingScreen(
 @Composable
 private fun LiveStatCard(
     modifier: Modifier = Modifier,
-    emoji: String,
+    icon: ImageVector,
     value: String,
     label: String,
     color: Color
@@ -359,12 +424,12 @@ private fun LiveStatCard(
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(14.dp))
-            .background(AppTheme.Colors.cardBackground)
+            .coreViaCard(cornerRadius = 14.dp, backgroundColor = AppTheme.Colors.cardBackground)
             .padding(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Text(emoji, fontSize = 22.sp)
+        CoreViaIconBadge(icon = icon, tintColor = AppTheme.Colors.accent, size = 32.dp, iconSize = 16.dp)
         Text(
             text = value,
             fontSize = 24.sp,

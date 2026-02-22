@@ -1,6 +1,12 @@
 package life.corevia.app.data.repository
 
 import android.content.Context
+import android.os.Build
+import android.util.Log
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import life.corevia.app.data.api.ApiClient
 import life.corevia.app.data.api.ErrorParser
 import life.corevia.app.data.api.TokenManager
@@ -22,7 +28,7 @@ import life.corevia.app.data.models.*
  *  - verifyForgotPasswordOtp(email, otp) → POST /api/v1/auth/verify-otp → doğrulandı
  *  - resetPassword(email, otp, newPassword) → POST /api/v1/auth/reset-password → şifrə dəyişdi
  */
-class AuthRepository(context: Context) {
+class AuthRepository(private val context: Context) {
 
     private val api = ApiClient.getInstance(context).api
     private val tokenManager = TokenManager.getInstance(context)
@@ -31,11 +37,11 @@ class AuthRepository(context: Context) {
     // LOGIN (2-step)
     // ═══════════════════════════════════════════════════════════════════════════
 
-    suspend fun sendLoginOtp(email: String, password: String): Result<Unit> {
+    suspend fun sendLoginOtp(email: String, password: String, userType: String): Result<Unit> {
         return try {
             val cleanEmail = email.trim().lowercase()
-            android.util.Log.d("AUTH", "Login OTP request → email=$cleanEmail")
-            api.login(LoginRequest(cleanEmail, password))
+            android.util.Log.d("AUTH", "Login OTP request → email=$cleanEmail userType=$userType")
+            api.login(LoginRequest(cleanEmail, password, userType))
             android.util.Log.d("AUTH", "Login OTP request → SUCCESS")
             Result.success(Unit)
         } catch (e: Exception) {
@@ -56,6 +62,8 @@ class AuthRepository(context: Context) {
             // iOS kimi: userType-ı dərhal saxla (app açılanda API gözləmədən istifadə olunur)
             tokenManager.userType = user.userType
             android.util.Log.d("AUTH", "Login verify → SUCCESS user=${user.name} userType=${user.userType}")
+            // FCM token-i backend-e qeyd et
+            registerFcmToken()
             Result.success(user)
         } catch (e: Exception) {
             android.util.Log.e("AUTH", "Login verify → FAIL: ${e.message}", e)
@@ -156,7 +164,11 @@ class AuthRepository(context: Context) {
     fun isLoggedIn(): Boolean = tokenManager.isLoggedIn
 
     fun logout() {
+        // FCM token-i deaktiv et (logout zamani)
+        unregisterFcmToken()
         tokenManager.clearTokens()
+        // Clear ApiClient singleton (köhnə token interceptor sıfırlansın)
+        ApiClient.clearInstance()
         // Clear all repository singletons so they reload fresh on next login
         WorkoutRepository.clearInstance()
         FoodRepository.clearInstance()
@@ -172,6 +184,50 @@ class AuthRepository(context: Context) {
         LiveSessionRepository.clearInstance()
         MarketplaceRepository.clearInstance()
         NewsRepository.clearInstance()
+    }
+
+    // ─── FCM Token Registration ────────────────────────────────────────────────
+    private fun registerFcmToken() {
+        try {
+            com.google.firebase.messaging.FirebaseMessaging.getInstance().token
+                .addOnSuccessListener { token ->
+                    Log.d("AUTH", "FCM token alinib: ${token.take(20)}...")
+                    @OptIn(DelicateCoroutinesApi::class)
+                    GlobalScope.launch(Dispatchers.IO) {
+                        try {
+                            val notifRepo = NotificationRepository.getInstance(context)
+                            val deviceName = "${Build.MANUFACTURER} ${Build.MODEL}"
+                            notifRepo.registerDeviceToken(token, deviceName)
+                        } catch (e: Exception) {
+                            Log.e("AUTH", "FCM token qeyd xetasi: ${e.message}")
+                        }
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Log.e("AUTH", "FCM token almaq olmadi: ${e.message}")
+                }
+        } catch (e: Exception) {
+            Log.e("AUTH", "Firebase init xetasi (google-services.json olmaya biler): ${e.message}")
+        }
+    }
+
+    private fun unregisterFcmToken() {
+        try {
+            com.google.firebase.messaging.FirebaseMessaging.getInstance().token
+                .addOnSuccessListener { token ->
+                    @OptIn(DelicateCoroutinesApi::class)
+                    GlobalScope.launch(Dispatchers.IO) {
+                        try {
+                            val notifRepo = NotificationRepository.getInstance(context)
+                            notifRepo.unregisterDeviceToken(token)
+                        } catch (e: Exception) {
+                            Log.e("AUTH", "FCM token silme xetasi: ${e.message}")
+                        }
+                    }
+                }
+        } catch (e: Exception) {
+            Log.e("AUTH", "Firebase token silme xetasi: ${e.message}")
+        }
     }
 
     suspend fun getCurrentUser(): Result<UserResponse> {

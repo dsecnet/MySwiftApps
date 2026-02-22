@@ -36,6 +36,10 @@ class MealPlanViewModel(application: Application) : AndroidViewModel(application
     private val _selectedFilter = MutableStateFlow<String?>(null)
     val selectedFilter: StateFlow<String?> = _selectedFilter.asStateFlow()
 
+    // Selected plan for editing
+    private val _selectedPlan = MutableStateFlow<MealPlan?>(null)
+    val selectedPlan: StateFlow<MealPlan?> = _selectedPlan.asStateFlow()
+
     val filteredPlans: List<MealPlan>
         get() = _selectedFilter.value?.let { filter ->
             _plans.value.filter { it.planType == filter }
@@ -103,6 +107,25 @@ class MealPlanViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    fun updatePlan(planId: String, request: MealPlanCreateRequest) {
+        _isLoading.value = true
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.updateMealPlan(planId, request).fold(
+                onSuccess = {
+                    withContext(Dispatchers.Main) { _successMessage.value = "Qida planı yeniləndi" }
+                    repository.getMealPlans().fold(
+                        onSuccess = { plans -> withContext(Dispatchers.Main) { _plans.value = plans } },
+                        onFailure = { /* ignore refresh error */ }
+                    )
+                },
+                onFailure = { withContext(Dispatchers.Main) { _errorMessage.value = ErrorParser.parseMessage(it as Exception) } }
+            )
+            withContext(Dispatchers.Main) { _isLoading.value = false }
+        }
+    }
+
+    fun selectPlan(plan: MealPlan) { _selectedPlan.value = plan }
+    fun clearSelectedPlan() { _selectedPlan.value = null }
     fun setFilter(planType: String?) { _selectedFilter.value = planType }
     fun clearError() { _errorMessage.value = null }
     fun clearSuccess() { _successMessage.value = null }

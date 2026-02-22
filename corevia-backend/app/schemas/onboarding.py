@@ -3,9 +3,17 @@ from datetime import datetime
 
 
 class OnboardingCreate(BaseModel):
-    fitness_goal: str = Field(..., max_length=100)
-    fitness_level: str = Field(..., max_length=50)
+    fitness_goal: str | None = Field(None, max_length=100)
+    fitness_level: str | None = Field(None, max_length=50)
     preferred_trainer_type: str | None = Field(None, max_length=100)
+    gender: str | None = Field(None, max_length=20)
+    age: int | None = Field(None, ge=13, le=100)
+    weight: float | None = Field(None, ge=20, le=300)
+    height: float | None = Field(None, ge=100, le=250)
+    # Trainer-specific fields
+    specialization: str | None = Field(None, max_length=100)
+    experience: int | None = Field(None, ge=0, le=50)
+    bio: str | None = Field(None, max_length=500)
 
 
 class OnboardingResponse(BaseModel):

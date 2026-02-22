@@ -24,6 +24,9 @@ class MarketplaceViewModel(application: Application) : AndroidViewModel(applicat
     private val _orders = MutableStateFlow<List<Order>>(emptyList())
     val orders: StateFlow<List<Order>> = _orders.asStateFlow()
 
+    private val _reviews = MutableStateFlow<List<ProductReview>>(emptyList())
+    val reviews: StateFlow<List<ProductReview>> = _reviews.asStateFlow()
+
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
@@ -52,7 +55,10 @@ class MarketplaceViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    fun selectProduct(product: Product) { _selectedProduct.value = product }
+    fun selectProduct(product: Product) {
+        _selectedProduct.value = product
+        loadReviews(product.id)
+    }
     fun clearSelectedProduct() { _selectedProduct.value = null }
 
     fun updateSearchQuery(query: String) { _searchQuery.value = query }
@@ -92,6 +98,34 @@ class MarketplaceViewModel(application: Application) : AndroidViewModel(applicat
                 onSuccess = { _orders.value = it },
                 onFailure = { /* silent */ }
             )
+        }
+    }
+
+    // ─── Reviews ────────────────────────────────────────────────────────────
+
+    fun loadReviews(productId: String) {
+        viewModelScope.launch {
+            repository.getProductReviews(productId).fold(
+                onSuccess = { _reviews.value = it },
+                onFailure = { _reviews.value = emptyList() }
+            )
+        }
+    }
+
+    fun submitReview(productId: String, rating: Int, comment: String?) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            repository.createProductReview(
+                CreateProductReviewRequest(productId, rating, comment)
+            ).fold(
+                onSuccess = { newReview ->
+                    _reviews.value = listOf(newReview) + _reviews.value
+                    _successMessage.value = "Rəyiniz əlavə edildi!"
+                    loadProducts()
+                },
+                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
+            )
+            _isLoading.value = false
         }
     }
 

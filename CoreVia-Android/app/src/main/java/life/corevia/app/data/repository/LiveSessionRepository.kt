@@ -10,7 +10,8 @@ class LiveSessionRepository(context: Context) {
 
     suspend fun getSessions(): Result<List<LiveSession>> {
         return try {
-            Result.success(api.getLiveSessions())
+            val response = api.getLiveSessions()
+            Result.success(response.sessions)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -19,6 +20,14 @@ class LiveSessionRepository(context: Context) {
     suspend fun getSession(sessionId: String): Result<LiveSession> {
         return try {
             Result.success(api.getLiveSession(sessionId))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun createSession(request: CreateLiveSessionRequest): Result<LiveSession> {
+        return try {
+            Result.success(api.createLiveSession(request))
         } catch (e: Exception) {
             Result.failure(e)
         }

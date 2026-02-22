@@ -54,9 +54,18 @@ class NotificationRepository(context: Context) {
         }
     }
 
-    suspend fun registerDeviceToken(token: String): Result<Unit> {
+    suspend fun registerDeviceToken(token: String, deviceName: String? = null): Result<Unit> {
         return try {
-            api.registerDeviceToken(DeviceTokenRequest(token))
+            api.registerDeviceToken(DeviceTokenRequest(fcmToken = token, deviceName = deviceName))
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun unregisterDeviceToken(token: String): Result<Unit> {
+        return try {
+            api.unregisterDeviceToken(DeviceTokenRequest(fcmToken = token))
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

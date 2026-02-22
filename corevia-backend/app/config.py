@@ -25,8 +25,11 @@ class Settings(BaseSettings):
     aws_bucket_name: str = "corevia-uploads"
     aws_region: str = "eu-central-1"
 
-    # OpenAI
+    # OpenAI (deprecated — Claude istifade olunur)
     openai_api_key: str = ""
+
+    # Anthropic Claude AI
+    anthropic_api_key: str = ""
 
     # Redis
     redis_url: str = "redis://localhost:6379/0"
@@ -50,7 +53,7 @@ class Settings(BaseSettings):
     smtp_from_name: str = "CoreVia"
     email_otp_mock: bool = True  # Test üçün true, production-da false
 
-    model_config = {"env_file": ".env", "extra": "ignore"}
+    model_config = {"env_file": ".env", "extra": "ignore", "env_ignore_empty": True}
 
 
 @lru_cache()

@@ -35,6 +35,7 @@ class User(Base):
     weight: Mapped[float | None] = mapped_column(Float, nullable=True)
     height: Mapped[float | None] = mapped_column(Float, nullable=True)
     goal: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    gender: Mapped[str | None] = mapped_column(String(20), nullable=True)
     trainer_id: Mapped[str | None] = mapped_column(String, ForeignKey("users.id"), nullable=True)
 
     # Trainer fields

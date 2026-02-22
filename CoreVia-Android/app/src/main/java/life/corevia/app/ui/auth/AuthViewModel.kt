@@ -35,10 +35,10 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     // LOGIN
     // ═══════════════════════════════════════════════════════════════════════════
 
-    fun login(email: String, password: String) {
+    fun login(email: String, password: String, userType: String) {
         _uiState.value = AuthUiState.Loading
         viewModelScope.launch(Dispatchers.IO) {
-            repository.sendLoginOtp(email, password).fold(
+            repository.sendLoginOtp(email, password, userType).fold(
                 onSuccess = { withContext(Dispatchers.Main) { _uiState.value = AuthUiState.OtpSent } },
                 onFailure = { withContext(Dispatchers.Main) { _uiState.value = AuthUiState.Error(it.message ?: "Xəta baş verdi") } }
             )

@@ -31,6 +31,15 @@ class TrainingPlanRepository(context: Context) {
         }
     }
 
+    // Update training plan (title, workouts, etc.)
+    suspend fun updateTrainingPlan(planId: String, request: TrainingPlanCreateRequest): Result<TrainingPlan> {
+        return try {
+            Result.success(api.updateTrainingPlan(planId, request))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     // iOS: TrainingPlanManager.completePlan(_:)
     suspend fun completeTrainingPlan(planId: String): Result<TrainingPlan> {
         return try {

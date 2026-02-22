@@ -36,6 +36,14 @@ class ContentRepository(context: Context) {
         }
     }
 
+    suspend fun updateContent(contentId: String, request: ContentCreateRequest): Result<ContentResponse> {
+        return try {
+            Result.success(api.updateContent(contentId, request))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun deleteContent(contentId: String): Result<Unit> {
         return try {
             api.deleteContent(contentId)

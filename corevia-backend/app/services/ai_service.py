@@ -2,16 +2,56 @@ import json
 import base64
 import io
 import logging
+import httpx
 from PIL import Image
-from openai import AsyncOpenAI
 from app.config import get_settings
 
 logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
-_has_valid_key = settings.openai_api_key and not settings.openai_api_key.startswith("your-")
-client = AsyncOpenAI(api_key=settings.openai_api_key) if _has_valid_key else None
+# Claude AI setup
+_has_valid_key = bool(
+    settings.anthropic_api_key
+    and not settings.anthropic_api_key.startswith("your-")
+    and len(settings.anthropic_api_key) > 20
+)
+CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
+CLAUDE_MODEL = "claude-sonnet-4-20250514"
+
+
+async def _call_claude(messages: list, max_tokens: int = 1000) -> str:
+    """Anthropic Claude API call helper"""
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.post(
+            CLAUDE_API_URL,
+            headers={
+                "x-api-key": settings.anthropic_api_key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model": CLAUDE_MODEL,
+                "max_tokens": max_tokens,
+                "messages": messages,
+            }
+        )
+
+    if response.status_code != 200:
+        raise Exception(f"Claude API error: {response.status_code}")
+
+    data = response.json()
+    return data["content"][0]["text"].strip()
+
+
+def _parse_json_response(content: str) -> dict:
+    """Parse JSON from Claude response, handling markdown code blocks"""
+    if "```json" in content:
+        content = content.split("```json")[1].split("```")[0].strip()
+    elif "```" in content:
+        content = content.split("```")[1].split("```")[0].strip()
+    return json.loads(content)
+
 
 FOOD_ANALYSIS_PROMPT = """Sen bir qida analiz ekspertisen. Bu sekilde gosterilen yemekleri analiz et.
 
@@ -41,53 +81,49 @@ Qaydalar:
 - meal_type: breakfast, lunch, dinner, snack
 - confidence: 0-1 arasi (ne qeder emin oldugun)
 - Eger sekilde yemek yoxdursa, "foods" bosq array olsun ve confidence 0 olsun
+- Azerbaycan yemeklerini deqiq tani (plov, dolma, qutab, dusbere, dovga ve s.)
 - Hemise AZ dilde cavab ver"""
 
 
 async def analyze_food_image(image_data: bytes) -> dict:
-    """OpenAI Vision API ile sekildeki yemekleri analiz et"""
-    if not client:
+    """Claude Vision API ile sekildeki yemekleri analiz et"""
+    if not _has_valid_key:
         return _mock_analysis()
 
     base64_image = base64.b64encode(image_data).decode("utf-8")
 
     try:
-        response = await client.chat.completions.create(
-            model="gpt-4o",
+        content = await _call_claude(
             messages=[
                 {
                     "role": "user",
                     "content": [
                         {"type": "text", "text": FOOD_ANALYSIS_PROMPT},
                         {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/jpeg;base64,{base64_image}",
-                                "detail": "low",
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": "image/jpeg",
+                                "data": base64_image,
                             },
                         },
                     ],
                 }
             ],
             max_tokens=1000,
-            temperature=0.3,
         )
 
-        content = response.choices[0].message.content.strip()
-
-        if content.startswith("```"):
-            content = content.split("\n", 1)[1]
-            content = content.rsplit("```", 1)[0]
-
-        return json.loads(content)
+        return _parse_json_response(content)
 
     except json.JSONDecodeError:
-        return {"error": "AI cavabi parse oluna bilmedi", "raw": content}
+        logger.error("Failed to parse Claude food analysis response")
+        return {"error": "AI cavabi emal edilmedi. Yeniden cehd edin."}
     except Exception as e:
-        return {"error": str(e)}
+        logger.error(f"Claude food analysis error: {e}")
+        return {"error": "AI analizi ugursuz oldu. Yeniden cehd edin."}
 
 
-RECOMMENDATION_PROMPT = """Sen bir fitness ve qidalanma mütexessisisen. Asagidaki istifadeci melumatlarini analiz et ve ona sexsi tovsiyeler ver.
+RECOMMENDATION_PROMPT = """Sen bir fitness ve qidalanma mutexessisisen. Asagidaki istifadeci melumatlarini analiz et ve ona sexsi tovsiyeler ver.
 
 Istifadeci melumatlari:
 {user_data}
@@ -110,38 +146,33 @@ Qaydalar:
 
 async def get_user_recommendations(user_data: dict) -> dict:
     """Istifadecinin datalarini analiz edib tovsiyeler ver"""
-    if not client:
+    if not _has_valid_key:
         return _mock_recommendations()
 
     try:
-        response = await client.chat.completions.create(
-            model="gpt-4o",
+        content = await _call_claude(
             messages=[
                 {
                     "role": "user",
-                    "content": RECOMMENDATION_PROMPT.format(user_data=json.dumps(user_data, ensure_ascii=False)),
+                    "content": RECOMMENDATION_PROMPT.format(
+                        user_data=json.dumps(user_data, ensure_ascii=False)
+                    ),
                 }
             ],
             max_tokens=1000,
-            temperature=0.5,
         )
 
-        content = response.choices[0].message.content.strip()
-        if content.startswith("```"):
-            content = content.split("\n", 1)[1]
-            content = content.rsplit("```", 1)[0]
-
-        return json.loads(content)
+        return _parse_json_response(content)
 
     except json.JSONDecodeError:
-        return {"error": "AI cavabi parse oluna bilmedi", "raw": content}
+        logger.error("Failed to parse Claude recommendation response")
+        return {"error": "AI cavabi emal edilmedi. Yeniden cehd edin."}
     except Exception as e:
-        return {"error": str(e)}
+        logger.error(f"Claude recommendation error: {e}")
+        return {"error": "AI tovsiye ugursuz oldu. Yeniden cehd edin."}
 
 
 TRAINER_VERIFICATION_PROMPT = """Sen tehlulesiz ve ciddi bir fitness ekspertisen. Bu sekil fitness muellimi (trainer) olmaq isteyen bir insana aiddir.
-
-SENI CIDDI QIYMETLENDIRME ETMEYE CAGIRIRIQ. Yalniz REAL fitness insanlarini tesdiqle.
 
 Cavabini YALNIZ JSON formatinda ver, baska hec ne yazma:
 {
@@ -156,59 +187,17 @@ Cavabini YALNIZ JSON formatinda ver, baska hec ne yazma:
 }
 
 CIDDI QAYDALAR:
-
-1. REJECT (confidence_score 0.0-0.3) - asagidaki hallarda:
-   - Sekilde insan yoxdur (heyvan, manzara, yemek, obyekt, meme, screenshot)
-   - Insanin uzU/bedeni gorunmur (arxadan cekilmis, qaranlig, bulanik)
-   - Selfie ve ya sadece sifet sekli (beden formasi gorunmur)
-   - Sekil internet-den goturulib (watermark, stock photo nishanlari)
-   - Cizgi film, photoshop, AI-generated sekil
-   - Qrup sekli (kim oldugu belli deyil)
-   - Ekran goruntusu (screenshot)
-
-2. LOW SCORE (confidence_score 0.3-0.5) - asagidaki hallarda:
-   - Insan gorunur amma fitness ile elaqesi yoxdur
-   - Normal geyimde, evde/kucede adi sekil
-   - Fiziki forma orta ve ya orta-asagi
-   - Hec bir fitness gostericisi yoxdur
-
-3. MEDIUM SCORE (confidence_score 0.5-0.75) - asagidaki hallarda:
-   - Idman zalinda sekil amma beden formasi orta
-   - Idman geyiminde amma fiziki forma bilinmir
-   - Fit gorunur amma trainer seviyyesinde deyil
-
-4. HIGH SCORE (confidence_score 0.75-1.0) - YALNIZ asagidaki hallarda:
-   - Aciq-aydin atletik beden qurulusu gorunur
-   - Ezele qurulusu gorunur (qol, kol, qarin, ayaq)
-   - Idman zali muhitinde ve ya idman geyiminde
-   - Professional fitness fotosuna benzeyir
-   - Beden formasi trainer seviyyesindedir
-
-5. photo_quality: "excellent", "good", "acceptable", "poor", "invalid" birini sec
-6. red_flags: su hallarin siyahisi: ["no_person", "face_only", "blurry", "screenshot", "stock_photo", "ai_generated", "group_photo", "no_fitness_indicators", "poor_lighting"]
-7. body_composition: "athletic", "fit", "average", "below_average" birini sec
-8. fitness_indicators: gozle gorunen fitness gostericileri siyahisi
-9. Hemise AZ dilinde analiz yaz
-
-DIQGET: Yalniz insanin BEDEN FORMASI gorunurse yuksek score ver. Eger seklin keyfiyyeti asagi olarsa ve ya beden formasi aydın deyilse, ASAGI score ver."""
+1. REJECT (0.0-0.3): Sekilde insan yoxdur, selfie, screenshot, AI-generated, qrup sekli
+2. LOW (0.3-0.5): Insan gorunur amma fitness ile elaqesi yoxdur
+3. MEDIUM (0.5-0.75): Idman zalinda amma beden formasi orta
+4. HIGH (0.75-1.0): Aciq-aydin atletik beden, ezele gorunur, professional
+5. photo_quality: "excellent", "good", "acceptable", "poor", "invalid"
+6. body_composition: "athletic", "fit", "average", "below_average"
+7. Hemise AZ dilinde analiz yaz"""
 
 
 def validate_image_basic(image_data: bytes) -> dict:
-    """Pillow ile seklin keyfiyyetini ve esasligini yoxla.
-
-    Qaytarir:
-        {
-            "is_valid": bool,
-            "width": int,
-            "height": int,
-            "aspect_ratio": float,
-            "file_size_kb": int,
-            "format": str,
-            "is_photo": bool,        # Real foto yoxsa cizgi/screenshot?
-            "quality_score": float,   # 0.0-1.0
-            "issues": [str],
-        }
-    """
+    """Pillow ile seklin keyfiyyetini yoxla"""
     issues = []
     quality_score = 1.0
 
@@ -231,27 +220,22 @@ def validate_image_basic(image_data: bytes) -> dict:
     fmt = (img.format or "unknown").upper()
     aspect_ratio = round(width / max(height, 1), 2)
 
-    # 1. Minimum olcu yoxlamasi — cox kicik sekiller reject olunur
     if width < 200 or height < 200:
         issues.append("too_small")
         quality_score -= 0.4
 
-    # 2. Minimum file size — cox kicik fayl (< 10KB) screenshot ve ya icon ola biler
     if file_size_kb < 10:
         issues.append("file_too_small")
         quality_score -= 0.3
 
-    # 3. Format yoxlamasi
     if fmt not in ("JPEG", "JPG", "PNG", "HEIC", "HEIF", "WEBP"):
         issues.append("unsupported_format")
         quality_score -= 0.2
 
-    # 4. Cox uzun/ensiz aspect ratio — banner, panorama, screenshot
     if aspect_ratio > 3.0 or aspect_ratio < 0.3:
         issues.append("unusual_aspect_ratio")
         quality_score -= 0.3
 
-    # 5. Renq analizi — tamam bir reng, screenshot/blank
     try:
         small = img.resize((50, 50)).convert("RGB")
         pixels = list(small.getdata())
@@ -264,19 +248,17 @@ def validate_image_basic(image_data: bytes) -> dict:
         from collections import Counter
         color_counts = Counter(pixels)
         most_common_count = color_counts.most_common(1)[0][1]
-        if most_common_count > 2250:  # 90% of 2500
+        if most_common_count > 2250:
             issues.append("mostly_solid_color")
             quality_score -= 0.5
 
     except Exception:
-        pass  # Renq analizi ugursuz olsa kecirik
+        pass
 
-    # 6. Sekil coxmu kicikdir (real foto adeten 100KB+)
     if file_size_kb < 50 and width < 400:
         issues.append("likely_not_real_photo")
         quality_score -= 0.2
 
-    # 7. Yaxsi keyfiyyet gostericileri
     is_photo = len(issues) == 0 or (len(issues) <= 1 and "likely_not_real_photo" not in issues)
 
     if 400 <= min(width, height) <= 800:
@@ -300,12 +282,7 @@ def validate_image_basic(image_data: bytes) -> dict:
 
 
 async def analyze_trainer_photo(image_data: bytes) -> dict:
-    """Trainer-in fitness formasini analiz et.
-
-    1. Evvelce Pillow ile sekil keyfiyyetini yoxla
-    2. OpenAI key varsa — GPT-4 Vision ile detalli analiz
-    3. OpenAI key yoxdursa — yalniz image validation neticesini qaytarir
-    """
+    """Trainer-in fitness formasini analiz et — Claude Vision ile"""
 
     img_info = validate_image_basic(image_data)
     logger.info(f"Image validation: {img_info}")
@@ -314,7 +291,7 @@ async def analyze_trainer_photo(image_data: bytes) -> dict:
         return {
             "is_fitness_person": False,
             "confidence_score": 0.0,
-            "analysis": f"Yüklənən şəkil keyfiyyətsizdir. Problemlər: {', '.join(img_info['issues'])}",
+            "analysis": f"Yuklenen sekil keyfiyyetsizdir. Problemler: {', '.join(img_info['issues'])}",
             "body_composition": "below_average",
             "visible_muscle_definition": False,
             "fitness_indicators": [],
@@ -323,42 +300,34 @@ async def analyze_trainer_photo(image_data: bytes) -> dict:
             "image_validation": img_info,
         }
 
-    if client:
+    if _has_valid_key:
         base64_image = base64.b64encode(image_data).decode("utf-8")
 
         try:
-            response = await client.chat.completions.create(
-                model="gpt-4o",
+            content = await _call_claude(
                 messages=[
                     {
                         "role": "user",
                         "content": [
                             {"type": "text", "text": TRAINER_VERIFICATION_PROMPT},
                             {
-                                "type": "image_url",
-                                "image_url": {
-                                    "url": f"data:image/jpeg;base64,{base64_image}",
-                                    "detail": "high",
+                                "type": "image",
+                                "source": {
+                                    "type": "base64",
+                                    "media_type": "image/jpeg",
+                                    "data": base64_image,
                                 },
                             },
                         ],
                     }
                 ],
                 max_tokens=1000,
-                temperature=0.2,
             )
 
-            content = response.choices[0].message.content.strip()
-
-            if content.startswith("```"):
-                content = content.split("\n", 1)[1]
-                content = content.rsplit("```", 1)[0]
-
-            ai_result = json.loads(content)
+            ai_result = _parse_json_response(content)
 
             ai_score = ai_result.get("confidence_score", 0.0)
             img_quality = img_info["quality_score"]
-
             final_score = round(ai_score * 0.7 + img_quality * 0.3, 2)
 
             if not ai_result.get("is_fitness_person", False):
@@ -375,24 +344,17 @@ async def analyze_trainer_photo(image_data: bytes) -> dict:
             return ai_result
 
         except json.JSONDecodeError:
-            return {"error": "AI cavabi parse oluna bilmedi", "raw": content}
+            logger.error("Failed to parse Claude trainer analysis response")
+            return {"error": "AI cavabi emal edilmedi. Yeniden cehd edin."}
         except Exception as e:
-            return {"error": str(e)}
+            logger.error(f"Claude trainer analysis error: {e}")
+            return {"error": "AI analizi ugursuz oldu."}
 
     return _smart_mock_verification(img_info)
 
 
 def _smart_mock_verification(img_info: dict) -> dict:
-    """OpenAI key olmayanda Pillow analizi ile ağıllı mock cavab.
-
-    Seklin keyfiyyetine gore score verir:
-    - Yaxsi keyfiyyetli, boyuk, real foto → 0.60 (pending — admin yoxlasin)
-    - Orta keyfiyyet → 0.45 (pending/rejected zone)
-    - Pis keyfiyyet → 0.15 (rejected)
-
-    HEVAXT avtomatik verified (0.80+) vermir — OpenAI olmadan
-    yalniz admin manual tesdiq ede biler.
-    """
+    """API key olmayanda Pillow analizi ile mock cavab"""
     quality = img_info["quality_score"]
     issues = img_info["issues"]
 
@@ -400,7 +362,7 @@ def _smart_mock_verification(img_info: dict) -> dict:
         return {
             "is_fitness_person": False,
             "confidence_score": 0.10,
-            "analysis": "Şəkil keyfiyyəti çox aşağıdır və ya düzgün yüklənməyib. Zəhmət olmasa aydın fitness şəkli yükləyin.",
+            "analysis": "Sekil keyfiyyeti cox asagidir. Aydin fitness sekli yukleyin.",
             "body_composition": "below_average",
             "visible_muscle_definition": False,
             "fitness_indicators": [],
@@ -415,7 +377,7 @@ def _smart_mock_verification(img_info: dict) -> dict:
         return {
             "is_fitness_person": False,
             "confidence_score": 0.35,
-            "analysis": "Şəkil yükləndi, lakin keyfiyyət yaxşılaşdırılmalıdır. Admin tərəfindən yoxlanılacaq.",
+            "analysis": "Sekil yuklendi, keyfiyyet yaxsilasdirilmalidir. Admin yoxlayacaq.",
             "body_composition": "average",
             "visible_muscle_definition": False,
             "fitness_indicators": [],
@@ -429,7 +391,7 @@ def _smart_mock_verification(img_info: dict) -> dict:
     return {
         "is_fitness_person": True,
         "confidence_score": 0.60,
-        "analysis": "Şəkil keyfiyyəti yaxşıdır. AI analizi mövcud olmadığı üçün admin tərəfindən manual yoxlanılacaq.",
+        "analysis": "Sekil keyfiyyeti yaxsidir. Admin terefinden manual yoxlanilacaq.",
         "body_composition": "average",
         "visible_muscle_definition": False,
         "fitness_indicators": [],
@@ -442,7 +404,7 @@ def _smart_mock_verification(img_info: dict) -> dict:
 
 
 def _mock_analysis() -> dict:
-    """OpenAI key olmayanda test ucun mock cavab"""
+    """API key olmayanda mock cavab"""
     return {
         "foods": [
             {
@@ -460,15 +422,15 @@ def _mock_analysis() -> dict:
         "total_fats": 10.0,
         "meal_type": "lunch",
         "confidence": 0.0,
-        "notes": "Bu mock cavabdir. .env faylinda OPENAI_API_KEY teyin edin.",
+        "notes": "Mock cavab. .env-de ANTHROPIC_API_KEY teyin edin.",
         "is_mock": True,
     }
 
 
 def _mock_recommendations() -> dict:
-    """OpenAI key olmayanda test ucun mock tovsiyeler"""
+    """API key olmayanda mock tovsiyeler"""
     return {
-        "summary": "Bu mock tovsiyedir. .env faylinda OPENAI_API_KEY teyin edin.",
+        "summary": "Mock tovsiye. .env-de ANTHROPIC_API_KEY teyin edin.",
         "nutrition_tips": [
             "Gunde 2L su icin",
             "Protein miqdarini artirin",

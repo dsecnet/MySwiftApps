@@ -182,14 +182,14 @@ fun AddMeasurementSheet(
             Button(
                 onClick = {
                     val request = BodyMeasurementCreateRequest(
-                        weight = weight.toDoubleOrNull(),
-                        height = height.toDoubleOrNull(),
-                        bodyFat = bodyFat.toDoubleOrNull(),
-                        muscleMass = muscleMass.toDoubleOrNull(),
-                        chest = chest.toDoubleOrNull(),
-                        waist = waist.toDoubleOrNull(),
-                        hips = hips.toDoubleOrNull(),
-                        arms = arms.toDoubleOrNull(),
+                        measuredAt = java.time.LocalDateTime.now().toString(),
+                        weightKg = weight.toDoubleOrNull() ?: 0.0,
+                        bodyFatPercent = bodyFat.toDoubleOrNull(),
+                        muscleMassKg = muscleMass.toDoubleOrNull(),
+                        chestCm = chest.toDoubleOrNull(),
+                        waistCm = waist.toDoubleOrNull(),
+                        hipsCm = hips.toDoubleOrNull(),
+                        armsCm = arms.toDoubleOrNull(),
                         notes = notes.ifBlank { null }
                     )
                     onSave(request)

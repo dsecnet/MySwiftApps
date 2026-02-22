@@ -3,6 +3,7 @@ package life.corevia.app.data.repository
 import android.content.Context
 import life.corevia.app.data.api.ApiClient
 import life.corevia.app.data.models.*
+import okhttp3.MultipartBody
 
 /**
  * iOS FoodManager.swift-in Android Repository ekvivalenti.
@@ -33,6 +34,15 @@ class FoodRepository(context: Context) {
     suspend fun updateFoodEntry(id: String, request: FoodEntryCreateRequest): Result<FoodEntry> {
         return try {
             Result.success(api.updateFoodEntry(id, request))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // AI Food Analysis
+    suspend fun analyzeFoodImage(filePart: MultipartBody.Part): Result<FoodAnalysisResult> {
+        return try {
+            Result.success(api.analyzeFoodImage(filePart))
         } catch (e: Exception) {
             Result.failure(e)
         }

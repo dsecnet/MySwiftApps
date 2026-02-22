@@ -68,7 +68,7 @@ fun EditFoodSheet(
                 text = "Qidani Duzelis Et",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = AppTheme.Colors.primaryText
             )
 
             // ─── Ogun tipi ─────────────────────────────────────────────
@@ -207,7 +207,7 @@ fun EditFoodSheet(
 private fun editFoodTextFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedBorderColor = AppTheme.Colors.accent,
     unfocusedBorderColor = AppTheme.Colors.separator,
-    focusedTextColor = Color.White,
-    unfocusedTextColor = Color.White,
+    focusedTextColor = AppTheme.Colors.primaryText,
+    unfocusedTextColor = AppTheme.Colors.primaryText,
     cursorColor = AppTheme.Colors.accent
 )

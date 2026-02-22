@@ -21,7 +21,8 @@ class PremiumRepository(context: Context) {
 
     suspend fun getPlans(): Result<List<PremiumPlan>> {
         return try {
-            Result.success(api.getPremiumPlans())
+            val response = api.getPremiumPlans()
+            Result.success(response.plans)
         } catch (e: Exception) {
             Result.failure(e)
         }

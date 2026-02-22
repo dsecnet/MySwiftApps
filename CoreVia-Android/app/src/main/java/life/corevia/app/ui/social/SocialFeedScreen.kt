@@ -1,6 +1,7 @@
 package life.corevia.app.ui.social
 
 import life.corevia.app.ui.theme.AppTheme
+import life.corevia.app.ui.theme.CoreViaAnimatedBackground
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -26,12 +27,14 @@ import androidx.compose.ui.unit.sp
 import life.corevia.app.data.models.SocialPost
 
 /**
- * iOS: SocialFeedView.swift — post siyahısı + FAB
+ * iOS: SocialFeedView.swift — post siyahisi + FAB + follow + user profile navigation
  */
 @Composable
 fun SocialFeedScreen(
     viewModel: SocialViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onNavigateToUserProfile: (String) -> Unit = {},
+    onNavigateToAchievements: () -> Unit = {}
 ) {
     val posts by viewModel.posts.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -40,10 +43,10 @@ fun SocialFeedScreen(
     val showCreatePost by viewModel.showCreatePost.collectAsState()
     val showComments by viewModel.showComments.collectAsState()
 
+    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.accent) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppTheme.Colors.background)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             // ── Header ──────────────────────────────────────────────────────────
@@ -81,11 +84,20 @@ fun SocialFeedScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "İctimaiyyət",
+                        text = "Ictimaiyyet",
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
                         color = AppTheme.Colors.primaryText
                     )
+                    Spacer(modifier = Modifier.weight(1f))
+                    // Achievements button
+                    IconButton(onClick = onNavigateToAchievements) {
+                        Icon(
+                            imageVector = Icons.Outlined.EmojiEvents,
+                            contentDescription = "Nailiyyetler",
+                            tint = AppTheme.Colors.accent
+                        )
+                    }
                 }
             }
 
@@ -105,16 +117,16 @@ fun SocialFeedScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("📱", fontSize = 64.sp)
+                            Icon(Icons.Outlined.Forum, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(64.dp))
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
-                                text = "Hələ post yoxdur",
+                                text = "Hele post yoxdur",
                                 color = AppTheme.Colors.primaryText,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                text = "İlk postu siz paylaşın!",
+                                text = "Ilk postu siz paylasin!",
                                 color = AppTheme.Colors.secondaryText,
                                 fontSize = 14.sp
                             )
@@ -132,7 +144,9 @@ fun SocialFeedScreen(
                                 post = post,
                                 onLike = { viewModel.toggleLike(post.id) },
                                 onComment = { viewModel.openComments(post.id) },
-                                onDelete = { viewModel.deletePost(post.id) }
+                                onDelete = { viewModel.deletePost(post.id) },
+                                onUserTap = { onNavigateToUserProfile(post.userId) },
+                                onFollow = { viewModel.followUser(post.userId) }
                             )
                         }
                         // Bottom padding for FAB
@@ -159,7 +173,7 @@ fun SocialFeedScreen(
         if (showCreatePost) {
             CreatePostSheet(
                 onDismiss = { viewModel.setShowCreatePost(false) },
-                onPost = { content, type -> viewModel.createPost(content, type) },
+                onPost = { content, type, imageUri -> viewModel.createPost(content, type, imageUri) },
                 isLoading = isLoading
             )
         }
@@ -195,12 +209,13 @@ fun SocialFeedScreen(
                 containerColor = AppTheme.Colors.error,
                 action = {
                     TextButton(onClick = { viewModel.clearError() }) {
-                        Text("Bağla", color = Color.White)
+                        Text("Bagla", color = Color.White)
                     }
                 }
             ) { Text(error, color = Color.White) }
         }
     }
+    } // CoreViaAnimatedBackground
 }
 
 // ─── PostCard ────────────────────────────────────────────────────────────────
@@ -209,7 +224,9 @@ fun PostCard(
     post: SocialPost,
     onLike: () -> Unit,
     onComment: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onUserTap: () -> Unit = {},
+    onFollow: () -> Unit = {}
 ) {
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
@@ -221,12 +238,12 @@ fun PostCard(
             .padding(16.dp)
     ) {
         Column {
-            // Header: avatar + name + time
+            // Header: avatar + name + time + follow
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Avatar
+                // Avatar (clickable to profile)
                 Box(
                     modifier = Modifier
                         .size(40.dp)
@@ -235,7 +252,8 @@ fun PostCard(
                                 colors = listOf(AppTheme.Colors.accent, AppTheme.Colors.accentDark)
                             ),
                             shape = CircleShape
-                        ),
+                        )
+                        .clickable { onUserTap() },
                     contentAlignment = Alignment.Center
                 ) {
                     val initials = (post.userName ?: "?")
@@ -253,10 +271,11 @@ fun PostCard(
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = post.userName ?: "İstifadəçi",
+                        text = post.userName ?: "Istifadeci",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = AppTheme.Colors.primaryText
+                        color = AppTheme.Colors.primaryText,
+                        modifier = Modifier.clickable { onUserTap() }
                     )
                     Text(
                         text = formatPostTime(post.createdAt),
@@ -275,8 +294,8 @@ fun PostCard(
                     ) {
                         Text(
                             text = when (post.postType) {
-                                "workout" -> "💪 Məşq"
-                                "achievement" -> "🏆 Nailiyyət"
+                                "workout" -> "Mesq"
+                                "achievement" -> "Nailiyyet"
                                 else -> post.postType
                             },
                             fontSize = 11.sp,
@@ -290,11 +309,39 @@ fun PostCard(
 
             // Content
             Text(
-                text = post.content,
+                text = post.content ?: "",
                 fontSize = 15.sp,
                 color = AppTheme.Colors.primaryText,
                 lineHeight = 22.sp
             )
+
+            // Image indicator (if post has image)
+            if (!post.imageUrl.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(160.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(AppTheme.Colors.accent.copy(alpha = 0.1f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Outlined.Image,
+                            contentDescription = null,
+                            tint = AppTheme.Colors.accent,
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Sekil",
+                            fontSize = 12.sp,
+                            color = AppTheme.Colors.accent
+                        )
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -310,7 +357,7 @@ fun PostCard(
                 ) {
                     Icon(
                         imageVector = if (post.isLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                        contentDescription = "Bəyən",
+                        contentDescription = "Beyen",
                         tint = if (post.isLiked) AppTheme.Colors.accent else AppTheme.Colors.tertiaryText,
                         modifier = Modifier.size(20.dp)
                     )
@@ -329,7 +376,7 @@ fun PostCard(
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Email,
-                        contentDescription = "Şərh",
+                        contentDescription = "Serh",
                         tint = AppTheme.Colors.tertiaryText,
                         modifier = Modifier.size(20.dp)
                     )
@@ -350,7 +397,7 @@ fun PostCard(
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.MoreVert,
-                        contentDescription = "Daha çox",
+                        contentDescription = "Daha cox",
                         tint = AppTheme.Colors.tertiaryText,
                         modifier = Modifier.size(16.dp)
                     )
@@ -363,7 +410,7 @@ fun PostCard(
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
             title = { Text("Postu sil?", color = AppTheme.Colors.primaryText) },
-            text = { Text("Bu post silinəcək.", color = AppTheme.Colors.secondaryText) },
+            text = { Text("Bu post silinecek.", color = AppTheme.Colors.secondaryText) },
             confirmButton = {
                 TextButton(onClick = {
                     showDeleteConfirm = false
@@ -372,7 +419,7 @@ fun PostCard(
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text("Ləğv et", color = AppTheme.Colors.secondaryText)
+                    Text("Legv et", color = AppTheme.Colors.secondaryText)
                 }
             },
             containerColor = AppTheme.Colors.secondaryBackground

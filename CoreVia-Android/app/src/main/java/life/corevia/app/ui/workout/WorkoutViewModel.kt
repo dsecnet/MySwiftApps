@@ -43,6 +43,14 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
     private val _showAddWorkout = MutableStateFlow(false)
     val showAddWorkout: StateFlow<Boolean> = _showAddWorkout.asStateFlow()
 
+    // Detail screen: selected workout for navigation
+    private val _selectedWorkout = MutableStateFlow<Workout?>(null)
+    val selectedWorkout: StateFlow<Workout?> = _selectedWorkout.asStateFlow()
+
+    // Backend stats endpoint data
+    private val _workoutStats = MutableStateFlow<WorkoutStatsResponse?>(null)
+    val workoutStats: StateFlow<WorkoutStatsResponse?> = _workoutStats.asStateFlow()
+
     // ─── Computed Properties ──────────────────────────────────────────────────
 
     // iOS: var todayWorkouts: [Workout]
@@ -96,6 +104,7 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
 
     init {
         loadWorkouts()
+        loadStats()
     }
 
     // iOS: func loadWorkouts() async
@@ -171,6 +180,40 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
                     _workouts.value = _workouts.value.filter { it.id != workoutId }
                 },
                 onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
+            )
+        }
+    }
+
+    // ─── Update workout (edit) ────────────────────────────────────────────────
+    fun updateWorkout(workoutId: String, request: WorkoutUpdateRequest) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            repository.updateWorkout(workoutId, request).fold(
+                onSuccess = { updated ->
+                    _workouts.value = _workouts.value.map {
+                        if (it.id == updated.id) updated else it
+                    }
+                    // Update selected workout if it's the one being edited
+                    if (_selectedWorkout.value?.id == updated.id) {
+                        _selectedWorkout.value = updated
+                    }
+                },
+                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
+            )
+            _isLoading.value = false
+        }
+    }
+
+    // ─── Detail screen navigation ──────────────────────────────────────────────
+    fun selectWorkout(workout: Workout) { _selectedWorkout.value = workout }
+    fun clearSelectedWorkout() { _selectedWorkout.value = null }
+
+    // ─── Backend stats endpoint ────────────────────────────────────────────────
+    fun loadStats() {
+        viewModelScope.launch {
+            repository.getWorkoutStats().fold(
+                onSuccess = { _workoutStats.value = it },
+                onFailure = { /* Stats yükləmə xətası – sessiz keç */ }
             )
         }
     }

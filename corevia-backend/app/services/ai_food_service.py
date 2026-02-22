@@ -1,18 +1,20 @@
 """
-AI Food Analysis Service - OpenAI Vision API Integration
+AI Food Analysis Service - Anthropic Claude Vision API Integration
 
-Analyzes food images using OpenAI GPT-4 Vision to extract:
+Analyzes food images using Claude Sonnet Vision to extract:
 - Food name
 - Calories
 - Protein, Carbs, Fats
 - Portion size estimation
+
+Claude Vision daha deqiq neticeler verir, xususen Azerbaycan yemeleri ucun.
 """
 
 import base64
 import json
 import logging
-from typing import Dict, Optional
-from openai import AsyncOpenAI
+from typing import Dict
+import httpx
 from app.config import get_settings
 
 logger = logging.getLogger(__name__)
@@ -21,127 +23,144 @@ settings = get_settings()
 
 class AIFoodService:
     """
-    OpenAI Vision-based food analysis service
+    Anthropic Claude Vision-based food analysis service
     """
 
     def __init__(self):
-        self.client = AsyncOpenAI(api_key=settings.openai_api_key)
-        self.model = "gpt-4o-mini"  # Faster and cheaper than gpt-4o
+        self.api_key = settings.anthropic_api_key
+        self.model = "claude-sonnet-4-20250514"
+        self.api_url = "https://api.anthropic.com/v1/messages"
+        self._has_valid_key = bool(
+            self.api_key
+            and not self.api_key.startswith("your-")
+            and len(self.api_key) > 20
+        )
 
     async def analyze_food_image(
         self,
         image_base64: str,
-        language: str = "az"  # az, en, tr, ru
+        language: str = "az",
+        media_type: str = "image/jpeg"
     ) -> Dict:
         """
         Analyze food image and return nutritional information
-
-        Args:
-            image_base64: Base64 encoded image string
-            language: Response language (az=Azerbaijani, en=English, tr=Turkish, ru=Russian)
-
-        Returns:
-            {
-                "success": bool,
-                "food_name": str,
-                "calories": int,
-                "protein": float,
-                "carbs": float,
-                "fats": float,
-                "portion_size": str,
-                "confidence": float,  # 0.0 - 1.0
-                "error": str (optional)
-            }
         """
 
-        if not settings.openai_api_key or settings.openai_api_key == "your-openai-api-key-here":
-            logger.warning("OpenAI API key not configured, using mock data")
+        if not self._has_valid_key:
+            logger.warning("Anthropic API key not configured, using mock data")
             return self._mock_analysis()
 
         try:
-            # Language-specific prompts
             prompts = {
-                "az": """Şəkildəki qidanı təhlil et və aşağıdakı JSON formatında cavab ver:
+                "az": """Sekildeki qidani tehlil et. Eger sekilde qida gorunmurse, confidence: 0.0 qaytar.
+
+YALNIZ bu JSON formatinda cavab ver, basqa hec ne yazma:
 {
-  "food_name": "qida adı (azərbaycanca)",
-  "calories": kalori miqdarı (tam ədəd),
+  "food_name": "qida adi (azerbaycanca)",
+  "calories": kalori miqdari (tam eded),
   "protein": protein qramla (onluq),
   "carbs": karbohidrat qramla (onluq),
-  "fats": yağ qramla (onluq),
-  "portion_size": "təxmini porsiya ölçüsü",
-  "confidence": 0.0-1.0 arası inam dərəcəsi
+  "fats": yag qramla (onluq),
+  "portion_size": "texmini porsiya olcusu (qram ile)",
+  "confidence": 0.0-1.0 arasi inam derecesi
 }
 
-Əgər şəkildə qida görünmürsə və ya təhlil mümkün deyilsə, confidence: 0.0 qaytar.""",
+Qaydalar:
+- Kalori ve makrolari porsiya olcusune gore hesabla
+- Azerbaycan yemeklerini (plov, dolma, qutab, dusbere, dovga, lulekebab ve s.) deqiq tani
+- Porsiya olcusunu qram ile goster (mes: "1 bosqab (~350g)")
+- Eger bir nece yemek varsa, hamisini birlikde hesabla
+- Eger sekil bulaniq ve ya qida deyilse, confidence asagi olsun""",
 
-                "en": """Analyze the food in the image and respond in this JSON format:
+                "en": """Analyze the food in the image. If no food is visible, return confidence: 0.0.
+
+Respond ONLY with this JSON format, nothing else:
 {
-  "food_name": "food name (in English)",
+  "food_name": "food name",
   "calories": calorie count (integer),
   "protein": protein in grams (decimal),
   "carbs": carbohydrates in grams (decimal),
   "fats": fat in grams (decimal),
-  "portion_size": "approximate portion size",
+  "portion_size": "approximate portion size with grams",
   "confidence": confidence level 0.0-1.0
-}
+}""",
 
-If no food is visible or analysis is not possible, return confidence: 0.0.""",
+                "tr": """Resimdeki yiyecegi analiz et. Yemek yoksa confidence: 0.0 dondur.
 
-                "tr": """Resimdeki yiyeceği analiz et ve şu JSON formatında yanıt ver:
+YALNIZCA bu JSON formatinda yanit ver:
 {
-  "food_name": "yemek adı (Türkçe)",
-  "calories": kalori miktarı (tam sayı),
-  "protein": protein gram olarak (ondalık),
-  "carbs": karbonhidrat gram olarak (ondalık),
-  "fats": yağ gram olarak (ondalık),
-  "portion_size": "yaklaşık porsiyon boyutu",
-  "confidence": 0.0-1.0 arası güven seviyesi
-}
+  "food_name": "yemek adi (Turkce)",
+  "calories": kalori miktari (tam sayi),
+  "protein": protein gram (ondalik),
+  "carbs": karbonhidrat gram (ondalik),
+  "fats": yag gram (ondalik),
+  "portion_size": "yaklasik porsiyon boyutu (gram ile)",
+  "confidence": 0.0-1.0 arasi guven seviyesi
+}""",
 
-Eğer resimde yemek görünmüyorsa veya analiz mümkün değilse, confidence: 0.0 döndür.""",
+                "ru": """Proanaliziruj edu na izobrazhenii. Esli eda ne vidna, verni confidence: 0.0.
 
-                "ru": """Проанализируй еду на изображении и ответь в формате JSON:
+Otvet TOLKO v etom JSON formate:
 {
-  "food_name": "название блюда (на русском)",
-  "calories": количество калорий (целое число),
-  "protein": белок в граммах (десятичное),
-  "carbs": углеводы в граммах (десятичное),
-  "fats": жиры в граммах (десятичное),
-  "portion_size": "примерный размер порции",
-  "confidence": уровень уверенности 0.0-1.0
-}
-
-Если еда не видна или анализ невозможен, верни confidence: 0.0."""
+  "food_name": "nazvanie blyuda (na russkom)",
+  "calories": kolichestvo kalorij (celoe chislo),
+  "protein": belok v grammah (desyatichnoe),
+  "carbs": uglevody v grammah (desyatichnoe),
+  "fats": zhiry v grammah (desyatichnoe),
+  "portion_size": "primernyj razmer porcii (v grammah)",
+  "confidence": uroven uverennosti 0.0-1.0
+}"""
             }
 
             prompt = prompts.get(language, prompts["az"])
 
-            # Call OpenAI Vision API
-            response = await self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": prompt},
+            if media_type not in ("image/jpeg", "image/png", "image/gif", "image/webp"):
+                media_type = "image/jpeg"
+
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    self.api_url,
+                    headers={
+                        "x-api-key": self.api_key,
+                        "anthropic-version": "2023-06-01",
+                        "content-type": "application/json",
+                    },
+                    json={
+                        "model": self.model,
+                        "max_tokens": 500,
+                        "messages": [
                             {
-                                "type": "image_url",
-                                "image_url": {
-                                    "url": f"data:image/jpeg;base64,{image_base64}",
-                                    "detail": "low"  # Faster and cheaper
-                                }
+                                "role": "user",
+                                "content": [
+                                    {
+                                        "type": "image",
+                                        "source": {
+                                            "type": "base64",
+                                            "media_type": media_type,
+                                            "data": image_base64,
+                                        }
+                                    },
+                                    {
+                                        "type": "text",
+                                        "text": prompt,
+                                    }
+                                ]
                             }
                         ]
                     }
-                ],
-                max_tokens=300,
-                temperature=0.3,  # Lower = more consistent results
-            )
+                )
 
-            # Parse response
-            content = response.choices[0].message.content.strip()
+            if response.status_code != 200:
+                logger.error(f"Anthropic API error {response.status_code}: {response.text[:200]}")
+                return {
+                    "success": False,
+                    "error": f"AI servisi cavab vermedi (status: {response.status_code})"
+                }
 
-            # Extract JSON from response (handle markdown code blocks)
+            data = response.json()
+            content = data["content"][0]["text"].strip()
+
+            # Extract JSON from markdown code blocks
             if "```json" in content:
                 content = content.split("```json")[1].split("```")[0].strip()
             elif "```" in content:
@@ -149,53 +168,59 @@ Eğer resimde yemek görünmüyorsa veya analiz mümkün değilse, confidence: 0
 
             result = json.loads(content)
 
-            # Validate result
-            if result.get("confidence", 0) < 0.3:
+            confidence = float(result.get("confidence", 0))
+            if confidence < 0.3:
                 return {
                     "success": False,
-                    "error": "Şəkildə qida aşkar edilmədi və ya analiz etmək mümkün olmadı."
+                    "error": "Sekilde qida askar edilmedi ve ya analiz etmek mumkun olmadi."
                 }
 
             return {
                 "success": True,
-                "food_name": result.get("food_name", "Naməlum Qida"),
+                "food_name": result.get("food_name", "Namelum Qida"),
                 "calories": int(result.get("calories", 0)),
-                "protein": float(result.get("protein", 0.0)),
-                "carbs": float(result.get("carbs", 0.0)),
-                "fats": float(result.get("fats", 0.0)),
+                "protein": round(float(result.get("protein", 0.0)), 1),
+                "carbs": round(float(result.get("carbs", 0.0)), 1),
+                "fats": round(float(result.get("fats", 0.0)), 1),
                 "portion_size": result.get("portion_size", "Standart"),
-                "confidence": float(result.get("confidence", 0.0))
+                "confidence": round(confidence, 2)
             }
 
         except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse OpenAI response: {e}")
+            logger.error(f"Failed to parse Claude response: {e}")
             return {
                 "success": False,
-                "error": "AI cavabı emal edilmədi. Yenidən cəhd edin."
+                "error": "AI cavabi emal edilmedi. Yeniden cehd edin."
+            }
+
+        except httpx.TimeoutException:
+            logger.error("Anthropic API timeout")
+            return {
+                "success": False,
+                "error": "AI servisi cavab vermedi. Yeniden cehd edin."
             }
 
         except Exception as e:
             logger.error(f"AI food analysis error: {e}")
             return {
                 "success": False,
-                "error": f"AI analizi uğursuz oldu: {str(e)}"
+                "error": "AI analizi ugursuz oldu. Yeniden cehd edin."
             }
 
     def _mock_analysis(self) -> Dict:
-        """Mock analysis for testing without OpenAI API key"""
+        """Mock analysis for testing without API key"""
         import random
 
         mock_foods = [
-            {"name": "Plov", "cal": 450, "p": 18.0, "c": 55.0, "f": 15.0, "portion": "1 boşqab"},
-            {"name": "Düşbərə", "cal": 320, "p": 22.0, "c": 38.0, "f": 9.0, "portion": "1 kasa"},
-            {"name": "Qutab", "cal": 280, "p": 12.0, "c": 35.0, "f": 11.0, "portion": "2 ədəd"},
-            {"name": "Balıq Kebabı", "cal": 350, "p": 38.0, "c": 5.0, "f": 18.0, "portion": "1 porsiya"},
-            {"name": "Salat", "cal": 120, "p": 4.0, "c": 12.0, "f": 6.0, "portion": "1 qab"},
+            {"name": "Plov", "cal": 450, "p": 18.0, "c": 55.0, "f": 15.0, "portion": "1 bosqab (~350g)"},
+            {"name": "Dusbere", "cal": 320, "p": 22.0, "c": 38.0, "f": 9.0, "portion": "1 kasa (~300g)"},
+            {"name": "Qutab (et)", "cal": 280, "p": 12.0, "c": 35.0, "f": 11.0, "portion": "2 eded (~200g)"},
+            {"name": "Lule kebab", "cal": 350, "p": 38.0, "c": 5.0, "f": 18.0, "portion": "1 porsiya (~250g)"},
+            {"name": "Salat", "cal": 120, "p": 4.0, "c": 12.0, "f": 6.0, "portion": "1 qab (~200g)"},
         ]
 
         food = random.choice(mock_foods)
-
-        logger.info("🔶 MOCK MODE: AI Food Analysis using random data")
+        logger.info("MOCK MODE: AI Food Analysis (API key not set)")
 
         return {
             "success": True,
@@ -205,7 +230,8 @@ Eğer resimde yemek görünmüyorsa veya analiz mümkün değilse, confidence: 0
             "carbs": food["c"],
             "fats": food["f"],
             "portion_size": food["portion"],
-            "confidence": 0.85
+            "confidence": 0.85,
+            "is_mock": True
         }
 
 

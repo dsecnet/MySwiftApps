@@ -31,6 +31,8 @@ from app.schemas.marketplace import (
     MarketplaceListResponse,
     MyProductsResponse,
     MyPurchasesResponse,
+    OrderCreateRequest,
+    OrderResponse,
 )
 from app.utils.security import get_current_user, require_trainer
 from app.services.file_service import save_upload
@@ -437,6 +439,78 @@ async def purchase_product(
     response = PurchaseResponse.model_validate(purchase)
     response.product_title = product.title
     return response
+
+
+# Android compatibility alias: POST /orders maps to purchase
+@router.post("/orders", response_model=PurchaseResponse)
+async def create_order(
+    order_data: OrderCreateRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Create order (Android compatibility endpoint)
+    Maps to purchase flow - OWASP A07:2021
+    """
+    product = await get_product_or_404(order_data.product_id, db)
+
+    if not product.is_published:
+        raise HTTPException(status_code=400, detail="Məhsul satışda deyil")
+
+    await verify_purchase_eligibility(product, current_user, db)
+
+    # Create purchase record
+    purchase = ProductPurchase(
+        product_id=product.id,
+        buyer_id=current_user.id,
+        amount_paid=product.price * order_data.quantity,
+        currency=product.currency,
+    )
+    db.add(purchase)
+
+    # Update product stats
+    product.sales_count += order_data.quantity
+    await db.commit()
+    await db.refresh(purchase)
+
+    logger.info(f"Order created: product {product.id} by user {current_user.id}")
+
+    response = PurchaseResponse.model_validate(purchase)
+    response.product_title = product.title
+    return response
+
+
+@router.get("/orders", response_model=list[OrderResponse])
+async def get_orders(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get user's orders (Android compatibility) - OWASP A01:2021"""
+    result = await db.execute(
+        select(ProductPurchase)
+        .where(ProductPurchase.buyer_id == current_user.id)
+        .order_by(desc(ProductPurchase.purchased_at))
+    )
+    purchases = result.scalars().all()
+
+    order_responses = []
+    for purchase in purchases:
+        product_result = await db.execute(
+            select(MarketplaceProduct).where(MarketplaceProduct.id == purchase.product_id)
+        )
+        product = product_result.scalar_one_or_none()
+
+        order_responses.append(OrderResponse(
+            id=purchase.id,
+            product_id=purchase.product_id,
+            product_name=product.title if product else "Silinmiş məhsul",
+            quantity=1,
+            total_price=purchase.amount_paid,
+            status="confirmed",
+            created_at=purchase.purchased_at,
+        ))
+
+    return order_responses
 
 
 @router.get("/my-purchases", response_model=MyPurchasesResponse)

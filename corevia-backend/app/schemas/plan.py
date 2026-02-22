@@ -39,6 +39,7 @@ class MealPlanUpdate(BaseModel):
     daily_calorie_target: int | None = Field(None, ge=500, le=10000)
     notes: str | None = Field(None, max_length=1000)
     assigned_student_id: str | None = None
+    items: list[MealPlanItemCreate] | None = None
 
 
 class MealPlanResponse(BaseModel):
@@ -88,6 +89,7 @@ class TrainingPlanUpdate(BaseModel):
     plan_type: PlanType | None = None
     notes: str | None = Field(None, max_length=1000)
     assigned_student_id: str | None = None
+    workouts: list[PlanWorkoutCreate] | None = None
 
 
 class TrainingPlanResponse(BaseModel):

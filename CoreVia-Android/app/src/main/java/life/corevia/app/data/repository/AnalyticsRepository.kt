@@ -60,6 +60,14 @@ class AnalyticsRepository(context: Context) {
         }
     }
 
+    suspend fun getComparison(period: String = "week"): Result<ProgressComparison> {
+        return try {
+            Result.success(api.getProgressComparison(period))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     companion object {
         @Volatile private var instance: AnalyticsRepository? = null
         fun getInstance(context: Context): AnalyticsRepository =

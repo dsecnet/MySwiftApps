@@ -13,6 +13,8 @@ class UserSettings(Base):
     workout_reminders: Mapped[bool] = mapped_column(Boolean, default=True)
     meal_reminders: Mapped[bool] = mapped_column(Boolean, default=True)
     weekly_reports: Mapped[bool] = mapped_column(Boolean, default=False)
+    language: Mapped[str] = mapped_column(String(10), default="az")
+    dark_mode: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="settings")

@@ -58,12 +58,18 @@ class TokenManager private constructor(context: Context) {
         get() = prefs.getBoolean(KEY_ONBOARDING_COMPLETED, false)
         set(value) = prefs.edit().putBoolean(KEY_ONBOARDING_COMPLETED, value).apply()
 
+    // Language selection persistence
+    var selectedLanguage: String
+        get() = prefs.getString(KEY_LANGUAGE, "az") ?: "az"
+        set(value) = prefs.edit().putString(KEY_LANGUAGE, value).apply()
+
     // iOS: func clearTokens()
     fun clearTokens() {
         prefs.edit()
             .remove(KEY_ACCESS_TOKEN)
             .remove(KEY_REFRESH_TOKEN)
             .remove(KEY_USER_TYPE)
+            .remove(KEY_ONBOARDING_COMPLETED)
             .apply()
     }
 
@@ -72,6 +78,7 @@ class TokenManager private constructor(context: Context) {
         private const val KEY_REFRESH_TOKEN = "refresh_token"
         private const val KEY_USER_TYPE = "user_type"
         private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
+        private const val KEY_LANGUAGE = "selected_language"
 
         @Volatile
         private var instance: TokenManager? = null

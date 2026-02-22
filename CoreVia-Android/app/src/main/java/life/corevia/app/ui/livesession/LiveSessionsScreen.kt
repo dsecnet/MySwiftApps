@@ -1,6 +1,7 @@
 package life.corevia.app.ui.livesession
 
 import life.corevia.app.ui.theme.AppTheme
+import life.corevia.app.ui.theme.CoreViaAnimatedBackground
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -35,7 +36,8 @@ fun LiveSessionsScreen(
     val errorMessage by viewModel.errorMessage.collectAsState()
     val successMessage by viewModel.successMessage.collectAsState()
 
-    Box(modifier = Modifier.fillMaxSize().background(AppTheme.Colors.background)) {
+    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.accent) {
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             // Header
             Box(
@@ -92,6 +94,7 @@ fun LiveSessionsScreen(
             LaunchedEffect(msg) { kotlinx.coroutines.delay(2000); viewModel.clearSuccess() }
         }
     }
+    } // CoreViaAnimatedBackground
 }
 
 @Composable
@@ -131,7 +134,7 @@ fun SessionCard(session: LiveSession, onClick: () -> Unit) {
                 Spacer(Modifier.width(4.dp))
                 Text("${session.durationMinutes} dəq", fontSize = 12.sp, color = AppTheme.Colors.tertiaryText)
                 Spacer(Modifier.width(12.dp))
-                Text(try { session.scheduledAt.substring(11, 16) } catch (e: Exception) { "" }, fontSize = 12.sp, color = AppTheme.Colors.tertiaryText)
+                Text(try { (session.scheduledTime ?: "").substring(11, 16) } catch (e: Exception) { "" }, fontSize = 12.sp, color = AppTheme.Colors.tertiaryText)
             }
         }
     }

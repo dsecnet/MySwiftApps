@@ -345,6 +345,148 @@ async def join_session(
     return {"message": "Successfully joined session", "participant_id": participant.id}
 
 
+# Android compatibility: path-based join endpoint
+@router.post("/{session_id}/join", status_code=status.HTTP_201_CREATED)
+async def join_session_by_path(
+    session_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Join a live session via path param (Android compatibility) - OWASP A01"""
+    # Get session
+    result = await db.execute(
+        select(LiveSession).where(LiveSession.id == session_id)
+    )
+    session = result.scalar_one_or_none()
+
+    if not session:
+        raise HTTPException(status_code=404, detail="Sessiya tapılmadı")
+
+    # Check if already registered
+    existing = await db.execute(
+        select(SessionParticipant).where(
+            and_(
+                SessionParticipant.session_id == session_id,
+                SessionParticipant.user_id == current_user.id
+            )
+        )
+    )
+    if existing.scalar_one_or_none():
+        raise HTTPException(status_code=400, detail="Artıq qeydiyyatdan keçmisiniz")
+
+    # Check capacity
+    participant_count = await db.execute(
+        select(func.count()).select_from(SessionParticipant).where(
+            SessionParticipant.session_id == session_id
+        )
+    )
+    count = participant_count.scalar()
+
+    if count >= session.max_participants:
+        raise HTTPException(status_code=400, detail="Sessiya doludur")
+
+    # Create participant
+    participant = SessionParticipant(
+        session_id=session_id,
+        user_id=current_user.id,
+        status="registered",
+    )
+    db.add(participant)
+    await db.commit()
+
+    logger.info(f"User {current_user.id} joined session {session_id}")
+
+    # Return updated session with trainer info
+    trainer_result = await db.execute(
+        select(User).where(User.id == session.trainer_id)
+    )
+    trainer = trainer_result.scalar_one_or_none()
+
+    # Get updated participant count
+    new_count = count + 1
+
+    return {
+        "id": session.id,
+        "trainer_id": session.trainer_id,
+        "trainer_name": trainer.name if trainer else None,
+        "title": session.title,
+        "description": session.description,
+        "session_type": session.session_type,
+        "status": session.status,
+        "max_participants": session.max_participants,
+        "current_participants": new_count,
+        "scheduled_at": session.scheduled_start.isoformat() if session.scheduled_start else None,
+        "duration_minutes": session.duration_minutes,
+        "created_at": session.created_at.isoformat() if session.created_at else None,
+    }
+
+
+@router.post("/{session_id}/leave")
+async def leave_session(
+    session_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Leave a live session - OWASP A01"""
+    # Get session
+    result = await db.execute(
+        select(LiveSession).where(LiveSession.id == session_id)
+    )
+    session = result.scalar_one_or_none()
+
+    if not session:
+        raise HTTPException(status_code=404, detail="Sessiya tapılmadı")
+
+    # Find participant
+    participant_result = await db.execute(
+        select(SessionParticipant).where(
+            and_(
+                SessionParticipant.session_id == session_id,
+                SessionParticipant.user_id == current_user.id
+            )
+        )
+    )
+    participant = participant_result.scalar_one_or_none()
+
+    if not participant:
+        raise HTTPException(status_code=400, detail="Bu sessiyaya qoşulmamısınız")
+
+    # Remove participant
+    await db.delete(participant)
+    await db.commit()
+
+    logger.info(f"User {current_user.id} left session {session_id}")
+
+    # Get trainer info
+    trainer_result = await db.execute(
+        select(User).where(User.id == session.trainer_id)
+    )
+    trainer = trainer_result.scalar_one_or_none()
+
+    # Get updated participant count
+    count_result = await db.execute(
+        select(func.count()).select_from(SessionParticipant).where(
+            SessionParticipant.session_id == session_id
+        )
+    )
+    new_count = count_result.scalar()
+
+    return {
+        "id": session.id,
+        "trainer_id": session.trainer_id,
+        "trainer_name": trainer.name if trainer else None,
+        "title": session.title,
+        "description": session.description,
+        "session_type": session.session_type,
+        "status": session.status,
+        "max_participants": session.max_participants,
+        "current_participants": new_count,
+        "scheduled_at": session.scheduled_start.isoformat() if session.scheduled_start else None,
+        "duration_minutes": session.duration_minutes,
+        "created_at": session.created_at.isoformat() if session.created_at else None,
+    }
+
+
 @router.get("/{session_id}/participants", response_model=List[ParticipantResponse])
 async def get_session_participants(
     session_id: str,

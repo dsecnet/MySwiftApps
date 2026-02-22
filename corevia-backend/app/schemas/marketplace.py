@@ -226,3 +226,41 @@ class MyPurchasesResponse(BaseModel):
     """Buyer's purchases"""
     purchases: list[PurchaseResponse]
     total_spent: float
+
+
+# ============================================================
+# Android Compatibility Schemas (Order-based flow)
+# ============================================================
+
+class OrderCreateRequest(BaseModel):
+    """Android order creation request"""
+    product_id: str = Field(..., alias="product_id")
+    quantity: int = Field(1, ge=1, le=100)
+
+    class Config:
+        populate_by_name = True
+
+    @field_validator('product_id')
+    @classmethod
+    def validate_uuid(cls, v: str) -> str:
+        """Validate UUID format"""
+        import uuid
+        try:
+            uuid.UUID(v)
+            return v
+        except ValueError:
+            raise ValueError("Invalid product_id format")
+
+
+class OrderResponse(BaseModel):
+    """Android order response (maps Purchase to Order model)"""
+    id: str
+    product_id: str
+    product_name: str
+    quantity: int = 1
+    total_price: float
+    status: str = "confirmed"
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

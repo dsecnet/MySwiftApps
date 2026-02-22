@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -82,6 +83,10 @@ dependencies {
 
     // Coil (şəkil yükləmə - iOS AsyncImage əvəzi)
     implementation(libs.coil.compose)
+
+    // Firebase (push notifications)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

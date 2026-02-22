@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import life.corevia.app.data.models.UserResponse
+import life.corevia.app.ui.theme.CoreViaAnimatedBackground
 
 /**
  * iOS MyStudentsView.swift — Android 1-ə-1 port
@@ -43,10 +44,10 @@ fun MyStudentsScreen(
 
     var selectedStudent by remember { mutableStateOf<UserResponse?>(null) }
 
+    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.accent) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppTheme.Colors.background)
     ) {
         Spacer(modifier = Modifier.height(56.dp))
 
@@ -59,13 +60,13 @@ fun MyStudentsScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Geri", tint = Color.White)
+                Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Geri", tint = AppTheme.Colors.primaryText)
             }
             Text(
                 text = "Studentlərim",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White,
+                color = AppTheme.Colors.primaryText,
                 modifier = Modifier.weight(1f)
             )
             // Student count badge
@@ -99,8 +100,8 @@ fun MyStudentsScreen(
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = AppTheme.Colors.accent,
                 unfocusedBorderColor = AppTheme.Colors.separator,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
+                focusedTextColor = AppTheme.Colors.primaryText,
+                unfocusedTextColor = AppTheme.Colors.primaryText,
                 cursorColor = AppTheme.Colors.accent
             ),
             shape = RoundedCornerShape(12.dp),
@@ -117,7 +118,12 @@ fun MyStudentsScreen(
         } else if (filteredStudents.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = "👤", fontSize = 48.sp)
+                    Icon(
+                        imageVector = Icons.Outlined.Person,
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp),
+                        tint = AppTheme.Colors.tertiaryText
+                    )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = if (students.isEmpty()) "Hələ student yoxdur" else "Nəticə tapılmadı",
@@ -141,6 +147,7 @@ fun MyStudentsScreen(
             }
         }
     }
+    } // CoreViaAnimatedBackground
 
     // ─── Student Detail Sheet ───────────────────────────────────────────────
     selectedStudent?.let { student ->
@@ -201,7 +208,7 @@ fun StudentCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = student.name,
-                    color = Color.White,
+                    color = AppTheme.Colors.primaryText,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 15.sp
                 )
@@ -271,7 +278,7 @@ fun StudentDetailSheet(
                 )
             }
             Spacer(modifier = Modifier.height(12.dp))
-            Text(text = student.name, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text(text = student.name, color = AppTheme.Colors.primaryText, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             Text(text = student.email, color = AppTheme.Colors.secondaryText, fontSize = 14.sp)
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -306,7 +313,12 @@ fun StudentDetailSheet(
                     modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "🎯", fontSize = 20.sp)
+                    Icon(
+                        imageVector = Icons.Outlined.TrackChanges,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = AppTheme.Colors.accent
+                    )
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(text = "Məqsəd", color = AppTheme.Colors.secondaryText, fontSize = 12.sp)
@@ -320,7 +332,7 @@ fun StudentDetailSheet(
                                     else -> it
                                 }
                             } ?: "Təyin edilməyib",
-                            color = Color.White,
+                            color = AppTheme.Colors.primaryText,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 15.sp
                         )
@@ -361,7 +373,7 @@ fun StudentDetailSheet(
 @Composable
 fun StudentStatItem(label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = value, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+        Text(text = value, color = AppTheme.Colors.primaryText, fontWeight = FontWeight.Bold, fontSize = 18.sp)
         Text(text = label, color = AppTheme.Colors.secondaryText, fontSize = 12.sp)
     }
 }

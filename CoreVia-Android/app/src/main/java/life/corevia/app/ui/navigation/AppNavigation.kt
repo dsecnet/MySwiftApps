@@ -46,6 +46,7 @@ import life.corevia.app.ui.home.HomeScreen
 import life.corevia.app.ui.home.TrainerHomeScreen
 import life.corevia.app.ui.home.TrainerHomeViewModel
 import life.corevia.app.ui.mealplan.AddMealPlanScreen
+import life.corevia.app.ui.mealplan.EditMealPlanScreen
 import life.corevia.app.ui.mealplan.MealPlanScreen
 import life.corevia.app.ui.mealplan.MealPlanViewModel
 import life.corevia.app.ui.profile.ProfileScreen
@@ -55,6 +56,7 @@ import life.corevia.app.ui.settings.SettingsScreen
 import life.corevia.app.ui.trainer.MyStudentsScreen
 import life.corevia.app.ui.trainer.MyStudentsViewModel
 import life.corevia.app.ui.trainingplan.AddTrainingPlanScreen
+import life.corevia.app.ui.trainingplan.EditTrainingPlanScreen
 import life.corevia.app.ui.trainingplan.TrainingPlanScreen
 import life.corevia.app.ui.trainingplan.TrainingPlanViewModel
 import life.corevia.app.ui.workout.WorkoutScreen
@@ -68,12 +70,15 @@ import life.corevia.app.ui.analytics.AnalyticsViewModel
 import life.corevia.app.ui.analytics.AnalyticsScreen
 import life.corevia.app.ui.social.SocialViewModel
 import life.corevia.app.ui.social.SocialFeedScreen
+import life.corevia.app.ui.social.UserProfileScreen
+import life.corevia.app.ui.social.AchievementsScreen
 import life.corevia.app.ui.premium.PremiumViewModel
 import life.corevia.app.ui.premium.PremiumScreen
 import life.corevia.app.ui.trainers.TrainersViewModel
 import life.corevia.app.ui.trainers.TrainersScreen
 import life.corevia.app.ui.trainers.TrainerDetailScreen
 import life.corevia.app.ui.onboarding.OnboardingScreen
+import life.corevia.app.ui.onboarding.OnboardingViewModel
 import life.corevia.app.ui.livesession.LiveSessionsViewModel
 import life.corevia.app.ui.livesession.LiveSessionsScreen
 import life.corevia.app.ui.livesession.LiveSessionDetailScreen
@@ -140,14 +145,33 @@ private const val TAB_PRODUCT_DETAIL   = 20
 private const val TAB_NEWS             = 21
 private const val TAB_NEWS_DETAIL      = 22
 private const val TAB_TRACKING         = 23
+private const val TAB_EDIT_TRAINING    = 24
+private const val TAB_EDIT_MEAL        = 25
+private const val TAB_USER_PROFILE     = 26
+private const val TAB_ACHIEVEMENTS     = 27
 
 // ─── Ana composable ───────────────────────────────────────────────────────────
 @Composable
 fun AppNavigation(tokenManager: TokenManager) {
     val navController = rememberNavController()
-    val startDestination = if (tokenManager.isLoggedIn) Routes.HOME else Routes.LOGIN
+    val startDestination = when {
+        !tokenManager.isLoggedIn -> Routes.LOGIN
+        !tokenManager.hasCompletedOnboarding -> Routes.ONBOARDING
+        else -> Routes.HOME
+    }
 
     val authViewModel: AuthViewModel                   = viewModel()
+
+    // 401 auto-logout: token expired + refresh fail → login ekranına yönləndir
+    val context = androidx.compose.ui.platform.LocalContext.current
+    LaunchedEffect(Unit) {
+        life.corevia.app.data.api.ApiClient.getInstance(context).onUnauthorized = {
+            authViewModel.logout()
+            navController.navigate(Routes.LOGIN) {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+    }
     val workoutViewModel: WorkoutViewModel             = viewModel()
     val foodViewModel: FoodViewModel                   = viewModel()
     val trainingPlanViewModel: TrainingPlanViewModel   = viewModel()
@@ -165,6 +189,7 @@ fun AppNavigation(tokenManager: TokenManager) {
     val newsViewModel: NewsViewModel                   = viewModel()
     val trackingViewModel: TrackingViewModel           = viewModel()
     val contentViewModel: ContentViewModel             = viewModel()
+    val onboardingViewModel: OnboardingViewModel       = viewModel()
 
     NavHost(
         navController    = navController,
@@ -174,7 +199,7 @@ fun AppNavigation(tokenManager: TokenManager) {
         // ── Auth ──────────────────────────────────────────────────────────────
         composable(Routes.LOGIN) {
             LoginScreen(
-                onLoginSuccess             = { navController.navigateToMain() },
+                onLoginSuccess             = { navController.navigateAfterAuth(tokenManager) },
                 onNavigateToRegister       = { navController.navigate(Routes.REGISTER) },
                 onNavigateToForgotPassword = { navController.navigate(Routes.FORGOT_PASSWORD) },
                 viewModel                  = authViewModel
@@ -182,7 +207,7 @@ fun AppNavigation(tokenManager: TokenManager) {
         }
         composable(Routes.REGISTER) {
             RegisterScreen(
-                onRegisterSuccess = { navController.navigateToMain() },
+                onRegisterSuccess = { navController.navigateAfterAuth(tokenManager) },
                 onNavigateToLogin = {
                     authViewModel.resetToIdle()
                     navController.popBackStack()
@@ -197,8 +222,9 @@ fun AppNavigation(tokenManager: TokenManager) {
         // ── Onboarding ──────────────────────────────────────────────────────
         composable(Routes.ONBOARDING) {
             OnboardingScreen(
+                viewModel = onboardingViewModel,
+                isTrainer = tokenManager.isTrainer,
                 onComplete = {
-                    tokenManager.hasCompletedOnboarding = true
                     navController.navigateToMain()
                 }
             )
@@ -209,6 +235,14 @@ fun AppNavigation(tokenManager: TokenManager) {
             // iOS kimi: userType TokenManager-dan dərhal oxunur (API gözləmədən).
             // Login zamanı saxlanılır, app açılanda dərhal doğru tip göstərilir.
             val isTrainer = tokenManager.isTrainer
+
+            // Logout → re-login sonrası ViewModel-ləri yenidən yüklə
+            LaunchedEffect(tokenManager.accessToken) {
+                profileViewModel.loadUser()
+                foodViewModel.loadFoodEntries()
+                workoutViewModel.loadWorkouts()
+                chatViewModel.loadConversations()
+            }
 
             MainTabView(
                 navController         = navController,
@@ -296,6 +330,7 @@ fun MainTabView(
                     } else {
                         // iOS: HomeView
                         HomeScreen(
+                            userName                 = user?.name ?: "",
                             onNavigateToWorkout      = { selectedTab = TAB_WORKOUT },
                             onNavigateToFood         = { selectedTab = TAB_FOOD },
                             onNavigateToTrainingPlan = { selectedTab = TAB_WORKOUT },
@@ -319,6 +354,10 @@ fun MainTabView(
                                 preSelectedStudentId = null
                                 selectedTab = TAB_ADD_TRAINING
                             },
+                            onNavigateToEditTrainingPlan = { plan ->
+                                trainingPlanViewModel.selectPlan(plan)
+                                selectedTab = TAB_EDIT_TRAINING
+                            },
                             onDeletePlan = { planId -> trainingPlanViewModel.deletePlan(planId) },
                             viewModel = trainingPlanViewModel
                         )
@@ -336,6 +375,10 @@ fun MainTabView(
                             onNavigateToAddMealPlan = {
                                 preSelectedStudentId = null
                                 selectedTab = TAB_ADD_MEAL
+                            },
+                            onNavigateToEditMealPlan = { plan ->
+                                mealPlanViewModel.selectPlan(plan)
+                                selectedTab = TAB_EDIT_MEAL
                             },
                             onDeletePlan = { planId -> mealPlanViewModel.deletePlan(planId) },
                             viewModel = mealPlanViewModel
@@ -396,7 +439,10 @@ fun MainTabView(
                     }
                 }
                 TAB_SETTINGS -> {
-                    SettingsScreen(onBack = { selectedTab = TAB_PROFILE })
+                    SettingsScreen(
+                        onBack = { selectedTab = TAB_PROFILE },
+                        onLogout = onLogout
+                    )
                 }
                 TAB_MY_STUDENTS -> {
                     MyStudentsScreen(
@@ -455,7 +501,14 @@ fun MainTabView(
                 TAB_SOCIAL -> {
                     SocialFeedScreen(
                         viewModel = socialViewModel,
-                        onBack = { selectedTab = TAB_HOME }
+                        onBack = { selectedTab = TAB_HOME },
+                        onNavigateToUserProfile = { userId ->
+                            socialViewModel.loadUserProfile(userId)
+                            selectedTab = TAB_USER_PROFILE
+                        },
+                        onNavigateToAchievements = {
+                            selectedTab = TAB_ACHIEVEMENTS
+                        }
                     )
                 }
                 TAB_PREMIUM -> {
@@ -534,6 +587,63 @@ fun MainTabView(
                         onBack = { selectedTab = TAB_HOME }
                     )
                 }
+                TAB_USER_PROFILE -> {
+                    UserProfileScreen(
+                        viewModel = socialViewModel,
+                        onBack = {
+                            socialViewModel.clearUserProfile()
+                            selectedTab = TAB_SOCIAL
+                        }
+                    )
+                }
+                TAB_ACHIEVEMENTS -> {
+                    AchievementsScreen(
+                        viewModel = socialViewModel,
+                        onBack = { selectedTab = TAB_SOCIAL }
+                    )
+                }
+                TAB_EDIT_TRAINING -> {
+                    val selectedPlan by trainingPlanViewModel.selectedPlan.collectAsState()
+                    selectedPlan?.let { plan ->
+                        EditTrainingPlanScreen(
+                            plan = plan,
+                            onBack = {
+                                trainingPlanViewModel.clearSelectedPlan()
+                                selectedTab = TAB_WORKOUT
+                                trainingPlanViewModel.loadPlans()
+                            },
+                            onSave = { planId, request ->
+                                trainingPlanViewModel.updatePlan(planId, request)
+                                trainingPlanViewModel.clearSelectedPlan()
+                                selectedTab = TAB_WORKOUT
+                            },
+                            students = if (isTrainer) students else emptyList()
+                        )
+                    } ?: run {
+                        selectedTab = TAB_WORKOUT
+                    }
+                }
+                TAB_EDIT_MEAL -> {
+                    val selectedPlan by mealPlanViewModel.selectedPlan.collectAsState()
+                    selectedPlan?.let { plan ->
+                        EditMealPlanScreen(
+                            plan = plan,
+                            onBack = {
+                                mealPlanViewModel.clearSelectedPlan()
+                                selectedTab = TAB_FOOD
+                                mealPlanViewModel.loadPlans()
+                            },
+                            onSave = { planId, request ->
+                                mealPlanViewModel.updatePlan(planId, request)
+                                mealPlanViewModel.clearSelectedPlan()
+                                selectedTab = TAB_FOOD
+                            },
+                            students = if (isTrainer) students else emptyList()
+                        )
+                    } ?: run {
+                        selectedTab = TAB_FOOD
+                    }
+                }
             }
         }
 
@@ -578,7 +688,7 @@ fun CoreViaTabBar(
                 shape = RoundedCornerShape(24.dp)
             )
             .background(
-                color = Color(0xFF1C1C1E).copy(alpha = 0.95f),
+                color = AppTheme.Colors.cardBackground.copy(alpha = 0.95f),
                 shape = RoundedCornerShape(24.dp)
             )
             .padding(horizontal = 8.dp, vertical = 12.dp),
@@ -786,7 +896,7 @@ fun MoreMenuSheet(
                 Box(
                     modifier = Modifier
                         .size(70.dp)
-                        .background(Color(0xFF2C2C2E), CircleShape),
+                        .background(AppTheme.Colors.secondaryBackground, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -823,7 +933,7 @@ fun MoreMenuSheet(
                 icon        = Icons.Outlined.Person,
                 title       = "Profil",
                 description = "Hesabınızı idarə edin",
-                gradientColors = listOf(Color(0xFF34C759), Color(0xFF34C759).copy(alpha = 0.7f)),
+                gradientColors = listOf(AppTheme.Colors.success, AppTheme.Colors.success.copy(alpha = 0.7f)),
                 onClick     = onProfile
             )
 
@@ -847,7 +957,7 @@ fun MoreMenuItem(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .background(Color(0xFF2C2C2E))
+            .background(AppTheme.Colors.secondaryBackground)
             .pointerInput(Unit) {
                 detectTapGestures(
                     onPress = {
@@ -882,7 +992,7 @@ fun MoreMenuItem(
                 Box(
                     modifier = Modifier
                         .size(56.dp)
-                        .background(Color(0xFF3A3A3C), CircleShape),
+                        .background(AppTheme.Colors.cardBackground, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -932,7 +1042,7 @@ fun PlaceholderScreen(title: String, emoji: String) {
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text       = title,
-                color      = Color.White,
+                color      = AppTheme.Colors.primaryText,
                 fontSize   = 20.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -950,5 +1060,20 @@ fun PlaceholderScreen(title: String, emoji: String) {
 private fun NavHostController.navigateToMain() {
     navigate(Routes.HOME) {
         popUpTo(0) { inclusive = true }
+    }
+}
+
+/**
+ * Login/Register uğurlu olduqda çağırılır.
+ * Əgər istifadəçi onboarding-i tamamlamayıbsa → Onboarding ekranına yönləndirir.
+ * Əks halda → HOME-a aparır.
+ */
+private fun NavHostController.navigateAfterAuth(tokenManager: TokenManager) {
+    if (!tokenManager.hasCompletedOnboarding) {
+        navigate(Routes.ONBOARDING) {
+            popUpTo(0) { inclusive = true }
+        }
+    } else {
+        navigateToMain()
     }
 }

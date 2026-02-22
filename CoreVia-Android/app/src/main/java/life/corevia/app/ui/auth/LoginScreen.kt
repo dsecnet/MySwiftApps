@@ -280,7 +280,7 @@ fun LoginScreen(
                     selectedUserType = selectedUserType,
                     onLogin = {
                         focusManager.clearFocus()
-                        viewModel.login(email.trim(), password)
+                        viewModel.login(email.trim(), password, selectedUserType)
                     },
                     onForgotPassword = onNavigateToForgotPassword,
                     onNavigateToRegister = {

@@ -1,19 +1,24 @@
 package life.corevia.app.data.repository
 
 import android.content.Context
+import android.net.Uri
 import life.corevia.app.data.api.ApiClient
 import life.corevia.app.data.models.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 /**
  * iOS SocialManager.swift-in Android Repository ekvivalenti.
  */
-class SocialRepository(context: Context) {
+class SocialRepository(private val context: Context) {
 
     private val api = ApiClient.getInstance(context).api
 
-    suspend fun getFeed(): Result<List<SocialPost>> {
+    suspend fun getFeed(page: Int = 1): Result<List<SocialPost>> {
         return try {
-            Result.success(api.getSocialFeed())
+            val response = api.getSocialFeed(page = page)
+            Result.success(response.posts)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -101,6 +106,46 @@ class SocialRepository(context: Context) {
             Result.success(api.getAchievements())
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    suspend fun getAllAchievements(): Result<List<Achievement>> {
+        return try {
+            Result.success(api.getAllAchievements())
+        } catch (e: Exception) {
+            try {
+                Result.success(api.getAchievements())
+            } catch (e2: Exception) {
+                Result.failure(e2)
+            }
+        }
+    }
+
+    suspend fun uploadPostImage(postId: String, imageUri: Uri): Result<SocialPost> {
+        return try {
+            val inputStream = context.contentResolver.openInputStream(imageUri)
+                ?: return Result.failure(Exception("Şəkil oxuna bilmədi"))
+            val bytes = inputStream.readBytes()
+            inputStream.close()
+            val requestBody = bytes.toRequestBody("image/jpeg".toMediaTypeOrNull())
+            val part = MultipartBody.Part.createFormData("file", "post_image.jpg", requestBody)
+            Result.success(api.uploadPostImage(postId, part))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getUserPosts(userId: String): Result<List<SocialPost>> {
+        return try {
+            Result.success(api.getUserPosts(userId))
+        } catch (e: Exception) {
+            // Fallback: feed-dən filtr
+            try {
+                val response = api.getSocialFeed()
+                Result.success(response.posts.filter { it.userId == userId })
+            } catch (e2: Exception) {
+                Result.failure(e2)
+            }
         }
     }
 

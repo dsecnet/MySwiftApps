@@ -1,6 +1,7 @@
 package life.corevia.app.ui.content
 
 import life.corevia.app.ui.theme.AppTheme
+import life.corevia.app.ui.theme.CoreViaAnimatedBackground
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -49,6 +50,7 @@ fun TrainerContentScreen(
 
     var showCreateSheet by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf<String?>(null) }
+    var editingContent by remember { mutableStateOf<ContentResponse?>(null) }
 
     val scrollState = rememberScrollState()
 
@@ -60,10 +62,10 @@ fun TrainerContentScreen(
         }
     }
 
+    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.accent) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppTheme.Colors.background)
     ) {
         Column(
             modifier = Modifier
@@ -162,6 +164,7 @@ fun TrainerContentScreen(
                     ContentCard(
                         content = content,
                         isOwner = true,
+                        onEdit = { editingContent = content },
                         onDelete = { showDeleteDialog = content.id }
                     )
                 }
@@ -170,6 +173,7 @@ fun TrainerContentScreen(
             Spacer(modifier = Modifier.height(100.dp))
         }
     }
+    } // CoreViaAnimatedBackground
 
     // ── Delete Confirmation Dialog ─────────────────────────────────────────────
     showDeleteDialog?.let { contentId ->
@@ -214,6 +218,18 @@ fun TrainerContentScreen(
             onCreate = { title, body, isPremium ->
                 viewModel.createContent(title, body, isPremium)
                 showCreateSheet = false
+            }
+        )
+    }
+
+    // ── Edit Content Sheet ───────────────────────────────────────────────────
+    editingContent?.let { content ->
+        EditContentSheet(
+            content = content,
+            onDismiss = { editingContent = null },
+            onUpdate = { title, body, isPremium ->
+                viewModel.updateContent(content.id, title, body, isPremium)
+                editingContent = null
             }
         )
     }
@@ -275,6 +291,7 @@ private fun ContentHeaderSection(
 private fun ContentCard(
     content: ContentResponse,
     isOwner: Boolean = true,
+    onEdit: () -> Unit = {},
     onDelete: () -> Unit = {}
 ) {
     Column(
@@ -381,12 +398,42 @@ private fun ContentCard(
             }
         }
 
-        // iOS: Delete button (only for owner)
+        // Edit + Delete buttons (only for owner)
         if (isOwner) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
+                // Edit button
+                Row(
+                    modifier = Modifier
+                        .background(
+                            AppTheme.Colors.accent.copy(alpha = 0.1f),
+                            RoundedCornerShape(8.dp)
+                        )
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable { onEdit() }
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Edit,
+                        contentDescription = "Redakte",
+                        modifier = Modifier.size(14.dp),
+                        tint = AppTheme.Colors.accent
+                    )
+                    Text(
+                        text = "Redakte",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = AppTheme.Colors.accent
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // Delete button
                 Row(
                     modifier = Modifier
                         .background(
@@ -643,6 +690,128 @@ private fun CreateContentSheet(
                     fontSize = 16.sp,
                     color = if (title.isNotBlank()) Color.White else Color.White.copy(alpha = 0.5f)
                 )
+            }
+        }
+    }
+}
+
+// ─── Edit Content Sheet ─────────────────────────────────────────────────────────
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EditContentSheet(
+    content: ContentResponse,
+    onDismiss: () -> Unit,
+    onUpdate: (title: String, body: String?, isPremiumOnly: Boolean) -> Unit
+) {
+    var title by remember { mutableStateOf(content.title) }
+    var body by remember { mutableStateOf(content.body ?: "") }
+    var isPremiumOnly by remember { mutableStateOf(content.isPremiumOnly) }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        containerColor = AppTheme.Colors.background,
+        dragHandle = { BottomSheetDefaults.DragHandle(color = AppTheme.Colors.secondaryText) }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                TextButton(onClick = onDismiss) {
+                    Text("Legv et", color = AppTheme.Colors.secondaryText)
+                }
+                Text(
+                    text = "Kontenti Redakte Et",
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = AppTheme.Colors.primaryText
+                )
+                Box(modifier = Modifier.width(60.dp))
+            }
+
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Baslik", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = AppTheme.Colors.secondaryText)
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    placeholder = { Text("Kontent basligini daxil edin", color = AppTheme.Colors.placeholderText) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = AppTheme.Colors.accent,
+                        unfocusedBorderColor = AppTheme.Colors.separator,
+                        focusedContainerColor = AppTheme.Colors.secondaryBackground,
+                        unfocusedContainerColor = AppTheme.Colors.secondaryBackground,
+                        cursorColor = AppTheme.Colors.accent,
+                        focusedTextColor = AppTheme.Colors.primaryText,
+                        unfocusedTextColor = AppTheme.Colors.primaryText
+                    ),
+                    singleLine = true
+                )
+            }
+
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Mezmun", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = AppTheme.Colors.secondaryText)
+                OutlinedTextField(
+                    value = body,
+                    onValueChange = { body = it },
+                    placeholder = { Text("Kontent mezmununu daxil edin", color = AppTheme.Colors.placeholderText) },
+                    modifier = Modifier.fillMaxWidth().height(150.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = AppTheme.Colors.accent,
+                        unfocusedBorderColor = AppTheme.Colors.separator,
+                        focusedContainerColor = AppTheme.Colors.secondaryBackground,
+                        unfocusedContainerColor = AppTheme.Colors.secondaryBackground,
+                        cursorColor = AppTheme.Colors.accent,
+                        focusedTextColor = AppTheme.Colors.primaryText,
+                        unfocusedTextColor = AppTheme.Colors.primaryText
+                    ),
+                    maxLines = 8
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(12.dp))
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Icon(Icons.Outlined.Star, null, Modifier.size(20.dp), tint = AppTheme.Colors.accent)
+                Text("Yalniz Premium", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = AppTheme.Colors.primaryText, modifier = Modifier.weight(1f))
+                Switch(
+                    checked = isPremiumOnly,
+                    onCheckedChange = { isPremiumOnly = it },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = AppTheme.Colors.accent,
+                        uncheckedThumbColor = AppTheme.Colors.secondaryText,
+                        uncheckedTrackColor = AppTheme.Colors.cardBackground
+                    )
+                )
+            }
+
+            Button(
+                onClick = { onUpdate(title, body.ifBlank { null }, isPremiumOnly) },
+                enabled = title.isNotBlank(),
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = AppTheme.Colors.accent,
+                    disabledContainerColor = AppTheme.Colors.accent.copy(alpha = 0.3f)
+                )
+            ) {
+                Text("Yenile", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = if (title.isNotBlank()) Color.White else Color.White.copy(alpha = 0.5f))
             }
         }
     }

@@ -10,7 +10,8 @@ class MarketplaceRepository(context: Context) {
 
     suspend fun getProducts(): Result<List<Product>> {
         return try {
-            Result.success(api.getProducts())
+            val response = api.getProducts()
+            Result.success(response.products)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -35,6 +36,22 @@ class MarketplaceRepository(context: Context) {
     suspend fun getOrders(): Result<List<Order>> {
         return try {
             Result.success(api.getOrders())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getProductReviews(productId: String): Result<List<ProductReview>> {
+        return try {
+            Result.success(api.getProductReviews(productId))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun createProductReview(request: CreateProductReviewRequest): Result<ProductReview> {
+        return try {
+            Result.success(api.createProductReview(request))
         } catch (e: Exception) {
             Result.failure(e)
         }

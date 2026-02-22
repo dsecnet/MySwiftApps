@@ -11,7 +11,7 @@ from app.database import get_db
 from app.models.user import User, UserType, VerificationStatus
 from app.models.settings import UserSettings
 from app.schemas.user import UserRegister, RegisterRequestOTP, UserLogin, LoginVerifyOTP, Token, TokenRefresh, UserResponse, TrainerVerificationResponse
-from app.schemas.password_reset import ForgotPasswordRequest, VerifyOTPRequest, ResetPasswordRequest, OTPResponse
+from app.schemas.password_reset import ForgotPasswordRequest, VerifyOTPRequest, ResetPasswordRequest, OTPResponse, ChangePasswordRequest, DeleteAccountRequest
 from app.utils.security import (
     hash_password,
     verify_password,
@@ -144,6 +144,15 @@ async def login(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Email və ya şifrə səhvdir",
             headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # User type yoxlaması — tələbə müəllim kimi daxil ola bilməz və əksinə
+    if user.user_type != user_data.user_type:
+        actual = "Tələbə" if user.user_type == UserType.client else "Məşqçi"
+        logger.warning(f"User type mismatch for {user_data.email}: requested={user_data.user_type.value}, actual={user.user_type.value}")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Bu hesab {actual} hesabıdır. Düzgün hesab növünü seçin.",
         )
 
     if not user.is_active:
@@ -501,4 +510,72 @@ async def reset_password(
     return {
         "success": True,
         "message": "Şifrə uğurla yeniləndi"
+    }
+
+
+# ============================================
+# CHANGE PASSWORD (authenticated)
+# ============================================
+
+@router.post("/change-password", response_model=dict)
+async def change_password(
+    request: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Cari şifrəni dəyişdir.
+
+    1. Cari şifrə yoxlanır
+    2. Yeni şifrə set olunur
+    """
+
+    if not verify_password(request.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cari şifrə səhvdir"
+        )
+
+    current_user.hashed_password = hash_password(request.new_password)
+    await db.commit()
+
+    logger.info(f"Password changed for user: {current_user.id}")
+
+    return {
+        "success": True,
+        "message": "Şifrə uğurla dəyişdirildi"
+    }
+
+
+# ============================================
+# DELETE ACCOUNT (soft-delete)
+# ============================================
+
+@router.delete("/delete-account", response_model=dict)
+async def delete_account(
+    request: DeleteAccountRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Hesabı soft-delete edir (is_active=False).
+
+    1. Şifrə təsdiqlənir
+    2. is_active = False set olunur
+    """
+
+    if not verify_password(request.password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Şifrə səhvdir"
+        )
+
+    current_user.is_active = False
+    await db.commit()
+
+    logger.info(f"Account soft-deleted for user: {current_user.id}")
+
+    return {
+        "success": True,
+        "message": "Hesab uğurla silindi"
     }

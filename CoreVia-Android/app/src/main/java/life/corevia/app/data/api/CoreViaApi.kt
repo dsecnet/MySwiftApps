@@ -54,7 +54,31 @@ interface CoreViaApi {
     // Trainer verifikasiya foto yüklə
     @Multipart
     @POST("api/v1/auth/verify-trainer")
-    suspend fun verifyTrainer(@Part file: MultipartBody.Part): okhttp3.ResponseBody
+    suspend fun verifyTrainer(
+        @Part file: MultipartBody.Part,
+        @Part("instagram") instagram: okhttp3.RequestBody,
+        @Part("specialization") specialization: okhttp3.RequestBody? = null,
+        @Part("experience") experience: okhttp3.RequestBody? = null,
+        @Part("bio") bio: okhttp3.RequestBody? = null
+    ): okhttp3.ResponseBody
+
+    // Change password
+    @POST("api/v1/auth/change-password")
+    suspend fun changePassword(@Body request: ChangePasswordRequest): okhttp3.ResponseBody
+
+    // Delete account (soft-delete)
+    @HTTP(method = "DELETE", path = "api/v1/auth/delete-account", hasBody = true)
+    suspend fun deleteAccount(@Body request: DeleteAccountRequest): okhttp3.ResponseBody
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SETTINGS
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    @GET("api/v1/settings/")
+    suspend fun getSettings(): UserSettingsResponse
+
+    @PUT("api/v1/settings/")
+    suspend fun updateSettings(@Body request: UserSettingsUpdateRequest): UserSettingsResponse
 
     // ═══════════════════════════════════════════════════════════════════════════
     // USERS
@@ -149,6 +173,9 @@ interface CoreViaApi {
     @POST("api/v1/plans/training")
     suspend fun createTrainingPlan(@Body request: TrainingPlanCreateRequest): TrainingPlan
 
+    @PUT("api/v1/plans/training/{id}")
+    suspend fun updateTrainingPlan(@Path("id") id: String, @Body request: TrainingPlanCreateRequest): TrainingPlan
+
     @PUT("api/v1/plans/training/{id}/complete")
     suspend fun completeTrainingPlan(@Path("id") id: String): TrainingPlan
 
@@ -167,6 +194,9 @@ interface CoreViaApi {
 
     @POST("api/v1/plans/meal")
     suspend fun createMealPlan(@Body request: MealPlanCreateRequest): MealPlan
+
+    @PUT("api/v1/plans/meal/{id}")
+    suspend fun updateMealPlan(@Path("id") id: String, @Body request: MealPlanCreateRequest): MealPlan
 
     @PUT("api/v1/plans/meal/{id}/complete")
     suspend fun completeMealPlan(@Path("id") id: String): MealPlan
@@ -240,6 +270,9 @@ interface CoreViaApi {
     @DELETE("api/v1/analytics/measurements/{id}")
     suspend fun deleteMeasurement(@Path("id") id: String)
 
+    @GET("api/v1/analytics/comparison")
+    suspend fun getProgressComparison(@Query("period") period: String = "week"): ProgressComparison
+
     // ═══════════════════════════════════════════════════════════════════════════
     // SOCIAL
     // ═══════════════════════════════════════════════════════════════════════════
@@ -248,7 +281,7 @@ interface CoreViaApi {
     suspend fun createPost(@Body request: CreatePostRequest): SocialPost
 
     @GET("api/v1/social/feed")
-    suspend fun getSocialFeed(): List<SocialPost>
+    suspend fun getSocialFeed(@Query("page") page: Int = 1, @Query("page_size") pageSize: Int = 20): FeedResponse
 
     @GET("api/v1/social/posts/{postId}")
     suspend fun getPost(@Path("postId") postId: String): SocialPost
@@ -280,12 +313,31 @@ interface CoreViaApi {
     @GET("api/v1/social/profile/{userId}")
     suspend fun getUserProfile(@Path("userId") userId: String): UserProfileSummary
 
+    @GET("api/v1/social/profile/{userId}/posts")
+    suspend fun getUserPosts(@Path("userId") userId: String): List<SocialPost>
+
     @GET("api/v1/social/achievements")
     suspend fun getAchievements(): List<Achievement>
+
+    @GET("api/v1/social/achievements/all")
+    suspend fun getAllAchievements(): List<Achievement>
 
     @Multipart
     @POST("api/v1/social/posts/{postId}/image")
     suspend fun uploadPostImage(@Path("postId") postId: String, @Part file: MultipartBody.Part): SocialPost
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ONBOARDING
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    @POST("api/v1/onboarding/complete")
+    suspend fun completeOnboarding(@Body request: Map<String, @JvmSuppressWildcards Any?>): okhttp3.ResponseBody
+
+    @GET("api/v1/onboarding/options")
+    suspend fun getOnboardingOptions(): okhttp3.ResponseBody
+
+    @GET("api/v1/onboarding/status")
+    suspend fun getOnboardingStatus(): okhttp3.ResponseBody
 
     // ═══════════════════════════════════════════════════════════════════════════
     // PREMIUM
@@ -295,7 +347,7 @@ interface CoreViaApi {
     suspend fun getPremiumStatus(): PremiumStatus
 
     @GET("api/v1/premium/plans")
-    suspend fun getPremiumPlans(): List<PremiumPlan>
+    suspend fun getPremiumPlans(): PremiumPlansResponse
 
     @POST("api/v1/premium/subscribe")
     suspend fun subscribe(@Body request: SubscribeRequest): okhttp3.ResponseBody
@@ -348,8 +400,15 @@ interface CoreViaApi {
     @POST("api/v1/content/")
     suspend fun createContent(@Body request: ContentCreateRequest): ContentResponse
 
+    @PUT("api/v1/content/{contentId}")
+    suspend fun updateContent(@Path("contentId") contentId: String, @Body request: ContentCreateRequest): ContentResponse
+
     @DELETE("api/v1/content/{contentId}")
     suspend fun deleteContent(@Path("contentId") contentId: String)
+
+    @Multipart
+    @POST("api/v1/content/{contentId}/image")
+    suspend fun uploadContentImage(@Path("contentId") contentId: String, @Part file: MultipartBody.Part): ContentResponse
 
     // ═══════════════════════════════════════════════════════════════════════════
     // FILE UPLOADS
@@ -375,7 +434,7 @@ interface CoreViaApi {
     // ═══════════════════════════════════════════════════════════════════════════
 
     @GET("api/v1/live-sessions")
-    suspend fun getLiveSessions(): List<LiveSession>
+    suspend fun getLiveSessions(): SessionListResponse
 
     @GET("api/v1/live-sessions/{sessionId}")
     suspend fun getLiveSession(@Path("sessionId") sessionId: String): LiveSession
@@ -394,7 +453,7 @@ interface CoreViaApi {
     // ═══════════════════════════════════════════════════════════════════════════
 
     @GET("api/v1/marketplace/products")
-    suspend fun getProducts(): List<Product>
+    suspend fun getProducts(): MarketplaceListResponse
 
     @GET("api/v1/marketplace/products/{productId}")
     suspend fun getProduct(@Path("productId") productId: String): Product
@@ -405,13 +464,49 @@ interface CoreViaApi {
     @GET("api/v1/marketplace/orders")
     suspend fun getOrders(): List<Order>
 
+    // Product reviews
+    @POST("api/v1/marketplace/reviews")
+    suspend fun createProductReview(@Body request: CreateProductReviewRequest): ProductReview
+
+    @GET("api/v1/marketplace/products/{productId}/reviews")
+    suspend fun getProductReviews(@Path("productId") productId: String): List<ProductReview>
+
     // ═══════════════════════════════════════════════════════════════════════════
     // NEWS
     // ═══════════════════════════════════════════════════════════════════════════
 
     @GET("api/v1/news")
-    suspend fun getNews(): List<NewsArticle>
+    suspend fun getNews(): NewsListResponse
 
     @GET("api/v1/news/{articleId}")
     suspend fun getNewsArticle(@Path("articleId") articleId: String): NewsArticle
+
+    // News Bookmarks
+    @POST("api/v1/news/bookmarks")
+    suspend fun bookmarkArticle(@Body request: BookmarkRequest): NewsBookmark
+
+    @DELETE("api/v1/news/bookmarks/{articleId}")
+    suspend fun removeBookmark(@Path("articleId") articleId: String)
+
+    @GET("api/v1/news/bookmarks")
+    suspend fun getBookmarks(): List<NewsBookmark>
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ROUTES / GPS TRACKING
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    @POST("api/v1/routes/")
+    suspend fun createRoute(@Body request: Map<String, @JvmSuppressWildcards Any?>): okhttp3.ResponseBody
+
+    @GET("api/v1/routes/")
+    suspend fun getRoutes(): List<TrackingSession>
+
+    @GET("api/v1/routes/stats")
+    suspend fun getRouteStats(@Query("days") days: Int = 30): okhttp3.ResponseBody
+
+    @GET("api/v1/routes/{routeId}")
+    suspend fun getRoute(@Path("routeId") routeId: String): TrackingSession
+
+    @DELETE("api/v1/routes/{routeId}")
+    suspend fun deleteRoute(@Path("routeId") routeId: String)
 }

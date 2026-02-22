@@ -24,12 +24,13 @@ router = APIRouter(prefix="/api/v1/notifications", tags=["Notifications"])
 # === Device Token ===
 
 @router.post("/device-token", status_code=status.HTTP_201_CREATED)
+@router.post("/register-device", status_code=status.HTTP_201_CREATED)
 async def register_device_token(
     token_data: DeviceTokenCreate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """iOS app-in FCM token-ini qeyd et (login/startup zamani)"""
+    """iOS/Android app-in FCM token-ini qeyd et (login/startup zamani)"""
     result = await db.execute(
         select(DeviceToken).where(
             DeviceToken.user_id == current_user.id,

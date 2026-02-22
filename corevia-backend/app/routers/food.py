@@ -102,7 +102,19 @@ async def get_daily_summary(
         )
     )
     row = result.one()
-    daily_goal = 2000
+
+    # Kalori hedofi user weight/goal-a gore hesablanir
+    daily_goal = 2000  # default
+    if current_user.weight and current_user.weight > 0:
+        bmr = int(current_user.weight * 24)  # Simplified Mifflin-St Jeor
+        goal_str = (current_user.goal or "").lower()
+        if goal_str in ("weight_loss", "lose_weight", "cut", "ariqlamaq"):
+            daily_goal = int(bmr * 0.8)
+        elif goal_str in ("weight_gain", "gain_weight", "bulk", "ezele_toplamaq"):
+            daily_goal = int(bmr * 1.15)
+        else:
+            daily_goal = bmr
+        daily_goal = max(1200, min(5000, daily_goal))
 
     return DailyNutritionSummary(
         date=day_start.strftime("%Y-%m-%d"),
@@ -176,7 +188,7 @@ async def analyze_food_image(
     """
     AI Food Analysis Endpoint
 
-    Accepts image upload, analyzes with OpenAI Vision API, returns nutritional info.
+    Accepts image upload, analyzes with Claude Vision API, returns nutritional info.
 
     Args:
         file: Image file (JPEG, PNG)
@@ -214,10 +226,21 @@ async def analyze_food_image(
     # Convert to base64
     image_base64 = base64.b64encode(contents).decode("utf-8")
 
+    # Determine media type
+    media_type = file.content_type or "image/jpeg"
+
     # Analyze with AI
     result = await ai_food_service.analyze_food_image(
         image_base64=image_base64,
-        language=language
+        language=language,
+        media_type=media_type,
     )
+
+    # If AI analysis failed, return HTTP error so Android gets proper exception
+    if not result.get("success", False):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=result.get("error", "AI analizi uğursuz oldu")
+        )
 
     return result

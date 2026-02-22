@@ -1,6 +1,7 @@
 package life.corevia.app.ui.news
 
 import life.corevia.app.ui.theme.AppTheme
+import life.corevia.app.ui.theme.CoreViaAnimatedBackground
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -45,7 +46,8 @@ fun NewsScreen(
         "lifestyle" to "Həyat tərzi"
     )
 
-    Box(modifier = Modifier.fillMaxSize().background(AppTheme.Colors.background)) {
+    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.accent) {
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             // Header
             Box(
@@ -149,6 +151,7 @@ fun NewsScreen(
             }
         }
     }
+    } // CoreViaAnimatedBackground
 }
 
 @Composable
@@ -175,11 +178,11 @@ fun FeaturedArticleCard(article: NewsArticle, onClick: () -> Unit) {
                 )
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                article.author?.let {
+                article.source?.let {
                     Text(it, fontSize = 12.sp, color = AppTheme.Colors.secondaryText)
                     Spacer(Modifier.width(12.dp))
                 }
-                article.readTime?.let {
+                article.readingTime?.let {
                     Text("$it dəq oxu", fontSize = 12.sp, color = AppTheme.Colors.tertiaryText)
                 }
             }
@@ -225,11 +228,11 @@ fun ArticleCard(article: NewsArticle, onClick: () -> Unit) {
                 }
                 Spacer(Modifier.height(6.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    article.author?.let {
+                    article.source?.let {
                         Text(it, fontSize = 11.sp, color = AppTheme.Colors.tertiaryText)
                         Spacer(Modifier.width(8.dp))
                     }
-                    article.readTime?.let {
+                    article.readingTime?.let {
                         Text("$it dəq", fontSize = 11.sp, color = AppTheme.Colors.tertiaryText)
                     }
                 }

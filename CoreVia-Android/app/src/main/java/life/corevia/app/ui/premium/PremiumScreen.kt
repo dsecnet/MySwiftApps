@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import life.corevia.app.ui.theme.CoreViaAnimatedBackground
 
 /**
  * iOS PremiumView.swift — Android 1-ə-1 port
@@ -55,7 +56,7 @@ fun PremiumScreen(
         AlertDialog(
             onDismissRequest = { showCancelDialog = false },
             containerColor = AppTheme.Colors.secondaryBackground,
-            title = { Text("Abunəliyi ləğv et?", color = Color.White) },
+            title = { Text("Abunəliyi ləğv et?", color = AppTheme.Colors.primaryText) },
             text = { Text("Premium abunəliyinizi ləğv etmək istədiyinizdən əminsiniz?", color = AppTheme.Colors.secondaryText) },
             confirmButton = {
                 TextButton(onClick = {
@@ -71,7 +72,8 @@ fun PremiumScreen(
         )
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(AppTheme.Colors.background)) {
+    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.accent) {
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -112,7 +114,7 @@ fun PremiumScreen(
                                 .clip(CircleShape)
                                 .background(Brush.linearGradient(listOf(AppTheme.Colors.accentDark, AppTheme.Colors.accent))),
                             contentAlignment = Alignment.Center
-                        ) { Text("👑", fontSize = 50.sp) }
+                        ) { Icon(Icons.Outlined.WorkspacePremium, null, tint = Color.White, modifier = Modifier.size(50.dp)) }
 
                         // iOS: .system(size: 24, weight: .bold)
                         Text("Premium Aktiv", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = AppTheme.Colors.primaryText)
@@ -207,7 +209,7 @@ fun PremiumScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                    Text("👑", fontSize = 18.sp)
+                                    Icon(Icons.Outlined.WorkspacePremium, null, tint = Color.White, modifier = Modifier.size(18.dp))
                                     Text("Premium-ı Aktivləşdir", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
                                 }
                             }
@@ -260,6 +262,7 @@ fun PremiumScreen(
             ) { Text(error, color = Color.White) }
         }
     }
+    } // CoreViaAnimatedBackground
 }
 
 // ═══ iOS: InfoRow ══════════════════════════════════════════════════════════

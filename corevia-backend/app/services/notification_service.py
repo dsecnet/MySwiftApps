@@ -61,6 +61,13 @@ async def send_push_notification(
                     ),
                 ),
             ),
+            android=messaging.AndroidConfig(
+                priority="high",
+                notification=messaging.AndroidNotification(
+                    sound="default",
+                    channel_id="corevia_notifications",
+                ),
+            ),
         )
 
         response = messaging.send(message)
@@ -96,6 +103,13 @@ async def send_push_to_multiple(
                         badge=1,
                         sound="default",
                     ),
+                ),
+            ),
+            android=messaging.AndroidConfig(
+                priority="high",
+                notification=messaging.AndroidNotification(
+                    sound="default",
+                    channel_id="corevia_notifications",
                 ),
             ),
         )

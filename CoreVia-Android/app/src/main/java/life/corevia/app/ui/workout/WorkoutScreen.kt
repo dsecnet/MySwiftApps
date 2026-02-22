@@ -1,6 +1,10 @@
 package life.corevia.app.ui.workout
 
 import life.corevia.app.ui.theme.AppTheme
+import life.corevia.app.ui.theme.CoreViaGradientProgressBar
+import life.corevia.app.ui.theme.CoreViaSectionHeader
+import life.corevia.app.ui.theme.CoreViaAnimatedBackground
+import life.corevia.app.ui.theme.coreViaCard
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import life.corevia.app.data.models.Workout
+import life.corevia.app.data.models.WorkoutUpdateRequest
 
 /**
  * iOS WorkoutView.swift — Android 1-ə-1 port
@@ -39,6 +44,9 @@ import life.corevia.app.data.models.Workout
  *  6. Empty State
  *  7. GPS Tracking Button (premium)
  *  8. Add Workout Button (gradient inline)
+ *
+ * Faza 2: Workout card tap → WorkoutDetailScreen
+ *         Edit button → EditWorkoutSheet
  */
 @Composable
 fun WorkoutScreen(
@@ -49,6 +57,47 @@ fun WorkoutScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val showAddWorkout by viewModel.showAddWorkout.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+    val selectedWorkout by viewModel.selectedWorkout.collectAsState()
+
+    // Edit sheet state
+    var showEditSheet by remember { mutableStateOf(false) }
+    var editingWorkout by remember { mutableStateOf<Workout?>(null) }
+
+    // ── Detail Screen (selectedWorkout != null → show detail instead of list) ──
+    selectedWorkout?.let { workout ->
+        WorkoutDetailScreen(
+            workout = workout,
+            onBack = { viewModel.clearSelectedWorkout() },
+            onToggleComplete = { workoutId ->
+                viewModel.toggleComplete(workout)
+            },
+            onDelete = { workoutId ->
+                viewModel.deleteWorkout(workoutId)
+                viewModel.clearSelectedWorkout()
+            },
+            onEdit = {
+                editingWorkout = workout
+                showEditSheet = true
+            }
+        )
+
+        // Edit sheet from detail screen
+        if (showEditSheet && editingWorkout != null) {
+            EditWorkoutSheet(
+                workout = editingWorkout!!,
+                onDismiss = {
+                    showEditSheet = false
+                    editingWorkout = null
+                },
+                onSave = { workoutId, request ->
+                    viewModel.updateWorkout(workoutId, request)
+                    showEditSheet = false
+                    editingWorkout = null
+                }
+            )
+        }
+        return
+    }
 
     // iOS: week summary hesablamaları
     val weeklyMinutes  = viewModel.weeklyMinutes
@@ -71,15 +120,15 @@ fun WorkoutScreen(
 
     val scrollState = rememberScrollState()
 
-    Box(
+    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.success) {
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppTheme.Colors.background)
     ) {
-        // iOS: ScrollView { VStack(spacing: 20) { ... } .padding() .padding(.bottom, 100) }
+        // ── Scrollable content ──────────────────────────────────────────────
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .weight(1f)
                 .verticalScroll(scrollState)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -131,7 +180,7 @@ fun WorkoutScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(16.dp))
+                    .coreViaCard(cornerRadius = 16.dp)
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -185,7 +234,7 @@ fun WorkoutScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(14.dp))
+                    .coreViaCard()
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -209,15 +258,10 @@ fun WorkoutScreen(
                     )
                 }
 
-                // iOS: ProgressView(value: todayProgress).tint(accent)
-                LinearProgressIndicator(
-                    progress  = { todayProgress },
-                    modifier  = Modifier
-                        .fillMaxWidth()
-                        .height(6.dp)
-                        .clip(RoundedCornerShape(3.dp)),
-                    color     = AppTheme.Colors.accent,
-                    trackColor = AppTheme.Colors.accent.copy(alpha = 0.2f)
+                // Gradient progress bar
+                CoreViaGradientProgressBar(
+                    progress = todayProgress,
+                    height = 8.dp
                 )
 
                 // iOS: HStack { flame+calories Spacer clock+minutes }
@@ -263,16 +307,12 @@ fun WorkoutScreen(
             // ── 4. Today's Workouts (iOS: VStack alignment leading spacing 12) ──
             if (todayWorkouts.isNotEmpty()) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(
-                        text       = "Bugünkü Məşqlər",
-                        fontSize   = 17.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color      = AppTheme.Colors.primaryText
-                    )
+                    CoreViaSectionHeader(title = "Bugünkü Məşqlər")
                     todayWorkouts.forEach { workout ->
                         WorkoutCardIos(
                             workout  = workout,
-                            onToggle = { viewModel.toggleComplete(workout) }
+                            onToggle = { viewModel.toggleComplete(workout) },
+                            onClick  = { viewModel.selectWorkout(workout) }
                         )
                     }
                 }
@@ -281,16 +321,12 @@ fun WorkoutScreen(
             // ── 5. Upcoming/Past Workouts (iOS: prefix 3, non-today pending) ────
             if (pendingNotToday.isNotEmpty()) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(
-                        text       = "Gələcək Məşqlər",
-                        fontSize   = 17.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color      = AppTheme.Colors.primaryText
-                    )
+                    CoreViaSectionHeader(title = "Gələcək Məşqlər")
                     pendingNotToday.forEach { workout ->
                         WorkoutCardIos(
                             workout  = workout,
-                            onToggle = { viewModel.toggleComplete(workout) }
+                            onToggle = { viewModel.toggleComplete(workout) },
+                            onClick  = { viewModel.selectWorkout(workout) }
                         )
                     }
                 }
@@ -337,13 +373,22 @@ fun WorkoutScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        // ── Fixed bottom buttons (always visible above nav bar) ─────────────
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(AppTheme.Colors.background)
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 100.dp), // Tab bar üçün yer
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
             // ── 7. GPS Tracking Button (iOS: premium green / locked gray) ────────
-            // iOS: Premium → green gradient NavigationLink
-            // iOS: Non-Premium → gray gradient with lock icon
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 10.dp)
                     .shadow(8.dp, RoundedCornerShape(14.dp), spotColor = AppTheme.Colors.success.copy(alpha = 0.3f))
                     .background(
                         brush = Brush.horizontalGradient(
@@ -377,7 +422,6 @@ fun WorkoutScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 10.dp)
                     .shadow(8.dp, RoundedCornerShape(14.dp), spotColor = AppTheme.Colors.accent.copy(alpha = 0.3f))
                     .background(
                         brush = Brush.horizontalGradient(
@@ -406,10 +450,9 @@ fun WorkoutScreen(
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(100.dp)) // Tab bar üçün yer
         }
     }
+    } // CoreViaAnimatedBackground
 
     // ─── Add Workout Bottom Sheet ────────────────────────────────────────────
     if (showAddWorkout) {
@@ -432,7 +475,7 @@ private fun WorkoutSummaryStatCard(
 ) {
     Column(
         modifier = modifier
-            .background(AppTheme.Colors.cardBackground, RoundedCornerShape(12.dp))
+            .coreViaCard(accentColor = color, cornerRadius = 12.dp, backgroundColor = AppTheme.Colors.cardBackground)
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -458,7 +501,8 @@ private fun WorkoutSummaryStatCard(
 @Composable
 fun WorkoutCardIos(
     workout: Workout,
-    onToggle: () -> Unit
+    onToggle: () -> Unit,
+    onClick: (() -> Unit)? = null
 ) {
     // iOS: categoryColor based on workout.category
     val categoryColor = when (workout.category.lowercase()) {
@@ -472,7 +516,8 @@ fun WorkoutCardIos(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(14.dp))
+            .coreViaCard()
+            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
             .then(
                 if (workout.isCompleted) {
                     Modifier.border(

@@ -27,6 +27,9 @@ class AnalyticsViewModel(application: Application) : AndroidViewModel(applicatio
     private val _weeklyStats = MutableStateFlow<WeeklyStats?>(null)
     val weeklyStats: StateFlow<WeeklyStats?> = _weeklyStats.asStateFlow()
 
+    private val _comparison = MutableStateFlow<ProgressComparison?>(null)
+    val comparison: StateFlow<ProgressComparison?> = _comparison.asStateFlow()
+
     private val _measurements = MutableStateFlow<List<BodyMeasurement>>(emptyList())
     val measurements: StateFlow<List<BodyMeasurement>> = _measurements.asStateFlow()
 
@@ -46,6 +49,7 @@ class AnalyticsViewModel(application: Application) : AndroidViewModel(applicatio
     init {
         loadDashboard()
         loadMeasurements()
+        loadComparison()
     }
 
     // ─── Actions ────────────────────────────────────────────────────────────────
@@ -100,6 +104,15 @@ class AnalyticsViewModel(application: Application) : AndroidViewModel(applicatio
                     _successMessage.value = "Ölçü silindi"
                 },
                 onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
+            )
+        }
+    }
+
+    fun loadComparison(period: String = "week") {
+        viewModelScope.launch {
+            repository.getComparison(period).fold(
+                onSuccess = { _comparison.value = it },
+                onFailure = { /* silent - comparison is optional */ }
             )
         }
     }

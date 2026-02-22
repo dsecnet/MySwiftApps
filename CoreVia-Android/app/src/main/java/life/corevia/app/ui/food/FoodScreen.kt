@@ -1,6 +1,10 @@
 package life.corevia.app.ui.food
 
 import life.corevia.app.ui.theme.AppTheme
+import life.corevia.app.ui.theme.CoreViaIconBadge
+import life.corevia.app.ui.theme.CoreViaSectionHeader
+import life.corevia.app.ui.theme.CoreViaAnimatedBackground
+import life.corevia.app.ui.theme.coreViaCard
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -52,6 +56,11 @@ fun FoodScreen(
     val errorMessage by viewModel.errorMessage.collectAsState()
     val successMessage by viewModel.successMessage.collectAsState()
 
+    // AI Analysis states
+    val analysisResult by viewModel.analysisResult.collectAsState()
+    val isAnalyzing by viewModel.isAnalyzing.collectAsState()
+    val showAnalysisResult by viewModel.showAnalysisResult.collectAsState()
+
     // Computed
     val todayEntries   = viewModel.todayEntries
     val totalCalories  = viewModel.totalCaloriesToday
@@ -72,7 +81,7 @@ fun FoodScreen(
         AlertDialog(
             onDismissRequest = { deletingEntryId = null },
             containerColor   = AppTheme.Colors.secondaryBackground,
-            title            = { Text("Qidanı sil?", color = Color.White) },
+            title            = { Text("Qidanı sil?", color = AppTheme.Colors.primaryText) },
             text             = { Text("Bu qida girişini silmək istədiyinizdən əminsiniz?", color = AppTheme.Colors.secondaryText) },
             confirmButton    = {
                 TextButton(onClick = {
@@ -96,11 +105,7 @@ fun FoodScreen(
         if (errorMessage != null) { kotlinx.coroutines.delay(3000); viewModel.clearError() }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppTheme.Colors.background)
-    ) {
+    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.warning) {
         // iOS: ScrollView { VStack(spacing: 24) { ... } .padding() .padding(.bottom, 100) }
         Column(
             modifier = Modifier
@@ -157,7 +162,7 @@ fun FoodScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(16.dp))
+                    .coreViaCard(cornerRadius = 16.dp)
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -250,12 +255,7 @@ fun FoodScreen(
 
             // ── 3. Macro Breakdown (iOS: 3 MacroCard with emoji + border) ────────
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(
-                    text       = "Makro Bölgüsü",
-                    fontSize   = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color      = AppTheme.Colors.primaryText
-                )
+                CoreViaSectionHeader(title = "Makro Bölgüsü", subtitle = "Günlük makro xülasəsi")
 
                 Row(
                     modifier              = Modifier.fillMaxWidth(),
@@ -263,21 +263,21 @@ fun FoodScreen(
                 ) {
                     FoodMacroCard(
                         modifier = Modifier.weight(1f),
-                        emoji    = "💪",
+                        icon     = Icons.Outlined.FitnessCenter,
                         value    = "${totalProtein.toInt()}q",
                         label    = "Protein",
                         color    = AppTheme.Colors.accent
                     )
                     FoodMacroCard(
                         modifier = Modifier.weight(1f),
-                        emoji    = "🍞",
+                        icon     = Icons.Outlined.Grain,
                         value    = "${totalCarbs.toInt()}q",
                         label    = "Karbohidrat",
                         color    = AppTheme.Colors.accentDark
                     )
                     FoodMacroCard(
                         modifier = Modifier.weight(1f),
-                        emoji    = "🥑",
+                        icon     = Icons.Outlined.WaterDrop,
                         value    = "${totalFats.toInt()}q",
                         label    = "Yağ",
                         color    = AppTheme.Colors.accent
@@ -353,9 +353,25 @@ fun FoodScreen(
     if (showAddFood) {
         AddFoodSheet(
             onDismiss = { viewModel.setShowAddFood(false) },
-            isPremium = isPremium,
+            isPremium = true, // AI analiz herkese aciq
             onSave = { name, calories, protein, carbs, fats, mealType, notes ->
                 viewModel.addFoodEntry(name, calories, protein, carbs, fats, mealType, notes)
+            },
+            onAnalyzeImage = { imageFile ->
+                viewModel.analyzeFoodImage(imageFile)
+            },
+            isAnalyzing = isAnalyzing
+        )
+    }
+
+    // ─── AI Analysis Result Sheet ─────────────────────────────────────────────
+    if (showAnalysisResult && analysisResult != null) {
+        FoodAnalysisSheet(
+            result = analysisResult!!,
+            isLoading = isLoading,
+            onDismiss = { viewModel.dismissAnalysisResult() },
+            onAddAsFood = { result ->
+                viewModel.addFoodFromAnalysis(result, "lunch")
             }
         )
     }
@@ -397,12 +413,7 @@ private fun FoodCalorieStat(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Icon(
-            imageVector        = icon,
-            contentDescription = null,
-            modifier           = Modifier.size(20.dp),
-            tint               = color
-        )
+        CoreViaIconBadge(icon = icon, tintColor = color, size = 32.dp, iconSize = 16.dp)
         Text(
             text       = value,
             fontSize   = 18.sp,
@@ -421,20 +432,20 @@ private fun FoodCalorieStat(
 @Composable
 private fun FoodMacroCard(
     modifier: Modifier = Modifier,
-    emoji: String,
+    icon: ImageVector,
     value: String,
     label: String,
     color: Color
 ) {
     Column(
         modifier = modifier
-            .background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(12.dp))
-            .border(2.dp, color.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+            .coreViaCard(accentColor = color, cornerRadius = 12.dp)
+            .border(1.dp, color.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text(text = emoji, fontSize = 28.sp)
+        CoreViaIconBadge(icon = icon, tintColor = color, size = 40.dp, iconSize = 20.dp)
         Text(
             text       = value,
             fontSize   = 16.sp,
@@ -559,7 +570,7 @@ private fun FoodEntryRowIos(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(12.dp))
+            .coreViaCard(accentColor = mealColor, cornerRadius = 12.dp)
             .clip(RoundedCornerShape(12.dp))
             .clickable { onEdit() }
             .padding(12.dp),
@@ -630,7 +641,7 @@ fun EditGoalDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor   = AppTheme.Colors.secondaryBackground,
-        title            = { Text("Günləlik Kalori Hədəfi", color = Color.White) },
+        title            = { Text("Günləlik Kalori Hədəfi", color = AppTheme.Colors.primaryText) },
         text = {
             OutlinedTextField(
                 value         = goalText,
@@ -639,8 +650,8 @@ fun EditGoalDialog(
                 colors        = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor  = AppTheme.Colors.accent,
                     unfocusedBorderColor = AppTheme.Colors.separator,
-                    focusedTextColor    = Color.White,
-                    unfocusedTextColor  = Color.White,
+                    focusedTextColor    = AppTheme.Colors.primaryText,
+                    unfocusedTextColor  = AppTheme.Colors.primaryText,
                     cursorColor         = AppTheme.Colors.accent
                 ),
                 singleLine    = true

@@ -77,10 +77,10 @@ class PremiumViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun subscribe(planId: String) {
+    fun subscribe(productId: String) {
         viewModelScope.launch {
             _isLoading.value = true
-            repository.subscribe(SubscribeRequest(planId)).fold(
+            repository.subscribe(SubscribeRequest(productId = productId)).fold(
                 onSuccess = {
                     _successMessage.value = "Abunəlik uğurla aktivləşdirildi!"
                     loadStatus()

@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import life.corevia.app.data.models.MealPlan
 import life.corevia.app.data.models.PlanType
+import life.corevia.app.ui.theme.CoreViaAnimatedBackground
 
 /**
  * iOS MealPlanView.swift — Android 1-ə-1 port
@@ -30,6 +31,7 @@ import life.corevia.app.data.models.PlanType
 fun MealPlanScreen(
     isTrainer: Boolean,
     onNavigateToAddMealPlan: () -> Unit = {},
+    onNavigateToEditMealPlan: (MealPlan) -> Unit = {},
     onDeletePlan: (String) -> Unit = {},
     viewModel: MealPlanViewModel = viewModel()
 ) {
@@ -62,7 +64,7 @@ fun MealPlanScreen(
         AlertDialog(
             onDismissRequest = { deletingPlanId = null },
             containerColor = AppTheme.Colors.secondaryBackground,
-            title = { Text("Planı sil?", color = Color.White) },
+            title = { Text("Planı sil?", color = AppTheme.Colors.primaryText) },
             text = { Text("Bu qida planını silmək istədiyinizdən əminsiniz?", color = AppTheme.Colors.secondaryText) },
             confirmButton = {
                 TextButton(onClick = {
@@ -80,8 +82,9 @@ fun MealPlanScreen(
         )
     }
 
+    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.accent) {
     Scaffold(
-        containerColor = AppTheme.Colors.background,
+        containerColor = Color.Transparent,
         floatingActionButton = {
             if (isTrainer) {
                 FloatingActionButton(
@@ -104,7 +107,7 @@ fun MealPlanScreen(
                 text = "Qida Planları",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White,
+                color = AppTheme.Colors.primaryText,
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
             )
 
@@ -217,6 +220,7 @@ fun MealPlanScreen(
                             onToggle = {
                                 expandedPlanId = if (expandedPlanId == plan.id) null else plan.id
                             },
+                            onEdit = { onNavigateToEditMealPlan(plan) },
                             onDelete = { deletingPlanId = plan.id }
                         )
                     }
@@ -225,6 +229,7 @@ fun MealPlanScreen(
             }
         }
     }
+    } // CoreViaAnimatedBackground
 }
 
 @Composable
@@ -233,6 +238,7 @@ fun MealPlanCard(
     isExpanded: Boolean,
     isTrainer: Boolean = false,
     onToggle: () -> Unit,
+    onEdit: () -> Unit = {},
     onDelete: () -> Unit = {}
 ) {
     val planTypeLabel = when (plan.planType) {
@@ -258,7 +264,7 @@ fun MealPlanCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = plan.title,
-                        color = Color.White,
+                        color = AppTheme.Colors.primaryText,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp
                     )
@@ -342,19 +348,35 @@ fun MealPlanCard(
                     Text("📝 $it", color = AppTheme.Colors.secondaryText, fontSize = 12.sp)
                 }
 
-                // Delete button (trainer only)
+                // Edit & Delete buttons (trainer only)
                 if (isTrainer) {
                     Spacer(modifier = Modifier.height(12.dp))
-                    OutlinedButton(
-                        onClick = onDelete,
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = AppTheme.Colors.error),
-                        border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-                            brush = androidx.compose.ui.graphics.SolidColor(AppTheme.Colors.error.copy(alpha = 0.5f))
-                        )
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("🗑️ Sil", fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.error)
+                        OutlinedButton(
+                            onClick = onEdit,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = AppTheme.Colors.accent),
+                            border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
+                                brush = androidx.compose.ui.graphics.SolidColor(AppTheme.Colors.accent.copy(alpha = 0.5f))
+                            )
+                        ) {
+                            Text("Redakt\u0259 et", fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.accent)
+                        }
+                        OutlinedButton(
+                            onClick = onDelete,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = AppTheme.Colors.error),
+                            border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
+                                brush = androidx.compose.ui.graphics.SolidColor(AppTheme.Colors.error.copy(alpha = 0.5f))
+                            )
+                        ) {
+                            Text("Sil", fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.error)
+                        }
                     }
                 }
             }
