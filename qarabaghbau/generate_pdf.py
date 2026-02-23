@@ -1,437 +1,297 @@
 #!/usr/bin/env python3
-"""
-Garabag-Bau & Inno-Bahnbau - Company Analysis PDF Generator
-"""
+"""GARABAG-Bau Praesentation — Originaltexte + Bilder, kein Video"""
+from reportlab.lib.pagesizes import landscape, A4
+from reportlab.lib.colors import HexColor, Color
+from reportlab.pdfgen import canvas
+import os
 
-from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
-from reportlab.lib.units import mm, cm
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
+BG=HexColor('#FFFFFF');CARD=HexColor('#F5F5F5');ACCENT=HexColor('#e93728')
+DARK=HexColor('#1a1a1a');TEXT=HexColor('#444444');GRAY=HexColor('#777777')
+MUTED=HexColor('#aaaaaa');BORDER=HexColor('#e0e0e0')
 
-def create_pdf():
-    doc = SimpleDocTemplate(
-        "/Users/vusaldadashov/Desktop/qarabaghbau/Garabag_Bau_Analysis.pdf",
-        pagesize=A4,
-        rightMargin=2*cm,
-        leftMargin=2*cm,
-        topMargin=2*cm,
-        bottomMargin=2*cm
-    )
+W,H=landscape(A4)
+OUT='/Users/vusaldadashov/Desktop/ConsoleApp/qarabaghbau/GARABAG-Bau_Praesentation.pdf'
+IMG='/Users/vusaldadashov/Desktop/ConsoleApp/qarabaghbau/images/png'
 
-    styles = getSampleStyleSheet()
+def bg(c):
+    c.setFillColor(BG);c.rect(0,0,W,H,fill=1,stroke=0)
+def topbar(c):
+    c.setFillColor(ACCENT);c.rect(0,H-2.5,W*0.4,2.5,fill=1,stroke=0)
+def pnum(c,n,t=5):
+    c.setFillColor(MUTED);c.setFont('Helvetica',8);c.drawRightString(W-40,25,f'{n:02d} / {t:02d}')
+def pbrand(c):
+    c.setFillColor(MUTED);c.setFont('Helvetica-Bold',7);c.drawString(40,25,'GARABAG-BAU')
+def aline(c,x,y,w=45):
+    c.setFillColor(ACCENT);c.roundRect(x,y,w,2.5,1,fill=1,stroke=0)
+def crd(c,x,y,w,h,r=10):
+    c.setFillColor(CARD);c.setStrokeColor(BORDER);c.setLineWidth(0.5);c.roundRect(x,y,w,h,r,fill=1,stroke=1)
+def crda(c,x,y,w,h):
+    crd(c,x,y,w,h);c.setFillColor(ACCENT);c.rect(x,y+6,2.5,h-12,fill=1,stroke=0)
 
-    # Custom styles
-    title_style = ParagraphStyle(
-        'CustomTitle',
-        parent=styles['Title'],
-        fontSize=24,
-        textColor=colors.HexColor('#1a1a2e'),
-        spaceAfter=6,
-        alignment=TA_CENTER,
-        fontName='Helvetica-Bold'
-    )
+def draw_img(c, path, x, y, w, h, radius=8):
+    """Draw image with clipping to rounded rect"""
+    fp = os.path.join(IMG, path)
+    if not os.path.exists(fp):
+        crd(c,x,y,w,h,radius)
+        return
+    c.saveState()
+    p = c.beginPath()
+    p.roundRect(x, y, w, h, radius)
+    c.clipPath(p, stroke=0)
+    c.drawImage(fp, x, y, w, h, preserveAspectRatio=True, anchor='c')
+    c.restoreState()
+    # border
+    c.setStrokeColor(BORDER);c.setLineWidth(0.5)
+    p2 = c.beginPath();p2.roundRect(x,y,w,h,radius);c.drawPath(p2,stroke=1,fill=0)
 
-    subtitle_style = ParagraphStyle(
-        'CustomSubtitle',
-        parent=styles['Normal'],
-        fontSize=12,
-        textColor=colors.HexColor('#666666'),
-        spaceAfter=20,
-        alignment=TA_CENTER,
-        fontName='Helvetica'
-    )
+# ════════════ PAGE 1 — COVER ════════════
+def p1(c):
+    bg(c)
+    # Hero image as background (dimmed)
+    c.saveState()
+    c.drawImage(os.path.join(IMG,'hero_1.png'),0,0,W,H,preserveAspectRatio=True,anchor='c')
+    c.setFillColor(Color(1,1,1,0.88))
+    c.rect(0,0,W,H,fill=1,stroke=0)
+    c.restoreState()
 
-    section_style = ParagraphStyle(
-        'SectionHeader',
-        parent=styles['Heading1'],
-        fontSize=16,
-        textColor=colors.HexColor('#16213e'),
-        spaceBefore=20,
-        spaceAfter=10,
-        fontName='Helvetica-Bold',
-        borderWidth=0,
-        borderColor=colors.HexColor('#e94560'),
-        borderPadding=5,
-    )
+    for i in range(25):
+        a=0.012-i*0.0005
+        if a<=0:break
+        c.setFillColor(Color(0.91,0.22,0.16,a));c.circle(W-80,H-50,100+i*14,fill=1,stroke=0)
+    for i in range(18):
+        a=0.008-i*0.0004
+        if a<=0:break
+        c.setFillColor(Color(0.91,0.22,0.16,a));c.circle(80,60,90+i*14,fill=1,stroke=0)
 
-    subsection_style = ParagraphStyle(
-        'SubsectionHeader',
-        parent=styles['Heading2'],
-        fontSize=13,
-        textColor=colors.HexColor('#0f3460'),
-        spaceBefore=12,
-        spaceAfter=6,
-        fontName='Helvetica-Bold'
-    )
+    c.setFillColor(MUTED);c.setFont('Helvetica',10);c.drawRightString(W-40,H-35,'2025')
+    cx=W/2
 
-    body_style = ParagraphStyle(
-        'CustomBody',
-        parent=styles['Normal'],
-        fontSize=10,
-        textColor=colors.HexColor('#333333'),
-        spaceAfter=6,
-        alignment=TA_JUSTIFY,
-        fontName='Helvetica',
-        leading=14
-    )
+    # Logo
+    draw_img(c,'attachment_1.png',cx-35,H/2+52,70,50,10)
 
-    bullet_style = ParagraphStyle(
-        'BulletStyle',
-        parent=body_style,
-        leftIndent=20,
-        bulletIndent=10,
-        spaceAfter=4,
-    )
+    c.setFillColor(DARK);c.setFont('Helvetica-Bold',54);c.drawCentredString(cx,H/2+5,'GARABAG')
+    c.setFillColor(ACCENT);c.setFont('Helvetica-Bold',54);c.drawCentredString(cx,H/2-48,'BAU')
+    c.setFillColor(TEXT);c.setFont('Helvetica',14)
+    c.drawCentredString(cx,H/2-85,'Wir bauen Ihre Zukunft auf')
+    c.setFillColor(MUTED);c.setFont('Helvetica',9)
+    c.drawCentredString(cx,35,u'Eichendorffstr. 3, 48167 M\u00fcnster     \u00b7     01726009105     \u00b7     info@garabag-bau.de')
+    c.showPage()
 
-    info_style = ParagraphStyle(
-        'InfoStyle',
-        parent=body_style,
-        fontSize=10,
-        leftIndent=15,
-        spaceAfter=3,
-    )
+# ════════════ PAGE 2 — ÜBER UNS ════════════
+def p2(c):
+    bg(c);topbar(c);pbrand(c);pnum(c,2)
+    lx=45
 
-    elements = []
+    c.setFillColor(ACCENT);c.setFont('Helvetica-Bold',8);c.drawString(lx,H-50,u'\u00dc B E R   U N S')
+    c.setFillColor(DARK);c.setFont('Helvetica-Bold',26)
+    c.drawString(lx,H-80,u'GARABAG-BAU IN M\u00dcNSTER')
+    aline(c,lx,H-95)
 
-    # ==========================================
-    # COVER / TITLE
-    # ==========================================
-    elements.append(Spacer(1, 3*cm))
-    elements.append(Paragraph("GARABAG-BAU", title_style))
-    elements.append(Paragraph("Bauunternehmung", subtitle_style))
-    elements.append(Spacer(1, 0.5*cm))
-    elements.append(HRFlowable(width="60%", thickness=2, color=colors.HexColor('#e94560'), spaceAfter=10, spaceBefore=0, hAlign='CENTER'))
-    elements.append(Spacer(1, 0.5*cm))
-    elements.append(Paragraph("Detalli Sirket Analizi ve Melumat Hesabati", subtitle_style))
-    elements.append(Paragraph("Hazirlanma tarixi: Fevral 2026", subtitle_style))
-    elements.append(Spacer(1, 2*cm))
-
-    # Info box
-    info_data = [
-        ['Sayt:', 'www.garabag-bau.de'],
-        ['Yer:', 'Munster, Almaniya'],
-        ['Sahib:', 'Vugar Azizov'],
-        ['Sahesi:', 'Tikinti / Bauunternehmung'],
+    c.setFillColor(TEXT);c.setFont('Helvetica',10)
+    y=H-120
+    texts=[
+        u'Wir sind ein f\u00fchrendes Unternehmen in der Bauindustrie und stolz',
+        u'darauf, innovative und qualitativ hochwertige L\u00f6sungen f\u00fcr unsere',
+        u'Kunden zu bieten. Seit unserer Gr\u00fcndung setzen wir auf Kompetenz,',
+        u'Zuverl\u00e4ssigkeit und Kundenzufriedenheit.',
+        '',
+        u'Unser erfahrenes Team aus Fachleuten arbeitet engagiert daran,',
+        u'jedes Bauprojekt erfolgreich zu realisieren, von Abbrucharbeiten',
+        u'\u00fcber Ger\u00fcstbau bis hin zur Bereitstellung erstklassiger Baustoffe.',
+        '',
+        u'Mit Leidenschaft und Fachwissen verwandeln wir Ihre Visionen in',
+        u'Wirklichkeit. Lernen Sie uns kennen und erfahren Sie, warum',
+        u'GARABAG Bau Ihr vertrauensw\u00fcrdiger Partner f\u00fcr Bauprojekte',
+        u'aller Art ist.',
     ]
-    info_table = Table(info_data, colWidths=[4*cm, 10*cm])
-    info_table.setStyle(TableStyle([
-        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-        ('FONTNAME', (1, 0), (1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 0), (-1, -1), 10),
-        ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#16213e')),
-        ('TEXTCOLOR', (1, 0), (1, -1), colors.HexColor('#333333')),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-        ('TOPPADDING', (0, 0), (-1, -1), 6),
-        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f8f9fa')),
-        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#dee2e6')),
-        ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#dee2e6')),
-    ]))
-    elements.append(info_table)
+    for l in texts:
+        if l:c.drawString(lx,y,l)
+        y-=16
 
-    # PAGE BREAK
-    from reportlab.platypus import PageBreak
-    elements.append(PageBreak())
-
-    # ==========================================
-    # SECTION 1: GARABAG-BAU ESAS MELUMATLAR
-    # ==========================================
-    elements.append(Paragraph("1. GARABAG-BAU - ESAS MELUMATLAR", section_style))
-    elements.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#e94560'), spaceAfter=10))
-
-    elements.append(Paragraph("1.1 Huquqi Melumatlar (Impressum)", subsection_style))
-
-    legal_data = [
-        ['Sirketin Tam Adi:', 'Bauunternehmung GARABAG-Bau'],
-        ['Sahibi / Direktor:', 'Vugar Azizov'],
-        ['Unvan:', 'Eichendorffstr. 3, 48167 Munster, Almaniya'],
-        ['Telefon:', '+49 172 600 9105'],
-        ['E-poct:', 'info@garabag-bau.de'],
-        ['Vergi Nomresi (USt-IdNr):', '12024368757'],
-        ['Senedkarliq Nomresi:', '41987065'],
-        ['Qeydiyyat Orqani:', 'Handwerkskammer (Senedkarliq Palatasi)'],
-        ['Redaksiya Mesuliyyeti:', 'Azizova Shafag'],
-        ['Munaqise Hell:', 'Isterakci munaqise helli prosedurlarinda istirak etmir'],
+    y-=10
+    c.setFillColor(ACCENT);c.setFont('Helvetica-Bold',8);c.drawString(lx,y,'W I L L K O M M E N')
+    y-=20
+    c.setFillColor(TEXT);c.setFont('Helvetica',10)
+    texts2=[
+        u'Wir sind ein eingespieltes Team von sieben Fachkr\u00e4ften mit Sitz',
+        u'in M\u00fcnster. Unsere Leistungen umfassen Rohbau, Betonarbeiten,',
+        u'Mauerbau, Altbausanierung, Schalung, Eisenbewehrung, Anbau und',
+        u'Abbruch. Pr\u00e4zision, Qualit\u00e4t und Kundenzufriedenheit stehen bei',
+        u'uns an erster Stelle \u2014 jedes Projekt wird termingerecht und auf',
+        u'h\u00f6chstem handwerklichen Niveau abgeschlossen.',
     ]
-    legal_table = Table(legal_data, colWidths=[5.5*cm, 10*cm])
-    legal_table.setStyle(TableStyle([
-        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-        ('FONTNAME', (1, 0), (1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 0), (-1, -1), 9),
-        ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#16213e')),
-        ('TEXTCOLOR', (1, 0), (1, -1), colors.HexColor('#333333')),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-        ('TOPPADDING', (0, 0), (-1, -1), 5),
-        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#f0f4f8')),
-        ('BACKGROUND', (1, 0), (1, -1), colors.white),
-        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#c5cdd5')),
-        ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#dee2e6')),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-    ]))
-    elements.append(legal_table)
-    elements.append(Spacer(1, 0.5*cm))
+    for l in texts2:
+        if l:c.drawString(lx,y,l)
+        y-=16
 
-    # 1.2 Sirket Haqqinda
-    elements.append(Paragraph("1.2 Sirket Haqqinda", subsection_style))
-    elements.append(Paragraph(
-        "GARABAG-Bau, Almaniya'nin Munster seherinde yerlesen professional tikinti sirketi (Bauunternehmung) olaraq "
-        "fealiyyet gosterir. Sirket ozunu tikinti sektorunda liderliyini vurgulayir ve musterilerine innovativ, "
-        "yuksek keyfiyyetli heller teqdim etmeyi esas meqsed kimi qoyur.",
-        body_style
-    ))
-    elements.append(Paragraph(
-        "Sirket 7 nefer mutexessisden ibaret komanda ile isleyir. Esas deyerler arasinda kompetensiya, "
-        "etibarlilik ve musteri memnuniyyeti dayanir. Sirket qurulan gunden bu prinsiplere sadiq qalib.",
-        body_style
-    ))
-    elements.append(Paragraph(
-        "Missiyasi: Musterilerin vizyonlarini reallastirmaq - tikinti layihelerinde ehtirasli ve pesekar "
-        "yanasma ile.",
-        body_style
-    ))
+    # Right side — image + info cards
+    rx=W/2+15;cw=W/2-70
 
-    # 1.3 Xidmetler
-    elements.append(Paragraph("1.3 Teqdim Olunan Xidmetler", subsection_style))
+    # Hero image on right
+    draw_img(c,'hero_2.png',rx,H-55-(cw*0.45),cw,cw*0.45,10)
 
-    services = [
-        ("Mauer-Betonbau (Horgu ve Beton Isler)",
-         "Yasayis ve kommersiya layiheleri ucun individual heller. "
-         "Horgu ve beton emeliyyatlari musterinin texniki teleblerine uygun icra olunur."),
-
-        ("Altbausanierung (Kohne Bina Berpa / Renovasiya)",
-         "Kohne binalarin berpasi ve modernlesdirilmesi. Pesekar yanasma ile kohne tikililerin "
-         "yeniden heyata qaytarilmasi."),
-
-        ("Anbau und Abbruch (Genislendirme ve Sokulme)",
-         "Binalarin genislendirilmesi ve ya tehlukesiz sokulme emeliyyatlari. "
-         "Movcud strukturlarin boyudulmesi ve ya nezaretli dagilma."),
-
-        ("Schalung und Eisenbewehrungsarbeit (Qelib ve Demirle Moglendirme)",
-         "Muxtelf tikinti layihelerinde deqiq ve etibarlii qelib sistemleri ve "
-         "mohlendirici polad emeliyyatlari.")
+    # Info cards below image
+    img_bottom = H-55-(cw*0.45)-10
+    cards=[
+        ('INHABER','Vugar Azizov'),
+        ('TEAM',u'7 Fachkr\u00e4fte'),
+        ('ADRESSE',u'Eichendorffstr. 3, 48167 M\u00fcnster'),
+        ('TELEFON','01726009105'),
+        ('E-MAIL','info@garabag-bau.de'),
     ]
+    ch=32;cg=5
+    for i,(lab,val) in enumerate(cards):
+        cy=img_bottom-i*(ch+cg)
+        crda(c,rx,cy-ch,cw,ch)
+        c.setFillColor(ACCENT);c.setFont('Helvetica-Bold',6.5);c.drawString(rx+14,cy-11,lab)
+        c.setFillColor(DARK);c.setFont('Helvetica-Bold',9.5);c.drawString(rx+14,cy-25,val)
+    c.showPage()
 
-    for svc_name, svc_desc in services:
-        elements.append(Paragraph(f"<b>{svc_name}</b>", bullet_style))
-        elements.append(Paragraph(svc_desc, info_style))
-        elements.append(Spacer(1, 2*mm))
+# ════════════ PAGE 3 — LEISTUNGEN ════════════
+def p3(c):
+    bg(c);topbar(c);pbrand(c);pnum(c,3)
+    c.setFillColor(ACCENT);c.setFont('Helvetica-Bold',8);c.drawString(45,H-50,'L E I S T U N G E N')
+    c.setFillColor(DARK);c.setFont('Helvetica-Bold',26);c.drawString(45,H-80,'DAS LEISTEN WIR')
+    aline(c,45,H-95)
 
-    # 1.4 Elaqe ve Raqemsal Istirak
-    elements.append(Paragraph("1.4 Elaqe ve Raqemsal Istirak", subsection_style))
-
-    digital_data = [
-        ['Veb-sayt:', 'www.garabag-bau.de'],
-        ['E-poct:', 'info@garabag-bau.de'],
-        ['Telefon:', '+49 172 600 9105'],
-        ['WhatsApp:', '+49 172 600 9105'],
-        ['Instagram:', '@garabag_bau'],
-        ['Google Maps:', '51.914348, 7.690807 (Munster)'],
+    # 2x2 grid with images
+    svcs=[
+        ('01','MAUER- & BETONBAU','project_1.png',[
+            u'Garabag Bau, Ihr Experte f\u00fcr Mauer- und Betonbau.',
+            u'Wir bieten ma\u00dfgeschneiderte L\u00f6sungen f\u00fcr private',
+            u'und gewerbliche Bauprojekte. Unsere Leistungen',
+            u'umfassen: Mauerbau und Betonarbeit. Kontaktieren',
+            u'Sie uns f\u00fcr Ihr n\u00e4chstes Bauprojekt!']),
+        ('02','ALTBAUSANIERUNG','project_3.png',[
+            u'Erwecken Sie alte Geb\u00e4ude zu neuem Leben mit',
+            u'Garabag Bau. Wir sind spezialisiert auf die',
+            u'fachgerechte Sanierung und Modernisierung von',
+            u'Altbauten. Vertrauen Sie auf unsere Erfahrung',
+            u'und Expertise f\u00fcr eine gelungene Altbausanierung.']),
+        ('03','ANBAU UND ABBRUCH','project_5.png',[
+            u'Bei Garabag Bau bieten wir professionelle L\u00f6sungen',
+            u'f\u00fcr Anbau und Abbruch an. Egal, ob Sie Ihr Geb\u00e4ude',
+            u'erweitern oder sicher abrei\u00dfen m\u00f6chten, wir sind Ihr',
+            u'verl\u00e4sslicher Partner. Vertrauen Sie auf unsere',
+            u'Expertise f\u00fcr Ihr Bauprojekt.']),
+        ('04','SCHALUNG & EISENBEWEHRUNG','project_7.png',[
+            u'Garabag Bau ist Ihr Fachbetrieb f\u00fcr Schalung und',
+            u'Eisenbewehrungsarbeiten. Wir bieten pr\u00e4zise und',
+            u'zuverl\u00e4ssige L\u00f6sungen f\u00fcr alle Arten von',
+            u'Bauprojekten. Vertrauen Sie auf unsere Erfahrung',
+            u'und Kompetenz.']),
     ]
-    digital_table = Table(digital_data, colWidths=[4*cm, 10*cm])
-    digital_table.setStyle(TableStyle([
-        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-        ('FONTNAME', (1, 0), (1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 0), (-1, -1), 9),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-        ('TOPPADDING', (0, 0), (-1, -1), 4),
-        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f8f9fa')),
-        ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor('#dee2e6')),
-        ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#dee2e6')),
-    ]))
-    elements.append(digital_table)
+    cols=2;cw2=(W-90-20)/cols;ch2=125;img_h=48
+    for i,(num,title,img,desc) in enumerate(svcs):
+        col=i%cols;row=i//cols;x=45+col*(cw2+20);y=H-115-row*(ch2+14)
+        crd(c,x,y-ch2,cw2,ch2)
+        # Image strip at top of card
+        draw_img(c,img,x+2,y-2-img_h,cw2-4,img_h,8)
+        # Number
+        c.setFillColor(Color(0,0,0,0.04));c.setFont('Helvetica-Bold',34);c.drawRightString(x+cw2-14,y-img_h-22,num)
+        c.setFillColor(DARK);c.setFont('Helvetica-Bold',9.5);c.drawString(x+16,y-img_h-18,title)
+        c.setFillColor(TEXT);c.setFont('Helvetica',8)
+        for j,line in enumerate(desc):
+            if line:c.drawString(x+16,y-img_h-34-j*12,line)
+    c.showPage()
 
-    elements.append(PageBreak())
+# ════════════ PAGE 4 — GALERIE ════════════
+def p4(c):
+    bg(c);topbar(c);pbrand(c);pnum(c,4)
+    c.setFillColor(ACCENT);c.setFont('Helvetica-Bold',8);c.drawString(45,H-50,'G A L E R I E')
+    c.setFillColor(DARK);c.setFont('Helvetica-Bold',26);c.drawString(45,H-80,'UNSERE ARBEIT')
+    aline(c,45,H-95)
 
-    # ==========================================
-    # SECTION 2: INNO-BAHNBAU
-    # ==========================================
-    elements.append(Paragraph("2. INNO-BAHNBAU (INNOVATIVE BAHNBAU)", section_style))
-    elements.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#e94560'), spaceAfter=10))
+    c.setFillColor(DARK);c.setFont('Helvetica-Bold',11);c.drawString(45,H-115,'Bilder')
 
-    elements.append(Paragraph("2.1 Umumi Melumat", subsection_style))
+    # Row 1 — 4 project images
+    imgs_row1 = ['project_1.png','project_2.png','project_3.png','project_4.png']
+    gw = (W - 90 - 14*3) / 4
+    gh = gw * 0.56
+    gy1 = H - 135
 
-    inno_data = [
-        ['Sirket Adi:', 'Innovative Bahnbau'],
-        ['Veb-sayt:', 'www.inno-bahnbau.de'],
-        ['Fealiyyet Sahesi:', 'Gleisbau & Instandhaltung (Demir yolu tikintisi ve texniki xidmet)'],
-        ['Olke:', 'Almaniya'],
+    for i,img in enumerate(imgs_row1):
+        x = 45 + i * (gw + 14)
+        draw_img(c, img, x, gy1 - gh, gw, gh, 8)
+
+    # Row 2 — 4 project images
+    imgs_row2 = ['project_5.png','project_6.png','project_7.png','project_8.png']
+    gy2 = gy1 - gh - 12
+
+    for i,img in enumerate(imgs_row2):
+        x = 45 + i * (gw + 14)
+        draw_img(c, img, x, gy2 - gh, gw, gh, 8)
+
+    # Row 3 — Drone images label
+    gy3 = gy2 - gh - 20
+    c.setFillColor(DARK);c.setFont('Helvetica-Bold',11);c.drawString(45,gy3,'Drohnenaufnahmen')
+
+    # Row 3 — 3 DJI drone images
+    imgs_row3 = ['DJI_20240423110827_0004_D.png','DJI_20240429154043_0005_D.png','DJI_20240506161336_0008_D.png']
+    dw = (W - 90 - 14*2) / 3
+    dh = dw * 0.48
+    dy = gy3 - 16
+
+    for i,img in enumerate(imgs_row3):
+        x = 45 + i * (dw + 14)
+        draw_img(c, img, x, dy - dh, dw, dh, 8)
+
+    c.showPage()
+
+# ════════════ PAGE 5 — KONTAKT ════════════
+def p5(c):
+    bg(c);topbar(c);pbrand(c);pnum(c,5)
+    cx=W/2
+
+    c.setFillColor(ACCENT);c.setFont('Helvetica-Bold',8);c.drawCentredString(cx,H-50,'T E R M I N E   &   K O N T A K T')
+    c.setFillColor(DARK);c.setFont('Helvetica-Bold',32);c.drawCentredString(cx,H-85,'KONTAKTIEREN SIE UNS')
+    aline(c,cx-22,H-100)
+
+    contacts=[
+        ('TELEFON','01726009105'),
+        ('E-MAIL','info@garabag-bau.de'),
+        ('INSTAGRAM','@garabag_bau'),
     ]
-    inno_table = Table(inno_data, colWidths=[4.5*cm, 10*cm])
-    inno_table.setStyle(TableStyle([
-        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-        ('FONTNAME', (1, 0), (1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 0), (-1, -1), 9),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-        ('TOPPADDING', (0, 0), (-1, -1), 5),
-        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#f0f4f8')),
-        ('BACKGROUND', (1, 0), (1, -1), colors.white),
-        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#c5cdd5')),
-        ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#dee2e6')),
-    ]))
-    elements.append(inno_table)
-    elements.append(Spacer(1, 0.5*cm))
+    cw3,ch3=190,60;total=3*cw3+2*20;sx=(W-total)/2;cy=H-130
+    for i,(lab,val) in enumerate(contacts):
+        x=sx+i*(cw3+20);crd(c,x,cy-ch3,cw3,ch3)
+        c.setFillColor(ACCENT);c.setFont('Helvetica-Bold',8);c.drawCentredString(x+cw3/2,cy-18,lab)
+        c.setFillColor(DARK);c.setFont('Helvetica-Bold',11);c.drawCentredString(x+cw3/2,cy-38,val)
 
-    elements.append(Paragraph("2.2 Xidmetler", subsection_style))
-    elements.append(Paragraph(
-        "<b>Gleisbau (Rels/Yol Tikintisi):</b> Demir yolu relsleri ve elaqeli infrastrukturun tikilmesi ve qurasdirilmasi.",
-        bullet_style
-    ))
-    elements.append(Paragraph(
-        "<b>Instandhaltung (Texniki Xidmet):</b> Movcud demir yolu sistemlerinin texniki xidmeti, "
-        "temir ve baximini ehate edir.",
-        bullet_style
-    ))
-    elements.append(Spacer(1, 0.3*cm))
+    ay=cy-ch3-30
+    c.setFillColor(ACCENT);c.setFont('Helvetica-Bold',8);c.drawCentredString(cx,ay,'A N S C H R I F T')
+    c.setFillColor(DARK);c.setFont('Helvetica-Bold',14);c.drawCentredString(cx,ay-22,'Eichendorffstr. 3')
+    c.drawCentredString(cx,ay-42,u'48167 M\u00fcnster')
 
-    elements.append(Paragraph("2.3 Sayt Analizi", subsection_style))
-    elements.append(Paragraph(
-        "Inno-bahnbau.de sayti hazirda minimal mezmunla isleyir. Saytda yalniz sirketin adi ve esas "
-        "fealiyyet istiqameti gosterilir. Impressum, elaqe sehifesi, detalli xidmet tesviri, komanda "
-        "melumatlari ve digder standart biznes sayt bolmeleri ya movcud deyil, ya da JavaScript render-e "
-        "esaslanir ve static crawler-ler terefinden oxuna bilmir.",
-        body_style
-    ))
-    elements.append(Paragraph(
-        "Tovsiyeler: Saytin SEO optimizasiyasi, Impressum elavesi, detalli xidmet sehifeleri, "
-        "elaqe formu ve referans layiheler bolmesi elave edilmelidir.",
-        body_style
-    ))
+    fy=ay-75
+    c.setFillColor(DARK);c.setFont('Helvetica-Bold',10);c.drawCentredString(cx,fy,'Schreiben Sie uns')
+    fy-=20
 
-    elements.append(PageBreak())
+    fw=400;fh=30;fsx=(W-fw)/2
+    fields=['Vorname','Nachname','E-Mail','Ihre Nachricht']
+    for i,f in enumerate(fields):
+        crd(c,fsx,fy-i*(fh+8),fw,fh,6)
+        c.setFillColor(GRAY);c.setFont('Helvetica',9);c.drawString(fsx+12,fy-i*(fh+8)+10,f)
 
-    # ==========================================
-    # SECTION 3: MUQAYISE
-    # ==========================================
-    elements.append(Paragraph("3. MUQAYISELI ANALIZ", section_style))
-    elements.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#e94560'), spaceAfter=10))
+    cby=fy-len(fields)*(fh+8)-10
+    c.setFillColor(TEXT);c.setFont('Helvetica',7.5)
+    c.drawCentredString(cx,cby,u'Ich habe die Datenschutzerkl\u00e4rung zur Kenntnis genommen.')
+    c.drawCentredString(cx,cby-12,u'Ich stimme zu, dass meine Angaben zur Kontaktaufnahme und f\u00fcr R\u00fcckfragen dauerhaft gespeichert werden.')
 
-    comp_data = [
-        ['Kriteriya', 'GARABAG-Bau', 'Inno-Bahnbau'],
-        ['Fealiyyet sahesi', 'Umumi tikinti\n(Hochbau)', 'Demir yolu tikintisi\n(Gleisbau)'],
-        ['Yer', 'Munster, Almaniya', 'Almaniya (deqiq yer yoxdur)'],
-        ['Veb-sayt keyfiyyeti', 'Yaxsi (tam mezmun)', 'Zeyif (minimal mezmun)'],
-        ['Impressum', 'Var (tam)', 'Yoxdur / Tapilmadi'],
-        ['Xidmet sayi', '4 esas xidmet', '2 esas xidmet'],
-        ['Sosial media', 'Instagram aktiv', 'Tapilmadi'],
-        ['Komanda', '7 mutexessis', 'Melumat yoxdur'],
-        ['Elaqe kanallari', 'Telefon, Email,\nWhatsApp, Instagram', 'Melumat yoxdur'],
-    ]
+    c.setFillColor(MUTED);c.setFont('Helvetica',7)
+    c.drawCentredString(cx,30,u'\u00a9 2025 GARABAG-Bau     \u00b7     Impressum     \u00b7     Datenschutz')
+    c.showPage()
 
-    comp_table = Table(comp_data, colWidths=[4.5*cm, 5.5*cm, 5.5*cm])
-    comp_table.setStyle(TableStyle([
-        # Header row
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 10),
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#16213e')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+# ════════════ GENERATE ════════════
+def main():
+    c2=canvas.Canvas(OUT,pagesize=landscape(A4))
+    c2.setTitle(u'GARABAG-Bau \u2014 Unternehmenspr\u00e4sentation')
+    c2.setAuthor('GARABAG-Bau')
+    p1(c2);p2(c2);p3(c2);p4(c2);p5(c2)
+    c2.save()
+    fsize = os.path.getsize(OUT) / 1024
+    print(f'\n\u2705 PDF erstellt: {OUT}')
+    print(f'   5 Seiten | A4 Querformat | mit Bildern | {fsize:.0f} KB')
 
-        # Body
-        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 1), (-1, -1), 9),
-        ('TEXTCOLOR', (0, 1), (-1, -1), colors.HexColor('#333333')),
-
-        # First column bold
-        ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
-
-        # Alternating row colors
-        ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor('#f8f9fa')),
-        ('BACKGROUND', (0, 2), (-1, 2), colors.white),
-        ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor('#f8f9fa')),
-        ('BACKGROUND', (0, 4), (-1, 4), colors.white),
-        ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor('#f8f9fa')),
-        ('BACKGROUND', (0, 6), (-1, 6), colors.white),
-        ('BACKGROUND', (0, 7), (-1, 7), colors.HexColor('#f8f9fa')),
-        ('BACKGROUND', (0, 8), (-1, 8), colors.white),
-
-        # Grid
-        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#c5cdd5')),
-        ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#dee2e6')),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-        ('TOPPADDING', (0, 0), (-1, -1), 6),
-        ('LEFTPADDING', (0, 0), (-1, -1), 8),
-    ]))
-    elements.append(comp_table)
-
-    elements.append(Spacer(1, 1*cm))
-
-    # ==========================================
-    # SECTION 4: NETICE VE TOVSIYELER
-    # ==========================================
-    elements.append(Paragraph("4. NETICE VE TOVSIYELER", section_style))
-    elements.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#e94560'), spaceAfter=10))
-
-    elements.append(Paragraph("<b>GARABAG-Bau:</b>", subsection_style))
-    elements.append(Paragraph(
-        "- Professional ve tam funksional veb-sayti var",
-        bullet_style
-    ))
-    elements.append(Paragraph(
-        "- Huquqi melumatlar (Impressum) tam aciqdir - Handwerkskammer qeydiyyatli",
-        bullet_style
-    ))
-    elements.append(Paragraph(
-        "- 4 esas tikinti xidmeti teqdim edir",
-        bullet_style
-    ))
-    elements.append(Paragraph(
-        "- Munsterde 7 neferlik mutexessis komanda",
-        bullet_style
-    ))
-    elements.append(Paragraph(
-        "- Coxkanalli elaqe (telefon, email, WhatsApp, Instagram)",
-        bullet_style
-    ))
-    elements.append(Spacer(1, 0.3*cm))
-
-    elements.append(Paragraph("<b>Inno-Bahnbau:</b>", subsection_style))
-    elements.append(Paragraph(
-        "- Sayt minimal mezmunla isleyir, tek sirket adi ve 2 xidmet basligi gorunur",
-        bullet_style
-    ))
-    elements.append(Paragraph(
-        "- Impressum, elaqe melumati ve diger standart bolmeler tapilmadi",
-        bullet_style
-    ))
-    elements.append(Paragraph(
-        "- Demir yolu tikintisi (Gleisbau) ve texniki xidmet (Instandhaltung) sahesinde ixtisaslasib",
-        bullet_style
-    ))
-    elements.append(Paragraph(
-        "- Sayt ya hazirlanma merhelesindedir, ya da SPA (single-page app) arxitekturasindadir",
-        bullet_style
-    ))
-    elements.append(Spacer(1, 0.5*cm))
-
-    elements.append(Paragraph("<b>Umumi Tovsiye:</b>", subsection_style))
-    elements.append(Paragraph(
-        "Her iki sirket tikinti sektorunda fealiyyet gosterir, lakin ferqli sub-sektor larda: "
-        "GARABAG-Bau umumi tikinti (Hochbau), Inno-Bahnbau ise demir yolu tikintisi (Gleisbau). "
-        "Qarabaghbau layihesi ucun her iki sirketin tecrubesi ve xidmetleri nezere alinmalidir.",
-        body_style
-    ))
-
-    # Footer line
-    elements.append(Spacer(1, 2*cm))
-    elements.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor('#cccccc'), spaceAfter=5))
-
-    footer_style = ParagraphStyle(
-        'Footer',
-        parent=styles['Normal'],
-        fontSize=8,
-        textColor=colors.HexColor('#999999'),
-        alignment=TA_CENTER,
-    )
-    elements.append(Paragraph(
-        "Bu hesabat avtomatik olaraq web scraping vasitesile toplanmis melumatlara esaslanir. | Fevral 2026",
-        footer_style
-    ))
-
-    # Build PDF
-    doc.build(elements)
-    print("PDF ugurla yaradildi: Garabag_Bau_Analysis.pdf")
-
-if __name__ == "__main__":
-    create_pdf()
+if __name__=='__main__':
+    main()

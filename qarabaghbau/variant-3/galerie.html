@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Galerie | GARABAG-Bau</title>
+<link rel="icon" type="image/webp" href="logo.webp">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0B0B0B;--card:#111;--accent:#d97706;--accent2:#f59e0b;--white:#fff;--gray:#9a9a9a;--muted:#4a4a4a;--border:rgba(255,255,255,.08);--radius:16px;--font:'Inter',system-ui,sans-serif}
+html{scroll-behavior:smooth;overflow-x:hidden}body{font-family:var(--font);background:var(--bg);color:var(--white);overflow-x:hidden;-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}img{max-width:100%;display:block}button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit}
+
+/* NAVBAR */
+.nav{position:fixed;top:0;left:0;width:100%;height:64px;background:rgba(11,11,11,.92);backdrop-filter:blur(12px);z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border)}.nav-logo{display:flex;align-items:center;gap:10px}.nav-logo img{width:42px;height:42px;object-fit:contain;border-radius:8px;filter:brightness(0) invert(1)}.nav-logo-text{font-weight:800;font-size:13px;letter-spacing:1.5px;line-height:1.2;text-transform:uppercase}.nav-logo-text span{display:block}
+.hamburger{width:28px;height:20px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;z-index:200}.hamburger span{width:100%;height:2px;background:var(--white);transition:.3s}.hamburger.open span:nth-child(1){transform:rotate(45deg) translate(6px,6px)}.hamburger.open span:nth-child(2){opacity:0}.hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(6px,-6px)}
+
+/* DARK MOBILE MENU */
+.mobile-menu{position:fixed;inset:0;background:var(--bg);z-index:150;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .45s cubic-bezier(.77,0,.18,1);overflow-y:auto}.mobile-menu.open{transform:translateX(0)}
+.mm-header{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border)}.mm-close{font-size:32px;color:var(--white);cursor:pointer;background:none;border:none}
+.mm-body{flex:1;padding:32px 24px}.mm-body a{display:block;font-size:28px;font-weight:700;color:var(--white);padding:22px 0;border-bottom:1px solid var(--border);transition:.2s}.mm-body a:hover{color:var(--accent);padding-left:8px}
+.mm-cta{margin:24px;background:var(--accent);color:#fff;text-align:center;padding:18px;border-radius:50px;font-weight:700;font-size:16px;display:block;transition:.3s}.mm-cta:hover{background:var(--accent2)}
+.mm-footer{padding:16px 24px 32px;border-top:1px solid var(--border)}.mm-footer p{font-size:13px;color:var(--gray);line-height:2}
+
+/* HERO WITH FLOATING WORDS */
+.hero{position:relative;width:100%;height:60vh;min-height:400px;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-top:64px}
+.hero-bg{position:absolute;inset:0}.hero-bg img{width:100%;height:100%;object-fit:cover}
+.hero-ov{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(11,11,11,.4),rgba(11,11,11,.88))}
+.hero-ghost{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:clamp(80px,22vw,260px);font-weight:900;text-transform:uppercase;color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.04);pointer-events:none;white-space:nowrap;z-index:1}
+.fw{position:absolute;font-weight:800;text-transform:uppercase;letter-spacing:3px;pointer-events:none;user-select:none;white-space:nowrap;z-index:1}
+.fw-1{top:12%;left:6%;font-size:clamp(14px,2.5vw,22px);color:var(--accent);opacity:.3;animation:drift1 4s ease-in-out infinite}
+.fw-2{top:22%;right:10%;font-size:clamp(12px,2vw,20px);color:var(--gray);opacity:.2;animation:drift2 5s ease-in-out infinite}
+.fw-3{top:6%;left:35%;font-size:clamp(14px,2.5vw,22px);color:var(--muted);opacity:.15;animation:drift3 3.5s ease-in-out infinite}
+.fw-4{bottom:28%;left:5%;font-size:clamp(12px,2vw,20px);color:var(--accent);opacity:.25;animation:drift1 4.5s ease-in-out infinite .2s}
+.fw-5{bottom:18%;right:8%;font-size:clamp(14px,2.5vw,22px);color:var(--muted);opacity:.18;animation:drift2 3.8s ease-in-out infinite .4s}
+@keyframes drift1{0%,100%{transform:translate(0,0)}25%{transform:translate(20px,-25px)}50%{transform:translate(-8px,-35px)}75%{transform:translate(15px,10px)}}
+@keyframes drift2{0%,100%{transform:translate(0,0)}25%{transform:translate(-18px,20px)}50%{transform:translate(12px,-15px)}75%{transform:translate(-25px,-8px)}}
+@keyframes drift3{0%,100%{transform:translate(0,0)}25%{transform:translate(15px,18px)}50%{transform:translate(-20px,-12px)}75%{transform:translate(8px,22px)}}
+.hero-content{position:relative;z-index:2;text-align:center;padding:0 24px}
+.hero-content .s-label{font-size:11px;color:var(--accent);letter-spacing:4px;text-transform:uppercase;margin-bottom:12px;animation:fadeUp .8s ease .2s both}
+.hero-content h1{font-size:clamp(32px,7vw,64px);font-weight:900;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;animation:fadeUp .8s ease .4s both}
+.hero-content p{font-size:clamp(13px,1.5vw,16px);color:var(--gray);max-width:500px;margin:0 auto;animation:fadeUp .8s ease .6s both}
+.hero-scroll{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:8px}
+.hero-scroll span{font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase}
+.hero-scroll-line{width:1px;height:40px;background:linear-gradient(to bottom,var(--accent),transparent);animation:scrollPulse 2s infinite}
+@keyframes scrollPulse{0%,100%{opacity:1;transform:scaleY(1)}50%{opacity:.3;transform:scaleY(.6)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(25px)}to{opacity:1;transform:translateY(0)}}
+
+/* FILTERS */
+.s-label{font-size:11px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px}
+.s-title{font-size:clamp(28px,5vw,48px);font-weight:900;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}
+.filters-section{padding:60px 24px 0;max-width:1100px;margin:0 auto;text-align:center}
+.filters{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:24px}
+.fbtn{padding:10px 24px;border-radius:50px;font-size:12px;font-weight:600;border:1px solid var(--border);color:var(--gray);background:transparent;transition:.3s;cursor:pointer}.fbtn:hover{border-color:var(--accent);color:var(--white)}.fbtn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* GALLERY MASONRY */
+.gallery{padding:40px 24px 60px;max-width:1200px;margin:0 auto}
+.g-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.g-item{position:relative;border-radius:var(--radius);overflow:hidden;cursor:pointer;aspect-ratio:4/3;transition:.4s}.g-item:hover{transform:translateY(-6px);box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.g-item img{width:100%;height:100%;object-fit:cover;transition:transform .6s}.g-item:hover img{transform:scale(1.08)}
+.g-item .g-ov{position:absolute;inset:0;background:linear-gradient(transparent 40%,rgba(11,11,11,.85));z-index:1;opacity:0;transition:.4s}.g-item:hover .g-ov{opacity:1}
+.g-cap{position:absolute;bottom:0;left:0;right:0;padding:16px;z-index:2;transform:translateY(10px);opacity:0;transition:.4s}
+.g-item:hover .g-cap{transform:translateY(0);opacity:1}
+.g-cap span{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:2px;background:rgba(217,119,6,.12);padding:4px 10px;border-radius:4px}
+.g-cap h4{font-size:14px;font-weight:700;margin-top:8px}
+.g-item.hide{display:none}
+
+/* HORIZONTAL IMAGE STRIP */
+.img-strip{padding:60px 0;overflow:hidden}
+.img-strip-head{padding:0 24px;max-width:1100px;margin:0 auto 30px}
+.strip-track{display:flex;gap:0;overflow-x:auto;scroll-snap-type:x mandatory;-ms-overflow-style:none;scrollbar-width:none}
+.strip-track::-webkit-scrollbar{display:none}
+.strip-item{flex:0 0 80vw;max-width:700px;height:55vh;min-height:350px;overflow:hidden;scroll-snap-align:start;margin-right:-30px;border-radius:var(--radius);position:relative}
+.strip-item:last-child{margin-right:0}
+.strip-item img{width:100%;height:100%;object-fit:cover;transition:transform .8s}
+.strip-item:hover img{transform:scale(1.04)}
+.strip-item .strip-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(11,11,11,.8),transparent 50%)}
+.strip-item .strip-label{position:absolute;bottom:20px;left:20px;z-index:2}
+.strip-label span{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:2px;background:rgba(217,119,6,.15);padding:4px 12px;border-radius:6px}
+.strip-label h3{font-size:clamp(16px,2.5vw,22px);font-weight:800;margin-top:8px;text-transform:uppercase}
+.strip-ghost{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);font-size:clamp(60px,14vw,160px);font-weight:900;color:rgba(255,255,255,.03);pointer-events:none;white-space:nowrap;z-index:1}
+.scroll-bar{display:flex;align-items:center;gap:16px;padding:20px 24px 0;max-width:1100px;margin:0 auto}
+.scroll-bar .lbl{font-size:12px;font-weight:600;color:var(--gray);letter-spacing:3px;text-transform:uppercase;white-space:nowrap}
+.scroll-bar .bar{flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.scroll-bar .bar-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .15s}
+.scroll-bar .pct{font-size:12px;font-weight:600;color:var(--gray);min-width:35px;text-align:right}
+
+/* VIDEO SECTION */
+.vid-section{padding:60px 24px 80px;max-width:1200px;margin:0 auto}
+.vid-section h2{font-size:clamp(24px,4vw,36px);font-weight:900;text-transform:uppercase;letter-spacing:2px;margin-bottom:24px;text-align:center}
+.vid-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.vid-item{position:relative;border-radius:var(--radius);overflow:hidden;transition:.4s}
+.vid-item:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.4)}
+.vid-grid video{width:100%;border-radius:var(--radius);background:#000}
+
+/* LIGHTBOX */
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:300;display:none;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(8px)}.lightbox.open{display:flex}
+.lightbox img{max-width:90vw;max-height:90vh;object-fit:contain;border-radius:8px;animation:lbIn .4s ease}
+@keyframes lbIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.lb-close{position:absolute;top:20px;right:24px;font-size:36px;color:#fff;cursor:pointer;z-index:301}
+.lb-nav{position:absolute;top:50%;z-index:301;width:48px;height:48px;background:rgba(217,119,6,.8);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.3s;font-size:20px;color:#fff}
+.lb-nav:hover{background:var(--accent);transform:scale(1.1)}
+.lb-prev{left:20px;transform:translateY(-50%)}.lb-next{right:20px;transform:translateY(-50%)}
+
+/* FOOTER */
+.footer{background:var(--bg);border-top:1px solid var(--border);padding:60px 24px 28px}
+.footer-top{max-width:1100px;margin:0 auto 40px;display:flex;align-items:center;gap:16px}.footer-top img{width:48px;height:48px;object-fit:contain;border-radius:10px}
+.footer-brand{display:flex;flex-direction:column}.footer-brand strong{font-weight:800;font-size:14px;letter-spacing:1.5px;text-transform:uppercase}.footer-brand span{font-size:12px;color:var(--gray)}
+.footer-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:32px}.footer-grid h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:14px}.footer-grid a,.footer-grid p{display:block;font-size:13px;color:var(--gray);padding:3px 0;transition:.2s}.footer-grid a:hover{color:var(--white)}.footer-grid .at{color:var(--accent)}
+.footer-bottom{max-width:1100px;margin:32px auto 0;padding-top:20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--muted)}.footer-bottom a{color:var(--muted);margin-left:16px}.footer-bottom a:hover{color:var(--white)}
+
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .7s ease,transform .7s ease}.reveal.vis{opacity:1;transform:translateY(0)}
+.stagger{transition-delay:calc(var(--i,0) * .1s)}
+</style></head><body>
+
+<nav class="nav"><a href="index.html" class="nav-logo"><img src="logo.webp" alt="Logo"><div class="nav-logo-text"><span>GARABAG</span><span>BAU</span></div></a><div class="hamburger" id="hamBtn" onclick="toggleMenu()"><span></span><span></span><span></span></div></nav>
+
+<div class="mobile-menu" id="mm"><div class="mm-header"><div style="display:flex;align-items:center;gap:10px"><img src="logo.webp" alt="" style="width:36px;height:36px;object-fit:contain;border-radius:6px"><div class="nav-logo-text"><span>GARABAG</span><span>BAU</span></div></div><button class="mm-close" onclick="toggleMenu()">&times;</button></div><div class="mm-body"><a href="index.html">Home</a><a href="leistungen.html">Leistungen</a><a href="galerie.html">Galerie</a><a href="uber-uns.html">Über Uns</a><a href="kontakt.html">Kontakt</a></div><a href="kontakt.html" class="mm-cta">Angebot anfragen</a><div class="mm-footer"><p>+49 172 600 9105<br>info@garabag-bau.de</p></div></div>
+
+<!-- HERO WITH FLOATING WORDS -->
+<section class="hero">
+  <div class="hero-bg"><img src="../images/hero_2.webp" alt=""></div>
+  <div class="hero-ov"></div>
+  <div class="hero-ghost">PROJEKTE</div>
+  <span class="fw fw-1">ROHBAU</span>
+  <span class="fw fw-2">DROHNE</span>
+  <span class="fw fw-3">FOTOS</span>
+  <span class="fw fw-4">BAUSTELLE</span>
+  <span class="fw fw-5">REFERENZ</span>
+  <div class="hero-content">
+    <p class="s-label">Unsere Arbeit</p>
+    <h1>GALERIE</h1>
+    <p>Einblicke in unsere Projekte und Bauvorhaben</p>
+  </div>
+  <div class="hero-scroll"><span>Scroll</span><div class="hero-scroll-line"></div></div>
+</section>
+
+<!-- HORIZONTAL IMAGE STRIP -->
+<section class="img-strip">
+  <div class="img-strip-head reveal">
+    <p class="s-label">Ausgewählte Projekte</p>
+    <h2 class="s-title">HIGHLIGHTS</h2>
+  </div>
+  <div class="strip-track" id="stripTrack">
+    <div class="strip-item"><img src="../images/project_1.webp" alt=""><div class="strip-ov"></div><div class="strip-ghost">ROHBAU</div><div class="strip-label"><span>ROHBAU</span><h3>Neubau EFH</h3></div></div>
+    <div class="strip-item"><img src="../images/project_2.webp" alt=""><div class="strip-ov"></div><div class="strip-ghost">SANIERUNG</div><div class="strip-label"><span>SANIERUNG</span><h3>Altbau Münster</h3></div></div>
+    <div class="strip-item"><img src="../images/project_5.webp" alt=""><div class="strip-ov"></div><div class="strip-ghost">ABBRUCH</div><div class="strip-label"><span>ABBRUCH</span><h3>Wohnanlage</h3></div></div>
+    <div class="strip-item"><img src="../images/DJI_20240423110827_0004_D.webp" alt=""><div class="strip-ov"></div><div class="strip-ghost">DROHNE</div><div class="strip-label"><span>DROHNE</span><h3>Luftaufnahme</h3></div></div>
+    <div class="strip-item"><img src="../images/project_7.webp" alt=""><div class="strip-ov"></div><div class="strip-ghost">MAUERBAU</div><div class="strip-label"><span>MAUERBAU</span><h3>Doppelhaus</h3></div></div>
+  </div>
+  <div class="scroll-bar">
+    <span class="lbl">SCROLL &rarr;</span>
+    <div class="bar"><div class="bar-fill" id="stripBarFill"></div></div>
+    <span class="pct" id="stripBarPct">0%</span>
+  </div>
+</section>
+
+<!-- FILTERS & GALLERY GRID -->
+<div class="filters-section reveal">
+  <p class="s-label">Alle Bilder</p>
+  <h2 class="s-title">PROJEKTGALERIE</h2>
+  <div class="filters">
+    <button class="fbtn on" onclick="gF('all',this)">Alle</button>
+    <button class="fbtn" onclick="gF('rohbau',this)">Rohbau</button>
+    <button class="fbtn" onclick="gF('sanierung',this)">Sanierung</button>
+    <button class="fbtn" onclick="gF('abbruch',this)">Abbruch</button>
+    <button class="fbtn" onclick="gF('mauerbau',this)">Mauerbau</button>
+    <button class="fbtn" onclick="gF('drohne',this)">Drohne</button>
+  </div>
+</div>
+
+<section class="gallery"><div class="g-grid">
+<div class="g-item reveal stagger" style="--i:0" data-c="rohbau" onclick="openLB(0)"><img src="../images/project_1.webp" alt="Rohbau"><div class="g-ov"></div><div class="g-cap"><span>Rohbau</span><h4>Neubau EFH</h4></div></div>
+<div class="g-item reveal stagger" style="--i:1" data-c="sanierung" onclick="openLB(1)"><img src="../images/project_2.webp" alt="Sanierung"><div class="g-ov"></div><div class="g-cap"><span>Sanierung</span><h4>Altbausanierung</h4></div></div>
+<div class="g-item reveal stagger" style="--i:2" data-c="abbruch" onclick="openLB(2)"><img src="../images/project_3.webp" alt="Abbruch"><div class="g-ov"></div><div class="g-cap"><span>Abbruch</span><h4>Rückbau</h4></div></div>
+<div class="g-item reveal stagger" style="--i:3" data-c="rohbau" onclick="openLB(3)"><img src="../images/project_4.webp" alt="Schalung"><div class="g-ov"></div><div class="g-cap"><span>Rohbau</span><h4>Schalung</h4></div></div>
+<div class="g-item reveal stagger" style="--i:4" data-c="abbruch" onclick="openLB(4)"><img src="../images/project_5.webp" alt="Abbruch"><div class="g-ov"></div><div class="g-cap"><span>Abbruch</span><h4>Komplettrückbau</h4></div></div>
+<div class="g-item reveal stagger" style="--i:5" data-c="mauerbau" onclick="openLB(5)"><img src="../images/project_6.webp" alt="Mauerbau"><div class="g-ov"></div><div class="g-cap"><span>Mauerbau</span><h4>Kalksandstein</h4></div></div>
+<div class="g-item reveal stagger" style="--i:6" data-c="rohbau" onclick="openLB(6)"><img src="../images/project_7.webp" alt="Rohbau"><div class="g-ov"></div><div class="g-cap"><span>Rohbau</span><h4>Doppelhaus</h4></div></div>
+<div class="g-item reveal stagger" style="--i:7" data-c="rohbau" onclick="openLB(7)"><img src="../images/project_8.webp" alt="Betonbau"><div class="g-ov"></div><div class="g-cap"><span>Rohbau</span><h4>Betonarbeiten</h4></div></div>
+<div class="g-item reveal stagger" style="--i:8" data-c="sanierung" onclick="openLB(8)"><img src="../images/project_9.webp" alt="Sanierung"><div class="g-ov"></div><div class="g-cap"><span>Sanierung</span><h4>Modernisierung</h4></div></div>
+<div class="g-item reveal stagger" style="--i:9" data-c="mauerbau" onclick="openLB(9)"><img src="../images/project_10.webp" alt="Mauerbau"><div class="g-ov"></div><div class="g-cap"><span>Mauerbau</span><h4>Mauerwerk</h4></div></div>
+<div class="g-item reveal stagger" style="--i:10" data-c="drohne" onclick="openLB(10)"><img src="../images/DJI_20240423110827_0004_D.webp" alt="Drohne"><div class="g-ov"></div><div class="g-cap"><span>Drohne</span><h4>Luftaufnahme</h4></div></div>
+<div class="g-item reveal stagger" style="--i:11" data-c="drohne" onclick="openLB(11)"><img src="../images/DJI_20240429154043_0005_D.webp" alt="Drohne"><div class="g-ov"></div><div class="g-cap"><span>Drohne</span><h4>Luftaufnahme</h4></div></div>
+<div class="g-item reveal stagger" style="--i:12" data-c="drohne" onclick="openLB(12)"><img src="../images/DJI_20240506161336_0008_D.webp" alt="Drohne"><div class="g-ov"></div><div class="g-cap"><span>Drohne</span><h4>Baufortschritt</h4></div></div>
+<div class="g-item reveal stagger" style="--i:13" data-c="drohne" onclick="openLB(13)"><img src="../images/DJI_20240516122714_0011_D.webp" alt="Drohne"><div class="g-ov"></div><div class="g-cap"><span>Drohne</span><h4>Luftperspektive</h4></div></div>
+<div class="g-item reveal stagger" style="--i:14" data-c="drohne" onclick="openLB(14)"><img src="../images/DJI_20240606152452_0007_D.webp" alt="Drohne"><div class="g-ov"></div><div class="g-cap"><span>Drohne</span><h4>Fertigstellung</h4></div></div>
+</div></section>
+
+<!-- VIDEOS -->
+<section class="vid-section reveal">
+  <h2>VIDEOS VOM BAU</h2>
+  <div class="vid-grid">
+    <div class="vid-item"><video controls preload="none" poster="../images/video_poster_1.jpg"><source src="../videos/video_1.mp4" type="video/mp4"></video></div>
+    <div class="vid-item"><video controls preload="none" poster="../images/video_poster_2.jpg"><source src="../videos/video_2.mp4" type="video/mp4"></video></div>
+    <div class="vid-item"><video controls preload="none" poster="../images/video_poster_3.jpg"><source src="../videos/video_3.mp4" type="video/mp4"></video></div>
+  </div>
+</section>
+
+<!-- LIGHTBOX WITH NAVIGATION -->
+<div class="lightbox" id="lb">
+  <span class="lb-close" onclick="closeLB()">&times;</span>
+  <div class="lb-nav lb-prev" onclick="navLB(-1)">&#8249;</div>
+  <img id="lbImg" src="" alt="">
+  <div class="lb-nav lb-next" onclick="navLB(1)">&#8250;</div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer"><div class="footer-top"><img src="logo.webp" alt="Logo"><div class="footer-brand"><strong>GARABAG-BAU</strong><span>Rohbau &amp; Hochbau in Münster</span></div></div><div class="footer-grid"><div><h4>Navigation</h4><a href="index.html">Home</a><a href="leistungen.html">Leistungen</a><a href="galerie.html">Galerie</a><a href="uber-uns.html">Über Uns</a><a href="kontakt.html">Kontakt</a></div><div><h4 class="at">Leistungen</h4><a href="leistungen.html">Rohbau</a><a href="leistungen.html">Betonbau</a><a href="leistungen.html">Mauerbau</a><a href="leistungen.html">Altbausanierung</a></div><div><h4>Kontakt</h4><p><a href="tel:+491726009105">+49 172 600 9105</a></p><p><a href="mailto:info@garabag-bau.de">info@garabag-bau.de</a></p><p>Eichendorffstr. 3, 48167 Münster</p></div><div><h4>Rechtliches</h4><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></div></div><div class="footer-bottom"><span>&copy; 2025 GARABAG-Bau</span><span><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></span></div></footer>
+
+<script>
+// Mobile menu
+function toggleMenu(){document.getElementById('mm').classList.toggle('open');document.getElementById('hamBtn').classList.toggle('open');document.body.style.overflow=document.getElementById('mm').classList.contains('open')?'hidden':''}
+
+// Gallery filter
+function gF(c,btn){document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');document.querySelectorAll('.g-item').forEach(i=>{i.classList.toggle('hide',c!=='all'&&i.dataset.c!==c)})}
+
+// Lightbox with navigation
+const allItems=document.querySelectorAll('.g-item');
+let lbIdx=0;
+function getVisibleItems(){return[...allItems].filter(i=>!i.classList.contains('hide'))}
+function openLB(idx){
+  const vis=getVisibleItems();
+  lbIdx=[...allItems].indexOf(vis.find((_,i)=>i===[...allItems].filter(x=>!x.classList.contains('hide')).indexOf(allItems[idx])));
+  lbIdx=idx;
+  document.getElementById('lbImg').src=allItems[idx].querySelector('img').src;
+  document.getElementById('lb').classList.add('open');document.body.style.overflow='hidden';
+}
+function closeLB(){document.getElementById('lb').classList.remove('open');document.body.style.overflow=''}
+function navLB(dir){
+  const vis=getVisibleItems();
+  const curEl=allItems[lbIdx];
+  let curVisIdx=vis.indexOf(curEl);
+  curVisIdx=(curVisIdx+dir+vis.length)%vis.length;
+  const newEl=vis[curVisIdx];
+  lbIdx=[...allItems].indexOf(newEl);
+  document.getElementById('lbImg').src=newEl.querySelector('img').src;
+}
+document.getElementById('lb').addEventListener('click',e=>{if(e.target===document.getElementById('lb'))closeLB()});
+document.addEventListener('keydown',e=>{if(!document.getElementById('lb').classList.contains('open'))return;if(e.key==='Escape')closeLB();if(e.key==='ArrowRight')navLB(1);if(e.key==='ArrowLeft')navLB(-1)});
+
+// Horizontal strip scroll progress
+const sT=document.getElementById('stripTrack'),sFill=document.getElementById('stripBarFill'),sPct=document.getElementById('stripBarPct');
+if(sT){sT.addEventListener('scroll',()=>{const m=sT.scrollWidth-sT.clientWidth,p=m>0?Math.round(sT.scrollLeft/m*100):0;sFill.style.width=p+'%';sPct.textContent=p+'%'})}
+
+// Reveal on scroll
+const ro=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');ro.unobserve(e.target)}})},{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+</script>
+</body></html>

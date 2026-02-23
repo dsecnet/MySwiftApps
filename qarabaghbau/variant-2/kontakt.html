@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Kontakt | GARABAG-Bau</title>
+<link rel="icon" type="image/webp" href="logo.webp">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0B0B0B;--card:#111;--accent:#2563eb;--accent2:#3b82f6;--white:#fff;--gray:#9a9a9a;--muted:#4a4a4a;--border:rgba(255,255,255,.08);--radius:16px;--font:'Inter',system-ui,sans-serif}
+html{scroll-behavior:smooth;overflow-x:hidden}body{font-family:var(--font);background:var(--bg);color:var(--white);overflow-x:hidden;-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}img{max-width:100%;display:block}button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit}
+
+/* NAVBAR */
+.nav{position:fixed;top:0;left:0;width:100%;height:64px;background:rgba(11,11,11,.92);backdrop-filter:blur(12px);z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border)}.nav-logo{display:flex;align-items:center;gap:10px}.nav-logo img{width:42px;height:42px;object-fit:contain;border-radius:8px;filter:brightness(0) invert(1)}.nav-logo-text{font-weight:800;font-size:13px;letter-spacing:1.5px;line-height:1.2;text-transform:uppercase}.nav-logo-text span{display:block}
+.hamburger{width:28px;height:20px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;z-index:200}.hamburger span{width:100%;height:2px;background:var(--white);transition:.3s}.hamburger.open span:nth-child(1){transform:rotate(45deg) translate(6px,6px)}.hamburger.open span:nth-child(2){opacity:0}.hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(6px,-6px)}
+
+/* DARK MOBILE MENU */
+.mobile-menu{position:fixed;inset:0;background:var(--bg);z-index:150;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .45s cubic-bezier(.77,0,.18,1);overflow-y:auto}.mobile-menu.open{transform:translateX(0)}
+.mm-header{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border)}.mm-close{font-size:32px;color:var(--white);cursor:pointer;background:none;border:none}
+.mm-body{flex:1;padding:32px 24px}.mm-body a{display:block;font-size:28px;font-weight:700;color:var(--white);padding:22px 0;border-bottom:1px solid var(--border);transition:.2s}.mm-body a:hover{color:var(--accent);padding-left:8px}
+.mm-cta{margin:24px;background:var(--accent);color:#fff;text-align:center;padding:18px;border-radius:50px;font-weight:700;font-size:16px;display:block;transition:.3s}.mm-cta:hover{background:var(--accent2)}
+.mm-footer{padding:16px 24px 32px;border-top:1px solid var(--border)}.mm-footer p{font-size:13px;color:var(--gray);line-height:2}
+
+/* HERO WITH FLOATING WORDS */
+.hero{position:relative;width:100%;height:55vh;min-height:350px;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-top:64px;background:var(--bg)}
+.hero-ghost{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:clamp(80px,22vw,260px);font-weight:900;text-transform:uppercase;color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.04);pointer-events:none;white-space:nowrap;z-index:1}
+.fw{position:absolute;font-weight:800;text-transform:uppercase;letter-spacing:3px;pointer-events:none;user-select:none;white-space:nowrap;z-index:1}
+.fw-1{top:14%;left:6%;font-size:clamp(14px,2.5vw,22px);color:var(--accent);opacity:.3;animation:drift1 4s ease-in-out infinite}
+.fw-2{top:22%;right:10%;font-size:clamp(12px,2vw,20px);color:var(--gray);opacity:.2;animation:drift2 5s ease-in-out infinite}
+.fw-3{top:8%;left:30%;font-size:clamp(14px,2.5vw,22px);color:var(--muted);opacity:.15;animation:drift3 3.5s ease-in-out infinite}
+.fw-4{bottom:25%;left:5%;font-size:clamp(12px,2vw,20px);color:var(--accent);opacity:.25;animation:drift1 4.5s ease-in-out infinite .2s}
+.fw-5{bottom:18%;right:8%;font-size:clamp(14px,2.5vw,22px);color:var(--muted);opacity:.18;animation:drift2 3.8s ease-in-out infinite .4s}
+@keyframes drift1{0%,100%{transform:translate(0,0)}25%{transform:translate(20px,-25px)}50%{transform:translate(-8px,-35px)}75%{transform:translate(15px,10px)}}
+@keyframes drift2{0%,100%{transform:translate(0,0)}25%{transform:translate(-18px,20px)}50%{transform:translate(12px,-15px)}75%{transform:translate(-25px,-8px)}}
+@keyframes drift3{0%,100%{transform:translate(0,0)}25%{transform:translate(15px,18px)}50%{transform:translate(-20px,-12px)}75%{transform:translate(8px,22px)}}
+.hero-content{position:relative;z-index:2;text-align:center;padding:0 24px}
+.hero-content .s-label{font-size:11px;color:var(--accent);letter-spacing:4px;text-transform:uppercase;margin-bottom:12px;animation:fadeUp .8s ease .2s both}
+.hero-content h1{font-size:clamp(32px,7vw,64px);font-weight:900;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;animation:fadeUp .8s ease .4s both}
+.hero-content p{font-size:clamp(13px,1.5vw,16px);color:var(--gray);max-width:500px;margin:0 auto;animation:fadeUp .8s ease .6s both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(25px)}to{opacity:1;transform:translateY(0)}}
+
+/* CONTACT CARDS */
+.s-label{font-size:11px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px}
+.s-title{font-size:clamp(28px,5vw,48px);font-weight:900;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}
+.contact-cards{padding:0 24px;max-width:1100px;margin:-40px auto 60px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;position:relative;z-index:3}
+.cc{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;text-align:center;transition:.4s;position:relative;overflow:hidden}
+.cc:hover{border-color:rgba(37,99,235,.2);transform:translateY(-6px);box-shadow:0 16px 40px rgba(0,0,0,.5)}
+.cc-ghost{position:absolute;bottom:-5px;right:-5px;font-size:50px;font-weight:900;color:rgba(255,255,255,.02);pointer-events:none}
+.cc-ico{font-size:28px;margin-bottom:12px}
+.cc h4{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;color:var(--accent)}
+.cc p{font-size:14px;color:var(--gray)}.cc a{color:var(--white);font-weight:600;transition:.2s}.cc a:hover{color:var(--accent)}
+
+/* FORM */
+.form-section{padding:0 24px 80px;max-width:700px;margin:0 auto}
+.form-section h2{font-size:clamp(24px,4vw,36px);font-weight:900;text-transform:uppercase;letter-spacing:2px;margin-bottom:32px;text-align:center}
+.form{display:flex;flex-direction:column;gap:16px}
+.form input,.form select,.form textarea{width:100%;padding:16px 20px;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--white);font-family:var(--font);font-size:14px;transition:.3s;outline:none}
+.form input:focus,.form select:focus,.form textarea:focus{border-color:var(--accent);box-shadow:0 0 20px rgba(37,99,235,.1)}
+.form input::placeholder,.form textarea::placeholder{color:var(--muted)}
+.form textarea{min-height:140px;resize:vertical}
+.form select{cursor:pointer;appearance:none;-webkit-appearance:none;color:var(--gray);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239a9a9a' viewBox='0 0 16 16'%3E%3Cpath d='M8 12L2 6h12z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center}
+.form select option{background:var(--card);color:var(--white)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:500px){.form-row{grid-template-columns:1fr}}
+.form-btn{background:var(--accent);color:#fff;padding:18px;border-radius:50px;font-weight:700;font-size:15px;letter-spacing:1px;border:none;cursor:pointer;transition:.3s;text-transform:uppercase;position:relative;overflow:hidden}
+.form-btn:hover{background:var(--accent2);transform:translateY(-2px);box-shadow:0 8px 30px rgba(37,99,235,.3)}
+.form-btn:disabled{opacity:.7;cursor:not-allowed;transform:none}
+.form-btn .btn-text{transition:.3s}.form-btn .btn-spinner{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transition:.3s}
+.form-btn.loading .btn-text{opacity:0}.form-btn.loading .btn-spinner{opacity:1}
+.spinner{width:22px;height:22px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* SUCCESS / ERROR */
+.form-msg{text-align:center;padding:40px 24px;display:none}
+.form-msg.show{display:block;animation:fadeUp .6s ease both}
+.form-msg .msg-ico{font-size:52px;margin-bottom:16px}
+.form-msg h3{font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.form-msg p{font-size:14px;color:var(--gray);line-height:1.7}
+.form-msg.success h3{color:#25D366}
+.form-msg.error h3{color:var(--accent)}
+.form-msg .msg-btn{display:inline-block;margin-top:20px;padding:12px 32px;background:var(--card);border:1px solid var(--border);border-radius:50px;font-size:13px;font-weight:600;color:var(--white);cursor:pointer;transition:.3s}
+.form-msg .msg-btn:hover{border-color:var(--accent);background:rgba(37,99,235,.1)}
+
+/* MAP */
+.map{padding:0 24px 80px;max-width:1100px;margin:0 auto}
+.map-wrap{border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)}
+.map-wrap iframe{width:100%;height:400px;border:0;filter:grayscale(.8) invert(.92) contrast(1.1)}
+
+/* WHATSAPP */
+.wa-btn{position:fixed;bottom:24px;right:24px;width:56px;height:56px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:90;box-shadow:0 4px 20px rgba(37,211,102,.4);transition:.3s;animation:waPulse 2s ease-in-out infinite}
+.wa-btn:hover{transform:scale(1.1)}
+.wa-btn svg{width:28px;height:28px;fill:#fff}
+@keyframes waPulse{0%,100%{box-shadow:0 4px 20px rgba(37,211,102,.4)}50%{box-shadow:0 4px 30px rgba(37,211,102,.7)}}
+
+/* FOOTER */
+.footer{background:var(--bg);border-top:1px solid var(--border);padding:60px 24px 28px}
+.footer-top{max-width:1100px;margin:0 auto 40px;display:flex;align-items:center;gap:16px}.footer-top img{width:48px;height:48px;object-fit:contain;border-radius:10px}
+.footer-brand{display:flex;flex-direction:column}.footer-brand strong{font-weight:800;font-size:14px;letter-spacing:1.5px;text-transform:uppercase}.footer-brand span{font-size:12px;color:var(--gray)}
+.footer-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:32px}.footer-grid h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:14px}.footer-grid a,.footer-grid p{display:block;font-size:13px;color:var(--gray);padding:3px 0;transition:.2s}.footer-grid a:hover{color:var(--white)}.footer-grid .at{color:var(--accent)}
+.footer-bottom{max-width:1100px;margin:32px auto 0;padding-top:20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--muted)}.footer-bottom a{color:var(--muted);margin-left:16px}.footer-bottom a:hover{color:var(--white)}
+
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .7s ease,transform .7s ease}.reveal.vis{opacity:1;transform:translateY(0)}
+.stagger{transition-delay:calc(var(--i,0) * .12s)}
+</style></head><body>
+
+<nav class="nav"><a href="index.html" class="nav-logo"><img src="logo.webp" alt="Logo"><div class="nav-logo-text"><span>GARABAG</span><span>BAU</span></div></a><div class="hamburger" id="hamBtn" onclick="toggleMenu()"><span></span><span></span><span></span></div></nav>
+
+<div class="mobile-menu" id="mm"><div class="mm-header"><div style="display:flex;align-items:center;gap:10px"><img src="logo.webp" alt="" style="width:36px;height:36px;object-fit:contain;border-radius:6px"><div class="nav-logo-text"><span>GARABAG</span><span>BAU</span></div></div><button class="mm-close" onclick="toggleMenu()">&times;</button></div><div class="mm-body"><a href="index.html">Home</a><a href="leistungen.html">Leistungen</a><a href="galerie.html">Galerie</a><a href="uber-uns.html">Über Uns</a><a href="kontakt.html">Kontakt</a></div><a href="kontakt.html" class="mm-cta">Angebot anfragen</a><div class="mm-footer"><p>+49 172 600 9105<br>info@garabag-bau.de</p></div></div>
+
+<!-- HERO WITH FLOATING WORDS -->
+<section class="hero">
+  <div class="hero-ghost">KONTAKT</div>
+  <span class="fw fw-1">ANFRAGE</span>
+  <span class="fw fw-2">BERATUNG</span>
+  <span class="fw fw-3">TERMIN</span>
+  <span class="fw fw-4">ANGEBOT</span>
+  <span class="fw fw-5">WHATSAPP</span>
+  <div class="hero-content">
+    <p class="s-label">Schreiben Sie uns</p>
+    <h1>KONTAKT</h1>
+    <p>Nehmen Sie Kontakt mit uns auf — wir beraten Sie gerne</p>
+  </div>
+</section>
+
+<!-- CONTACT CARDS -->
+<div class="contact-cards">
+  <div class="cc reveal stagger" style="--i:0"><div class="cc-ghost">TEL</div><div class="cc-ico">📞</div><h4>Telefon</h4><p><a href="tel:+491726009105">+49 172 600 9105</a></p></div>
+  <div class="cc reveal stagger" style="--i:1"><div class="cc-ghost">MAIL</div><div class="cc-ico">✉️</div><h4>E-Mail</h4><p><a href="mailto:info@garabag-bau.de">info@garabag-bau.de</a></p></div>
+  <div class="cc reveal stagger" style="--i:2"><div class="cc-ghost">ORT</div><div class="cc-ico">📍</div><h4>Adresse</h4><p>Eichendorffstr. 3<br>48167 Münster</p></div>
+  <div class="cc reveal stagger" style="--i:3"><div class="cc-ghost">ZEIT</div><div class="cc-ico">🕐</div><h4>Arbeitszeiten</h4><p>Mo–Fr: 08:00–17:00</p></div>
+</div>
+
+<!-- FORM -->
+<section class="form-section reveal">
+  <p class="s-label" style="text-align:center">Nachricht</p>
+  <h2>SCHREIBEN SIE UNS</h2>
+  <form class="form" id="contactForm" action="https://formsubmit.co/info@garabag-bau.de" method="POST">
+    <!-- FormSubmit config -->
+    <input type="hidden" name="_subject" value="Neue Kontaktanfrage von GARABAG-Bau Website">
+    <input type="hidden" name="_captcha" value="false">
+    <input type="hidden" name="_template" value="table">
+    <input type="text" name="_honey" style="display:none">
+    <div class="form-row">
+      <input type="text" name="Name" placeholder="Name *" required>
+      <input type="email" name="E-Mail" placeholder="E-Mail *" required>
+    </div>
+    <div class="form-row">
+      <input type="tel" name="Telefon" placeholder="Telefon">
+      <select name="Betreff">
+        <option value="">Betreff wählen</option>
+        <option value="Anfrage">Anfrage</option>
+        <option value="Angebot">Angebot</option>
+        <option value="Beratung">Beratung</option>
+        <option value="Sonstiges">Sonstiges</option>
+      </select>
+    </div>
+    <textarea name="Nachricht" placeholder="Ihre Nachricht *" required></textarea>
+    <button type="submit" class="form-btn"><span class="btn-text">Nachricht senden</span><span class="btn-spinner"><span class="spinner"></span></span></button>
+  </form>
+
+  <!-- Success Message -->
+  <div class="form-msg success" id="formSuccess">
+    <div class="msg-ico">&#10003;</div>
+    <h3>Nachricht gesendet!</h3>
+    <p>Vielen Dank für Ihre Anfrage. Wir werden uns schnellstmöglich bei Ihnen melden.</p>
+    <button class="msg-btn" onclick="resetForm()">Neue Nachricht senden</button>
+  </div>
+
+  <!-- Error Message -->
+  <div class="form-msg error" id="formError">
+    <div class="msg-ico">&#10007;</div>
+    <h3>Fehler aufgetreten</h3>
+    <p>Leider konnte Ihre Nachricht nicht gesendet werden. Bitte versuchen Sie es erneut oder kontaktieren Sie uns direkt per Telefon.</p>
+    <button class="msg-btn" onclick="resetForm()">Erneut versuchen</button>
+  </div>
+</section>
+
+<!-- MAP -->
+<section class="map reveal">
+  <div class="map-wrap">
+    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2432.8!2d7.5936!3d51.8955!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47b9aa4c6c7e7e91%3A0x6c7e7e91!2sEichendorffstra%C3%9Fe%203%2C%2048167%20M%C3%BCnster!5e0!3m2!1sde!2sde!4v1" allowfullscreen loading="lazy"></iframe>
+  </div>
+</section>
+
+<!-- WHATSAPP -->
+<a href="https://wa.me/491726009105" target="_blank" class="wa-btn"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492l4.618-1.462A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75c-2.17 0-4.207-.645-5.906-1.756l-.424-.262-2.732.866.846-2.633-.288-.443A9.724 9.724 0 012.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75z"/></svg></a>
+
+<!-- FOOTER -->
+<footer class="footer"><div class="footer-top"><img src="logo.webp" alt="Logo"><div class="footer-brand"><strong>GARABAG-BAU</strong><span>Rohbau &amp; Hochbau in Münster</span></div></div><div class="footer-grid"><div><h4>Navigation</h4><a href="index.html">Home</a><a href="leistungen.html">Leistungen</a><a href="galerie.html">Galerie</a><a href="uber-uns.html">Über Uns</a><a href="kontakt.html">Kontakt</a></div><div><h4 class="at">Leistungen</h4><a href="leistungen.html">Rohbau</a><a href="leistungen.html">Betonbau</a><a href="leistungen.html">Mauerbau</a><a href="leistungen.html">Altbausanierung</a></div><div><h4>Kontakt</h4><p><a href="tel:+491726009105">+49 172 600 9105</a></p><p><a href="mailto:info@garabag-bau.de">info@garabag-bau.de</a></p><p>Eichendorffstr. 3, 48167 Münster</p></div><div><h4>Rechtliches</h4><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></div></div><div class="footer-bottom"><span>&copy; 2025 GARABAG-Bau</span><span><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></span></div></footer>
+
+<script>
+// Mobile menu
+function toggleMenu(){document.getElementById('mm').classList.toggle('open');document.getElementById('hamBtn').classList.toggle('open');document.body.style.overflow=document.getElementById('mm').classList.contains('open')?'hidden':''}
+
+// Reveal on scroll
+const ro=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');ro.unobserve(e.target)}})},{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+
+// ── CONTACT FORM ──
+const form=document.getElementById('contactForm');
+const successMsg=document.getElementById('formSuccess');
+const errorMsg=document.getElementById('formError');
+
+form.addEventListener('submit',async function(e){
+  e.preventDefault();
+  const btn=form.querySelector('.form-btn');
+  btn.classList.add('loading');
+  btn.disabled=true;
+
+  const data=new FormData(form);
+
+  try{
+    const res=await fetch(form.action,{
+      method:'POST',
+      body:data,
+      headers:{'Accept':'application/json'}
+    });
+
+    if(res.ok){
+      form.style.display='none';
+      successMsg.classList.add('show');
+    }else{
+      throw new Error('Server error');
+    }
+  }catch(err){
+    form.style.display='none';
+    errorMsg.classList.add('show');
+  }finally{
+    btn.classList.remove('loading');
+    btn.disabled=false;
+  }
+});
+
+function resetForm(){
+  form.reset();
+  form.style.display='flex';
+  successMsg.classList.remove('show');
+  errorMsg.classList.remove('show');
+}
+</script>
+</body></html>

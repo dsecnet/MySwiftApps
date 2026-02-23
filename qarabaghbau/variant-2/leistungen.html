@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Leistungen | GARABAG-Bau</title>
+<link rel="icon" type="image/webp" href="logo.webp">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0B0B0B;--card:#111;--accent:#2563eb;--accent2:#3b82f6;--white:#fff;--gray:#9a9a9a;--muted:#4a4a4a;--border:rgba(255,255,255,.08);--radius:16px;--font:'Inter',system-ui,sans-serif}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{font-family:var(--font);background:var(--bg);color:var(--white);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}img{max-width:100%;display:block}button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit}
+
+/* NAVBAR */
+.nav{position:fixed;top:0;left:0;width:100%;height:64px;background:rgba(11,11,11,.92);backdrop-filter:blur(12px);z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border)}
+.nav-logo{display:flex;align-items:center;gap:10px}.nav-logo img{width:42px;height:42px;object-fit:contain;border-radius:8px;filter:brightness(0) invert(1)}.nav-logo-text{font-weight:800;font-size:13px;letter-spacing:1.5px;line-height:1.2;text-transform:uppercase}.nav-logo-text span{display:block}
+.hamburger{width:28px;height:20px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;z-index:200}.hamburger span{width:100%;height:2px;background:var(--white);transition:.3s}.hamburger.open span:nth-child(1){transform:rotate(45deg) translate(6px,6px)}.hamburger.open span:nth-child(2){opacity:0}.hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(6px,-6px)}
+
+/* DARK MOBILE MENU */
+.mobile-menu{position:fixed;inset:0;background:var(--bg);z-index:150;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .45s cubic-bezier(.77,0,.18,1);overflow-y:auto}.mobile-menu.open{transform:translateX(0)}
+.mm-header{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border)}.mm-close{font-size:32px;color:var(--white);cursor:pointer;background:none;border:none}
+.mm-body{flex:1;padding:32px 24px}.mm-body a{display:block;font-size:28px;font-weight:700;color:var(--white);padding:22px 0;border-bottom:1px solid var(--border);transition:.2s}.mm-body a:hover{color:var(--accent);padding-left:8px}
+.mm-cta{margin:24px;background:var(--accent);color:#fff;text-align:center;padding:18px;border-radius:50px;font-weight:700;font-size:16px;display:block;transition:.3s}.mm-cta:hover{background:var(--accent2)}
+.mm-footer{padding:16px 24px 32px;border-top:1px solid var(--border)}.mm-footer p{font-size:13px;color:var(--gray);line-height:2}
+
+/* HERO WITH FLOATING WORDS */
+.hero{position:relative;width:100%;height:70vh;min-height:450px;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-top:64px}
+.hero-bg{position:absolute;inset:0}.hero-bg img{width:100%;height:100%;object-fit:cover}
+.hero-ov{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(11,11,11,.4),rgba(11,11,11,.88))}
+.hero-ghost{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:clamp(80px,22vw,260px);font-weight:900;text-transform:uppercase;color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.04);pointer-events:none;white-space:nowrap;z-index:1}
+.fw{position:absolute;font-weight:800;text-transform:uppercase;letter-spacing:3px;pointer-events:none;user-select:none;white-space:nowrap;z-index:1}
+.fw-1{top:15%;left:5%;font-size:clamp(14px,2.5vw,22px);color:var(--accent);opacity:.3;animation:drift1 4s ease-in-out infinite}
+.fw-2{top:25%;right:8%;font-size:clamp(12px,2vw,20px);color:var(--gray);opacity:.2;animation:drift2 5s ease-in-out infinite}
+.fw-3{top:8%;left:30%;font-size:clamp(14px,2.5vw,22px);color:var(--muted);opacity:.15;animation:drift3 3.5s ease-in-out infinite}
+.fw-4{bottom:30%;left:4%;font-size:clamp(12px,2vw,20px);color:var(--accent);opacity:.25;animation:drift1 4.5s ease-in-out infinite .2s}
+.fw-5{bottom:20%;right:6%;font-size:clamp(14px,2.5vw,22px);color:var(--muted);opacity:.18;animation:drift2 3.8s ease-in-out infinite .4s}
+.fw-6{top:55%;right:25%;font-size:clamp(12px,2vw,18px);color:var(--gray);opacity:.15;animation:drift3 4.2s ease-in-out infinite .1s}
+@keyframes drift1{0%,100%{transform:translate(0,0)}25%{transform:translate(20px,-25px)}50%{transform:translate(-8px,-35px)}75%{transform:translate(15px,10px)}}
+@keyframes drift2{0%,100%{transform:translate(0,0)}25%{transform:translate(-18px,20px)}50%{transform:translate(12px,-15px)}75%{transform:translate(-25px,-8px)}}
+@keyframes drift3{0%,100%{transform:translate(0,0)}25%{transform:translate(15px,18px)}50%{transform:translate(-20px,-12px)}75%{transform:translate(8px,22px)}}
+.hero-content{position:relative;z-index:2;text-align:center;padding:0 24px}
+.hero-content .s-label{font-size:11px;color:var(--accent);letter-spacing:4px;text-transform:uppercase;margin-bottom:12px;animation:fadeUp .8s ease .2s both}
+.hero-content h1{font-size:clamp(32px,7vw,64px);font-weight:900;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;animation:fadeUp .8s ease .4s both}
+.hero-content p{font-size:clamp(13px,1.5vw,16px);color:var(--gray);max-width:550px;margin:0 auto;animation:fadeUp .8s ease .6s both}
+.hero-scroll{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:8px}
+.hero-scroll span{font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase}
+.hero-scroll-line{width:1px;height:40px;background:linear-gradient(to bottom,var(--accent),transparent);animation:scrollPulse 2s infinite}
+@keyframes scrollPulse{0%,100%{opacity:1;transform:scaleY(1)}50%{opacity:.3;transform:scaleY(.6)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(25px)}to{opacity:1;transform:translateY(0)}}
+
+/* WORD-IMAGE SHOWCASE (Mini) */
+.showcase{position:relative;width:100%;height:70vh;min-height:400px;overflow:hidden}
+.sc-bg{position:absolute;inset:0;z-index:0}
+.sc-bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.2s ease,transform 8s ease;transform:scale(1.08)}
+.sc-bg img.active{opacity:1;transform:scale(1)}
+.sc-overlay{position:absolute;inset:0;z-index:1;background:linear-gradient(to bottom,rgba(11,11,11,.3),rgba(11,11,11,.75))}
+.sc-word-wrap{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.sc-word{font-size:clamp(50px,15vw,180px);font-weight:900;text-transform:uppercase;letter-spacing:clamp(4px,1.5vw,14px);color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.12);line-height:1;white-space:nowrap;transition:opacity .6s;user-select:none}
+.sc-num{position:absolute;top:24px;left:24px;z-index:3;font-size:clamp(40px,8vw,72px);font-weight:900;color:var(--accent);opacity:.5;line-height:1;transition:opacity .4s}
+.sc-content{position:absolute;bottom:0;left:0;z-index:3;padding:28px 24px 40px;max-width:500px;transition:opacity .5s,transform .5s}
+.sc-title{font-size:clamp(16px,3vw,24px);font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.sc-desc{font-size:clamp(12px,1.3vw,14px);color:rgba(255,255,255,.75);line-height:1.7;margin-bottom:16px}
+.sc-btn{display:inline-block;background:var(--accent);color:#fff;padding:12px 28px;border-radius:50px;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:2px;transition:.3s}
+.sc-btn:hover{background:var(--accent2);transform:translateY(-2px);box-shadow:0 8px 30px rgba(37,99,235,.3)}
+.sc-dots{position:absolute;right:16px;top:50%;transform:translateY(-50%);z-index:4;display:flex;flex-direction:column;gap:10px}
+.sc-dot{width:10px;height:10px;border-radius:50%;border:1.5px solid rgba(255,255,255,.3);background:transparent;cursor:pointer;transition:.3s;padding:0}
+.sc-dot.active{background:var(--accent);border-color:var(--accent);box-shadow:0 0 12px rgba(37,99,235,.4)}
+.sc-progress{position:absolute;bottom:0;left:0;width:100%;height:3px;z-index:5;background:rgba(255,255,255,.06)}
+.sc-progress-fill{height:100%;background:var(--accent);transition:width .1s linear;width:0%}
+
+/* SERVICE CARDS — HORIZONTAL SCROLL */
+.services{padding:80px 0 40px;overflow:hidden}
+.services-head{padding:0 24px;max-width:1100px;margin:0 auto 40px}
+.s-label{font-size:11px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px}
+.s-title{font-size:clamp(28px,5vw,48px);font-weight:900;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}
+.s-sub{font-size:clamp(13px,1.5vw,16px);color:var(--gray);max-width:500px}
+.svc-track-wrap{position:relative;padding:0 24px}
+.svc-track{display:flex;gap:0;overflow-x:auto;scroll-snap-type:x mandatory;-ms-overflow-style:none;scrollbar-width:none;padding-right:30%}
+.svc-track::-webkit-scrollbar{display:none}
+.svc{flex:0 0 85%;max-width:420px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:36px 28px;scroll-snap-align:start;position:relative;overflow:hidden;margin-right:-50px;transition:.4s}
+.svc:last-child{margin-right:0}
+.svc:hover{transform:translateY(-4px);box-shadow:0 20px 60px rgba(0,0,0,.5);border-color:rgba(37,99,235,.2)}
+.svc-ghost{position:absolute;top:50%;right:-10px;transform:translateY(-50%);font-size:100px;font-weight:900;color:rgba(255,255,255,.02);pointer-events:none;white-space:nowrap}
+.svc-num{width:52px;height:52px;background:var(--accent);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;margin-bottom:20px}
+.svc h3{font-size:17px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.svc p{font-size:13px;color:var(--gray);line-height:1.7;margin-bottom:16px}
+.svc-bar{width:50%;height:3px;background:var(--accent);border-radius:2px;opacity:.4;margin-bottom:16px}
+.svc ul{list-style:none;margin-bottom:20px}
+.svc li{font-size:13px;color:rgba(255,255,255,.8);padding:4px 0 4px 14px;position:relative}
+.svc li::before{content:'';position:absolute;left:0;top:11px;width:4px;height:4px;background:var(--accent);border-radius:50%}
+.svc-link{font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:2px;transition:.2s}
+.svc-link:hover{color:var(--white)}
+.scroll-bar{display:flex;align-items:center;gap:16px;padding:24px 24px 0;max-width:1100px;margin:0 auto}
+.scroll-bar .lbl{font-size:12px;font-weight:600;color:var(--gray);letter-spacing:3px;text-transform:uppercase;white-space:nowrap}
+.scroll-bar .bar{flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.scroll-bar .bar-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .15s}
+.scroll-bar .pct{font-size:12px;font-weight:600;color:var(--gray);min-width:35px;text-align:right}
+
+/* DETAIL GRID */
+.detail{padding:80px 24px;max-width:1100px;margin:0 auto}
+.detail h2{font-size:clamp(24px,4vw,36px);font-weight:900;text-transform:uppercase;letter-spacing:2px;margin-bottom:40px;text-align:center}
+.det-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
+.det{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:.4s}
+.det:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.4);border-color:rgba(37,99,235,.15)}
+.det-img{height:200px;overflow:hidden}.det-img img{width:100%;height:100%;object-fit:cover;transition:transform .6s}.det:hover .det-img img{transform:scale(1.06)}
+.det-body{padding:24px}
+.det-body h3{font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.det-body p{font-size:13px;color:var(--gray);line-height:1.7}
+
+/* CTA */
+.cta{max-width:800px;margin:0 auto 80px;padding:0 24px}
+.cta-inner{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:48px 32px;text-align:center;position:relative;overflow:hidden}
+.cta-inner::before{content:'GARABAG';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:100px;font-weight:900;color:rgba(255,255,255,.02);pointer-events:none;white-space:nowrap}
+.cta-inner h2{font-size:clamp(22px,3.5vw,32px);font-weight:900;margin-bottom:10px;position:relative}
+.cta-inner p{color:var(--gray);font-size:14px;margin-bottom:24px;position:relative}
+.btn-accent{display:inline-block;background:var(--accent);color:#fff;padding:16px 36px;border-radius:50px;font-weight:700;font-size:14px;letter-spacing:1px;transition:.3s;position:relative}
+.btn-accent:hover{background:var(--accent2);transform:translateY(-2px);box-shadow:0 8px 30px rgba(37,99,235,.3)}
+
+/* FOOTER */
+.footer{background:var(--bg);border-top:1px solid var(--border);padding:60px 24px 28px}
+.footer-top{max-width:1100px;margin:0 auto 40px;display:flex;align-items:center;gap:16px}.footer-top img{width:48px;height:48px;object-fit:contain;border-radius:10px}
+.footer-brand{display:flex;flex-direction:column}.footer-brand strong{font-weight:800;font-size:14px;letter-spacing:1.5px;text-transform:uppercase}.footer-brand span{font-size:12px;color:var(--gray)}
+.footer-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:32px}.footer-grid h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:14px}.footer-grid a,.footer-grid p{display:block;font-size:13px;color:var(--gray);padding:3px 0;transition:.2s}.footer-grid a:hover{color:var(--white)}.footer-grid .at{color:var(--accent)}
+.footer-bottom{max-width:1100px;margin:32px auto 0;padding-top:20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--muted)}.footer-bottom a{color:var(--muted);margin-left:16px}.footer-bottom a:hover{color:var(--white)}
+
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .7s ease,transform .7s ease}.reveal.vis{opacity:1;transform:translateY(0)}
+.reveal-left{opacity:0;transform:translateX(-40px);transition:opacity .7s ease,transform .7s ease}.reveal-left.vis{opacity:1;transform:translateX(0)}
+.reveal-right{opacity:0;transform:translateX(40px);transition:opacity .7s ease,transform .7s ease}.reveal-right.vis{opacity:1;transform:translateX(0)}
+.stagger{transition-delay:calc(var(--i,0) * .12s)}
+</style></head><body>
+
+<nav class="nav"><a href="index.html" class="nav-logo"><img src="logo.webp" alt="Logo"><div class="nav-logo-text"><span>GARABAG</span><span>BAU</span></div></a><div class="hamburger" id="hamBtn" onclick="toggleMenu()"><span></span><span></span><span></span></div></nav>
+
+<div class="mobile-menu" id="mm"><div class="mm-header"><div style="display:flex;align-items:center;gap:10px"><img src="logo.webp" alt="" style="width:36px;height:36px;object-fit:contain;border-radius:6px"><div class="nav-logo-text"><span>GARABAG</span><span>BAU</span></div></div><button class="mm-close" onclick="toggleMenu()">&times;</button></div><div class="mm-body"><a href="index.html">Home</a><a href="leistungen.html">Leistungen</a><a href="galerie.html">Galerie</a><a href="uber-uns.html">Über Uns</a><a href="kontakt.html">Kontakt</a></div><a href="kontakt.html" class="mm-cta">Angebot anfragen</a><div class="mm-footer"><p>+49 172 600 9105<br>info@garabag-bau.de</p></div></div>
+
+<!-- HERO WITH FLOATING WORDS -->
+<section class="hero">
+  <div class="hero-bg"><img src="../images/hero_1.webp" alt=""></div>
+  <div class="hero-ov"></div>
+  <div class="hero-ghost">LEISTUNGEN</div>
+  <span class="fw fw-1">ROHBAU</span>
+  <span class="fw fw-2">BETON</span>
+  <span class="fw fw-3">MAUER</span>
+  <span class="fw fw-4">SCHALUNG</span>
+  <span class="fw fw-5">SANIERUNG</span>
+  <span class="fw fw-6">ABBRUCH</span>
+  <div class="hero-content">
+    <p class="s-label">GARABAG-BAU</p>
+    <h1>UNSERE LEISTUNGEN</h1>
+    <p>Vom Fundament bis zum Dachstuhl — professionelle Rohbau- und Hochbauleistungen aus einer Hand</p>
+  </div>
+  <div class="hero-scroll"><span>Scroll</span><div class="hero-scroll-line"></div></div>
+</section>
+
+<!-- WORD-IMAGE SHOWCASE -->
+<section class="showcase" id="showcase">
+  <div class="sc-bg">
+    <img src="../images/project_1.webp" alt="Rohbau" class="active">
+    <img src="../images/project_2.webp" alt="Sanierung">
+    <img src="../images/project_3.webp" alt="Abbruch">
+    <img src="../images/project_4.webp" alt="Schalung">
+    <img src="../images/project_6.webp" alt="Mauerbau">
+    <img src="../images/project_8.webp" alt="Betonbau">
+  </div>
+  <div class="sc-overlay"></div>
+  <div class="sc-word-wrap"><span class="sc-word" id="scWord">ROHBAU</span></div>
+  <div class="sc-num" id="scNum">01</div>
+  <div class="sc-content" id="scContent">
+    <h2 class="sc-title" id="scTitle">ROHBAU & BETONBAU</h2>
+    <p class="sc-desc" id="scDesc">Professionelle Rohbauleistungen vom Fundament bis zum Dachstuhl. Solide Basis und präzise Ausführung.</p>
+    <a href="kontakt.html" class="sc-btn">Angebot anfragen</a>
+  </div>
+  <div class="sc-dots" id="scDots">
+    <button class="sc-dot active" onclick="goSc(0)"></button>
+    <button class="sc-dot" onclick="goSc(1)"></button>
+    <button class="sc-dot" onclick="goSc(2)"></button>
+    <button class="sc-dot" onclick="goSc(3)"></button>
+    <button class="sc-dot" onclick="goSc(4)"></button>
+    <button class="sc-dot" onclick="goSc(5)"></button>
+  </div>
+  <div class="sc-progress"><div class="sc-progress-fill" id="scBar"></div></div>
+</section>
+
+<!-- SERVICES HORIZONTAL SCROLL -->
+<section class="services">
+  <div class="services-head reveal">
+    <p class="s-label">Unser Leistungsspektrum</p>
+    <h2 class="s-title">ALLE LEISTUNGEN</h2>
+    <p class="s-sub">Umfassende Rohbau- und Hochbauleistungen — alles aus einer Hand</p>
+  </div>
+  <div class="svc-track-wrap">
+    <div class="svc-track" id="svcTrack">
+      <div class="svc"><div class="svc-ghost">ROHBAU</div><div class="svc-num">01</div><h3>ROHBAU</h3><p>Professionelle Rohbauleistungen vom Fundament bis zum Dachstuhl. Solide Basis und präzise Ausführung.</p><div class="svc-bar"></div><ul><li>Erdarbeiten und Fundamente</li><li>Kellergeschoss und Bodenplatten</li><li>Geschossdecken und Treppen</li><li>Dachstuhlvorbereitung</li></ul><a href="kontakt.html" class="svc-link">Kontakt aufnehmen →</a></div>
+      <div class="svc"><div class="svc-ghost">BETON</div><div class="svc-num">02</div><h3>BETONBAU</h3><p>Betonage, Bodenplatten, Fundamente, Decken und Stützmauern. Moderne Technik für höchste Qualität.</p><div class="svc-bar"></div><ul><li>Betonage und Gießarbeiten</li><li>Bodenplatten und Fundamente</li><li>Geschossdecken aus Beton</li><li>Stützmauern und Sichtbeton</li></ul><a href="kontakt.html" class="svc-link">Kontakt aufnehmen →</a></div>
+      <div class="svc"><div class="svc-ghost">MAUER</div><div class="svc-num">03</div><h3>MAUERBAU</h3><p>Mauerwerk aus Kalksandstein, Porenbeton und Ziegel. Fachgerecht und belastbar.</p><div class="svc-bar"></div><ul><li>Kalksandstein-Mauerwerk</li><li>Porenbeton-Mauerwerk</li><li>Tragende und nichttragende Wände</li><li>Schallschutz-Mauerwerk</li></ul><a href="kontakt.html" class="svc-link">Kontakt aufnehmen →</a></div>
+      <div class="svc"><div class="svc-ghost">SANIERUNG</div><div class="svc-num">04</div><h3>ALTBAUSANIERUNG</h3><p>Fachgerechte Sanierung und Modernisierung von Altbauten mit höchster Präzision.</p><div class="svc-bar"></div><ul><li>Betonsanierung und Instandsetzung</li><li>Erneuerung tragender Bauteile</li><li>Fassadensanierung</li><li>Energetische Modernisierung</li></ul><a href="kontakt.html" class="svc-link">Kontakt aufnehmen →</a></div>
+      <div class="svc"><div class="svc-ghost">ABBRUCH</div><div class="svc-num">05</div><h3>ANBAU &amp; ABBRUCH</h3><p>Professionelle Anbau- und Abbrucharbeiten. Effizient, sicher und termingerecht.</p><div class="svc-bar"></div><ul><li>Anbauten und Erweiterungen</li><li>Komplett- und Teilabbruch</li><li>Entkernung</li><li>Fachgerechte Entsorgung</li></ul><a href="kontakt.html" class="svc-link">Kontakt aufnehmen →</a></div>
+      <div class="svc"><div class="svc-ghost">SCHALUNG</div><div class="svc-num">06</div><h3>SCHALUNG &amp; BEWEHRUNG</h3><p>Schalungsarbeiten und Eisenbewehrung für anspruchsvolle Betonkonstruktionen.</p><div class="svc-bar"></div><ul><li>Rahmen- und Trägerschalung</li><li>Sonderschalung für Sichtbeton</li><li>Eisenbewehrung und Armierung</li><li>Deckenschalung</li></ul><a href="kontakt.html" class="svc-link">Kontakt aufnehmen →</a></div>
+    </div>
+  </div>
+  <div class="scroll-bar">
+    <span class="lbl">SCROLL &rarr;</span>
+    <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+    <span class="pct" id="barPct">0%</span>
+  </div>
+</section>
+
+<!-- DETAIL GRID WITH IMAGES -->
+<section class="detail">
+  <h2 class="reveal">PROJEKTEINBLICKE</h2>
+  <div class="det-grid">
+    <div class="det reveal stagger" style="--i:0"><div class="det-img"><img src="../images/project_1.webp" alt="Rohbau"></div><div class="det-body"><h3>Rohbau EFH</h3><p>Kompletter Rohbau für ein Einfamilienhaus inkl. Keller, Geschossdecken und Dachstuhlvorbereitung.</p></div></div>
+    <div class="det reveal stagger" style="--i:1"><div class="det-img"><img src="../images/project_4.webp" alt="Schalung"></div><div class="det-body"><h3>Schalungsarbeiten</h3><p>Präzise Schalungsarbeiten für anspruchsvolle Sichtbetonflächen in Industriequalität.</p></div></div>
+    <div class="det reveal stagger" style="--i:2"><div class="det-img"><img src="../images/project_7.webp" alt="Mauerbau"></div><div class="det-body"><h3>Mauerwerk</h3><p>Hochwertiges Mauerwerk aus Kalksandstein mit Ringanker und Ringbalken.</p></div></div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta reveal"><div class="cta-inner"><h2>Bereit für Ihr Bauprojekt?</h2><p>Kontaktieren Sie uns für eine kostenlose Erstberatung.</p><a href="kontakt.html" class="btn-accent">Jetzt Angebot anfragen</a></div></div>
+
+<!-- FOOTER -->
+<footer class="footer"><div class="footer-top"><img src="logo.webp" alt="Logo"><div class="footer-brand"><strong>GARABAG-BAU</strong><span>Rohbau &amp; Hochbau in Münster</span></div></div><div class="footer-grid"><div><h4>Navigation</h4><a href="index.html">Home</a><a href="leistungen.html">Leistungen</a><a href="galerie.html">Galerie</a><a href="uber-uns.html">Über Uns</a><a href="kontakt.html">Kontakt</a></div><div><h4 class="at">Leistungen</h4><a href="leistungen.html">Rohbau</a><a href="leistungen.html">Betonbau</a><a href="leistungen.html">Mauerbau</a><a href="leistungen.html">Altbausanierung</a><a href="leistungen.html">Anbau &amp; Abbruch</a></div><div><h4>Kontakt</h4><p><a href="tel:+491726009105">+49 172 600 9105</a></p><p><a href="mailto:info@garabag-bau.de">info@garabag-bau.de</a></p><p>Eichendorffstr. 3, 48167 Münster</p></div><div><h4>Rechtliches</h4><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></div></div><div class="footer-bottom"><span>&copy; 2025 GARABAG-Bau</span><span><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></span></div></footer>
+
+<script>
+// Mobile menu
+function toggleMenu(){document.getElementById('mm').classList.toggle('open');document.getElementById('hamBtn').classList.toggle('open');document.body.style.overflow=document.getElementById('mm').classList.contains('open')?'hidden':''}
+
+// WORD-IMAGE SHOWCASE
+const scData=[
+  {word:'ROHBAU',title:'ROHBAU & BETONBAU',desc:'Professionelle Rohbauleistungen vom Fundament bis zum Dachstuhl. Solide Basis und präzise Ausführung.'},
+  {word:'SANIERUNG',title:'ALTBAUSANIERUNG',desc:'Fachgerechte Sanierung und Modernisierung von Altbauten. Höchste Präzision und Sorgfalt.'},
+  {word:'ABBRUCH',title:'ANBAU & ABBRUCH',desc:'Professionelle Anbau- und Abbrucharbeiten. Effizient, sicher und termingerecht.'},
+  {word:'SCHALUNG',title:'SCHALUNG & BEWEHRUNG',desc:'Präzise Schalungsarbeiten und Eisenbewehrung für anspruchsvolle Betonkonstruktionen.'},
+  {word:'MAUERBAU',title:'MAUERWERK',desc:'Hochwertiges Mauerwerk aus Kalksandstein, Porenbeton und Ziegel. Fachgerecht und belastbar.'},
+  {word:'BETONBAU',title:'BETONARBEITEN',desc:'Betonage, Bodenplatten, Fundamente und Decken. Moderne Technik für höchste Qualität.'}
+];
+let scIdx=0,scTimer=null,scBarAF=null,scStart=0;
+const scImgs=document.querySelectorAll('.sc-bg img'),scWord=document.getElementById('scWord'),scNum=document.getElementById('scNum'),scTitle=document.getElementById('scTitle'),scDesc=document.getElementById('scDesc'),scDots=document.querySelectorAll('.sc-dot'),scBar=document.getElementById('scBar');
+const SC_INTERVAL=4500;
+function goSc(i){if(i===scIdx)return;const ct=document.getElementById('scContent');ct.style.opacity='0';ct.style.transform='translateY(12px)';scWord.style.opacity='0';setTimeout(()=>{scImgs[scIdx].classList.remove('active');scIdx=i;scImgs[scIdx].classList.add('active');scWord.textContent=scData[i].word;scWord.style.opacity='1';scNum.textContent=String(i+1).padStart(2,'0');scTitle.textContent=scData[i].title;scDesc.textContent=scData[i].desc;ct.style.opacity='1';ct.style.transform='translateY(0)';scDots.forEach((d,j)=>d.classList.toggle('active',j===i));},400);resetScAuto()}
+function nextSc(){goSc((scIdx+1)%scData.length)}
+function resetScAuto(){clearTimeout(scTimer);cancelAnimationFrame(scBarAF);scStart=performance.now();scBar.style.width='0%';animateBar();scTimer=setTimeout(nextSc,SC_INTERVAL)}
+function animateBar(){const elapsed=performance.now()-scStart;const pct=Math.min(elapsed/SC_INTERVAL*100,100);scBar.style.width=pct+'%';if(pct<100)scBarAF=requestAnimationFrame(animateBar)}
+resetScAuto();
+const scEl=document.getElementById('showcase');
+scEl.addEventListener('mouseenter',()=>{clearTimeout(scTimer);cancelAnimationFrame(scBarAF)});
+scEl.addEventListener('mouseleave',resetScAuto);
+let scTouchX=0;
+scEl.addEventListener('touchstart',e=>{scTouchX=e.touches[0].clientX},{passive:true});
+scEl.addEventListener('touchend',e=>{const diff=e.changedTouches[0].clientX-scTouchX;if(Math.abs(diff)>50){diff<0?goSc((scIdx+1)%scData.length):goSc((scIdx-1+scData.length)%scData.length)}},{passive:true});
+
+// Horizontal scroll progress
+const sT=document.getElementById('svcTrack'),bF=document.getElementById('barFill'),bP=document.getElementById('barPct');
+if(sT){sT.addEventListener('scroll',()=>{const m=sT.scrollWidth-sT.clientWidth,p=m>0?Math.round(sT.scrollLeft/m*100):0;bF.style.width=p+'%';bP.textContent=p+'%'})}
+
+// Reveal on scroll
+const ro=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');ro.unobserve(e.target)}})},{threshold:.08});
+document.querySelectorAll('.reveal,.reveal-left,.reveal-right').forEach(el=>ro.observe(el));
+</script>
+</body></html>

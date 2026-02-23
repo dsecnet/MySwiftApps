@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Über Uns | GARABAG-Bau</title>
+<link rel="icon" type="image/webp" href="logo.webp">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0B0B0B;--card:#111;--accent:#d97706;--accent2:#f59e0b;--white:#fff;--gray:#9a9a9a;--muted:#4a4a4a;--border:rgba(255,255,255,.08);--radius:16px;--font:'Inter',system-ui,sans-serif}
+html{scroll-behavior:smooth;overflow-x:hidden}body{font-family:var(--font);background:var(--bg);color:var(--white);overflow-x:hidden;-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}img{max-width:100%;display:block}button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit}
+
+/* NAVBAR */
+.nav{position:fixed;top:0;left:0;width:100%;height:64px;background:rgba(11,11,11,.92);backdrop-filter:blur(12px);z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border)}.nav-logo{display:flex;align-items:center;gap:10px}.nav-logo img{width:42px;height:42px;object-fit:contain;border-radius:8px;filter:brightness(0) invert(1)}.nav-logo-text{font-weight:800;font-size:13px;letter-spacing:1.5px;line-height:1.2;text-transform:uppercase}.nav-logo-text span{display:block}
+.hamburger{width:28px;height:20px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;z-index:200}.hamburger span{width:100%;height:2px;background:var(--white);transition:.3s}.hamburger.open span:nth-child(1){transform:rotate(45deg) translate(6px,6px)}.hamburger.open span:nth-child(2){opacity:0}.hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(6px,-6px)}
+
+/* DARK MOBILE MENU */
+.mobile-menu{position:fixed;inset:0;background:var(--bg);z-index:150;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .45s cubic-bezier(.77,0,.18,1);overflow-y:auto}.mobile-menu.open{transform:translateX(0)}
+.mm-header{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border)}.mm-close{font-size:32px;color:var(--white);cursor:pointer;background:none;border:none}
+.mm-body{flex:1;padding:32px 24px}.mm-body a{display:block;font-size:28px;font-weight:700;color:var(--white);padding:22px 0;border-bottom:1px solid var(--border);transition:.2s}.mm-body a:hover{color:var(--accent);padding-left:8px}
+.mm-cta{margin:24px;background:var(--accent);color:#fff;text-align:center;padding:18px;border-radius:50px;font-weight:700;font-size:16px;display:block;transition:.3s}.mm-cta:hover{background:var(--accent2)}
+.mm-footer{padding:16px 24px 32px;border-top:1px solid var(--border)}.mm-footer p{font-size:13px;color:var(--gray);line-height:2}
+
+/* HERO WITH FLOATING WORDS */
+.hero{position:relative;width:100%;height:65vh;min-height:420px;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-top:64px}
+.hero-bg{position:absolute;inset:0}.hero-bg img{width:100%;height:100%;object-fit:cover}
+.hero-ov{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(11,11,11,.4),rgba(11,11,11,.88))}
+.hero-ghost{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:clamp(80px,22vw,260px);font-weight:900;text-transform:uppercase;color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.04);pointer-events:none;white-space:nowrap;z-index:1}
+.fw{position:absolute;font-weight:800;text-transform:uppercase;letter-spacing:3px;pointer-events:none;user-select:none;white-space:nowrap;z-index:1}
+.fw-1{top:14%;left:5%;font-size:clamp(14px,2.5vw,22px);color:var(--accent);opacity:.3;animation:drift1 4s ease-in-out infinite}
+.fw-2{top:24%;right:8%;font-size:clamp(12px,2vw,20px);color:var(--gray);opacity:.2;animation:drift2 5s ease-in-out infinite}
+.fw-3{top:7%;left:32%;font-size:clamp(14px,2.5vw,22px);color:var(--muted);opacity:.15;animation:drift3 3.5s ease-in-out infinite}
+.fw-4{bottom:30%;left:4%;font-size:clamp(12px,2vw,20px);color:var(--accent);opacity:.25;animation:drift1 4.5s ease-in-out infinite .2s}
+.fw-5{bottom:20%;right:6%;font-size:clamp(14px,2.5vw,22px);color:var(--muted);opacity:.18;animation:drift2 3.8s ease-in-out infinite .4s}
+@keyframes drift1{0%,100%{transform:translate(0,0)}25%{transform:translate(20px,-25px)}50%{transform:translate(-8px,-35px)}75%{transform:translate(15px,10px)}}
+@keyframes drift2{0%,100%{transform:translate(0,0)}25%{transform:translate(-18px,20px)}50%{transform:translate(12px,-15px)}75%{transform:translate(-25px,-8px)}}
+@keyframes drift3{0%,100%{transform:translate(0,0)}25%{transform:translate(15px,18px)}50%{transform:translate(-20px,-12px)}75%{transform:translate(8px,22px)}}
+.hero-content{position:relative;z-index:2;text-align:center;padding:0 24px}
+.hero-content .s-label{font-size:11px;color:var(--accent);letter-spacing:4px;text-transform:uppercase;margin-bottom:12px;animation:fadeUp .8s ease .2s both}
+.hero-content h1{font-size:clamp(32px,7vw,64px);font-weight:900;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;animation:fadeUp .8s ease .4s both}
+.hero-content p{font-size:clamp(13px,1.5vw,16px);color:var(--gray);max-width:500px;margin:0 auto;animation:fadeUp .8s ease .6s both}
+.hero-scroll{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:8px}
+.hero-scroll span{font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase}
+.hero-scroll-line{width:1px;height:40px;background:linear-gradient(to bottom,var(--accent),transparent);animation:scrollPulse 2s infinite}
+@keyframes scrollPulse{0%,100%{opacity:1;transform:scaleY(1)}50%{opacity:.3;transform:scaleY(.6)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(25px)}to{opacity:1;transform:translateY(0)}}
+
+/* ABOUT SECTION */
+.s-label{font-size:11px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px}
+.s-title{font-size:clamp(28px,5vw,48px);font-weight:900;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}
+.about{padding:80px 24px;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}@media(max-width:768px){.about{grid-template-columns:1fr}}
+.about-text p{font-size:14px;color:var(--gray);line-height:1.8;margin-bottom:16px}.about-text strong{color:var(--white)}
+.about-img{border-radius:var(--radius);overflow:hidden;position:relative}
+.about-img img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
+.about-img:hover img{transform:scale(1.04)}
+.about-img-ghost{position:absolute;bottom:20px;right:20px;font-size:clamp(40px,8vw,80px);font-weight:900;color:rgba(255,255,255,.04);pointer-events:none;z-index:1}
+
+/* ANIMATED COUNTER STATS */
+.stats{padding:60px 24px;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:24px;text-align:center}@media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:32px 16px;transition:.4s}
+.stat:hover{transform:translateY(-4px);border-color:rgba(217,119,6,.2);box-shadow:0 12px 30px rgba(0,0,0,.4)}
+.stat-num{font-size:clamp(36px,6vw,56px);font-weight:900;color:var(--accent);line-height:1}
+.stat-label{font-size:12px;color:var(--gray);letter-spacing:2px;text-transform:uppercase;margin-top:6px}
+
+/* TIMELINE / HORIZONTAL PROCESS */
+.timeline{padding:80px 0 40px;overflow:hidden}
+.timeline-head{padding:0 24px;max-width:1100px;margin:0 auto 40px}
+.tl-track{display:flex;gap:0;overflow-x:auto;scroll-snap-type:x mandatory;-ms-overflow-style:none;scrollbar-width:none;padding-right:30%}
+.tl-track::-webkit-scrollbar{display:none}
+.tl-card{flex:0 0 80%;max-width:400px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:36px 28px;scroll-snap-align:start;margin-right:-40px;transition:.4s;position:relative;overflow:hidden}
+.tl-card:last-child{margin-right:0}
+.tl-card:hover{transform:translateY(-4px);box-shadow:0 20px 60px rgba(0,0,0,.5);border-color:rgba(217,119,6,.2)}
+.tl-card-ghost{position:absolute;top:50%;right:-10px;transform:translateY(-50%);font-size:80px;font-weight:900;color:rgba(255,255,255,.02);pointer-events:none}
+.tl-year{font-size:48px;font-weight:900;color:var(--accent);opacity:.6;margin-bottom:12px}
+.tl-card h3{font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.tl-card p{font-size:13px;color:var(--gray);line-height:1.7}
+.tl-card-bar{width:60%;height:3px;background:var(--accent);border-radius:2px;margin-top:20px;opacity:.5}
+.scroll-bar{display:flex;align-items:center;gap:16px;padding:20px 24px 0;max-width:1100px;margin:0 auto}
+.scroll-bar .lbl{font-size:12px;font-weight:600;color:var(--gray);letter-spacing:3px;text-transform:uppercase;white-space:nowrap}
+.scroll-bar .bar{flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.scroll-bar .bar-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .15s}
+.scroll-bar .pct{font-size:12px;font-weight:600;color:var(--gray);min-width:35px;text-align:right}
+
+/* VALUES */
+.values{padding:80px 24px;max-width:1100px;margin:0 auto}
+.val-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px}
+.val{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:32px 24px;transition:.4s;position:relative;overflow:hidden}
+.val:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.4);border-color:rgba(217,119,6,.2)}
+.val-ico{width:48px;height:48px;background:var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;margin-bottom:16px}
+.val h3{font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}.val p{font-size:13px;color:var(--gray);line-height:1.7}
+.val-ghost{position:absolute;bottom:-10px;right:-5px;font-size:60px;font-weight:900;color:rgba(255,255,255,.02);pointer-events:none}
+
+/* TEAM SHOWCASE */
+.team{padding:0 24px 80px;max-width:800px;margin:0 auto;text-align:center}
+.team-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:40px 32px;display:flex;align-items:center;gap:32px;transition:.4s;position:relative;overflow:hidden}
+@media(max-width:600px){.team-card{flex-direction:column;text-align:center}}
+.team-card:hover{border-color:rgba(217,119,6,.2);box-shadow:0 16px 40px rgba(0,0,0,.4)}
+.team-img{width:120px;height:120px;border-radius:50%;overflow:hidden;flex-shrink:0;border:3px solid var(--accent)}
+.team-img img{width:100%;height:100%;object-fit:cover}
+.team-info h3{font-size:20px;font-weight:800;margin-bottom:4px}.team-info .role{font-size:12px;color:var(--accent);text-transform:uppercase;letter-spacing:2px;font-weight:700;margin-bottom:12px}
+.team-info p{font-size:13px;color:var(--gray);line-height:1.7}
+.team-ghost{position:absolute;top:50%;right:20px;transform:translateY(-50%);font-size:80px;font-weight:900;color:rgba(255,255,255,.02);pointer-events:none}
+
+/* CTA */
+.cta{max-width:800px;margin:0 auto 80px;padding:0 24px}
+.cta-inner{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:48px 32px;text-align:center;position:relative;overflow:hidden}
+.cta-inner::before{content:'GARABAG';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:100px;font-weight:900;color:rgba(255,255,255,.02);pointer-events:none;white-space:nowrap}
+.cta-inner h2{font-size:clamp(22px,3.5vw,32px);font-weight:900;margin-bottom:10px;position:relative}
+.cta-inner p{color:var(--gray);font-size:14px;margin-bottom:24px;position:relative}
+.btn-accent{display:inline-block;background:var(--accent);color:#fff;padding:16px 36px;border-radius:50px;font-weight:700;font-size:14px;letter-spacing:1px;transition:.3s;position:relative}
+.btn-accent:hover{background:var(--accent2);transform:translateY(-2px);box-shadow:0 8px 30px rgba(217,119,6,.3)}
+
+/* FOOTER */
+.footer{background:var(--bg);border-top:1px solid var(--border);padding:60px 24px 28px}
+.footer-top{max-width:1100px;margin:0 auto 40px;display:flex;align-items:center;gap:16px}.footer-top img{width:48px;height:48px;object-fit:contain;border-radius:10px}
+.footer-brand{display:flex;flex-direction:column}.footer-brand strong{font-weight:800;font-size:14px;letter-spacing:1.5px;text-transform:uppercase}.footer-brand span{font-size:12px;color:var(--gray)}
+.footer-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:32px}.footer-grid h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:14px}.footer-grid a,.footer-grid p{display:block;font-size:13px;color:var(--gray);padding:3px 0;transition:.2s}.footer-grid a:hover{color:var(--white)}.footer-grid .at{color:var(--accent)}
+.footer-bottom{max-width:1100px;margin:32px auto 0;padding-top:20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--muted)}.footer-bottom a{color:var(--muted);margin-left:16px}.footer-bottom a:hover{color:var(--white)}
+
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .7s ease,transform .7s ease}.reveal.vis{opacity:1;transform:translateY(0)}
+.stagger{transition-delay:calc(var(--i,0) * .12s)}
+</style></head><body>
+
+<nav class="nav"><a href="index.html" class="nav-logo"><img src="logo.webp" alt="Logo"><div class="nav-logo-text"><span>GARABAG</span><span>BAU</span></div></a><div class="hamburger" id="hamBtn" onclick="toggleMenu()"><span></span><span></span><span></span></div></nav>
+
+<div class="mobile-menu" id="mm"><div class="mm-header"><div style="display:flex;align-items:center;gap:10px"><img src="logo.webp" alt="" style="width:36px;height:36px;object-fit:contain;border-radius:6px"><div class="nav-logo-text"><span>GARABAG</span><span>BAU</span></div></div><button class="mm-close" onclick="toggleMenu()">&times;</button></div><div class="mm-body"><a href="index.html">Home</a><a href="leistungen.html">Leistungen</a><a href="galerie.html">Galerie</a><a href="uber-uns.html">Über Uns</a><a href="kontakt.html">Kontakt</a></div><a href="kontakt.html" class="mm-cta">Angebot anfragen</a><div class="mm-footer"><p>+49 172 600 9105<br>info@garabag-bau.de</p></div></div>
+
+<!-- HERO WITH FLOATING WORDS -->
+<section class="hero">
+  <div class="hero-bg"><img src="../images/hero_2.webp" alt=""></div>
+  <div class="hero-ov"></div>
+  <div class="hero-ghost">GARABAG</div>
+  <span class="fw fw-1">QUALITÄT</span>
+  <span class="fw fw-2">ERFAHRUNG</span>
+  <span class="fw fw-3">TEAM</span>
+  <span class="fw fw-4">VERTRAUEN</span>
+  <span class="fw fw-5">MÜNSTER</span>
+  <div class="hero-content">
+    <p class="s-label">Wer wir sind</p>
+    <h1>ÜBER UNS</h1>
+    <p>Ihr Partner für Rohbau &amp; Hochbau in Münster</p>
+  </div>
+  <div class="hero-scroll"><span>Scroll</span><div class="hero-scroll-line"></div></div>
+</section>
+
+<!-- ABOUT -->
+<section class="about">
+  <div class="about-text reveal">
+    <p class="s-label">Unser Unternehmen</p>
+    <h2 class="s-title">WER WIR SIND</h2>
+    <p><strong>GARABAG-Bau</strong> steht für professionelle Rohbau- und Hochbauleistungen in Münster und dem Münsterland. Unter der Leitung von <strong>Vugar Azizov</strong> arbeitet unser eingespieltes Team aus 7 Fachkräften an anspruchsvollen Bauprojekten.</p>
+    <p>Von der ersten Beratung bis zur termingerechten Übergabe setzen wir auf <strong>Qualität, Transparenz und Zuverlässigkeit</strong>. Jedes Projekt wird mit höchster Sorgfalt und Präzision ausgeführt.</p>
+    <p>Ob Neubau, Sanierung oder Abbruch — wir bieten Ihnen ein umfassendes Leistungsspektrum aus einer Hand.</p>
+  </div>
+  <div class="about-img reveal">
+    <img src="../images/project_7.webp" alt="Team">
+    <div class="about-img-ghost">BAU</div>
+  </div>
+</section>
+
+<!-- ANIMATED STATS -->
+<section class="stats">
+  <div class="stat reveal stagger" style="--i:0"><div class="stat-num" data-target="7">0</div><div class="stat-label">Fachkräfte</div></div>
+  <div class="stat reveal stagger" style="--i:1"><div class="stat-num" data-target="50" data-suffix="+">0</div><div class="stat-label">Projekte</div></div>
+  <div class="stat reveal stagger" style="--i:2"><div class="stat-num" data-target="10" data-suffix="+">0</div><div class="stat-label">Jahre Erfahrung</div></div>
+  <div class="stat reveal stagger" style="--i:3"><div class="stat-num" data-target="100" data-suffix="%">0</div><div class="stat-label">Kundenzufriedenheit</div></div>
+</section>
+
+<!-- TIMELINE HORIZONTAL -->
+<section class="timeline">
+  <div class="timeline-head reveal">
+    <p class="s-label">Unsere Geschichte</p>
+    <h2 class="s-title">MEILENSTEINE</h2>
+  </div>
+  <div class="tl-track" id="tlTrack">
+    <div class="tl-card"><div class="tl-card-ghost">START</div><div class="tl-year">2015</div><h3>GRÜNDUNG</h3><p>Gründung von GARABAG-Bau in Münster. Start mit Rohbau- und Betonarbeiten für Einfamilienhäuser.</p><div class="tl-card-bar"></div></div>
+    <div class="tl-card"><div class="tl-card-ghost">WACHSTUM</div><div class="tl-year">2018</div><h3>EXPANSION</h3><p>Erweiterung des Teams auf 5 Fachkräfte. Aufnahme von Altbausanierung und Abbrucharbeiten ins Leistungsspektrum.</p><div class="tl-card-bar"></div></div>
+    <div class="tl-card"><div class="tl-card-ghost">STÄRKE</div><div class="tl-year">2021</div><h3>50 PROJEKTE</h3><p>Meilenstein von über 50 erfolgreich abgeschlossenen Projekten im Münsterland.</p><div class="tl-card-bar"></div></div>
+    <div class="tl-card"><div class="tl-card-ghost">HEUTE</div><div class="tl-year">2025</div><h3>HEUTE</h3><p>7 Fachkräfte, umfassendes Leistungsspektrum und 100% Kundenzufriedenheit. Ihr Partner für anspruchsvolle Bauprojekte.</p><div class="tl-card-bar"></div></div>
+  </div>
+  <div class="scroll-bar">
+    <span class="lbl">SCROLL &rarr;</span>
+    <div class="bar"><div class="bar-fill" id="tlBarFill"></div></div>
+    <span class="pct" id="tlBarPct">0%</span>
+  </div>
+</section>
+
+<!-- VALUES -->
+<section class="values">
+  <div class="reveal" style="text-align:center;margin-bottom:40px">
+    <p class="s-label">Was uns antreibt</p>
+    <h2 class="s-title">UNSERE WERTE</h2>
+  </div>
+  <div class="val-grid">
+    <div class="val reveal stagger" style="--i:0"><div class="val-ghost">Q</div><div class="val-ico">Q</div><h3>Qualität</h3><p>Höchste Qualitätsstandards bei jedem Projekt. Sorgfältige Materialauswahl und präzise Ausführung.</p></div>
+    <div class="val reveal stagger" style="--i:1"><div class="val-ghost">Z</div><div class="val-ico">Z</div><h3>Zuverlässigkeit</h3><p>Termingerechte Fertigstellung und verbindliche Absprachen. Auf uns können Sie sich verlassen.</p></div>
+    <div class="val reveal stagger" style="--i:2"><div class="val-ghost">T</div><div class="val-ico">T</div><h3>Transparenz</h3><p>Klare Kommunikation und transparente Kostenkalkulation. Keine versteckten Zuschläge.</p></div>
+    <div class="val reveal stagger" style="--i:3"><div class="val-ghost">S</div><div class="val-ico">S</div><h3>Sicherheit</h3><p>Einhaltung aller Sicherheitsvorschriften und regelmäßige Schulungen für unser Team.</p></div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section class="team reveal">
+  <div style="margin-bottom:40px">
+    <p class="s-label">Geschäftsführung</p>
+    <h2 class="s-title">UNSER TEAM</h2>
+  </div>
+  <div class="team-card">
+    <div class="team-img"><img src="logo.webp" alt="Vugar Azizov"></div>
+    <div class="team-info">
+      <h3>Vugar Azizov</h3>
+      <div class="role">Geschäftsführer / Inhaber</div>
+      <p>Mit über 10 Jahren Erfahrung im Rohbau führt Vugar Azizov sein Team aus 7 Fachkräften mit Leidenschaft und Präzision. Qualität und Kundenzufriedenheit stehen bei jedem Projekt an erster Stelle.</p>
+    </div>
+    <div class="team-ghost">CHEF</div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta reveal"><div class="cta-inner"><h2>Lernen Sie uns kennen</h2><p>Vereinbaren Sie einen kostenlosen Beratungstermin.</p><a href="kontakt.html" class="btn-accent">Kontakt aufnehmen</a></div></div>
+
+<!-- FOOTER -->
+<footer class="footer"><div class="footer-top"><img src="logo.webp" alt="Logo"><div class="footer-brand"><strong>GARABAG-BAU</strong><span>Rohbau &amp; Hochbau in Münster</span></div></div><div class="footer-grid"><div><h4>Navigation</h4><a href="index.html">Home</a><a href="leistungen.html">Leistungen</a><a href="galerie.html">Galerie</a><a href="uber-uns.html">Über Uns</a><a href="kontakt.html">Kontakt</a></div><div><h4 class="at">Leistungen</h4><a href="leistungen.html">Rohbau</a><a href="leistungen.html">Betonbau</a><a href="leistungen.html">Mauerbau</a><a href="leistungen.html">Altbausanierung</a></div><div><h4>Kontakt</h4><p><a href="tel:+491726009105">+49 172 600 9105</a></p><p><a href="mailto:info@garabag-bau.de">info@garabag-bau.de</a></p><p>Eichendorffstr. 3, 48167 Münster</p></div><div><h4>Rechtliches</h4><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></div></div><div class="footer-bottom"><span>&copy; 2025 GARABAG-Bau</span><span><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></span></div></footer>
+
+<script>
+// Mobile menu
+function toggleMenu(){document.getElementById('mm').classList.toggle('open');document.getElementById('hamBtn').classList.toggle('open');document.body.style.overflow=document.getElementById('mm').classList.contains('open')?'hidden':''}
+
+// Animated counters
+function animateCounters(){
+  document.querySelectorAll('.stat-num[data-target]').forEach(el=>{
+    const target=parseInt(el.dataset.target);
+    const suffix=el.dataset.suffix||'';
+    const dur=1500;
+    const start=performance.now();
+    function tick(now){
+      const p=Math.min((now-start)/dur,1);
+      const eased=1-Math.pow(1-p,3);
+      el.textContent=Math.round(target*eased)+suffix;
+      if(p<1)requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  });
+}
+const cntObs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){animateCounters();cntObs.disconnect()}})},{threshold:.3});
+document.querySelector('.stats')&&cntObs.observe(document.querySelector('.stats'));
+
+// Timeline scroll progress
+const tT=document.getElementById('tlTrack'),tF=document.getElementById('tlBarFill'),tP=document.getElementById('tlBarPct');
+if(tT){tT.addEventListener('scroll',()=>{const m=tT.scrollWidth-tT.clientWidth,p=m>0?Math.round(tT.scrollLeft/m*100):0;tF.style.width=p+'%';tP.textContent=p+'%'})}
+
+// Reveal on scroll
+const ro=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');ro.unobserve(e.target)}})},{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+</script>
+</body></html>

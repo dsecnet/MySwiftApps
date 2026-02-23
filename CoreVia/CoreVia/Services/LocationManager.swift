@@ -29,7 +29,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.activityType = .fitness
-        manager.distanceFilter = 5 // minimum 5 metr arasinda update (GPS jitter azaldir)
+        manager.distanceFilter = 10 // minimum 10 metr arasinda update (GPS drift azaldir)
         authorizationStatus = manager.authorizationStatus
     }
 
@@ -86,15 +86,28 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         guard isTracking else { return }
 
         for location in locations {
-            // Keyfiyyetsiz oxunuslari sil
+            // Kohne/cached location-lari at (10 saniyeden kohne)
+            guard abs(location.timestamp.timeIntervalSinceNow) < 10 else { continue }
+
+            // Keyfiyyetsiz oxunuslari sil (20m-den pis deqiqlik)
             guard location.horizontalAccuracy >= 0,
-                  location.horizontalAccuracy < 50 else { continue }
+                  location.horizontalAccuracy < 20 else { continue }
+
+            // GPS drift filteri: minimum 0.3 m/s suret olmalidir
+            guard location.speed >= 0.3 else {
+                // Hereket yoxdursa koordinat ve location yenile amma mesafe elave etme
+                DispatchQueue.main.async {
+                    self.currentLocation = location
+                }
+                lastLocation = location
+                continue
+            }
 
             // Mesafe hesabla
             if let last = lastLocation {
                 let delta = location.distance(from: last)
-                // Teleportasiya jump-larini sil (100m-den cox)
-                guard delta < 100 else { continue }
+                // Minimum 3m (drift filter) ve maximum 100m (teleportasiya filter)
+                guard delta > 3 && delta < 100 else { continue }
                 DispatchQueue.main.async {
                     self.totalDistanceMeters += delta
                 }

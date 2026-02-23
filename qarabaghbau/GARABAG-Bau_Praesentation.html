@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>GARABAG-Bau — Unternehmenspräsentation</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+@page{size:A4 landscape;margin:0}
+html,body{font-family:'Inter',system-ui,sans-serif;background:#0B0B0B;color:#fff;-webkit-font-smoothing:antialiased}
+
+.page{width:297mm;height:210mm;position:relative;overflow:hidden;page-break-after:always;page-break-inside:avoid;background:#0B0B0B}
+.page:last-child{page-break-after:avoid}
+
+/* ═══ PAGE 1 — COVER ═══ */
+.cover{display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center}
+.cover-accent{position:absolute;top:-80px;right:-80px;width:350px;height:350px;border-radius:50%;background:radial-gradient(circle,rgba(233,55,40,.15),transparent 70%);pointer-events:none}
+.cover-accent2{position:absolute;bottom:-100px;left:-100px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(233,55,40,.08),transparent 70%);pointer-events:none}
+.cover-lines{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;opacity:.04}
+.cover-lines span{position:absolute;background:#fff;border-radius:1px}
+.cover-lines span:nth-child(1){width:1px;height:100%;left:25%}
+.cover-lines span:nth-child(2){width:1px;height:100%;left:50%}
+.cover-lines span:nth-child(3){width:1px;height:100%;left:75%}
+.cover-lines span:nth-child(4){width:100%;height:1px;top:33%}
+.cover-lines span:nth-child(5){width:100%;height:1px;top:66%}
+.cover-logo{width:80px;height:80px;border-radius:16px;background:#111;border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;margin-bottom:32px;font-weight:900;font-size:10px;letter-spacing:2px;color:#e93728;z-index:1}
+.cover h1{font-size:58px;font-weight:900;letter-spacing:6px;text-transform:uppercase;z-index:1;line-height:1.1}
+.cover h1 span{display:block;color:#e93728}
+.cover-sub{font-size:16px;color:#9a9a9a;letter-spacing:3px;text-transform:uppercase;margin-top:16px;z-index:1}
+.cover-bottom{position:absolute;bottom:40px;left:0;right:0;display:flex;justify-content:center;gap:40px;font-size:11px;color:#4a4a4a;letter-spacing:1px;z-index:1}
+.cover-year{position:absolute;top:40px;right:50px;font-size:13px;color:#4a4a4a;letter-spacing:2px;z-index:1}
+
+/* ═══ SHARED ═══ */
+.page-num{position:absolute;bottom:30px;right:50px;font-size:11px;color:#4a4a4a;letter-spacing:2px}
+.page-brand{position:absolute;bottom:30px;left:50px;font-size:10px;color:#4a4a4a;letter-spacing:2px;text-transform:uppercase}
+.sec-label{font-size:10px;color:#e93728;letter-spacing:4px;text-transform:uppercase;font-weight:700;margin-bottom:8px}
+.sec-title{font-size:36px;font-weight:900;text-transform:uppercase;letter-spacing:2px;margin-bottom:24px;line-height:1.1}
+.accent-line{width:60px;height:3px;background:#e93728;border-radius:2px;margin-bottom:20px}
+.top-bar{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#e93728,transparent)}
+
+/* ═══ PAGE 2 — ÜBERBLICK ═══ */
+.p2-layout{display:grid;grid-template-columns:1fr 1fr;height:100%;padding:50px}
+.p2-left{display:flex;flex-direction:column;justify-content:center;padding-right:50px}
+.p2-left p{font-size:14px;color:#9a9a9a;line-height:1.9;margin-bottom:16px}
+.p2-right{display:flex;flex-direction:column;justify-content:center;gap:20px}
+.info-card{background:#111;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:24px 28px;position:relative;overflow:hidden}
+.info-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:#e93728;border-radius:0 2px 2px 0}
+.info-card h4{font-size:11px;color:#e93728;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;font-weight:700}
+.info-card p{font-size:13px;color:#9a9a9a;line-height:1.6}
+.info-card strong{color:#fff}
+
+/* ═══ PAGE 3 — LEISTUNGEN ═══ */
+.p3-layout{padding:50px;display:flex;flex-direction:column;justify-content:center}
+.services-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:8px}
+.svc{background:#111;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:26px 22px;position:relative;overflow:hidden;transition:.3s}
+.svc-num{position:absolute;top:14px;right:18px;font-size:42px;font-weight:900;color:rgba(255,255,255,.03);line-height:1}
+.svc-ico{font-size:28px;margin-bottom:12px}
+.svc h3{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
+.svc p{font-size:12px;color:#9a9a9a;line-height:1.7}
+
+/* ═══ PAGE 4 — STÄRKEN & STATISTIK ═══ */
+.p4-layout{display:grid;grid-template-columns:1fr 1fr;height:100%;padding:50px}
+.p4-left{display:flex;flex-direction:column;justify-content:center;padding-right:40px}
+.stats-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:24px}
+.stat{background:#111;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:24px;text-align:center}
+.stat-num{font-size:38px;font-weight:900;color:#e93728;line-height:1;margin-bottom:4px}
+.stat-label{font-size:11px;color:#9a9a9a;letter-spacing:1px;text-transform:uppercase}
+.p4-right{display:flex;flex-direction:column;justify-content:center;gap:16px}
+.strength{display:flex;gap:16px;align-items:flex-start;background:#111;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px 22px}
+.str-ico{font-size:24px;flex-shrink:0;width:40px;text-align:center}
+.str-text h4{font-size:13px;font-weight:700;margin-bottom:4px}
+.str-text p{font-size:12px;color:#9a9a9a;line-height:1.6}
+
+/* ═══ PAGE 5 — KONTAKT ═══ */
+.p5-layout{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;padding:50px}
+.p5-layout .sec-title{font-size:44px;margin-bottom:12px}
+.p5-sub{font-size:15px;color:#9a9a9a;max-width:550px;line-height:1.8;margin-bottom:40px}
+.contact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:750px;width:100%}
+.c-card{background:#111;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:28px 20px;text-align:center}
+.c-card-ico{font-size:28px;margin-bottom:12px}
+.c-card h4{font-size:11px;color:#e93728;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:8px}
+.c-card p{font-size:13px;color:#9a9a9a;line-height:1.6}
+.c-card a{color:#fff;font-weight:600}
+.p5-cta{margin-top:40px;display:inline-block;padding:16px 48px;background:#e93728;color:#fff;border-radius:50px;font-weight:700;font-size:14px;letter-spacing:1px;text-transform:uppercase;text-decoration:none}
+.p5-footer{position:absolute;bottom:40px;left:0;right:0;text-align:center;font-size:11px;color:#4a4a4a}
+
+/* ═══ PRINT ═══ */
+@media print{
+  body{background:#0B0B0B;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .page{page-break-after:always;page-break-inside:avoid}
+  .page:last-child{page-break-after:avoid}
+  .no-print{display:none}
+}
+.print-btn{position:fixed;top:20px;right:20px;background:#e93728;color:#fff;padding:12px 28px;border-radius:50px;font-weight:700;font-size:13px;cursor:pointer;border:none;z-index:999;font-family:inherit;letter-spacing:1px;box-shadow:0 4px 20px rgba(233,55,40,.4)}
+.print-btn:hover{background:#fb2c36;transform:scale(1.05)}
+</style>
+</head>
+<body>
+
+<button class="print-btn no-print" onclick="window.print()">PDF SPEICHERN / DRUCKEN</button>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 1 — COVER
+═══════════════════════════════════════════════ -->
+<div class="page cover">
+  <div class="cover-accent"></div>
+  <div class="cover-accent2"></div>
+  <div class="cover-lines"><span></span><span></span><span></span><span></span><span></span></div>
+  <div class="cover-year">2025</div>
+  <div class="cover-logo">GARABAG</div>
+  <h1>GARABAG<span>BAU</span></h1>
+  <p class="cover-sub">Unternehmenspräsentation</p>
+  <div class="cover-bottom">
+    <span>Rohbau & Hochbau</span>
+    <span>·</span>
+    <span>Münster, NRW</span>
+    <span>·</span>
+    <span>Seit 2015</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 2 — UNTERNEHMENSÜBERBLICK
+═══════════════════════════════════════════════ -->
+<div class="page">
+  <div class="top-bar"></div>
+  <div class="p2-layout">
+    <div class="p2-left">
+      <p class="sec-label">Über Uns</p>
+      <h2 class="sec-title">UNTERNEHMENS-<br>ÜBERBLICK</h2>
+      <div class="accent-line"></div>
+      <p>
+        GARABAG-Bau ist ein erfahrenes Bauunternehmen mit Sitz in Münster, Nordrhein-Westfalen. Seit der Gründung im Jahr 2015 hat sich das Unternehmen als zuverlässiger Partner im Bereich Rohbau und Hochbau etabliert.
+      </p>
+      <p>
+        Mit einem Team von 7 qualifizierten Fachkräften realisiert GARABAG-Bau anspruchsvolle Bauprojekte — von Neubauten über Betonarbeiten bis hin zur umfassenden Altbausanierung. Der Fokus liegt dabei stets auf Präzision, Termintreue und höchster handwerklicher Qualität.
+      </p>
+      <p>
+        Das Unternehmen bedient sowohl private als auch gewerbliche Auftraggeber in der Region Münster und ganz Nordrhein-Westfalen.
+      </p>
+    </div>
+    <div class="p2-right">
+      <div class="info-card">
+        <h4>Firmenname</h4>
+        <p><strong>GARABAG-Bau</strong></p>
+      </div>
+      <div class="info-card">
+        <h4>Inhaber</h4>
+        <p><strong>Vugar Azizov</strong></p>
+      </div>
+      <div class="info-card">
+        <h4>Gründung</h4>
+        <p><strong>2015</strong> — Münster, NRW</p>
+      </div>
+      <div class="info-card">
+        <h4>Standort</h4>
+        <p><strong>Eichendorffstr. 3</strong><br>48167 Münster, Deutschland</p>
+      </div>
+      <div class="info-card">
+        <h4>Handwerkskammer</h4>
+        <p>HWK Münster — <strong>Nr. 41987065</strong></p>
+      </div>
+      <div class="info-card">
+        <h4>Steuer-ID</h4>
+        <p>USt-IdNr: <strong>12024368757</strong></p>
+      </div>
+    </div>
+  </div>
+  <span class="page-brand">GARABAG-BAU</span>
+  <span class="page-num">02 / 05</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 3 — LEISTUNGEN
+═══════════════════════════════════════════════ -->
+<div class="page">
+  <div class="top-bar"></div>
+  <div class="p3-layout">
+    <p class="sec-label">Leistungsportfolio</p>
+    <h2 class="sec-title">UNSERE LEISTUNGEN</h2>
+    <div class="accent-line"></div>
+    <div class="services-grid">
+      <div class="svc">
+        <div class="svc-num">01</div>
+        <div class="svc-ico">🧱</div>
+        <h3>Mauer- & Betonbau</h3>
+        <p>Maßgeschneiderte Lösungen für private und gewerbliche Bauprojekte. Professionelle Mauerwerks- und Betonarbeiten nach höchsten Standards.</p>
+      </div>
+      <div class="svc">
+        <div class="svc-num">02</div>
+        <div class="svc-ico">🏗️</div>
+        <h3>Rohbau</h3>
+        <p>Kompletter Rohbau von Wohn- und Gewerbegebäuden. Von der Bodenplatte bis zum Dachstuhl — alles aus einer Hand.</p>
+      </div>
+      <div class="svc">
+        <div class="svc-num">03</div>
+        <div class="svc-ico">🏚️</div>
+        <h3>Altbausanierung</h3>
+        <p>Fachgerechte Sanierung und Modernisierung älterer Gebäude. Wir hauchen alten Gebäuden neues Leben ein.</p>
+      </div>
+      <div class="svc">
+        <div class="svc-num">04</div>
+        <div class="svc-ico">⚙️</div>
+        <h3>Schalung & Bewehrung</h3>
+        <p>Präzise und zuverlässige Schalungs- und Eisenbewehrungsarbeiten für verschiedenste Bauprojekte.</p>
+      </div>
+      <div class="svc">
+        <div class="svc-num">05</div>
+        <div class="svc-ico">🔨</div>
+        <h3>Anbau & Abbruch</h3>
+        <p>Professioneller Anbau und kontrollierter Abbruch. Ihr verlässlicher Partner für Erweiterungen und Rückbau.</p>
+      </div>
+      <div class="svc">
+        <div class="svc-num">06</div>
+        <div class="svc-ico">📐</div>
+        <h3>Beratung & Planung</h3>
+        <p>Individuelle Beratung von der ersten Idee bis zur Fertigstellung. Wir verwandeln Ihre Vision in Realität.</p>
+      </div>
+    </div>
+  </div>
+  <span class="page-brand">GARABAG-BAU</span>
+  <span class="page-num">03 / 05</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 4 — STÄRKEN & STATISTIK
+═══════════════════════════════════════════════ -->
+<div class="page">
+  <div class="top-bar"></div>
+  <div class="p4-layout">
+    <div class="p4-left">
+      <p class="sec-label">Kennzahlen</p>
+      <h2 class="sec-title">ZAHLEN &<br>FAKTEN</h2>
+      <div class="accent-line"></div>
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-num">10+</div>
+          <div class="stat-label">Jahre Erfahrung</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">50+</div>
+          <div class="stat-label">Projekte realisiert</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">7</div>
+          <div class="stat-label">Fachkräfte</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">100%</div>
+          <div class="stat-label">Kundenzufriedenheit</div>
+        </div>
+      </div>
+    </div>
+    <div class="p4-right">
+      <p class="sec-label">Unsere Stärken</p>
+      <h3 style="font-size:22px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px">WARUM GARABAG-BAU?</h3>
+      <div class="strength">
+        <div class="str-ico">✅</div>
+        <div class="str-text">
+          <h4>Qualität & Präzision</h4>
+          <p>Jedes Projekt wird mit höchster handwerklicher Sorgfalt und nach aktuellen Normen ausgeführt.</p>
+        </div>
+      </div>
+      <div class="strength">
+        <div class="str-ico">⏱️</div>
+        <div class="str-text">
+          <h4>Termintreue</h4>
+          <p>Wir halten vereinbarte Termine ein und sorgen für einen reibungslosen Bauablauf.</p>
+        </div>
+      </div>
+      <div class="strength">
+        <div class="str-ico">💬</div>
+        <div class="str-text">
+          <h4>Transparenz</h4>
+          <p>Offene Kommunikation und transparente Kostenaufstellung von Anfang bis Ende.</p>
+        </div>
+      </div>
+      <div class="strength">
+        <div class="str-ico">🛡️</div>
+        <div class="str-text">
+          <h4>Sicherheit</h4>
+          <p>Strikte Einhaltung aller Sicherheitsvorschriften auf jeder Baustelle.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <span class="page-brand">GARABAG-BAU</span>
+  <span class="page-num">04 / 05</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE 5 — KONTAKT
+═══════════════════════════════════════════════ -->
+<div class="page">
+  <div class="top-bar"></div>
+  <div class="p5-layout">
+    <p class="sec-label">Zusammenarbeit</p>
+    <h2 class="sec-title">KONTAKTIEREN<br>SIE UNS</h2>
+    <div class="accent-line" style="margin:0 auto 20px"></div>
+    <p class="p5-sub">Haben Sie ein Bauprojekt geplant? Wir beraten Sie gerne und erstellen Ihnen ein individuelles Angebot — kostenlos und unverbindlich.</p>
+    <div class="contact-grid">
+      <div class="c-card">
+        <div class="c-card-ico">📞</div>
+        <h4>Telefon</h4>
+        <p><a href="tel:+491726009105">+49 172 600 9105</a></p>
+      </div>
+      <div class="c-card">
+        <div class="c-card-ico">✉️</div>
+        <h4>E-Mail</h4>
+        <p><a href="mailto:info@garabag-bau.de">info@garabag-bau.de</a></p>
+      </div>
+      <div class="c-card">
+        <div class="c-card-ico">📍</div>
+        <h4>Adresse</h4>
+        <p>Eichendorffstr. 3<br>48167 Münster</p>
+      </div>
+    </div>
+    <a href="https://garabag-bau.de" class="p5-cta" style="text-decoration:none">www.garabag-bau.de</a>
+    <div class="p5-footer">
+      <p>© 2025 GARABAG-Bau · Inhaber: Vugar Azizov · HWK Münster Nr. 41987065 · USt-IdNr: 12024368757</p>
+    </div>
+  </div>
+  <span class="page-brand">GARABAG-BAU</span>
+  <span class="page-num">05 / 05</span>
+</div>
+
+</body>
+</html>

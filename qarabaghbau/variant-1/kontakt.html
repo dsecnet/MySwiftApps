@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Kontakt | GARABAG-Bau</title>
-<link rel="icon" type="image/webp" href="../images/attachment_1.webp">
+<link rel="icon" type="image/webp" href="logo.webp">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -11,7 +11,7 @@
 html{scroll-behavior:smooth;overflow-x:hidden}body{font-family:var(--font);background:var(--bg);color:var(--white);overflow-x:hidden;-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}img{max-width:100%;display:block}button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit}
 
 /* NAVBAR */
-.nav{position:fixed;top:0;left:0;width:100%;height:64px;background:rgba(11,11,11,.92);backdrop-filter:blur(12px);z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border)}.nav-logo{display:flex;align-items:center;gap:10px}.nav-logo img{width:42px;height:42px;object-fit:contain;border-radius:8px}.nav-logo-text{font-weight:800;font-size:13px;letter-spacing:1.5px;line-height:1.2;text-transform:uppercase}.nav-logo-text span{display:block}
+.nav{position:fixed;top:0;left:0;width:100%;height:64px;background:rgba(11,11,11,.92);backdrop-filter:blur(12px);z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border)}.nav-logo{display:flex;align-items:center;gap:10px}.nav-logo img{width:42px;height:42px;object-fit:contain;border-radius:8px;filter:brightness(0) invert(1)}.nav-logo-text{font-weight:800;font-size:13px;letter-spacing:1.5px;line-height:1.2;text-transform:uppercase}.nav-logo-text span{display:block}
 .hamburger{width:28px;height:20px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;z-index:200}.hamburger span{width:100%;height:2px;background:var(--white);transition:.3s}.hamburger.open span:nth-child(1){transform:rotate(45deg) translate(6px,6px)}.hamburger.open span:nth-child(2){opacity:0}.hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(6px,-6px)}
 
 /* DARK MOBILE MENU */
@@ -61,8 +61,24 @@ html{scroll-behavior:smooth;overflow-x:hidden}body{font-family:var(--font);backg
 .form select{cursor:pointer;appearance:none;-webkit-appearance:none;color:var(--gray);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239a9a9a' viewBox='0 0 16 16'%3E%3Cpath d='M8 12L2 6h12z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center}
 .form select option{background:var(--card);color:var(--white)}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:500px){.form-row{grid-template-columns:1fr}}
-.form-btn{background:var(--accent);color:#fff;padding:18px;border-radius:50px;font-weight:700;font-size:15px;letter-spacing:1px;border:none;cursor:pointer;transition:.3s;text-transform:uppercase}
+.form-btn{background:var(--accent);color:#fff;padding:18px;border-radius:50px;font-weight:700;font-size:15px;letter-spacing:1px;border:none;cursor:pointer;transition:.3s;text-transform:uppercase;position:relative;overflow:hidden}
 .form-btn:hover{background:var(--accent2);transform:translateY(-2px);box-shadow:0 8px 30px rgba(233,55,40,.3)}
+.form-btn:disabled{opacity:.7;cursor:not-allowed;transform:none}
+.form-btn .btn-text{transition:.3s}.form-btn .btn-spinner{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transition:.3s}
+.form-btn.loading .btn-text{opacity:0}.form-btn.loading .btn-spinner{opacity:1}
+.spinner{width:22px;height:22px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* SUCCESS / ERROR */
+.form-msg{text-align:center;padding:40px 24px;display:none}
+.form-msg.show{display:block;animation:fadeUp .6s ease both}
+.form-msg .msg-ico{font-size:52px;margin-bottom:16px}
+.form-msg h3{font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.form-msg p{font-size:14px;color:var(--gray);line-height:1.7}
+.form-msg.success h3{color:#25D366}
+.form-msg.error h3{color:var(--accent)}
+.form-msg .msg-btn{display:inline-block;margin-top:20px;padding:12px 32px;background:var(--card);border:1px solid var(--border);border-radius:50px;font-size:13px;font-weight:600;color:var(--white);cursor:pointer;transition:.3s}
+.form-msg .msg-btn:hover{border-color:var(--accent);background:rgba(233,55,40,.1)}
 
 /* MAP */
 .map{padding:0 24px 80px;max-width:1100px;margin:0 auto}
@@ -86,9 +102,9 @@ html{scroll-behavior:smooth;overflow-x:hidden}body{font-family:var(--font);backg
 .stagger{transition-delay:calc(var(--i,0) * .12s)}
 </style></head><body>
 
-<nav class="nav"><a href="index.html" class="nav-logo"><img src="../images/attachment_1.webp" alt="Logo"><div class="nav-logo-text"><span>GARABAG</span><span>BAU</span></div></a><div class="hamburger" id="hamBtn" onclick="toggleMenu()"><span></span><span></span><span></span></div></nav>
+<nav class="nav"><a href="index.html" class="nav-logo"><img src="logo.webp" alt="Logo"><div class="nav-logo-text"><span>GARABAG</span><span>BAU</span></div></a><div class="hamburger" id="hamBtn" onclick="toggleMenu()"><span></span><span></span><span></span></div></nav>
 
-<div class="mobile-menu" id="mm"><div class="mm-header"><div style="display:flex;align-items:center;gap:10px"><img src="../images/attachment_1.webp" alt="" style="width:36px;height:36px;object-fit:contain;border-radius:6px"><div class="nav-logo-text"><span>GARABAG</span><span>BAU</span></div></div><button class="mm-close" onclick="toggleMenu()">&times;</button></div><div class="mm-body"><a href="index.html">Home</a><a href="leistungen.html">Leistungen</a><a href="galerie.html">Galerie</a><a href="uber-uns.html">Über Uns</a><a href="kontakt.html">Kontakt</a></div><a href="kontakt.html" class="mm-cta">Angebot anfragen</a><div class="mm-footer"><p>+49 172 600 9105<br>info@garabag-bau.de</p></div></div>
+<div class="mobile-menu" id="mm"><div class="mm-header"><div style="display:flex;align-items:center;gap:10px"><img src="logo.webp" alt="" style="width:36px;height:36px;object-fit:contain;border-radius:6px"><div class="nav-logo-text"><span>GARABAG</span><span>BAU</span></div></div><button class="mm-close" onclick="toggleMenu()">&times;</button></div><div class="mm-body"><a href="index.html">Home</a><a href="leistungen.html">Leistungen</a><a href="galerie.html">Galerie</a><a href="uber-uns.html">Über Uns</a><a href="kontakt.html">Kontakt</a></div><a href="kontakt.html" class="mm-cta">Angebot anfragen</a><div class="mm-footer"><p>+49 172 600 9105<br>info@garabag-bau.de</p></div></div>
 
 <!-- HERO WITH FLOATING WORDS -->
 <section class="hero">
@@ -117,24 +133,45 @@ html{scroll-behavior:smooth;overflow-x:hidden}body{font-family:var(--font);backg
 <section class="form-section reveal">
   <p class="s-label" style="text-align:center">Nachricht</p>
   <h2>SCHREIBEN SIE UNS</h2>
-  <form class="form" onsubmit="return false">
+  <form class="form" id="contactForm" action="https://formsubmit.co/info@garabag-bau.de" method="POST">
+    <!-- FormSubmit config -->
+    <input type="hidden" name="_subject" value="Neue Kontaktanfrage von GARABAG-Bau Website">
+    <input type="hidden" name="_captcha" value="false">
+    <input type="hidden" name="_template" value="table">
+    <input type="text" name="_honey" style="display:none">
     <div class="form-row">
-      <input type="text" placeholder="Name *" required>
-      <input type="email" placeholder="E-Mail *" required>
+      <input type="text" name="Name" placeholder="Name *" required>
+      <input type="email" name="E-Mail" placeholder="E-Mail *" required>
     </div>
     <div class="form-row">
-      <input type="tel" placeholder="Telefon">
-      <select>
-        <option>Betreff wählen</option>
-        <option>Anfrage</option>
-        <option>Angebot</option>
-        <option>Beratung</option>
-        <option>Sonstiges</option>
+      <input type="tel" name="Telefon" placeholder="Telefon">
+      <select name="Betreff">
+        <option value="">Betreff wählen</option>
+        <option value="Anfrage">Anfrage</option>
+        <option value="Angebot">Angebot</option>
+        <option value="Beratung">Beratung</option>
+        <option value="Sonstiges">Sonstiges</option>
       </select>
     </div>
-    <textarea placeholder="Ihre Nachricht *" required></textarea>
-    <button type="submit" class="form-btn">Nachricht senden</button>
+    <textarea name="Nachricht" placeholder="Ihre Nachricht *" required></textarea>
+    <button type="submit" class="form-btn"><span class="btn-text">Nachricht senden</span><span class="btn-spinner"><span class="spinner"></span></span></button>
   </form>
+
+  <!-- Success Message -->
+  <div class="form-msg success" id="formSuccess">
+    <div class="msg-ico">&#10003;</div>
+    <h3>Nachricht gesendet!</h3>
+    <p>Vielen Dank für Ihre Anfrage. Wir werden uns schnellstmöglich bei Ihnen melden.</p>
+    <button class="msg-btn" onclick="resetForm()">Neue Nachricht senden</button>
+  </div>
+
+  <!-- Error Message -->
+  <div class="form-msg error" id="formError">
+    <div class="msg-ico">&#10007;</div>
+    <h3>Fehler aufgetreten</h3>
+    <p>Leider konnte Ihre Nachricht nicht gesendet werden. Bitte versuchen Sie es erneut oder kontaktieren Sie uns direkt per Telefon.</p>
+    <button class="msg-btn" onclick="resetForm()">Erneut versuchen</button>
+  </div>
 </section>
 
 <!-- MAP -->
@@ -148,7 +185,7 @@ html{scroll-behavior:smooth;overflow-x:hidden}body{font-family:var(--font);backg
 <a href="https://wa.me/491726009105" target="_blank" class="wa-btn"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492l4.618-1.462A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75c-2.17 0-4.207-.645-5.906-1.756l-.424-.262-2.732.866.846-2.633-.288-.443A9.724 9.724 0 012.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75z"/></svg></a>
 
 <!-- FOOTER -->
-<footer class="footer"><div class="footer-top"><img src="../images/attachment_1.webp" alt="Logo"><div class="footer-brand"><strong>GARABAG-BAU</strong><span>Rohbau &amp; Hochbau in Münster</span></div></div><div class="footer-grid"><div><h4>Navigation</h4><a href="index.html">Home</a><a href="leistungen.html">Leistungen</a><a href="galerie.html">Galerie</a><a href="uber-uns.html">Über Uns</a><a href="kontakt.html">Kontakt</a></div><div><h4 class="at">Leistungen</h4><a href="leistungen.html">Rohbau</a><a href="leistungen.html">Betonbau</a><a href="leistungen.html">Mauerbau</a><a href="leistungen.html">Altbausanierung</a></div><div><h4>Kontakt</h4><p><a href="tel:+491726009105">+49 172 600 9105</a></p><p><a href="mailto:info@garabag-bau.de">info@garabag-bau.de</a></p><p>Eichendorffstr. 3, 48167 Münster</p></div><div><h4>Rechtliches</h4><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></div></div><div class="footer-bottom"><span>&copy; 2025 GARABAG-Bau</span><span><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></span></div></footer>
+<footer class="footer"><div class="footer-top"><img src="logo.webp" alt="Logo"><div class="footer-brand"><strong>GARABAG-BAU</strong><span>Rohbau &amp; Hochbau in Münster</span></div></div><div class="footer-grid"><div><h4>Navigation</h4><a href="index.html">Home</a><a href="leistungen.html">Leistungen</a><a href="galerie.html">Galerie</a><a href="uber-uns.html">Über Uns</a><a href="kontakt.html">Kontakt</a></div><div><h4 class="at">Leistungen</h4><a href="leistungen.html">Rohbau</a><a href="leistungen.html">Betonbau</a><a href="leistungen.html">Mauerbau</a><a href="leistungen.html">Altbausanierung</a></div><div><h4>Kontakt</h4><p><a href="tel:+491726009105">+49 172 600 9105</a></p><p><a href="mailto:info@garabag-bau.de">info@garabag-bau.de</a></p><p>Eichendorffstr. 3, 48167 Münster</p></div><div><h4>Rechtliches</h4><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></div></div><div class="footer-bottom"><span>&copy; 2025 GARABAG-Bau</span><span><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></span></div></footer>
 
 <script>
 // Mobile menu
@@ -157,5 +194,47 @@ function toggleMenu(){document.getElementById('mm').classList.toggle('open');doc
 // Reveal on scroll
 const ro=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');ro.unobserve(e.target)}})},{threshold:.08});
 document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+
+// ── CONTACT FORM ──
+const form=document.getElementById('contactForm');
+const successMsg=document.getElementById('formSuccess');
+const errorMsg=document.getElementById('formError');
+
+form.addEventListener('submit',async function(e){
+  e.preventDefault();
+  const btn=form.querySelector('.form-btn');
+  btn.classList.add('loading');
+  btn.disabled=true;
+
+  const data=new FormData(form);
+
+  try{
+    const res=await fetch(form.action,{
+      method:'POST',
+      body:data,
+      headers:{'Accept':'application/json'}
+    });
+
+    if(res.ok){
+      form.style.display='none';
+      successMsg.classList.add('show');
+    }else{
+      throw new Error('Server error');
+    }
+  }catch(err){
+    form.style.display='none';
+    errorMsg.classList.add('show');
+  }finally{
+    btn.classList.remove('loading');
+    btn.disabled=false;
+  }
+});
+
+function resetForm(){
+  form.reset();
+  form.style.display='flex';
+  successMsg.classList.remove('show');
+  errorMsg.classList.remove('show');
+}
 </script>
 </body></html>

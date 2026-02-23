@@ -319,6 +319,8 @@ class LiveTrackingManager: NSObject, ObservableObject, CLLocationManagerDelegate
         super.init()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyBest
+        manager.distanceFilter = 10 // minimum 10 metr arasinda update (GPS drift azaldir)
+        manager.activityType = .fitness
         manager.requestWhenInUseAuthorization()
     }
 
@@ -362,13 +364,32 @@ class LiveTrackingManager: NSObject, ObservableObject, CLLocationManagerDelegate
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last, !isPaused else { return }
 
+        // Kohne/cached location-lari at (10 saniyeden kohne)
+        guard abs(location.timestamp.timeIntervalSinceNow) < 10 else { return }
+
+        // Keyfiyyetsiz GPS oxunuslarini at (20m-den pis deqiqlik)
+        guard location.horizontalAccuracy >= 0,
+              location.horizontalAccuracy < 20 else { return }
+
         // Update region
         region.center = location.coordinate
+
+        // Calculate speed
+        if location.speed >= 0 {
+            speed = location.speed * 3.6 // m/s to km/h
+        }
+
+        // GPS drift filteri: istifadeci minimum 0.3 m/s (1 km/h) suretde hereket etmelidir
+        guard location.speed >= 0.3 else {
+            lastLocation = location
+            return
+        }
 
         // Calculate distance
         if let last = lastLocation {
             let delta = location.distance(from: last) / 1000.0 // Convert to km
-            if delta < 0.1 { // Ignore unrealistic jumps
+            // Minimum 3m (drift filter) ve maximum 100m (teleportasiya filter)
+            if delta > 0.003 && delta < 0.1 {
                 distance += delta
 
                 // Calculate calories (rough estimate: 60 kcal per km)
@@ -380,11 +401,6 @@ class LiveTrackingManager: NSObject, ObservableObject, CLLocationManagerDelegate
         }
 
         lastLocation = location
-
-        // Calculate speed
-        if location.speed > 0 {
-            speed = location.speed * 3.6 // m/s to km/h
-        }
     }
 }
 

@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>GARABAG-Bau | Rohbau & Hochbau Münster</title>
+<link rel="icon" type="image/webp" href="logo.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0B0B0B;--card:#111;--accent:#d97706;--accent2:#f59e0b;
+  --white:#fff;--gray:#9a9a9a;--muted:#4a4a4a;--border:rgba(255,255,255,.08);
+  --radius:16px;--font:'Inter',system-ui,sans-serif;
+}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{font-family:var(--font);background:var(--bg);color:var(--white);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit}
+
+/* ═══════════════════════════════════════
+   NAVBAR
+═══════════════════════════════════════ */
+.nav{position:fixed;top:0;left:0;width:100%;height:64px;background:rgba(11,11,11,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border)}
+.nav-logo{display:flex;align-items:center;gap:10px}
+.nav-logo img{width:42px;height:42px;object-fit:contain;border-radius:8px;filter:brightness(0) invert(1)}
+.nav-logo-text{font-weight:800;font-size:13px;letter-spacing:1.5px;line-height:1.2;text-transform:uppercase}
+.nav-logo-text span{display:block}
+.hamburger{width:28px;height:20px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;z-index:200}
+.hamburger span{width:100%;height:2px;background:var(--white);transition:.3s}
+.hamburger.open span:nth-child(1){transform:rotate(45deg) translate(6px,6px)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(6px,-6px)}
+
+/* ═══════════════════════════════════════
+   MOBILE MENU — fullscreen white overlay
+═══════════════════════════════════════ */
+.mobile-menu{position:fixed;inset:0;background:var(--bg);z-index:150;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .45s cubic-bezier(.77,0,.18,1);overflow-y:auto}
+.mobile-menu.open{transform:translateX(0)}
+.mm-header{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border)}
+.mm-header img{width:36px;height:36px;object-fit:contain;border-radius:6px}
+.mm-header .nav-logo-text{color:var(--white)}
+.mm-close{font-size:32px;color:var(--white);cursor:pointer;background:none;border:none;line-height:1}
+.mm-body{flex:1;padding:32px 24px}
+.mm-body a{display:block;font-size:28px;font-weight:700;color:var(--white);padding:22px 0;border-bottom:1px solid var(--border);transition:.2s}
+.mm-body a:hover{color:var(--accent);padding-left:8px}
+.mm-cta{margin:24px;background:var(--accent);color:#fff;text-align:center;padding:18px;border-radius:50px;font-weight:700;font-size:16px;display:block;transition:.3s}
+.mm-cta:hover{background:var(--accent2)}
+.mm-footer{padding:16px 24px 32px;border-top:1px solid var(--border)}
+.mm-footer p{font-size:13px;color:var(--gray);line-height:2}
+
+/* ═══════════════════════════════════════
+   SECTION 1 — FLOATING WORDS HERO
+═══════════════════════════════════════ */
+.hero-words{position:relative;width:100%;height:100vh;background:var(--bg);overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;margin-top:64px}
+.fw{position:absolute;font-weight:800;text-transform:uppercase;letter-spacing:3px;pointer-events:none;user-select:none;white-space:nowrap}
+.fw-1{top:12%;left:6%;font-size:clamp(18px,3vw,28px);color:var(--accent);opacity:.35;animation:drift1 4s ease-in-out infinite}
+.fw-2{top:25%;right:8%;font-size:clamp(16px,2.5vw,24px);color:var(--gray);opacity:.25;animation:drift2 5s ease-in-out infinite}
+.fw-3{top:6%;left:28%;font-size:clamp(18px,3vw,28px);color:var(--muted);opacity:.18;animation:drift3 3.5s ease-in-out infinite}
+.fw-4{top:42%;left:3%;font-size:clamp(16px,2.5vw,24px);color:var(--accent);opacity:.3;animation:drift1 4.5s ease-in-out infinite .2s}
+.fw-5{bottom:28%;right:5%;font-size:clamp(18px,3vw,28px);color:var(--muted);opacity:.2;animation:drift2 3.8s ease-in-out infinite .4s}
+.fw-6{top:58%;left:18%;font-size:clamp(14px,2.2vw,22px);color:var(--gray);opacity:.18;animation:drift3 4.2s ease-in-out infinite .1s}
+.fw-7{top:35%;right:22%;font-size:clamp(16px,2.5vw,24px);color:var(--accent);opacity:.25;animation:drift1 5.5s ease-in-out infinite .3s}
+.fw-8{bottom:18%;left:38%;font-size:clamp(14px,2vw,20px);color:var(--muted);opacity:.15;animation:drift2 3.2s ease-in-out infinite .5s}
+
+@keyframes drift1{0%,100%{transform:translate(0,0)}25%{transform:translate(20px,-25px)}50%{transform:translate(-8px,-35px)}75%{transform:translate(15px,10px)}}
+@keyframes drift2{0%,100%{transform:translate(0,0)}25%{transform:translate(-18px,20px)}50%{transform:translate(12px,-15px)}75%{transform:translate(-25px,-8px)}}
+@keyframes drift3{0%,100%{transform:translate(0,0)}25%{transform:translate(15px,18px)}50%{transform:translate(-20px,-12px)}75%{transform:translate(8px,22px)}}
+
+/* Center logo pulse */
+.hero-logo{text-align:center;z-index:2;position:relative;margin-bottom:16px;animation:logoFloat 5s ease-in-out infinite}
+.hero-logo img{width:clamp(200px,40vw,380px);height:auto;object-fit:contain;filter:brightness(0) invert(1)}
+@keyframes logoFloat{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+
+/* Brand title */
+.hero-brand{text-align:center;z-index:2;position:relative}
+.hero-brand h1{font-size:clamp(32px,8vw,80px);font-weight:900;letter-spacing:4px;line-height:1.05}
+.hero-brand p{font-size:clamp(10px,1.8vw,16px);letter-spacing:8px;color:var(--muted);margin-top:4px;font-weight:400}
+/* Scroll down hint */
+.hero-scroll{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:8px}
+.hero-scroll span{font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase}
+.hero-scroll-line{width:1px;height:40px;background:linear-gradient(to bottom,var(--accent),transparent);animation:scrollPulse 2s infinite}
+@keyframes scrollPulse{0%,100%{opacity:1;transform:scaleY(1)}50%{opacity:.3;transform:scaleY(.6)}}
+
+/* ═══════════════════════════════════════
+   SECTION 2 — WORD-IMAGE SHOWCASE
+═══════════════════════════════════════ */
+.showcase{position:relative;width:100%;height:100vh;overflow:hidden}
+.sc-bg{position:absolute;inset:0;z-index:0}
+.sc-bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.2s ease,transform 8s ease;transform:scale(1.08)}
+.sc-bg img.active{opacity:1;transform:scale(1)}
+.sc-overlay{position:absolute;inset:0;z-index:1;background:linear-gradient(to bottom,rgba(11,11,11,.35) 0%,rgba(11,11,11,.7) 100%)}
+.sc-word-wrap{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.sc-word{font-size:clamp(60px,18vw,220px);font-weight:900;text-transform:uppercase;letter-spacing:clamp(4px,1.5vw,16px);color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.15);line-height:1;white-space:nowrap;transition:opacity .6s;user-select:none}
+.sc-num{position:absolute;top:24px;left:24px;z-index:3;font-size:clamp(48px,10vw,80px);font-weight:900;color:var(--accent);opacity:.5;line-height:1;transition:opacity .4s}
+.sc-content{position:absolute;bottom:0;left:0;z-index:3;padding:32px 28px 48px;max-width:550px;transition:opacity .5s,transform .5s}
+.sc-title{font-size:clamp(18px,3.5vw,28px);font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;line-height:1.15}
+.sc-desc{font-size:clamp(12px,1.4vw,15px);color:rgba(255,255,255,.75);line-height:1.7;margin-bottom:18px}
+.sc-btn{display:inline-block;background:var(--accent);color:#fff;padding:14px 32px;border-radius:50px;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:2px;transition:.3s}
+.sc-btn:hover{background:var(--accent2);transform:translateY(-2px);box-shadow:0 8px 30px rgba(217,119,6,.3)}
+.sc-dots{position:absolute;right:20px;top:50%;transform:translateY(-50%);z-index:4;display:flex;flex-direction:column;gap:12px}
+.sc-dot{width:10px;height:10px;border-radius:50%;border:1.5px solid rgba(255,255,255,.3);background:transparent;cursor:pointer;transition:.3s;padding:0}
+.sc-dot.active{background:var(--accent);border-color:var(--accent);box-shadow:0 0 12px rgba(217,119,6,.4)}
+.sc-words-nav{position:absolute;right:24px;bottom:48px;z-index:4;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.sc-wnav{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);cursor:pointer;transition:.3s;padding:4px 0;background:none;border:none;font-family:var(--font)}
+.sc-wnav.active{color:var(--accent)}
+.sc-wnav:hover{color:var(--white)}
+.sc-progress{position:absolute;bottom:0;left:0;width:100%;height:3px;z-index:5;background:rgba(255,255,255,.06)}
+.sc-progress-fill{height:100%;background:var(--accent);transition:width .1s linear;width:0%}
+@media(max-width:768px){.sc-words-nav{display:none}.sc-dots{right:12px}}
+
+/* ═══════════════════════════════════════
+   SECTION 3 — SO ARBEITEN WIR
+═══════════════════════════════════════ */
+.arbeiten{padding:100px 0 60px;overflow:hidden}
+.arbeiten-head{padding:0 24px;max-width:1100px;margin:0 auto 40px}
+.s-label{font-size:11px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px}
+.s-title{font-size:clamp(28px,5vw,48px);font-weight:900;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}
+.s-sub{font-size:clamp(13px,1.5vw,16px);color:var(--gray);max-width:500px}
+
+.h-track-wrap{position:relative;padding:0 24px}
+.h-track{display:flex;gap:0;overflow-x:auto;scroll-snap-type:x mandatory;-ms-overflow-style:none;scrollbar-width:none;padding-right:40%}
+.h-track::-webkit-scrollbar{display:none}
+
+.h-card{flex:0 0 85%;max-width:380px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:32px 28px;scroll-snap-align:start;position:relative;margin-right:-60px;transition:transform .4s,box-shadow .4s}
+.h-card:hover{transform:translateY(-4px);box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.h-card:last-child{margin-right:0}
+.h-card-num{width:52px;height:52px;background:var(--accent);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;margin-bottom:20px}
+.h-card h3{font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.h-card p{font-size:13px;color:var(--gray);line-height:1.7}
+.h-card-bar{width:60%;height:3px;background:var(--accent);border-radius:2px;margin-top:20px;opacity:.5}
+
+.scroll-bar{display:flex;align-items:center;gap:16px;padding:24px 24px 0;max-width:1100px;margin:0 auto}
+.scroll-bar .lbl{font-size:12px;font-weight:600;color:var(--gray);letter-spacing:3px;text-transform:uppercase;white-space:nowrap}
+.scroll-bar .bar{flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.scroll-bar .bar-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .15s}
+.scroll-bar .pct{font-size:12px;font-weight:600;color:var(--gray);min-width:35px;text-align:right}
+
+/* ═══════════════════════════════════════
+   SECTION 4 — REFERENZEN
+═══════════════════════════════════════ */
+.referenzen{padding:100px 0;max-width:100%;margin:0 auto}
+.referenzen>.reveal{padding:0 24px;max-width:1100px;margin:0 auto 0}
+.ref-track-wrap{position:relative;margin-top:40px}
+.ref-track{display:flex;gap:0;overflow-x:auto;scroll-snap-type:x mandatory;-ms-overflow-style:none;scrollbar-width:none}
+.ref-track::-webkit-scrollbar{display:none}
+
+.ref-card{position:relative;flex:0 0 92vw;max-width:800px;height:80vh;min-height:500px;overflow:hidden;display:flex;align-items:flex-end;scroll-snap-align:start;margin-right:-40px;border-radius:var(--radius)}
+.ref-card:last-child{margin-right:0}
+.ref-card-bg{position:absolute;inset:0;z-index:0}
+.ref-card-bg img{width:100%;height:100%;object-fit:cover;transition:transform .8s}
+.ref-card:hover .ref-card-bg img{transform:scale(1.04)}
+.ref-card-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(11,11,11,.93) 0%,rgba(11,11,11,.55) 45%,rgba(11,11,11,.15) 100%)}
+
+.ref-ghost{position:absolute;top:45%;left:50%;transform:translate(-50%,-50%);font-size:clamp(70px,16vw,180px);font-weight:900;text-transform:uppercase;color:rgba(255,255,255,.04);letter-spacing:8px;pointer-events:none;line-height:1;white-space:nowrap;z-index:1}
+
+.ref-body{position:relative;z-index:3;padding:36px 28px;max-width:550px}
+.ref-tags{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.ref-tag{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1.5px;background:rgba(217,119,6,.12);padding:5px 12px;border-radius:6px;backdrop-filter:blur(4px)}
+.ref-card h3{font-size:clamp(18px,3vw,24px);font-weight:900;text-transform:uppercase;margin-bottom:10px;letter-spacing:.5px;line-height:1.2}
+.ref-meta{display:flex;gap:16px;margin-bottom:12px;font-size:12px;color:var(--gray)}
+.ref-meta svg{width:14px;height:14px;stroke:var(--gray);fill:none;margin-right:4px;vertical-align:middle}
+.ref-list{list-style:none;margin-bottom:14px}
+.ref-list li{font-size:13px;color:rgba(255,255,255,.8);padding:3px 0 3px 14px;position:relative}
+.ref-list li::before{content:'';position:absolute;left:0;top:10px;width:4px;height:4px;background:var(--accent);border-radius:50%}
+.ref-result{font-size:13px;color:var(--white);font-weight:700;line-height:1.6;padding-top:12px;border-top:1px solid rgba(255,255,255,.1)}
+
+.ref-scroll-bar{display:flex;align-items:center;gap:16px;padding:20px 24px 0;max-width:1100px;margin:0 auto}
+.ref-scroll-bar .lbl{font-size:12px;font-weight:600;color:var(--gray);letter-spacing:3px;text-transform:uppercase;white-space:nowrap}
+.ref-scroll-bar .bar{flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.ref-scroll-bar .bar-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .15s}
+.ref-scroll-bar .pct{font-size:12px;font-weight:600;color:var(--gray);min-width:35px;text-align:right}
+
+.btn-pill{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:50px;padding:18px 28px;margin:32px 24px 0;max-width:1100px;font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:.3s;cursor:pointer}
+.btn-pill:hover{border-color:var(--accent);background:rgba(217,119,6,.05)}
+.btn-pill svg{width:20px;height:20px;stroke:var(--white);fill:none;transition:.3s}
+.btn-pill:hover svg{stroke:var(--accent);transform:translateX(4px)}
+
+/* ═══════════════════════════════════════
+   SECTION 5 — HÄUFIGE FRAGEN
+═══════════════════════════════════════ */
+.faq{padding:100px 24px;max-width:800px;margin:0 auto}
+.faq-top-tags{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:12px}
+.faq-top-tags span{font-size:11px;color:var(--muted);letter-spacing:3px;text-transform:uppercase}
+.faq-filters{display:flex;gap:8px;margin:24px 0 32px;flex-wrap:wrap}
+.faq-fbtn{padding:8px 20px;border-radius:50px;font-size:12px;font-weight:600;border:1px solid var(--border);color:var(--gray);background:transparent;transition:.3s;cursor:pointer}
+.faq-fbtn:hover{border-color:var(--accent);color:var(--white)}
+.faq-fbtn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.faq-item{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;transition:.3s}
+.faq-item.open{border-color:rgba(217,119,6,.25)}
+.faq-q{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;cursor:pointer;font-size:14px;font-weight:600;gap:16px;transition:.2s}
+.faq-q:hover{color:var(--accent)}
+.faq-q .ico{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;transition:.3s}
+.faq-item.open .ico{transform:rotate(45deg);background:var(--accent);border-color:var(--accent)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .35s ease}
+.faq-a-inner{padding:0 22px 18px;font-size:13px;color:var(--gray);line-height:1.8}
+.faq-bottom-tags{display:flex;gap:20px;flex-wrap:wrap;margin-top:40px}
+.faq-bottom-tags span{font-size:11px;color:var(--muted);letter-spacing:3px;text-transform:uppercase}
+
+/* ═══════════════════════════════════════
+   CTA BANNER
+═══════════════════════════════════════ */
+.cta{max-width:800px;margin:0 auto 80px;padding:0 24px}
+.cta-inner{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:48px 32px;text-align:center;position:relative;overflow:hidden}
+.cta-inner::before{content:'GARABAG';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:clamp(60px,12vw,120px);font-weight:900;color:rgba(255,255,255,.02);pointer-events:none;white-space:nowrap}
+.cta-inner h2{font-size:clamp(22px,3.5vw,32px);font-weight:900;margin-bottom:10px;position:relative}
+.cta-inner p{color:var(--gray);font-size:14px;margin-bottom:24px;position:relative}
+.btn-accent{display:inline-block;background:var(--accent);color:#fff;padding:16px 36px;border-radius:50px;font-weight:700;font-size:14px;letter-spacing:1px;transition:.3s;position:relative}
+.btn-accent:hover{background:var(--accent2);transform:translateY(-2px);box-shadow:0 8px 30px rgba(217,119,6,.3)}
+
+/* ═══════════════════════════════════════
+   FOOTER
+═══════════════════════════════════════ */
+.footer{background:var(--bg);border-top:1px solid var(--border);padding:60px 24px 28px}
+.footer-top{max-width:1100px;margin:0 auto 40px;display:flex;align-items:center;gap:16px}
+.footer-top img{width:48px;height:48px;object-fit:contain;border-radius:10px}
+.footer-brand{display:flex;flex-direction:column}
+.footer-brand strong{font-weight:800;font-size:14px;letter-spacing:1.5px;text-transform:uppercase}
+.footer-brand span{font-size:12px;color:var(--gray)}
+.footer-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:32px}
+.footer-grid h4{font-size:12px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:2px;margin-bottom:14px}
+.footer-grid a,.footer-grid p{display:block;font-size:13px;color:var(--gray);padding:3px 0;transition:.2s}
+.footer-grid a:hover{color:var(--white)}
+.footer-grid .accent-title{color:var(--accent)}
+.footer-bottom{max-width:1100px;margin:32px auto 0;padding-top:20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--muted)}
+.footer-bottom a{color:var(--muted);margin-left:16px;transition:.2s}
+.footer-bottom a:hover{color:var(--white)}
+
+/* ═══════════════════════════════════════
+   SCROLL ANIMATIONS
+═══════════════════════════════════════ */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .7s ease,transform .7s ease}
+.reveal.vis{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- ═══ NAVBAR ═══ -->
+<nav class="nav">
+  <a href="index.html" class="nav-logo">
+    <img src="logo.webp" alt="GARABAG-Bau Logo">
+    <div class="nav-logo-text"><span>GARABAG</span><span>BAU</span></div>
+  </a>
+  <div class="hamburger" id="hamBtn" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- ═══ MOBILE MENU ═══ -->
+<div class="mobile-menu" id="mm">
+  <div class="mm-header">
+    <div style="display:flex;align-items:center;gap:10px">
+      <img src="logo.webp" alt="Logo" style="width:36px;height:36px;object-fit:contain;border-radius:6px">
+      <div class="nav-logo-text"><span>GARABAG</span><span>BAU</span></div>
+    </div>
+    <button class="mm-close" onclick="toggleMenu()">&times;</button>
+  </div>
+  <div class="mm-body">
+    <a href="index.html">Home</a>
+    <a href="leistungen.html">Leistungen</a>
+    <a href="galerie.html">Galerie</a>
+    <a href="uber-uns.html">Über Uns</a>
+    <a href="kontakt.html">Kontakt</a>
+  </div>
+  <a href="kontakt.html" class="mm-cta">Angebot anfragen</a>
+  <div class="mm-footer">
+    <p>+49 172 600 9105<br>info@garabag-bau.de<br>Eichendorffstr. 3, 48167 Münster</p>
+  </div>
+</div>
+
+<!-- ═══ HERO — FLOATING WORDS ═══ -->
+<section class="hero-words">
+  <span class="fw fw-1">ROHBAU</span>
+  <span class="fw fw-2">QUALITÄT</span>
+  <span class="fw fw-3">TIEFBAU</span>
+  <span class="fw fw-4">BETONBAU</span>
+  <span class="fw fw-5">SANIERUNG</span>
+  <span class="fw fw-6">MAUERBAU</span>
+  <span class="fw fw-7">PRÄZISION</span>
+  <span class="fw fw-8">BAUTECHNIK</span>
+
+  <!-- Center logo -->
+  <div class="hero-logo">
+    <img src="logo.webp" alt="GARABAG-BAU">
+  </div>
+
+  <div class="hero-scroll">
+    <span>Scroll</span>
+    <div class="hero-scroll-line"></div>
+  </div>
+</section>
+
+<!-- ═══ WORD-IMAGE SHOWCASE ═══ -->
+<section class="showcase" id="showcase">
+  <div class="sc-bg">
+    <img src="../images/hero_1.webp" alt="Rohbau" class="active">
+    <img src="../images/project_2.webp" alt="Sanierung">
+    <img src="../images/project_3.webp" alt="Abbruch">
+    <img src="../images/project_4.webp" alt="Schalung">
+    <img src="../images/project_1.webp" alt="Mauerbau">
+    <img src="../images/hero_2.webp" alt="Betonbau">
+  </div>
+  <div class="sc-overlay"></div>
+
+  <div class="sc-word-wrap">
+    <span class="sc-word" id="scWord">ROHBAU</span>
+  </div>
+
+  <div class="sc-num" id="scNum">01</div>
+
+  <div class="sc-content" id="scContent">
+    <h2 class="sc-title" id="scTitle">ROHBAU & BETONBAU</h2>
+    <p class="sc-desc" id="scDesc">Professionelle Rohbauleistungen für Ihr Bauprojekt. Wir sorgen für eine solide Basis und präzise Ausführung.</p>
+    <a href="leistungen.html" class="sc-btn">Mehr erfahren</a>
+  </div>
+
+  <div class="sc-dots" id="scDots">
+    <button class="sc-dot active" onclick="goSc(0)"></button>
+    <button class="sc-dot" onclick="goSc(1)"></button>
+    <button class="sc-dot" onclick="goSc(2)"></button>
+    <button class="sc-dot" onclick="goSc(3)"></button>
+    <button class="sc-dot" onclick="goSc(4)"></button>
+    <button class="sc-dot" onclick="goSc(5)"></button>
+  </div>
+
+  <div class="sc-words-nav">
+    <button class="sc-wnav active" onclick="goSc(0)">ROHBAU</button>
+    <button class="sc-wnav" onclick="goSc(1)">SANIERUNG</button>
+    <button class="sc-wnav" onclick="goSc(2)">ABBRUCH</button>
+    <button class="sc-wnav" onclick="goSc(3)">SCHALUNG</button>
+    <button class="sc-wnav" onclick="goSc(4)">MAUERBAU</button>
+    <button class="sc-wnav" onclick="goSc(5)">BETONBAU</button>
+  </div>
+
+  <div class="sc-progress"><div class="sc-progress-fill" id="scBar"></div></div>
+</section>
+
+<!-- ═══ SO ARBEITEN WIR ═══ -->
+<section class="arbeiten">
+  <div class="arbeiten-head reveal">
+    <p class="s-label">Unser Prozess</p>
+    <h2 class="s-title">SO ARBEITEN WIR</h2>
+    <p class="s-sub">Von der Beratung bis zur Übergabe – strukturiert und zuverlässig</p>
+  </div>
+  <div class="h-track-wrap">
+    <div class="h-track" id="hTrack">
+      <div class="h-card">
+        <div class="h-card-num">1</div>
+        <h3>ANFRAGE &amp; BERATUNG</h3>
+        <p>Kostenlose Erstberatung und Bestandsaufnahme Ihres Bauprojekts. Wir analysieren Ihre Anforderungen und entwickeln erste Konzepte.</p>
+        <div class="h-card-bar"></div>
+      </div>
+      <div class="h-card">
+        <div class="h-card-num">2</div>
+        <h3>PLANUNG &amp; KALKULATION</h3>
+        <p>Detaillierte Projektplanung mit transparenter Kostenkalkulation. Klare Zeitpläne und verbindliche Angebote.</p>
+        <div class="h-card-bar"></div>
+      </div>
+      <div class="h-card">
+        <div class="h-card-num">3</div>
+        <h3>AUSFÜHRUNG</h3>
+        <p>Fachgerechte Durchführung mit höchsten Qualitätsstandards. Regelmäßige Updates zum Baufortschritt.</p>
+        <div class="h-card-bar"></div>
+      </div>
+      <div class="h-card">
+        <div class="h-card-num">4</div>
+        <h3>ÜBERGABE</h3>
+        <p>Termingerechte Fertigstellung und saubere Übergabe. Gründliche Endkontrolle und Dokumentation.</p>
+        <div class="h-card-bar"></div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-bar">
+    <span class="lbl">SCROLL &rarr;</span>
+    <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+    <span class="pct" id="barPct">0%</span>
+  </div>
+</section>
+
+<!-- ═══ REFERENZEN ═══ -->
+<section class="referenzen" id="referenzen">
+  <div class="reveal">
+    <p class="s-label">Erfolgreich abgeschlossene Einsätze</p>
+    <h2 class="s-title">REFERENZEN</h2>
+    <p class="s-sub">Ausgewählte Projekte und erfolgreich abgeschlossene Bauvorhaben</p>
+  </div>
+  <div class="ref-track-wrap">
+    <div class="ref-track" id="refTrack">
+
+      <div class="ref-card">
+        <div class="ref-card-bg"><img src="../images/project_1.webp" alt="Rohbau"></div>
+        <div class="ref-ghost">ROHBAU</div>
+        <div class="ref-body">
+          <div class="ref-tags"><span class="ref-tag">ROHBAU</span><span class="ref-tag">BETONBAU</span></div>
+          <h3>NEUBAU EINFAMILIENHAUS</h3>
+          <div class="ref-meta">
+            <span><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> Münster-Hiltrup</span>
+            <span><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2024</span>
+          </div>
+          <ul class="ref-list">
+            <li>Kompletter Rohbau inkl. Keller</li>
+            <li>Betonarbeiten und Mauerwerk</li>
+            <li>Deckenarbeiten mit Filigrandecken</li>
+          </ul>
+          <p class="ref-result">Termin- und budgetgerechte Fertigstellung in 8 Wochen</p>
+        </div>
+      </div>
+
+      <div class="ref-card">
+        <div class="ref-card-bg"><img src="../images/project_2.webp" alt="Sanierung"></div>
+        <div class="ref-ghost">SANIERUNG</div>
+        <div class="ref-body">
+          <div class="ref-tags"><span class="ref-tag">SANIERUNG</span><span class="ref-tag">BETONBAU</span></div>
+          <h3>ALTBAUSANIERUNG MEHRFAMILIENHAUS</h3>
+          <div class="ref-meta">
+            <span><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> Münster-Zentrum</span>
+            <span><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2024</span>
+          </div>
+          <ul class="ref-list">
+            <li>Betonsanierung tragender Wände</li>
+            <li>Erneuerung der Geschossdecken</li>
+            <li>Fassadenarbeiten und Dämmung</li>
+          </ul>
+          <p class="ref-result">Vollständige Sanierung bei laufendem Betrieb in 12 Wochen</p>
+        </div>
+      </div>
+
+      <div class="ref-card">
+        <div class="ref-card-bg"><img src="../images/project_5.webp" alt="Abbruch"></div>
+        <div class="ref-ghost">ABBRUCH</div>
+        <div class="ref-body">
+          <div class="ref-tags"><span class="ref-tag">ABBRUCH</span><span class="ref-tag">ROHBAU</span></div>
+          <h3>ABBRUCH &amp; NEUBAU WOHNANLAGE</h3>
+          <div class="ref-meta">
+            <span><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> Münster-Wolbeck</span>
+            <span><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2024</span>
+          </div>
+          <ul class="ref-list">
+            <li>Abbruch des Altbestands</li>
+            <li>Neubau 4 Wohneinheiten</li>
+            <li>Komplettrohbau mit Keller</li>
+          </ul>
+          <p class="ref-result">Nahtloser Übergang von Abbruch zu Neubau in Rekordzeit</p>
+        </div>
+      </div>
+
+      <div class="ref-card">
+        <div class="ref-card-bg"><img src="../images/project_4.webp" alt="Schalung"></div>
+        <div class="ref-ghost">SCHALUNG</div>
+        <div class="ref-body">
+          <div class="ref-tags"><span class="ref-tag">SCHALUNG</span><span class="ref-tag">BEWEHRUNG</span></div>
+          <h3>INDUSTRIEBAU SCHALUNGSARBEITEN</h3>
+          <div class="ref-meta">
+            <span><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> Münster-Hafen</span>
+            <span><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2023</span>
+          </div>
+          <ul class="ref-list">
+            <li>Sonderschalung für Sichtbeton</li>
+            <li>Eisenbewehrung und Betonage</li>
+            <li>Qualitätskontrolle Betondeckung</li>
+          </ul>
+          <p class="ref-result">Präzise Sichtbetonflächen in Industriequalität</p>
+        </div>
+      </div>
+
+      <div class="ref-card">
+        <div class="ref-card-bg"><img src="../images/project_6.webp" alt="Mauerbau"></div>
+        <div class="ref-ghost">MAUERBAU</div>
+        <div class="ref-body">
+          <div class="ref-tags"><span class="ref-tag">MAUERBAU</span><span class="ref-tag">ROHBAU</span></div>
+          <h3>DOPPELHAUSHÄLFTE NEUBAU</h3>
+          <div class="ref-meta">
+            <span><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> Münster-Gievenbeck</span>
+            <span><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2023</span>
+          </div>
+          <ul class="ref-list">
+            <li>Mauerwerk aus Kalksandstein</li>
+            <li>Ringanker und Ringbalken</li>
+            <li>Dachstuhlvorbereitung</li>
+          </ul>
+          <p class="ref-result">Zwei Einheiten parallel in 6 Wochen fertiggestellt</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div class="ref-scroll-bar">
+    <span class="lbl">SCROLL &rarr;</span>
+    <div class="bar"><div class="bar-fill" id="refBarFill"></div></div>
+    <span class="pct" id="refBarPct">0%</span>
+  </div>
+  <a href="galerie.html" class="btn-pill reveal">
+    ALLE REFERENZEN ANSEHEN
+    <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+  </a>
+</section>
+
+<!-- ═══ HÄUFIGE FRAGEN ═══ -->
+<section class="faq" id="faq">
+  <div class="reveal">
+    <div class="faq-top-tags"><span>Fragen</span><span>Antworten</span><span>Hilfe</span><span>Support</span></div>
+    <h2 class="s-title">HÄUFIGE FRAGEN</h2>
+    <p class="s-sub">Antworten auf die wichtigsten Fragen zu unseren Leistungen</p>
+    <div class="faq-filters">
+      <button class="faq-fbtn on" onclick="fFaq('all',this)">Alle</button>
+      <button class="faq-fbtn" onclick="fFaq('service',this)">Service</button>
+      <button class="faq-fbtn" onclick="fFaq('beratung',this)">Beratung</button>
+    </div>
+  </div>
+
+  <div class="faq-item reveal" data-c="service">
+    <div class="faq-q" onclick="tFaq(this)"><span>Welche Leistungen bietet GARABAG-Bau an?</span><span class="ico">+</span></div>
+    <div class="faq-a"><div class="faq-a-inner">Wir bieten ein umfassendes Leistungsspektrum: Rohbau, Betonbau, Mauerbau, Altbausanierung, Anbau- &amp; Abbrucharbeiten sowie Schalung &amp; Eisenbewehrung. Von der Bodenplatte bis zum Dachstuhl – alles aus einer Hand.</div></div>
+  </div>
+  <div class="faq-item reveal" data-c="beratung">
+    <div class="faq-q" onclick="tFaq(this)"><span>Wie läuft die Erstberatung ab?</span><span class="ico">+</span></div>
+    <div class="faq-a"><div class="faq-a-inner">Die Erstberatung ist kostenlos. Wir besichtigen Ihr Grundstück, besprechen Ihre Wünsche und erstellen ein unverbindliches Angebot. Rufen Sie uns an: +49 172 600 9105</div></div>
+  </div>
+  <div class="faq-item reveal" data-c="service">
+    <div class="faq-q" onclick="tFaq(this)"><span>In welchem Gebiet sind Sie tätig?</span><span class="ico">+</span></div>
+    <div class="faq-a"><div class="faq-a-inner">Unser Haupteinsatzgebiet ist Münster und das Münsterland. Für größere Projekte sind wir in ganz NRW verfügbar.</div></div>
+  </div>
+  <div class="faq-item reveal" data-c="beratung">
+    <div class="faq-q" onclick="tFaq(this)"><span>Wie werden die Kosten kalkuliert?</span><span class="ico">+</span></div>
+    <div class="faq-a"><div class="faq-a-inner">Transparente Angebote auf Basis einer detaillierten Bestandsaufnahme. Alle Kosten vorab besprochen – keine versteckten Zuschläge.</div></div>
+  </div>
+  <div class="faq-item reveal" data-c="service">
+    <div class="faq-q" onclick="tFaq(this)"><span>Wie lange dauert ein Rohbauprojekt?</span><span class="ico">+</span></div>
+    <div class="faq-a"><div class="faq-a-inner">Ein Einfamilienhaus-Rohbau dauert in der Regel 6–10 Wochen. Bei der Erstberatung erstellen wir einen detaillierten Zeitplan für Ihr Projekt.</div></div>
+  </div>
+
+  <div class="faq-bottom-tags reveal"><span>Expertise</span><span>Lösung</span><span>Dialog</span><span>Kontakt</span></div>
+</section>
+
+<!-- ═══ CTA ═══ -->
+<div class="cta reveal">
+  <div class="cta-inner">
+    <h2>Bereit für Ihr Bauprojekt?</h2>
+    <p>Kontaktieren Sie uns für eine kostenlose Erstberatung. Wir melden uns innerhalb von 24 Stunden.</p>
+    <a href="kontakt.html" class="btn-accent">Jetzt Angebot anfragen</a>
+  </div>
+</div>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <div class="footer-top">
+    <img src="logo.webp" alt="GARABAG-Bau Logo">
+    <div class="footer-brand">
+      <strong>GARABAG-BAU</strong>
+      <span>Rohbau &amp; Hochbau in Münster</span>
+    </div>
+  </div>
+  <div class="footer-grid">
+    <div>
+      <h4>Navigation</h4>
+      <a href="index.html">Home</a>
+      <a href="leistungen.html">Leistungen</a>
+      <a href="galerie.html">Galerie</a>
+      <a href="uber-uns.html">Über Uns</a>
+      <a href="kontakt.html">Kontakt</a>
+    </div>
+    <div>
+      <h4 class="accent-title">Leistungen</h4>
+      <a href="leistungen.html">Rohbau</a>
+      <a href="leistungen.html">Betonbau</a>
+      <a href="leistungen.html">Mauerbau</a>
+      <a href="leistungen.html">Altbausanierung</a>
+      <a href="leistungen.html">Anbau &amp; Abbruch</a>
+      <a href="leistungen.html">Schalung</a>
+    </div>
+    <div>
+      <h4>Kontakt</h4>
+      <p><a href="tel:+491726009105">+49 172 600 9105</a></p>
+      <p><a href="mailto:info@garabag-bau.de">info@garabag-bau.de</a></p>
+      <p>Mo–Fr: 08:00–17:00</p>
+      <p style="margin-top:8px">Eichendorffstr. 3<br>48167 Münster</p>
+    </div>
+    <div>
+      <h4>Rechtliches</h4>
+      <a href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
+      <p style="margin-top:12px;font-size:11px;color:var(--muted)">USt-IdNr: 12024368757<br>HWK: 41987065</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>&copy; 2025 GARABAG-Bau. Alle Rechte vorbehalten.</span>
+    <span><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></span>
+  </div>
+</footer>
+
+<script>
+// ═══ Mobile menu ═══
+function toggleMenu(){
+  document.getElementById('mm').classList.toggle('open');
+  document.getElementById('hamBtn').classList.toggle('open');
+  document.body.style.overflow=document.getElementById('mm').classList.contains('open')?'hidden':'';
+}
+
+// ═══ FAQ ═══
+function tFaq(el){
+  const item=el.parentElement,a=item.querySelector('.faq-a'),open=item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i=>{i.classList.remove('open');i.querySelector('.faq-a').style.maxHeight=null});
+  if(!open){item.classList.add('open');a.style.maxHeight=a.scrollHeight+'px'}
+}
+function fFaq(c,btn){
+  document.querySelectorAll('.faq-fbtn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.faq-item').forEach(i=>{i.style.display=c==='all'||i.dataset.c===c?'':'none'});
+}
+
+// ═══ WORD-IMAGE SHOWCASE ═══
+const scData=[
+  {word:'ROHBAU',title:'ROHBAU & BETONBAU',desc:'Professionelle Rohbauleistungen für Ihr Bauprojekt. Wir sorgen für eine solide Basis und präzise Ausführung.'},
+  {word:'SANIERUNG',title:'ALTBAUSANIERUNG',desc:'Fachgerechte Sanierung und Modernisierung von Altbauten. Höchste Präzision und Sorgfalt.'},
+  {word:'ABBRUCH',title:'ANBAU & ABBRUCH',desc:'Professionelle Anbau- und Abbrucharbeiten. Effizient, sicher und termingerecht.'},
+  {word:'SCHALUNG',title:'SCHALUNG & BEWEHRUNG',desc:'Präzise Schalungsarbeiten und Eisenbewehrung für anspruchsvolle Betonkonstruktionen.'},
+  {word:'MAUERBAU',title:'MAUERWERK',desc:'Hochwertiges Mauerwerk aus Kalksandstein, Porenbeton und Ziegel. Fachgerecht und belastbar.'},
+  {word:'BETONBAU',title:'BETONARBEITEN',desc:'Betonage, Bodenplatten, Fundamente und Decken. Moderne Technik für höchste Qualität.'}
+];
+let scIdx=0,scTimer=null,scBarAF=null,scStart=0;
+const scImgs=document.querySelectorAll('.sc-bg img');
+const scWord=document.getElementById('scWord');
+const scNum=document.getElementById('scNum');
+const scTitle=document.getElementById('scTitle');
+const scDesc=document.getElementById('scDesc');
+const scDots=document.querySelectorAll('.sc-dot');
+const scWnavs=document.querySelectorAll('.sc-wnav');
+const scBar=document.getElementById('scBar');
+const SC_INTERVAL=4500;
+
+function goSc(i){
+  if(i===scIdx)return;
+  const ct=document.getElementById('scContent');
+  ct.style.opacity='0';ct.style.transform='translateY(12px)';
+  scWord.style.opacity='0';
+
+  setTimeout(()=>{
+    scImgs[scIdx].classList.remove('active');
+    scIdx=i;
+    scImgs[scIdx].classList.add('active');
+    scWord.textContent=scData[i].word;
+    scWord.style.opacity='1';
+    scNum.textContent=String(i+1).padStart(2,'0');
+    scTitle.textContent=scData[i].title;
+    scDesc.textContent=scData[i].desc;
+    ct.style.opacity='1';ct.style.transform='translateY(0)';
+    scDots.forEach((d,j)=>d.classList.toggle('active',j===i));
+    scWnavs.forEach((w,j)=>w.classList.toggle('active',j===i));
+  },400);
+  resetScAuto();
+}
+
+function nextSc(){goSc((scIdx+1)%scData.length)}
+
+function resetScAuto(){
+  clearTimeout(scTimer);cancelAnimationFrame(scBarAF);
+  scStart=performance.now();scBar.style.width='0%';
+  animateBar();scTimer=setTimeout(nextSc,SC_INTERVAL);
+}
+
+function animateBar(){
+  const elapsed=performance.now()-scStart;
+  const pct=Math.min(elapsed/SC_INTERVAL*100,100);
+  scBar.style.width=pct+'%';
+  if(pct<100)scBarAF=requestAnimationFrame(animateBar);
+}
+
+resetScAuto();
+
+const scEl=document.getElementById('showcase');
+scEl.addEventListener('mouseenter',()=>{clearTimeout(scTimer);cancelAnimationFrame(scBarAF)});
+scEl.addEventListener('mouseleave',resetScAuto);
+
+// Touch swipe
+let scTouchX=0;
+scEl.addEventListener('touchstart',e=>{scTouchX=e.touches[0].clientX},{passive:true});
+scEl.addEventListener('touchend',e=>{
+  const diff=e.changedTouches[0].clientX-scTouchX;
+  if(Math.abs(diff)>50){diff<0?goSc((scIdx+1)%scData.length):goSc((scIdx-1+scData.length)%scData.length)}
+},{passive:true});
+
+// ═══ Horizontal scroll progress — Arbeiten ═══
+const hT=document.getElementById('hTrack'),bF=document.getElementById('barFill'),bP=document.getElementById('barPct');
+if(hT){hT.addEventListener('scroll',()=>{
+  const m=hT.scrollWidth-hT.clientWidth,p=m>0?Math.round(hT.scrollLeft/m*100):0;
+  bF.style.width=p+'%';bP.textContent=p+'%';
+})}
+
+// ═══ Horizontal scroll progress — Referenzen ═══
+const rT=document.getElementById('refTrack'),rF=document.getElementById('refBarFill'),rP=document.getElementById('refBarPct');
+if(rT){rT.addEventListener('scroll',()=>{
+  const m=rT.scrollWidth-rT.clientWidth,p=m>0?Math.round(rT.scrollLeft/m*100):0;
+  rF.style.width=p+'%';rP.textContent=p+'%';
+})}
+
+// ═══ Reveal on scroll ═══
+const ro=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');ro.unobserve(e.target)}})},{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+</script>
+</body>
+</html>

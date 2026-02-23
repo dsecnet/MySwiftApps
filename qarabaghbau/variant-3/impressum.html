@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Impressum | GARABAG-Bau</title>
+<link rel="icon" type="image/webp" href="logo.webp">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0B0B0B;--card:#111;--accent:#d97706;--accent2:#f59e0b;--white:#fff;--gray:#9a9a9a;--muted:#4a4a4a;--border:rgba(255,255,255,.08);--radius:16px;--font:'Inter',system-ui,sans-serif}
+html{scroll-behavior:smooth;overflow-x:hidden}body{font-family:var(--font);background:var(--bg);color:var(--white);overflow-x:hidden;-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}img{max-width:100%;display:block}button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit}
+.nav{position:fixed;top:0;left:0;width:100%;height:64px;background:rgba(11,11,11,.92);backdrop-filter:blur(12px);z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border)}.nav-logo{display:flex;align-items:center;gap:10px}.nav-logo img{width:42px;height:42px;object-fit:contain;border-radius:8px;filter:brightness(0) invert(1)}.nav-logo-text{font-weight:800;font-size:13px;letter-spacing:1.5px;line-height:1.2;text-transform:uppercase}.nav-logo-text span{display:block}
+.hamburger{width:28px;height:20px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;z-index:200}.hamburger span{width:100%;height:2px;background:var(--white);transition:.3s}.hamburger.open span:nth-child(1){transform:rotate(45deg) translate(6px,6px)}.hamburger.open span:nth-child(2){opacity:0}.hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(6px,-6px)}
+.mobile-menu{position:fixed;inset:0;background:var(--bg);z-index:150;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .45s cubic-bezier(.77,0,.18,1);overflow-y:auto}.mobile-menu.open{transform:translateX(0)}
+.mm-header{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border)}.mm-close{font-size:32px;color:var(--white);cursor:pointer;background:none;border:none}
+.mm-body{flex:1;padding:32px 24px}.mm-body a{display:block;font-size:28px;font-weight:700;color:var(--white);padding:22px 0;border-bottom:1px solid var(--border);transition:.2s}.mm-body a:hover{color:var(--accent);padding-left:8px}
+.mm-cta{margin:24px;background:var(--accent);color:#fff;text-align:center;padding:18px;border-radius:50px;font-weight:700;font-size:16px;display:block}.mm-footer{padding:16px 24px 32px;border-top:1px solid var(--border)}.mm-footer p{font-size:13px;color:var(--gray);line-height:2}
+.page-hero{position:relative;width:100%;height:40vh;min-height:280px;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-top:64px;background:var(--bg)}
+.page-hero-ghost{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:clamp(60px,18vw,200px);font-weight:900;color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.04);pointer-events:none;white-space:nowrap}
+.fw{position:absolute;font-weight:800;text-transform:uppercase;letter-spacing:3px;pointer-events:none;user-select:none;white-space:nowrap}
+.fw-1{top:18%;left:8%;font-size:clamp(12px,2vw,18px);color:var(--accent);opacity:.25;animation:drift1 4s ease-in-out infinite}
+.fw-2{top:28%;right:12%;font-size:clamp(10px,1.5vw,16px);color:var(--muted);opacity:.15;animation:drift2 5s ease-in-out infinite}
+@keyframes drift1{0%,100%{transform:translate(0,0)}25%{transform:translate(20px,-25px)}50%{transform:translate(-8px,-35px)}75%{transform:translate(15px,10px)}}
+@keyframes drift2{0%,100%{transform:translate(0,0)}25%{transform:translate(-18px,20px)}50%{transform:translate(12px,-15px)}75%{transform:translate(-25px,-8px)}}
+.page-hero-content{position:relative;z-index:2;text-align:center;padding:0 24px}
+.page-hero-content h1{font-size:clamp(28px,6vw,52px);font-weight:900;letter-spacing:3px;text-transform:uppercase;animation:fadeUp .8s ease .3s both}
+.page-hero-content p{font-size:clamp(12px,1.4vw,15px);color:var(--gray);margin-top:8px;animation:fadeUp .8s ease .5s both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(25px)}to{opacity:1;transform:translateY(0)}}
+.legal{padding:60px 24px 80px;max-width:800px;margin:0 auto}
+.legal h2{font-size:clamp(18px,3vw,24px);font-weight:800;text-transform:uppercase;letter-spacing:1px;margin:40px 0 16px;color:var(--white);position:relative;padding-left:16px}
+.legal h2::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);border-radius:2px}
+.legal h2:first-child{margin-top:0}
+.legal p,.legal address{font-size:14px;color:var(--gray);line-height:1.8;margin-bottom:12px;font-style:normal}
+.legal a{color:var(--accent);transition:.2s}.legal a:hover{color:var(--white)}
+.legal strong{color:var(--white)}
+.footer{background:var(--bg);border-top:1px solid var(--border);padding:60px 24px 28px}
+.footer-top{max-width:1100px;margin:0 auto 40px;display:flex;align-items:center;gap:16px}.footer-top img{width:48px;height:48px;object-fit:contain;border-radius:10px}
+.footer-brand{display:flex;flex-direction:column}.footer-brand strong{font-weight:800;font-size:14px;letter-spacing:1.5px;text-transform:uppercase}.footer-brand span{font-size:12px;color:var(--gray)}
+.footer-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:32px}.footer-grid h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:14px}.footer-grid a,.footer-grid p{display:block;font-size:13px;color:var(--gray);padding:3px 0;transition:.2s}.footer-grid a:hover{color:var(--white)}.footer-grid .at{color:var(--accent)}
+.footer-bottom{max-width:1100px;margin:32px auto 0;padding-top:20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--muted)}.footer-bottom a{color:var(--muted);margin-left:16px}.footer-bottom a:hover{color:var(--white)}
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .7s ease,transform .7s ease}.reveal.vis{opacity:1;transform:translateY(0)}
+</style></head><body>
+
+<nav class="nav"><a href="index.html" class="nav-logo"><img src="logo.webp" alt="Logo"><div class="nav-logo-text"><span>GARABAG</span><span>BAU</span></div></a><div class="hamburger" id="hamBtn" onclick="toggleMenu()"><span></span><span></span><span></span></div></nav>
+
+<div class="mobile-menu" id="mm"><div class="mm-header"><div style="display:flex;align-items:center;gap:10px"><img src="logo.webp" alt="" style="width:36px;height:36px;object-fit:contain;border-radius:6px"><div class="nav-logo-text"><span>GARABAG</span><span>BAU</span></div></div><button class="mm-close" onclick="toggleMenu()">&times;</button></div><div class="mm-body"><a href="index.html">Home</a><a href="leistungen.html">Leistungen</a><a href="galerie.html">Galerie</a><a href="uber-uns.html">Über Uns</a><a href="kontakt.html">Kontakt</a></div><a href="kontakt.html" class="mm-cta">Angebot anfragen</a><div class="mm-footer"><p>+49 172 600 9105<br>info@garabag-bau.de</p></div></div>
+
+<section class="page-hero">
+  <div class="page-hero-ghost">IMPRESSUM</div>
+  <span class="fw fw-1">RECHT</span>
+  <span class="fw fw-2">LEGAL</span>
+  <div class="page-hero-content">
+    <h1>IMPRESSUM</h1>
+    <p>Angaben gemäß § 5 TMG</p>
+  </div>
+</section>
+
+<div class="legal">
+  <h2 class="reveal">Angaben gemäß § 5 TMG</h2>
+  <address class="reveal">
+    <strong>GARABAG-Bau</strong><br>
+    Vugar Azizov<br>
+    Eichendorffstr. 3<br>
+    48167 Münster
+  </address>
+
+  <h2 class="reveal">Kontakt</h2>
+  <p class="reveal">
+    Telefon: <a href="tel:+491726009105">+49 172 600 9105</a><br>
+    E-Mail: <a href="mailto:info@garabag-bau.de">info@garabag-bau.de</a>
+  </p>
+
+  <h2 class="reveal">Umsatzsteuer-ID</h2>
+  <p class="reveal">
+    Umsatzsteuer-Identifikationsnummer gemäß § 27 a Umsatzsteuergesetz:<br>
+    <strong>USt-IdNr: 12024368757</strong>
+  </p>
+
+  <h2 class="reveal">Handwerkskammer</h2>
+  <p class="reveal">
+    Handwerkskammer Münster<br>
+    <strong>HWK-Nr: 41987065</strong>
+  </p>
+
+  <h2 class="reveal">Redaktionell verantwortlich</h2>
+  <p class="reveal">
+    <strong>Azizova Shafag</strong><br>
+    Eichendorffstr. 3<br>
+    48167 Münster
+  </p>
+
+  <h2 class="reveal">Streitschlichtung</h2>
+  <p class="reveal">
+    Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:
+    <a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener">https://ec.europa.eu/consumers/odr/</a><br>
+    Unsere E-Mail-Adresse finden Sie oben im Impressum.
+  </p>
+  <p class="reveal">
+    Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.
+  </p>
+
+  <h2 class="reveal">Haftung für Inhalte</h2>
+  <p class="reveal">
+    Als Diensteanbieter sind wir gemäß § 7 Abs.1 TMG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 TMG sind wir als Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen.
+  </p>
+
+  <h2 class="reveal">Haftung für Links</h2>
+  <p class="reveal">
+    Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten verantwortlich.
+  </p>
+
+  <h2 class="reveal">Urheberrecht</h2>
+  <p class="reveal">
+    Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Die Vervielfältigung, Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechtes bedürfen der schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers.
+  </p>
+</div>
+
+<footer class="footer"><div class="footer-top"><img src="logo.webp" alt="Logo"><div class="footer-brand"><strong>GARABAG-BAU</strong><span>Rohbau &amp; Hochbau in Münster</span></div></div><div class="footer-grid"><div><h4>Navigation</h4><a href="index.html">Home</a><a href="leistungen.html">Leistungen</a><a href="galerie.html">Galerie</a><a href="uber-uns.html">Über Uns</a><a href="kontakt.html">Kontakt</a></div><div><h4 class="at">Leistungen</h4><a href="leistungen.html">Rohbau</a><a href="leistungen.html">Betonbau</a><a href="leistungen.html">Mauerbau</a><a href="leistungen.html">Altbausanierung</a></div><div><h4>Kontakt</h4><p><a href="tel:+491726009105">+49 172 600 9105</a></p><p><a href="mailto:info@garabag-bau.de">info@garabag-bau.de</a></p><p>Eichendorffstr. 3, 48167 Münster</p></div><div><h4>Rechtliches</h4><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></div></div><div class="footer-bottom"><span>&copy; 2025 GARABAG-Bau</span><span><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></span></div></footer>
+
+<script>
+function toggleMenu(){document.getElementById('mm').classList.toggle('open');document.getElementById('hamBtn').classList.toggle('open');document.body.style.overflow=document.getElementById('mm').classList.contains('open')?'hidden':''}
+const ro=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');ro.unobserve(e.target)}})},{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+</script>
+</body></html>
