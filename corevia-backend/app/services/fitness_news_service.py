@@ -1,26 +1,17 @@
 """
-Fitness News Service - AI ilə fitness xəbərləri toplayır
+Fitness News Service - Fitness xəbərləri (lokal mock data)
+
+Cloud AI servisi istifadə olunmur — bütün xəbərlər lokal mock data-dan gəlir.
 """
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
-import aiohttp
 import logging
-from bs4 import BeautifulSoup
-import anthropic
-import os
 
 logger = logging.getLogger(__name__)
 
 
 class FitnessNewsService:
-    """AI ilə fitness xəbərləri toplayan service"""
-
-    # Fitness news sources
-    NEWS_SOURCES = [
-        "https://www.bodybuilding.com/content/news.html",
-        "https://www.menshealth.com/fitness/",
-        "https://www.shape.com/fitness/",
-    ]
+    """Fitness xəbərləri toplayan service (lokal mock data)"""
 
     # Cache
     _cached_news: List[Dict[str, Any]] = []
@@ -28,15 +19,8 @@ class FitnessNewsService:
     CACHE_DURATION = timedelta(hours=2)  # 2 saat cache
 
     def __init__(self):
-        # Pydantic settings-dən oxu (.env faylını avtomatik yükləyir)
-        from app.config import get_settings
-        _settings = get_settings()
-        self.claude_api_key = _settings.anthropic_api_key or os.getenv("ANTHROPIC_API_KEY")
-        if self.claude_api_key and len(self.claude_api_key) > 20:
-            self.client = anthropic.Anthropic(api_key=self.claude_api_key)
-        else:
-            self.client = None
-            logger.warning("ANTHROPIC_API_KEY not found, using mock data")
+        self.client = None
+        logger.info("FitnessNewsService initialized (local mock data)")
 
     async def get_fitness_news(self, limit: int = 10, force_refresh: bool = False) -> List[Dict[str, Any]]:
         """
@@ -59,86 +43,8 @@ class FitnessNewsService:
         return news[:limit]
 
     async def _fetch_news_with_ai(self) -> List[Dict[str, Any]]:
-        """
-        AI ilə fitness xəbərlərini internetdən tap və strukturlaşdır
-        """
-        if not self.client:
-            # Mock data (ANTHROPIC_API_KEY yoxdursa)
-            return self._get_mock_news()
-
-        try:
-            # Claude-a prompt göndər
-            prompt = """
-Please search for the latest fitness and health news.
-Find 10 recent, interesting fitness news articles.
-
-For each article, provide:
-1. Title (catchy and engaging)
-2. Summary (2-3 sentences)
-3. Category (Workout, Nutrition, Research, Tips, Lifestyle)
-4. Source (website name)
-5. Reading time (estimate in minutes)
-6. Image description (for thumbnail)
-
-Return as JSON array with this structure:
-[
-  {
-    "title": "...",
-    "summary": "...",
-    "category": "...",
-    "source": "...",
-    "reading_time": 5,
-    "image_description": "...",
-    "published_at": "2024-02-11T10:00:00Z"
-  }
-]
-
-Focus on:
-- Recent fitness trends
-- Workout techniques
-- Nutrition discoveries
-- Recovery tips
-- Mental health & fitness
-"""
-
-            message = self.client.messages.create(
-                model="claude-3-5-sonnet-20241022",
-                max_tokens=4000,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ]
-            )
-
-            # Response parse et
-            response_text = message.content[0].text
-
-            # JSON extract et
-            import json
-            import re
-
-            # JSON array tap
-            json_match = re.search(r'\[.*\]', response_text, re.DOTALL)
-            if json_match:
-                news_data = json.loads(json_match.group())
-
-                # ID və timestamp əlavə et
-                for i, article in enumerate(news_data):
-                    article['id'] = f"news_{i}_{datetime.now().timestamp()}"
-                    if 'published_at' not in article:
-                        article['published_at'] = (datetime.now() - timedelta(hours=i)).isoformat()
-
-                logger.info(f"Successfully fetched {len(news_data)} fitness news articles")
-                return news_data
-
-            logger.warning("Could not parse JSON from AI response")
-            return self._get_mock_news()
-
-        except Exception as e:
-            logger.error(f"Error fetching news with AI: {e}")
-            return self._get_mock_news()
+        """Lokal mock data qaytarır (cloud AI istifadə olunmur)"""
+        return self._get_mock_news()
 
     def _get_mock_news(self) -> List[Dict[str, Any]]:
         """

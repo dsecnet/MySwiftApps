@@ -113,33 +113,62 @@ class ProductDetailViewModel: ObservableObject {
         isPurchasing = false
     }
 
-    // MARK: - Apple IAP
+    // MARK: - Apple IAP (StoreKit 2)
 
     private func initiateApplePurchase(productIdentifier: String) async throws -> String {
-        // For demonstration - in production, use StoreKit 2
-        // This is a simplified version
+        // StoreKit 2 — iOS 15+
+        let products = try await Product.products(for: [productIdentifier])
 
-        // 1. Fetch product (StoreKit 2 recommended for iOS 18+)
-        #if compiler(>=5.9)
-        if #available(iOS 15.0, *) {
-            // TODO: Use StoreKit 2 Product.products(for:) instead
-            // let products = try await Product.products(for: [productIdentifier])
+        guard let storeProduct = products.first else {
+            throw NSError(
+                domain: "Purchase",
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "Mehsul App Store-da tapilmadi."]
+            )
         }
-        #endif
 
-        // 2. Purchase product
-        // ... Purchase flow ...
+        let result = try await storeProduct.purchase()
 
-        // 3. Get receipt (deprecated in iOS 18+)
-        if #available(iOS 18.0, *) {
-            // TODO: Use AppTransaction.shared and Transaction.all
-            throw NSError(domain: "Purchase", code: -1, userInfo: [NSLocalizedDescriptionKey: "StoreKit 2 required for iOS 18+"])
-        } else {
-            guard let receiptURL = Bundle.main.appStoreReceiptURL,
-                  let receiptData = try? Data(contentsOf: receiptURL) else {
-                throw NSError(domain: "Purchase", code: -1, userInfo: [NSLocalizedDescriptionKey: "No receipt found"])
+        switch result {
+        case .success(let verification):
+            // Transaction verification
+            switch verification {
+            case .verified(let transaction):
+                // Apple serverin imzasini yoxlayib — etibarlidi
+                await transaction.finish()
+
+                // Transaction ID-ni backend-e gonder
+                let transactionId = String(transaction.id)
+                return transactionId
+
+            case .unverified(_, let error):
+                throw NSError(
+                    domain: "Purchase",
+                    code: -2,
+                    userInfo: [NSLocalizedDescriptionKey: "Odenis dogrulama ugursuz: \(error.localizedDescription)"]
+                )
             }
-            return receiptData.base64EncodedString()
+
+        case .userCancelled:
+            throw NSError(
+                domain: "Purchase",
+                code: -3,
+                userInfo: [NSLocalizedDescriptionKey: "Odenis legv edildi."]
+            )
+
+        case .pending:
+            throw NSError(
+                domain: "Purchase",
+                code: -4,
+                userInfo: [NSLocalizedDescriptionKey: "Odenis gozleyir (valideyn icazesi ve s.)."]
+            )
+
+        @unknown default:
+            throw NSError(
+                domain: "Purchase",
+                code: -5,
+                userInfo: [NSLocalizedDescriptionKey: "Bilinmeyen odenis netices."]
+            )
         }
     }
 }

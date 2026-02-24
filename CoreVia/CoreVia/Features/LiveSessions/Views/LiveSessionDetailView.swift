@@ -1,4 +1,5 @@
 import SwiftUI
+import StoreKit
 
 /// Live Session Detail View
 struct LiveSessionDetailView: View {
@@ -9,6 +10,8 @@ struct LiveSessionDetailView: View {
     @State private var isLoading = true
     @State private var errorMessage: String?
     @State private var hasJoined = false
+    @State private var showPaymentConfirmation = false
+    @State private var isPurchasing = false
 
     var body: some View {
         ScrollView {
@@ -194,21 +197,63 @@ struct LiveSessionDetailView: View {
     private func actionButton(_ session: LiveSession) -> some View {
         VStack(spacing: 12) {
             if !hasJoined {
-                Button {
-                    Task {
-                        await joinSession()
-                    }
-                } label: {
-                    Text(loc.localized("live_sessions_join"))
-                        .font(.headline)
+                if session.isPaid {
+                    // Pullu sessiya — ode ve qosul
+                    Button {
+                        showPaymentConfirmation = true
+                    } label: {
+                        HStack(spacing: 8) {
+                            if isPurchasing {
+                                ProgressView()
+                                    .tint(.white)
+                                    .scaleEffect(0.8)
+                            } else {
+                                Image(systemName: "creditcard.fill")
+                            }
+                            Text(loc.localized("live_sessions_pay_join"))
+                                .font(.headline)
+                        }
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color("PrimaryColor"))
+                        .background(AppTheme.Colors.accent)
                         .cornerRadius(12)
+                    }
+                    .disabled(isPurchasing)
+                    .confirmationDialog(
+                        loc.localized("live_sessions_pay_confirm"),
+                        isPresented: $showPaymentConfirmation,
+                        titleVisibility: .visible
+                    ) {
+                        Button(loc.localized("live_sessions_pay_join")) {
+                            Task { await payAndJoinSession(session) }
+                        }
+                        Button(loc.localized("common_cancel"), role: .cancel) {}
+                    } message: {
+                        Text("\(String(format: "%.2f", session.price)) \(session.currency)")
+                    }
+
+                    // Qiymet goster
+                    Text("\(String(format: "%.2f", session.price)) \(session.currency)")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+
+                } else {
+                    // Pulsuz sessiya — sadece qosul
+                    Button {
+                        Task { await joinSession() }
+                    } label: {
+                        Text(loc.localized("live_sessions_join"))
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color("PrimaryColor"))
+                            .cornerRadius(12)
+                    }
                 }
             } else {
-                // Show "Joined" or "Start Workout" button
+                // Artiq qosulub — Start Workout
                 NavigationLink {
                     LiveWorkoutView(sessionId: sessionId)
                 } label: {
@@ -220,12 +265,6 @@ struct LiveSessionDetailView: View {
                         .background(Color.green)
                         .cornerRadius(12)
                 }
-            }
-
-            if session.isPaid {
-                Text("Price: \(String(format: "%.2f", session.price)) \(session.currency)")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
             }
         }
     }
@@ -245,19 +284,111 @@ struct LiveSessionDetailView: View {
 
     private func loadSession() async {
         isLoading = true
+        errorMessage = nil
 
-        // TODO: Load session from API
-        // let session = try await APIService.shared.request(...)
+        do {
+            let loadedSession: LiveSession = try await APIService.shared.request(
+                endpoint: "/api/v1/live-sessions/\(sessionId)",
+                method: "GET"
+            )
+            session = loadedSession
 
-        // Simulate loading
-        try? await Task.sleep(nanoseconds: 500_000_000)
+            // Qosulub-qosulmadigini yoxla
+            await checkJoinStatus()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
 
         isLoading = false
     }
 
     private func joinSession() async {
-        // TODO: Join session API call
-        hasJoined = true
+        do {
+            try await APIService.shared.requestVoid(
+                endpoint: "/api/v1/live-sessions/\(sessionId)/join",
+                method: "POST"
+            )
+            hasJoined = true
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    /// Pullu sessiya — StoreKit 2 ile ode, sonra join et
+    private func payAndJoinSession(_ session: LiveSession) async {
+        isPurchasing = true
+        defer { isPurchasing = false }
+
+        do {
+            // 1. StoreKit 2 ile ode
+            let productIdentifier = "corevia_session_\(sessionId)"
+            let products = try await StoreKit.Product.products(for: [productIdentifier])
+
+            if let storeProduct = products.first {
+                let result = try await storeProduct.purchase()
+
+                switch result {
+                case .success(let verification):
+                    switch verification {
+                    case .verified(let transaction):
+                        await transaction.finish()
+
+                        // 2. Backend-e bildir ve join et
+                        struct PayJoinRequest: Encodable {
+                            let transactionId: String
+                            enum CodingKeys: String, CodingKey {
+                                case transactionId = "transaction_id"
+                            }
+                        }
+
+                        try await APIService.shared.requestVoid(
+                            endpoint: "/api/v1/live-sessions/\(sessionId)/join",
+                            method: "POST",
+                            body: PayJoinRequest(transactionId: String(transaction.id))
+                        )
+                        hasJoined = true
+
+                    case .unverified(_, let error):
+                        errorMessage = "Odenis dogrulama ugursuz: \(error.localizedDescription)"
+                    }
+
+                case .userCancelled:
+                    break // User legv etdi, xeta gosterme
+
+                case .pending:
+                    errorMessage = "Odenis gozleyir."
+
+                @unknown default:
+                    errorMessage = "Bilinmeyen odenis netices."
+                }
+            } else {
+                // StoreKit product tapilmadisa, backend-den birbaşa join et (test mode)
+                try await APIService.shared.requestVoid(
+                    endpoint: "/api/v1/live-sessions/\(sessionId)/join",
+                    method: "POST"
+                )
+                hasJoined = true
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func checkJoinStatus() async {
+        do {
+            struct ParticipantsResponse: Codable {
+                let participants: [SessionParticipant]
+            }
+            let response: ParticipantsResponse = try await APIService.shared.request(
+                endpoint: "/api/v1/live-sessions/\(sessionId)/participants",
+                method: "GET"
+            )
+            if let userId = AuthManager.shared.currentUser?.id {
+                hasJoined = response.participants.contains { $0.userId == userId }
+            }
+        } catch {
+            // Ignore — join status yoxlanilmadi
+        }
     }
 }
 

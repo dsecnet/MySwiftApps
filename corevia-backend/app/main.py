@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.config import get_settings
-from app.routers import auth, users, workouts, food, plans, uploads, admin, ai, location, notifications, premium, trainer, reviews, chat, content, onboarding, social, marketplace, analytics, news, live_sessions
+from app.routers import auth, users, workouts, food, plans, uploads, admin, ai, location, notifications, premium, trainer, reviews, chat, content, onboarding, social, marketplace, analytics, news, live_sessions, daily_survey
 from app.routers import settings as settings_router
 
 settings = get_settings()
@@ -64,6 +64,7 @@ app.include_router(analytics.router)
 app.include_router(news.router)
 app.include_router(live_sessions.router)
 app.include_router(settings_router.router)
+app.include_router(daily_survey.router)
 
 # Static files - sekilleri serve etmek ucun
 uploads_dir = Path(__file__).parent.parent / "uploads"

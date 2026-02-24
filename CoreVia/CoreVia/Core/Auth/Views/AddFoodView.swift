@@ -735,117 +735,41 @@ struct AddFoodView: View {
 
         Task {
             do {
-                // Şəkli resize et və JPEG-ə çevir
-                guard let imageData = prepareImageForUpload(image) else {
-                    await MainActor.run {
-                        self.isAnalyzing = false
-                        self.errorMessage = "Şəkil emal edilmədi."
-                        self.showError = true
-                    }
-                    return
-                }
+                print("📸 AI Analysis: On-device CoreML pipeline başlayır...")
 
-                print("📸 AI Analysis: Image size = \(imageData.count / 1024) KB")
-
-                // Multipart request yarat
-                let boundary = UUID().uuidString
-                var request = URLRequest(url: URL(string: "\(APIService.shared.baseURL)/api/v1/food/analyze")!)
-                request.httpMethod = "POST"
-                request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-                request.timeoutInterval = 60 // AI analysis vaxt ala bilər
-
-                // Auth token — KeychainManager-dən (APIService ilə eyni)
-                if let token = KeychainManager.shared.accessToken {
-                    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-                }
-
-                // Multipart body
-                var body = Data()
-                body.append("--\(boundary)\r\n".data(using: .utf8)!)
-                body.append("Content-Disposition: form-data; name=\"file\"; filename=\"food.jpg\"\r\n".data(using: .utf8)!)
-                body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
-                body.append(imageData)
-                body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
-
-                request.httpBody = body
-
-                // Request göndər
-                let (data, response) = try await URLSession.shared.data(for: request)
-
-                guard let httpResponse = response as? HTTPURLResponse else {
-                    throw NSError(domain: "Invalid response", code: 0)
-                }
-
-                // Debug log
-                if let rawJSON = String(data: data.prefix(500), encoding: .utf8) {
-                    print("📥 AI Response (\(httpResponse.statusCode)): \(rawJSON)")
-                }
-
-                if httpResponse.statusCode == 401 {
-                    // Token expired - refresh et
-                    let refreshed = await refreshAndRetryAnalysis(imageData: imageData)
-                    if !refreshed {
-                        throw NSError(domain: "unauthorized", code: 401)
-                    }
-                    return
-                }
-
-                if httpResponse.statusCode != 200 {
-                    let detail = try? JSONDecoder().decode(ErrorDetail.self, from: data)
-                    throw NSError(domain: detail?.detail ?? "Server xətası", code: httpResponse.statusCode)
-                }
-
-                // Response parse et
-                let result = try JSONDecoder().decode(AIFoodAnalysisResponse.self, from: data)
+                // On-device CoreML pipeline istifadə et (backend-ə göndərmir!)
+                // AICalorieService: CoreML (YOLOv8 + EfficientNet + USDA DB) → backend fallback
+                let result = try await AICalorieService.shared.analyzeFood(image: image)
 
                 await MainActor.run {
-                    if result.success {
-                        // Qida adı
-                        if let directName = result.food_name, !directName.isEmpty {
-                            self.foodName = directName
-                        } else if let foods = result.foods, !foods.isEmpty {
-                            self.foodName = foods.map { $0.name }.joined(separator: ", ")
-                        } else {
-                            self.foodName = "Analiz edilmiş qida"
-                        }
-
-                        // Kalori və makro dəyərləri
-                        self.calories = "\(result.calories ?? result.total_calories ?? 0)"
-                        self.protein = String(format: "%.1f", result.protein ?? result.total_protein ?? 0.0)
-                        self.carbs = String(format: "%.1f", result.carbs ?? result.total_carbs ?? 0.0)
-                        self.fats = String(format: "%.1f", result.fats ?? result.total_fats ?? 0.0)
-
-                        // Confidence və portion
-                        self.analysisConfidence = result.confidence ?? 0.0
-                        self.analysisPortionSize = result.portion_size ?? ""
-
-                        withAnimation {
-                            self.isAnalyzing = false
-                            self.analysisComplete = true
-                        }
-                        print("✅ AI Analysis uğurlu: \(self.foodName) - \(self.calories) kcal")
+                    // Qida adı
+                    if !result.foods.isEmpty {
+                        self.foodName = result.foods.map { $0.name }.joined(separator: ", ")
                     } else {
-                        self.isAnalyzing = false
-                        self.errorMessage = result.error ?? "Analiz uğursuz oldu."
-                        self.showError = true
+                        self.foodName = "Analiz edilmiş qida"
                     }
+
+                    // Kalori və makro dəyərləri
+                    self.calories = "\(Int(result.totalCalories))"
+                    self.protein = String(format: "%.1f", result.totalProtein)
+                    self.carbs = String(format: "%.1f", result.totalCarbs)
+                    self.fats = String(format: "%.1f", result.totalFat)
+
+                    // Confidence
+                    self.analysisConfidence = result.confidence
+                    self.analysisPortionSize = result.foods.first.map { "\(Int($0.portionGrams))g" } ?? ""
+
+                    withAnimation {
+                        self.isAnalyzing = false
+                        self.analysisComplete = true
+                    }
+                    print("✅ AI Analysis uğurlu: \(self.foodName) - \(self.calories) kcal (confidence: \(Int(result.confidence * 100))%)")
                 }
 
             } catch {
                 await MainActor.run {
                     self.isAnalyzing = false
-                    let errorDesc = error.localizedDescription
-                    let nsError = error as NSError
-
-                    if nsError.domain == "unauthorized" || nsError.code == 401 {
-                        self.errorMessage = "Giriş səhvi. Yenidən daxil olun"
-                    } else if errorDesc.contains("network") || errorDesc.contains("internet") || errorDesc.contains("timed out") {
-                        self.errorMessage = "Şəbəkə bağlantısı yoxdur. İnternet bağlantınızı yoxlayın"
-                    } else if nsError.code == 422 {
-                        self.errorMessage = "Şəkil tanınmadı. Başqa şəkil çəkin"
-                    } else {
-                        self.errorMessage = "Server xətası. Zəhmət olmasa sonra cəhd edin"
-                    }
+                    self.errorMessage = error.localizedDescription
                     self.showError = true
                     print("❌ AI Analysis Error: \(error)")
                 }
@@ -853,80 +777,6 @@ struct AddFoodView: View {
         }
     }
 
-    /// Token expired olduqda refresh edib yenidən cəhd edir
-    private func refreshAndRetryAnalysis(imageData: Data) async -> Bool {
-        guard let refreshToken = KeychainManager.shared.refreshToken else { return false }
-
-        do {
-            // Refresh token
-            guard let url = URL(string: "\(APIService.shared.baseURL)/api/v1/auth/refresh") else { return false }
-            var refreshReq = URLRequest(url: url)
-            refreshReq.httpMethod = "POST"
-            refreshReq.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            refreshReq.httpBody = try JSONSerialization.data(withJSONObject: ["refresh_token": refreshToken])
-
-            let (refreshData, refreshResponse) = try await URLSession.shared.data(for: refreshReq)
-            guard let httpResp = refreshResponse as? HTTPURLResponse, httpResp.statusCode == 200 else { return false }
-
-            let authResp = try JSONDecoder().decode(AuthResponse.self, from: refreshData)
-            KeychainManager.shared.accessToken = authResp.accessToken
-            KeychainManager.shared.refreshToken = authResp.refreshToken
-
-            // Yeni token ilə yenidən analiz et
-            let boundary = UUID().uuidString
-            var retryReq = URLRequest(url: URL(string: "\(APIService.shared.baseURL)/api/v1/food/analyze")!)
-            retryReq.httpMethod = "POST"
-            retryReq.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-            retryReq.setValue("Bearer \(authResp.accessToken)", forHTTPHeaderField: "Authorization")
-            retryReq.timeoutInterval = 60
-
-            var body = Data()
-            body.append("--\(boundary)\r\n".data(using: .utf8)!)
-            body.append("Content-Disposition: form-data; name=\"file\"; filename=\"food.jpg\"\r\n".data(using: .utf8)!)
-            body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
-            body.append(imageData)
-            body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
-            retryReq.httpBody = body
-
-            let (data, response) = try await URLSession.shared.data(for: retryReq)
-            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else { return false }
-
-            let result = try JSONDecoder().decode(AIFoodAnalysisResponse.self, from: data)
-
-            await MainActor.run {
-                if result.success {
-                    if let directName = result.food_name, !directName.isEmpty {
-                        self.foodName = directName
-                    } else if let foods = result.foods, !foods.isEmpty {
-                        self.foodName = foods.map { $0.name }.joined(separator: ", ")
-                    }
-                    self.calories = "\(result.calories ?? result.total_calories ?? 0)"
-                    self.protein = String(format: "%.1f", result.protein ?? result.total_protein ?? 0.0)
-                    self.carbs = String(format: "%.1f", result.carbs ?? result.total_carbs ?? 0.0)
-                    self.fats = String(format: "%.1f", result.fats ?? result.total_fats ?? 0.0)
-                    self.analysisConfidence = result.confidence ?? 0.0
-                    self.analysisPortionSize = result.portion_size ?? ""
-
-                    withAnimation {
-                        self.isAnalyzing = false
-                        self.analysisComplete = true
-                    }
-                } else {
-                    self.isAnalyzing = false
-                    self.errorMessage = result.error ?? "Analiz uğursuz oldu."
-                    self.showError = true
-                }
-            }
-            return true
-        } catch {
-            await MainActor.run {
-                self.isAnalyzing = false
-                self.errorMessage = "Sessiya bitib. Yenidən giriş edin."
-                self.showError = true
-            }
-            return false
-        }
-    }
 }
 
 // MARK: - AI Food Analysis Response

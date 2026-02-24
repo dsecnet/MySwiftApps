@@ -1,12 +1,13 @@
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, desc
 
 from app.database import get_db
 from app.models.user import User
 from app.models.workout import Workout
 from app.models.food_entry import FoodEntry, MealType
+from app.models.daily_survey import DailySurvey
 from app.schemas.food import FoodEntryResponse
 from app.utils.security import get_current_user, get_premium_user
 from app.services.ai_service import analyze_food_image, get_user_recommendations
@@ -105,6 +106,27 @@ async def get_recommendations(
     )
     f = food_result.one()
 
+    # Son daily survey-i al (eger varsa)
+    survey_result = await db.execute(
+        select(DailySurvey)
+        .where(DailySurvey.user_id == current_user.id)
+        .order_by(desc(DailySurvey.date))
+        .limit(1)
+    )
+    latest_survey = survey_result.scalar_one_or_none()
+
+    survey_data = None
+    if latest_survey:
+        survey_data = {
+            "energy_level": latest_survey.energy_level,
+            "sleep_hours": latest_survey.sleep_hours,
+            "sleep_quality": latest_survey.sleep_quality,
+            "stress_level": latest_survey.stress_level,
+            "muscle_soreness": latest_survey.muscle_soreness,
+            "mood": latest_survey.mood,
+            "water_glasses": latest_survey.water_glasses,
+        }
+
     user_data = {
         "ad": current_user.name,
         "yas": current_user.age,
@@ -124,6 +146,7 @@ async def get_recommendations(
             "umumi_yag": float(f[4]),
             "gunluk_ortalama_kalori": int(f[1]) // 7 if f[1] else 0,
         },
+        "survey_data": survey_data,
     }
 
     recommendations = await get_user_recommendations(user_data)

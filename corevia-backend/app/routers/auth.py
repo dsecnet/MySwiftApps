@@ -108,11 +108,7 @@ async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)):
         email=user_data.email,
         hashed_password=hash_password(user_data.password),
         user_type=user_data.user_type,
-        verification_status=(
-            VerificationStatus.pending
-            if user_data.user_type == UserType.trainer
-            else VerificationStatus.verified
-        ),
+        verification_status=VerificationStatus.verified,
     )
     db.add(new_user)
     await db.flush()
@@ -561,10 +557,32 @@ async def delete_account(
     Hesabı silir.
 
     1. Şifrə təsdiqlənir
-    2. Əlaqəli data-lar silinir (workouts, food_entries, settings)
+    2. Bütün əlaqəli tablolar silinir (FK constraint-lər üçün)
     3. Trainer-dirsə, tələbələrin trainer_id-si null olur
     4. User tamamilə silinir (hard delete)
     """
+    from sqlalchemy import update, delete, or_, select
+
+    # Model imports
+    from app.models.social import Post, PostLike, PostComment, Follow, Achievement
+    from app.models.analytics import DailyStats, WeeklyStats, BodyMeasurement
+    from app.models.daily_survey import DailySurvey
+    from app.models.live_session import (
+        LiveSession, SessionParticipant, SessionExercise,
+        ParticipantExercise, SessionStats, PoseDetectionLog
+    )
+    from app.models.notification import Notification, DeviceToken
+    from app.models.subscription import Subscription
+    from app.models.chat import ChatMessage, DailyMessageCount
+    from app.models.review import Review
+    from app.models.content import TrainerContent
+    from app.models.route import Route
+    from app.models.onboarding import UserOnboarding
+    from app.models.news import NewsBookmark
+    from app.models.otp import OTPCode
+    from app.models.marketplace import MarketplaceProduct, ProductPurchase, ProductReview
+    from app.models.training_plan import TrainingPlan, PlanWorkout
+    from app.models.meal_plan import MealPlan, MealPlanItem
 
     if not verify_password(request.password, current_user.hashed_password):
         raise HTTPException(
@@ -575,20 +593,151 @@ async def delete_account(
     user_id = current_user.id
     user_type = current_user.user_type
 
-    # Trainer-dirsə, tələbələrin trainer_id-sini null et
-    if user_type == UserType.trainer:
-        from sqlalchemy import update
+    try:
+        # ── 1. Trainer-dirsə, tələbələrin trainer_id-sini null et ──
+        if user_type == UserType.trainer:
+            await db.execute(
+                update(User).where(User.trainer_id == user_id).values(trainer_id=None)
+            )
+
+        # ── 2. Live Session child tablolar (ən dərin FK-lar əvvəl) ──
+        # PoseDetectionLog & ParticipantExercise → SessionParticipant-a bağlıdır
+        participant_ids_subq = select(SessionParticipant.id).where(
+            SessionParticipant.user_id == user_id
+        ).scalar_subquery()
+        await db.execute(delete(PoseDetectionLog).where(
+            PoseDetectionLog.participant_id.in_(participant_ids_subq)
+        ))
+        await db.execute(delete(ParticipantExercise).where(
+            ParticipantExercise.participant_id.in_(participant_ids_subq)
+        ))
+        await db.execute(delete(SessionParticipant).where(
+            SessionParticipant.user_id == user_id
+        ))
+
+        # Trainer-in session-ları (əvvəl child-ları sil)
+        if user_type == UserType.trainer:
+            trainer_session_ids = select(LiveSession.id).where(
+                LiveSession.trainer_id == user_id
+            ).scalar_subquery()
+
+            # Session child tabloları
+            trainer_participant_ids = select(SessionParticipant.id).where(
+                SessionParticipant.session_id.in_(trainer_session_ids)
+            ).scalar_subquery()
+            await db.execute(delete(PoseDetectionLog).where(
+                PoseDetectionLog.participant_id.in_(trainer_participant_ids)
+            ))
+            await db.execute(delete(ParticipantExercise).where(
+                ParticipantExercise.participant_id.in_(trainer_participant_ids)
+            ))
+            await db.execute(delete(SessionParticipant).where(
+                SessionParticipant.session_id.in_(trainer_session_ids)
+            ))
+            await db.execute(delete(SessionStats).where(
+                SessionStats.session_id.in_(trainer_session_ids)
+            ))
+            await db.execute(delete(SessionExercise).where(
+                SessionExercise.session_id.in_(trainer_session_ids)
+            ))
+            await db.execute(delete(LiveSession).where(
+                LiveSession.trainer_id == user_id
+            ))
+
+        # ── 3. Social tablolar ──
+        await db.execute(delete(PostLike).where(PostLike.user_id == user_id))
+        await db.execute(delete(PostComment).where(PostComment.user_id == user_id))
+        # Postun like/comment-ləri də silinməli (başqalarının bu user-in postlarına yazdığı)
+        user_post_ids = select(Post.id).where(Post.user_id == user_id).scalar_subquery()
+        await db.execute(delete(PostLike).where(PostLike.post_id.in_(user_post_ids)))
+        await db.execute(delete(PostComment).where(PostComment.post_id.in_(user_post_ids)))
+        await db.execute(delete(Post).where(Post.user_id == user_id))
+        await db.execute(delete(Follow).where(
+            or_(Follow.follower_id == user_id, Follow.following_id == user_id)
+        ))
+        await db.execute(delete(Achievement).where(Achievement.user_id == user_id))
+
+        # ── 4. Analytics ──
+        await db.execute(delete(DailySurvey).where(DailySurvey.user_id == user_id))
+        await db.execute(delete(DailyStats).where(DailyStats.user_id == user_id))
+        await db.execute(delete(WeeklyStats).where(WeeklyStats.user_id == user_id))
+        await db.execute(delete(BodyMeasurement).where(BodyMeasurement.user_id == user_id))
+
+        # ── 5. Marketplace (child → parent) ──
+        await db.execute(delete(ProductReview).where(ProductReview.buyer_id == user_id))
+        await db.execute(delete(ProductPurchase).where(ProductPurchase.buyer_id == user_id))
+        if user_type == UserType.trainer:
+            # Trainer-in məhsullarının review/purchase-ları da silinməli
+            seller_product_ids = select(MarketplaceProduct.id).where(
+                MarketplaceProduct.seller_id == user_id
+            ).scalar_subquery()
+            await db.execute(delete(ProductReview).where(
+                ProductReview.product_id.in_(seller_product_ids)
+            ))
+            await db.execute(delete(ProductPurchase).where(
+                ProductPurchase.product_id.in_(seller_product_ids)
+            ))
+            await db.execute(delete(MarketplaceProduct).where(
+                MarketplaceProduct.seller_id == user_id
+            ))
+
+        # ── 6. Training/Meal Plans (child → parent) ──
+        trainer_plan_ids = select(TrainingPlan.id).where(
+            or_(TrainingPlan.trainer_id == user_id, TrainingPlan.assigned_student_id == user_id)
+        ).scalar_subquery()
+        await db.execute(delete(PlanWorkout).where(
+            PlanWorkout.training_plan_id.in_(trainer_plan_ids)
+        ))
+        await db.execute(delete(TrainingPlan).where(
+            or_(TrainingPlan.trainer_id == user_id, TrainingPlan.assigned_student_id == user_id)
+        ))
+
+        meal_plan_ids = select(MealPlan.id).where(
+            or_(MealPlan.trainer_id == user_id, MealPlan.assigned_student_id == user_id)
+        ).scalar_subquery()
+        await db.execute(delete(MealPlanItem).where(
+            MealPlanItem.meal_plan_id.in_(meal_plan_ids)
+        ))
+        await db.execute(delete(MealPlan).where(
+            or_(MealPlan.trainer_id == user_id, MealPlan.assigned_student_id == user_id)
+        ))
+
+        # ── 7. Digər tablolar ──
+        await db.execute(delete(Notification).where(Notification.user_id == user_id))
+        await db.execute(delete(DeviceToken).where(DeviceToken.user_id == user_id))
+        await db.execute(delete(Subscription).where(Subscription.user_id == user_id))
+        await db.execute(delete(ChatMessage).where(
+            or_(ChatMessage.sender_id == user_id, ChatMessage.receiver_id == user_id)
+        ))
+        await db.execute(delete(DailyMessageCount).where(DailyMessageCount.user_id == user_id))
+        await db.execute(delete(Review).where(
+            or_(Review.trainer_id == user_id, Review.student_id == user_id)
+        ))
+        await db.execute(delete(TrainerContent).where(TrainerContent.trainer_id == user_id))
+        # Route-un 2 FK-sı var: user_id və assigned_by_id
         await db.execute(
-            update(User).where(User.trainer_id == user_id).values(trainer_id=None)
+            update(Route).where(Route.assigned_by_id == user_id).values(assigned_by_id=None)
         )
+        await db.execute(delete(Route).where(Route.user_id == user_id))
+        await db.execute(delete(UserOnboarding).where(UserOnboarding.user_id == user_id))
+        await db.execute(delete(NewsBookmark).where(NewsBookmark.user_id == user_id))
+        await db.execute(delete(OTPCode).where(OTPCode.email == current_user.email))
 
-    # User-i sil (cascade ilə workouts, food_entries, settings də silinəcək)
-    await db.delete(current_user)
-    await db.commit()
+        # ── 8. User-i sil (cascade ilə workouts, food_entries, settings də silinəcək) ──
+        await db.delete(current_user)
+        await db.commit()
 
-    logger.info(f"Account permanently deleted for user: {user_id} (type: {user_type})")
+        logger.info(f"Account permanently deleted for user: {user_id} (type: {user_type})")
 
-    return {
-        "success": True,
-        "message": "Hesab uğurla silindi"
-    }
+        return {
+            "success": True,
+            "message": "Hesab uğurla silindi"
+        }
+
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Account deletion failed for user {user_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Hesab silinərkən xəta baş verdi. Yenidən cəhd edin."
+        )

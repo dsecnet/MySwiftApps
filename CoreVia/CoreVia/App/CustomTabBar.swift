@@ -246,11 +246,11 @@ struct MoreMenuSheet: View {
 
                 // Menu Items with reflection cards
                 VStack(spacing: 16) {
-                    // Activities / Content
+                    // Activities / Trainer Hub
                     MoreMenuItem(
-                        icon: isTrainer ? "doc.richtext" : "figure.run",
-                        title: isTrainer ? loc.localized("content_title") : loc.localized("activities_title"),
-                        description: isTrainer ? loc.localized("content_subtitle") : loc.localized("activities_subtitle"),
+                        icon: isTrainer ? "square.grid.2x2.fill" : "figure.run",
+                        title: isTrainer ? loc.localized("trainer_hub_title") : loc.localized("activities_title"),
+                        description: isTrainer ? loc.localized("trainer_hub_subtitle") : loc.localized("activities_subtitle"),
                         gradient: [AppTheme.Colors.accent, AppTheme.Colors.accentDark]
                     ) {
                         selectedTab = 4

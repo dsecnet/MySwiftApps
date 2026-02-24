@@ -25,12 +25,6 @@ class Settings(BaseSettings):
     aws_bucket_name: str = "corevia-uploads"
     aws_region: str = "eu-central-1"
 
-    # OpenAI (deprecated — Claude istifade olunur)
-    openai_api_key: str = ""
-
-    # Anthropic Claude AI
-    anthropic_api_key: str = ""
-
     # Redis
     redis_url: str = "redis://localhost:6379/0"
 

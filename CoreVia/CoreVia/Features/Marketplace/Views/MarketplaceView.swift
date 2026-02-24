@@ -6,7 +6,7 @@ struct MarketplaceView: View {
     @ObservedObject private var loc = LocalizationManager.shared
     @State private var selectedProductType: String = "all"
 
-    let productTypes = ["all", "workout_plan", "meal_plan", "ebook", "consultation"]
+    let productTypes = ["all", "workout_plan", "meal_plan", "training_program", "ebook", "video_course"]
 
     var body: some View {
         NavigationStack {
@@ -224,8 +224,10 @@ struct ProductCard: View {
             return "fork.knife"
         case "ebook":
             return "book.closed"
-        case "consultation":
-            return "person.2"
+        case "training_program":
+            return "figure.run"
+        case "video_course":
+            return "play.rectangle"
         default:
             return "bag"
         }

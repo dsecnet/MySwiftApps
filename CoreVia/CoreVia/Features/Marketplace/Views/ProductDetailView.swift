@@ -310,7 +310,8 @@ struct ProductDetailView: View {
         case "workout_plan": return "figure.strengthtraining.traditional"
         case "meal_plan": return "fork.knife"
         case "ebook": return "book.closed"
-        case "consultation": return "person.2"
+        case "training_program": return "figure.run"
+        case "video_course": return "play.rectangle"
         default: return "bag"
         }
     }

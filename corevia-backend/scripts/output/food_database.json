@@ -1,0 +1,538 @@
+{
+  "plov": {
+    "calories": 180,
+    "protein": 5.5,
+    "carbs": 25.0,
+    "fat": 7.0,
+    "portion_g": 350,
+    "portion_desc": "1 boşqab (~350g)"
+  },
+  "dolma": {
+    "calories": 135,
+    "protein": 8.0,
+    "carbs": 10.0,
+    "fat": 7.5,
+    "portion_g": 250,
+    "portion_desc": "5-6 ədəd (~250g)"
+  },
+  "qutab": {
+    "calories": 210,
+    "protein": 7.0,
+    "carbs": 28.0,
+    "fat": 8.0,
+    "portion_g": 200,
+    "portion_desc": "2 ədəd (~200g)"
+  },
+  "dusbere": {
+    "calories": 120,
+    "protein": 8.5,
+    "carbs": 14.0,
+    "fat": 3.5,
+    "portion_g": 300,
+    "portion_desc": "1 kasa (~300g)"
+  },
+  "dovga": {
+    "calories": 45,
+    "protein": 3.0,
+    "carbs": 5.0,
+    "fat": 1.5,
+    "portion_g": 300,
+    "portion_desc": "1 kasa (~300g)"
+  },
+  "lule kebab": {
+    "calories": 220,
+    "protein": 18.0,
+    "carbs": 2.0,
+    "fat": 16.0,
+    "portion_g": 250,
+    "portion_desc": "1 porsiya (~250g)"
+  },
+  "kebab": {
+    "calories": 250,
+    "protein": 20.0,
+    "carbs": 1.0,
+    "fat": 18.0,
+    "portion_g": 200,
+    "portion_desc": "1 porsiya (~200g)"
+  },
+  "tikke kebab": {
+    "calories": 190,
+    "protein": 22.0,
+    "carbs": 1.5,
+    "fat": 10.0,
+    "portion_g": 200,
+    "portion_desc": "1 porsiya (~200g)"
+  },
+  "lavangi": {
+    "calories": 170,
+    "protein": 15.0,
+    "carbs": 8.0,
+    "fat": 9.0,
+    "portion_g": 250,
+    "portion_desc": "1 porsiya (~250g)"
+  },
+  "xengel": {
+    "calories": 130,
+    "protein": 7.0,
+    "carbs": 18.0,
+    "fat": 3.0,
+    "portion_g": 300,
+    "portion_desc": "1 kasa (~300g)"
+  },
+  "sac ici": {
+    "calories": 160,
+    "protein": 12.0,
+    "carbs": 8.0,
+    "fat": 9.0,
+    "portion_g": 300,
+    "portion_desc": "1 porsiya (~300g)"
+  },
+  "piti": {
+    "calories": 130,
+    "protein": 10.0,
+    "carbs": 12.0,
+    "fat": 5.0,
+    "portion_g": 400,
+    "portion_desc": "1 kasa (~400g)"
+  },
+  "dushbara": {
+    "calories": 120,
+    "protein": 8.5,
+    "carbs": 14.0,
+    "fat": 3.5,
+    "portion_g": 300,
+    "portion_desc": "1 kasa (~300g)"
+  },
+  "bozartma": {
+    "calories": 145,
+    "protein": 12.0,
+    "carbs": 6.0,
+    "fat": 8.0,
+    "portion_g": 300,
+    "portion_desc": "1 porsiya (~300g)"
+  },
+  "sabzi plov": {
+    "calories": 160,
+    "protein": 4.0,
+    "carbs": 22.0,
+    "fat": 6.0,
+    "portion_g": 350,
+    "portion_desc": "1 boşqab (~350g)"
+  },
+  "sogan dolma": {
+    "calories": 110,
+    "protein": 5.0,
+    "carbs": 12.0,
+    "fat": 5.0,
+    "portion_g": 200,
+    "portion_desc": "3-4 ədəd (~200g)"
+  },
+  "tendir coregi": {
+    "calories": 290,
+    "protein": 8.0,
+    "carbs": 55.0,
+    "fat": 3.0,
+    "portion_g": 100,
+    "portion_desc": "1 tikə (~100g)"
+  },
+  "lavash": {
+    "calories": 270,
+    "protein": 9.0,
+    "carbs": 52.0,
+    "fat": 2.5,
+    "portion_g": 80,
+    "portion_desc": "1 ədəd (~80g)"
+  },
+  "fetir": {
+    "calories": 320,
+    "protein": 7.0,
+    "carbs": 42.0,
+    "fat": 14.0,
+    "portion_g": 100,
+    "portion_desc": "1 tikə (~100g)"
+  },
+  "pakhlava": {
+    "calories": 400,
+    "protein": 8.0,
+    "carbs": 45.0,
+    "fat": 22.0,
+    "portion_g": 80,
+    "portion_desc": "2 tikə (~80g)"
+  },
+  "şekerbura": {
+    "calories": 380,
+    "protein": 7.0,
+    "carbs": 48.0,
+    "fat": 18.0,
+    "portion_g": 70,
+    "portion_desc": "2 ədəd (~70g)"
+  },
+  "qogal": {
+    "calories": 350,
+    "protein": 6.0,
+    "carbs": 40.0,
+    "fat": 18.0,
+    "portion_g": 80,
+    "portion_desc": "1 ədəd (~80g)"
+  },
+  "firni": {
+    "calories": 130,
+    "protein": 4.0,
+    "carbs": 22.0,
+    "fat": 3.0,
+    "portion_g": 200,
+    "portion_desc": "1 kasa (~200g)"
+  },
+  "cay": {
+    "calories": 2,
+    "protein": 0.0,
+    "carbs": 0.5,
+    "fat": 0.0,
+    "portion_g": 200,
+    "portion_desc": "1 stəkan (~200ml)"
+  },
+  "kompot": {
+    "calories": 45,
+    "protein": 0.2,
+    "carbs": 11.0,
+    "fat": 0.0,
+    "portion_g": 250,
+    "portion_desc": "1 stəkan (~250ml)"
+  },
+  "ayran": {
+    "calories": 40,
+    "protein": 2.0,
+    "carbs": 3.0,
+    "fat": 2.0,
+    "portion_g": 250,
+    "portion_desc": "1 stəkan (~250ml)"
+  },
+  "rice": {
+    "calories": 130,
+    "protein": 2.7,
+    "carbs": 28.0,
+    "fat": 0.3,
+    "portion_g": 200,
+    "portion_desc": "1 plate (~200g)"
+  },
+  "pasta": {
+    "calories": 160,
+    "protein": 5.8,
+    "carbs": 31.0,
+    "fat": 0.9,
+    "portion_g": 250,
+    "portion_desc": "1 plate (~250g)"
+  },
+  "bread": {
+    "calories": 265,
+    "protein": 9.0,
+    "carbs": 49.0,
+    "fat": 3.2,
+    "portion_g": 50,
+    "portion_desc": "1 slice (~50g)"
+  },
+  "chicken breast": {
+    "calories": 165,
+    "protein": 31.0,
+    "carbs": 0.0,
+    "fat": 3.6,
+    "portion_g": 180,
+    "portion_desc": "1 piece (~180g)"
+  },
+  "chicken": {
+    "calories": 200,
+    "protein": 25.0,
+    "carbs": 0.0,
+    "fat": 11.0,
+    "portion_g": 200,
+    "portion_desc": "1 portion (~200g)"
+  },
+  "beef": {
+    "calories": 250,
+    "protein": 26.0,
+    "carbs": 0.0,
+    "fat": 15.0,
+    "portion_g": 200,
+    "portion_desc": "1 portion (~200g)"
+  },
+  "fish": {
+    "calories": 120,
+    "protein": 22.0,
+    "carbs": 0.0,
+    "fat": 3.0,
+    "portion_g": 180,
+    "portion_desc": "1 fillet (~180g)"
+  },
+  "salmon": {
+    "calories": 208,
+    "protein": 20.0,
+    "carbs": 0.0,
+    "fat": 13.0,
+    "portion_g": 170,
+    "portion_desc": "1 fillet (~170g)"
+  },
+  "egg": {
+    "calories": 155,
+    "protein": 13.0,
+    "carbs": 1.1,
+    "fat": 11.0,
+    "portion_g": 60,
+    "portion_desc": "1 egg (~60g)"
+  },
+  "eggs": {
+    "calories": 155,
+    "protein": 13.0,
+    "carbs": 1.1,
+    "fat": 11.0,
+    "portion_g": 120,
+    "portion_desc": "2 eggs (~120g)"
+  },
+  "steak": {
+    "calories": 270,
+    "protein": 26.0,
+    "carbs": 0.0,
+    "fat": 18.0,
+    "portion_g": 200,
+    "portion_desc": "1 steak (~200g)"
+  },
+  "salad": {
+    "calories": 20,
+    "protein": 1.5,
+    "carbs": 3.5,
+    "fat": 0.2,
+    "portion_g": 200,
+    "portion_desc": "1 bowl (~200g)"
+  },
+  "caesar salad": {
+    "calories": 95,
+    "protein": 7.0,
+    "carbs": 5.0,
+    "fat": 5.5,
+    "portion_g": 250,
+    "portion_desc": "1 bowl (~250g)"
+  },
+  "tomato": {
+    "calories": 18,
+    "protein": 0.9,
+    "carbs": 3.9,
+    "fat": 0.2,
+    "portion_g": 150,
+    "portion_desc": "1 tomato (~150g)"
+  },
+  "cucumber": {
+    "calories": 15,
+    "protein": 0.6,
+    "carbs": 3.6,
+    "fat": 0.1,
+    "portion_g": 150,
+    "portion_desc": "1 cucumber (~150g)"
+  },
+  "potato": {
+    "calories": 77,
+    "protein": 2.0,
+    "carbs": 17.0,
+    "fat": 0.1,
+    "portion_g": 200,
+    "portion_desc": "1 potato (~200g)"
+  },
+  "french fries": {
+    "calories": 312,
+    "protein": 3.4,
+    "carbs": 41.0,
+    "fat": 15.0,
+    "portion_g": 150,
+    "portion_desc": "1 portion (~150g)"
+  },
+  "apple": {
+    "calories": 52,
+    "protein": 0.3,
+    "carbs": 14.0,
+    "fat": 0.2,
+    "portion_g": 180,
+    "portion_desc": "1 apple (~180g)"
+  },
+  "banana": {
+    "calories": 89,
+    "protein": 1.1,
+    "carbs": 23.0,
+    "fat": 0.3,
+    "portion_g": 120,
+    "portion_desc": "1 banana (~120g)"
+  },
+  "orange": {
+    "calories": 47,
+    "protein": 0.9,
+    "carbs": 12.0,
+    "fat": 0.1,
+    "portion_g": 150,
+    "portion_desc": "1 orange (~150g)"
+  },
+  "watermelon": {
+    "calories": 30,
+    "protein": 0.6,
+    "carbs": 7.6,
+    "fat": 0.2,
+    "portion_g": 300,
+    "portion_desc": "1 slice (~300g)"
+  },
+  "milk": {
+    "calories": 42,
+    "protein": 3.4,
+    "carbs": 5.0,
+    "fat": 1.0,
+    "portion_g": 250,
+    "portion_desc": "1 glass (~250ml)"
+  },
+  "yogurt": {
+    "calories": 60,
+    "protein": 3.5,
+    "carbs": 5.0,
+    "fat": 3.3,
+    "portion_g": 200,
+    "portion_desc": "1 cup (~200g)"
+  },
+  "cheese": {
+    "calories": 350,
+    "protein": 25.0,
+    "carbs": 1.3,
+    "fat": 27.0,
+    "portion_g": 30,
+    "portion_desc": "1 slice (~30g)"
+  },
+  "pizza": {
+    "calories": 266,
+    "protein": 11.0,
+    "carbs": 33.0,
+    "fat": 10.0,
+    "portion_g": 120,
+    "portion_desc": "1 slice (~120g)"
+  },
+  "hamburger": {
+    "calories": 295,
+    "protein": 17.0,
+    "carbs": 24.0,
+    "fat": 14.0,
+    "portion_g": 200,
+    "portion_desc": "1 burger (~200g)"
+  },
+  "sandwich": {
+    "calories": 250,
+    "protein": 12.0,
+    "carbs": 28.0,
+    "fat": 10.0,
+    "portion_g": 180,
+    "portion_desc": "1 sandwich (~180g)"
+  },
+  "hot dog": {
+    "calories": 290,
+    "protein": 10.0,
+    "carbs": 24.0,
+    "fat": 17.0,
+    "portion_g": 150,
+    "portion_desc": "1 hot dog (~150g)"
+  },
+  "sushi": {
+    "calories": 140,
+    "protein": 6.0,
+    "carbs": 20.0,
+    "fat": 3.5,
+    "portion_g": 200,
+    "portion_desc": "6 pieces (~200g)"
+  },
+  "coffee": {
+    "calories": 2,
+    "protein": 0.3,
+    "carbs": 0.0,
+    "fat": 0.0,
+    "portion_g": 240,
+    "portion_desc": "1 cup (~240ml)"
+  },
+  "latte": {
+    "calories": 67,
+    "protein": 3.4,
+    "carbs": 5.0,
+    "fat": 3.5,
+    "portion_g": 350,
+    "portion_desc": "1 cup (~350ml)"
+  },
+  "orange juice": {
+    "calories": 45,
+    "protein": 0.7,
+    "carbs": 10.0,
+    "fat": 0.2,
+    "portion_g": 250,
+    "portion_desc": "1 glass (~250ml)"
+  },
+  "cola": {
+    "calories": 42,
+    "protein": 0.0,
+    "carbs": 10.6,
+    "fat": 0.0,
+    "portion_g": 330,
+    "portion_desc": "1 can (~330ml)"
+  },
+  "water": {
+    "calories": 0,
+    "protein": 0.0,
+    "carbs": 0.0,
+    "fat": 0.0,
+    "portion_g": 250,
+    "portion_desc": "1 glass (~250ml)"
+  },
+  "chips": {
+    "calories": 536,
+    "protein": 7.0,
+    "carbs": 53.0,
+    "fat": 33.0,
+    "portion_g": 50,
+    "portion_desc": "1 bag (~50g)"
+  },
+  "chocolate": {
+    "calories": 546,
+    "protein": 5.0,
+    "carbs": 60.0,
+    "fat": 31.0,
+    "portion_g": 40,
+    "portion_desc": "1 bar (~40g)"
+  },
+  "ice cream": {
+    "calories": 207,
+    "protein": 3.5,
+    "carbs": 24.0,
+    "fat": 11.0,
+    "portion_g": 100,
+    "portion_desc": "1 scoop (~100g)"
+  },
+  "cake": {
+    "calories": 350,
+    "protein": 4.0,
+    "carbs": 50.0,
+    "fat": 15.0,
+    "portion_g": 100,
+    "portion_desc": "1 slice (~100g)"
+  },
+  "oatmeal": {
+    "calories": 68,
+    "protein": 2.5,
+    "carbs": 12.0,
+    "fat": 1.4,
+    "portion_g": 250,
+    "portion_desc": "1 bowl (~250g)"
+  },
+  "protein shake": {
+    "calories": 120,
+    "protein": 24.0,
+    "carbs": 5.0,
+    "fat": 1.5,
+    "portion_g": 350,
+    "portion_desc": "1 shake (~350ml)"
+  },
+  "nuts": {
+    "calories": 607,
+    "protein": 20.0,
+    "carbs": 21.0,
+    "fat": 54.0,
+    "portion_g": 30,
+    "portion_desc": "1 handful (~30g)"
+  }
+}

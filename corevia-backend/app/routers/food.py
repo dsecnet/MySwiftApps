@@ -30,6 +30,8 @@ async def create_food_entry(
         meal_type=food_data.meal_type,
         date=food_data.date or datetime.utcnow(),
         notes=food_data.notes,
+        ai_analyzed=food_data.ai_analyzed,
+        ai_confidence=food_data.ai_confidence,
     )
     db.add(entry)
     await db.flush()

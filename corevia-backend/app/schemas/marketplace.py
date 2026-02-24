@@ -39,12 +39,14 @@ class ProductCreate(BaseModel):
     @classmethod
     def sanitize_text(cls, v: str) -> str:
         """Prevent XSS - OWASP A03:2021"""
-        # Remove potential XSS characters
-        dangerous_chars = ['<', '>', '"', "'", '&', ';']
+        # Yalniz HTML injection simvollarini yoxla (apostrof ve dırnaq icaze verilir)
+        dangerous_chars = ['<', '>']
         for char in dangerous_chars:
             if char in v:
                 raise ValueError(f"Invalid character detected: {char}")
-        return v.strip()
+        # HTML entity encode (XSS prevention)
+        import html
+        return html.escape(v.strip(), quote=False)
 
 
 class ProductUpdate(BaseModel):
@@ -60,11 +62,12 @@ class ProductUpdate(BaseModel):
         """Prevent XSS"""
         if v is None:
             return v
-        dangerous_chars = ['<', '>', '"', "'", '&', ';']
+        dangerous_chars = ['<', '>']
         for char in dangerous_chars:
             if char in v:
                 raise ValueError(f"Invalid character detected: {char}")
-        return v.strip()
+        import html
+        return html.escape(v.strip(), quote=False)
 
 
 class ProductAuthor(BaseModel):
@@ -171,7 +174,7 @@ class ProductReviewCreate(BaseModel):
         """Prevent XSS"""
         if v is None:
             return v
-        dangerous_chars = ['<', '>', '"', "'", '&', ';']
+        dangerous_chars = ['<', '>']
         for char in dangerous_chars:
             if char in v:
                 raise ValueError(f"Invalid character detected: {char}")

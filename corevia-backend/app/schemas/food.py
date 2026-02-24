@@ -12,6 +12,9 @@ class FoodEntryCreate(BaseModel):
     meal_type: MealType
     date: datetime | None = None
     notes: str | None = Field(None, max_length=1000)
+    # On-device AI analiz nəticəsi olduqda iOS tərəfindən göndərilir
+    ai_analyzed: bool = False
+    ai_confidence: float | None = Field(None, ge=0.0, le=1.0)
 
 
 class FoodEntryUpdate(BaseModel):

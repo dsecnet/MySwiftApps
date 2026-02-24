@@ -1,40 +1,44 @@
 """
-AI Food Analysis Service - Anthropic Claude Vision API Integration
+AI Food Analysis Service — Local ML (YOLOv8 + EfficientNet + USDA)
 
-Analyzes food images using Claude Sonnet Vision to extract:
-- Food name
-- Calories
-- Protein, Carbs, Fats
-- Portion size estimation
+Sekildeki yemeleri analiz edir:
+1. YOLOv8 ile deteksiya (bbox)
+2. EfficientNet ile classify
+3. USDA Database ile beslenme deyerleri
 
-Claude Vision daha deqiq neticeler verir, xususen Azerbaycan yemeleri ucun.
+Xarici AI API (Claude, OpenAI vs.) istifade ETMIR — tam local ML.
 """
 
-import base64
-import json
+import io
 import logging
 from typing import Dict
-import httpx
-from app.config import get_settings
+
+from PIL import Image
 
 logger = logging.getLogger(__name__)
-settings = get_settings()
 
 
 class AIFoodService:
-    """
-    Anthropic Claude Vision-based food analysis service
-    """
+    """Local ML-based food analysis service"""
 
     def __init__(self):
-        self.api_key = settings.anthropic_api_key
-        self.model = "claude-sonnet-4-20250514"
-        self.api_url = "https://api.anthropic.com/v1/messages"
-        self._has_valid_key = bool(
-            self.api_key
-            and not self.api_key.startswith("your-")
-            and len(self.api_key) > 20
-        )
+        self._detector = None
+        self._classifier = None
+        self._food_db = None
+
+    def _ensure_loaded(self):
+        """Lazy-load ML components"""
+        if self._detector is None:
+            from app.ml.food_detector import FoodDetector
+            self._detector = FoodDetector()
+
+        if self._classifier is None:
+            from app.ml.food_classifier import FoodClassifier
+            self._classifier = FoodClassifier()
+
+        if self._food_db is None:
+            from app.ml.food_database import food_database
+            self._food_db = food_database
 
     async def analyze_food_image(
         self,
@@ -43,193 +47,151 @@ class AIFoodService:
         media_type: str = "image/jpeg"
     ) -> Dict:
         """
-        Analyze food image and return nutritional information
+        Sekildeki yemekleri analiz et — Local ML Pipeline:
+        1. YOLOv8 detect → bbox-lar
+        2. EfficientNet classify → yemek adlari
+        3. USDA DB lookup → kalori/makro deyerleri
+        4. Aggregate → total response
+
+        Response formati eskisi ile eynidir (iOS uygunlugu qorunur).
         """
-
-        if not self._has_valid_key:
-            logger.warning("Anthropic API key not configured, using mock data")
-            return self._mock_analysis()
-
         try:
-            prompts = {
-                "az": """Sekildeki qidani tehlil et. Eger sekilde qida gorunmurse, confidence: 0.0 qaytar.
+            self._ensure_loaded()
 
-YALNIZ bu JSON formatinda cavab ver, basqa hec ne yazma:
-{
-  "food_name": "qida adi (azerbaycanca)",
-  "calories": kalori miqdari (tam eded),
-  "protein": protein qramla (onluq),
-  "carbs": karbohidrat qramla (onluq),
-  "fats": yag qramla (onluq),
-  "portion_size": "texmini porsiya olcusu (qram ile)",
-  "confidence": 0.0-1.0 arasi inam derecesi
-}
-
-Qaydalar:
-- Kalori ve makrolari porsiya olcusune gore hesabla
-- Azerbaycan yemeklerini (plov, dolma, qutab, dusbere, dovga, lulekebab ve s.) deqiq tani
-- Porsiya olcusunu qram ile goster (mes: "1 bosqab (~350g)")
-- Eger bir nece yemek varsa, hamisini birlikde hesabla
-- Eger sekil bulaniq ve ya qida deyilse, confidence asagi olsun""",
-
-                "en": """Analyze the food in the image. If no food is visible, return confidence: 0.0.
-
-Respond ONLY with this JSON format, nothing else:
-{
-  "food_name": "food name",
-  "calories": calorie count (integer),
-  "protein": protein in grams (decimal),
-  "carbs": carbohydrates in grams (decimal),
-  "fats": fat in grams (decimal),
-  "portion_size": "approximate portion size with grams",
-  "confidence": confidence level 0.0-1.0
-}""",
-
-                "tr": """Resimdeki yiyecegi analiz et. Yemek yoksa confidence: 0.0 dondur.
-
-YALNIZCA bu JSON formatinda yanit ver:
-{
-  "food_name": "yemek adi (Turkce)",
-  "calories": kalori miktari (tam sayi),
-  "protein": protein gram (ondalik),
-  "carbs": karbonhidrat gram (ondalik),
-  "fats": yag gram (ondalik),
-  "portion_size": "yaklasik porsiyon boyutu (gram ile)",
-  "confidence": 0.0-1.0 arasi guven seviyesi
-}""",
-
-                "ru": """Proanaliziruj edu na izobrazhenii. Esli eda ne vidna, verni confidence: 0.0.
-
-Otvet TOLKO v etom JSON formate:
-{
-  "food_name": "nazvanie blyuda (na russkom)",
-  "calories": kolichestvo kalorij (celoe chislo),
-  "protein": belok v grammah (desyatichnoe),
-  "carbs": uglevody v grammah (desyatichnoe),
-  "fats": zhiry v grammah (desyatichnoe),
-  "portion_size": "primernyj razmer porcii (v grammah)",
-  "confidence": uroven uverennosti 0.0-1.0
-}"""
-            }
-
-            prompt = prompts.get(language, prompts["az"])
-
-            if media_type not in ("image/jpeg", "image/png", "image/gif", "image/webp"):
-                media_type = "image/jpeg"
-
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.post(
-                    self.api_url,
-                    headers={
-                        "x-api-key": self.api_key,
-                        "anthropic-version": "2023-06-01",
-                        "content-type": "application/json",
-                    },
-                    json={
-                        "model": self.model,
-                        "max_tokens": 500,
-                        "messages": [
-                            {
-                                "role": "user",
-                                "content": [
-                                    {
-                                        "type": "image",
-                                        "source": {
-                                            "type": "base64",
-                                            "media_type": media_type,
-                                            "data": image_base64,
-                                        }
-                                    },
-                                    {
-                                        "type": "text",
-                                        "text": prompt,
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                )
-
-            if response.status_code != 200:
-                error_text = response.text[:300]
-                logger.error(f"Anthropic API error {response.status_code}: {error_text}")
-
-                # Kredit balansı problemi
-                if "credit balance" in error_text.lower() or "billing" in error_text.lower():
-                    return {
-                        "success": False,
-                        "error": "AI xidməti müvəqqəti əlçatmazdır. Zəhmət olmasa sonra yenidən cəhd edin."
-                    }
-
+            # Base64 → bytes
+            import base64
+            try:
+                image_bytes = base64.b64decode(image_base64)
+            except Exception:
                 return {
                     "success": False,
-                    "error": f"AI servisi cavab vermedi (status: {response.status_code})"
+                    "error": "Sekil decode edilmedi. Duzgun base64 gonderin."
                 }
 
-            data = response.json()
-            content = data["content"][0]["text"].strip()
+            # Validate image
+            try:
+                img = Image.open(io.BytesIO(image_bytes))
+                if img.size[0] < 50 or img.size[1] < 50:
+                    return {
+                        "success": False,
+                        "error": "Sekil cox kicikdir. Daha boyuk sekil yukleyin."
+                    }
+            except Exception:
+                return {
+                    "success": False,
+                    "error": "Sekil acilmadi. Duzgun format gonderin (JPEG/PNG)."
+                }
 
-            # Extract JSON from markdown code blocks
-            if "```json" in content:
-                content = content.split("```json")[1].split("```")[0].strip()
-            elif "```" in content:
-                content = content.split("```")[1].split("```")[0].strip()
+            # Step 1: YOLOv8 Food Detection
+            detections = self._detector.detect_foods(image_bytes)
 
-            result = json.loads(content)
+            if not detections:
+                return {
+                    "success": False,
+                    "error": "Sekilde qida askar edilmedi."
+                }
 
-            confidence = float(result.get("confidence", 0))
-            if confidence < 0.3:
+            # Step 2+3: Classify each detection + USDA lookup
+            foods_found = []
+            total_calories = 0
+            total_protein = 0.0
+            total_carbs = 0.0
+            total_fats = 0.0
+            total_confidence = 0.0
+
+            for det in detections:
+                crop_image = det.get("crop")
+                det_confidence = det.get("confidence", 0.5)
+
+                if crop_image is None:
+                    continue
+
+                # EfficientNet classify
+                classification = self._classifier.classify(crop_image)
+                food_name = classification.get("display_name", "Food")
+                cls_confidence = classification.get("confidence", 0.5)
+
+                # USDA database lookup
+                nutrition = self._food_db.get_nutrition(food_name)
+
+                if nutrition:
+                    foods_found.append({
+                        "name": nutrition["food_name"],
+                        "calories": nutrition["calories"],
+                        "protein": nutrition["protein"],
+                        "carbs": nutrition["carbs"],
+                        "fats": nutrition["fat"],
+                        "portion_size": nutrition["portion_desc"],
+                    })
+
+                    total_calories += nutrition["calories"]
+                    total_protein += nutrition["protein"]
+                    total_carbs += nutrition["carbs"]
+                    total_fats += nutrition["fat"]
+
+                    # Orta confidence: detection * classification * db_match
+                    db_conf = nutrition.get("confidence", 0.7)
+                    combined_conf = det_confidence * cls_confidence * db_conf
+                    total_confidence += combined_conf
+
+            if not foods_found:
                 return {
                     "success": False,
                     "error": "Sekilde qida askar edilmedi ve ya analiz etmek mumkun olmadi."
                 }
 
+            # Average confidence
+            avg_confidence = total_confidence / len(foods_found) if foods_found else 0.5
+
+            # Confidence cap (0.95 max — hec vaxt 100% emin olma)
+            avg_confidence = min(avg_confidence, 0.95)
+
+            # Combine food names
+            food_names = ", ".join(f["name"] for f in foods_found)
+
+            # Porsiya olcusu (birden cox yemek varsa aggregate)
+            if len(foods_found) == 1:
+                portion_size = foods_found[0]["portion_size"]
+            else:
+                total_g = sum(
+                    self._food_db.get_nutrition(f["name"]).get("portion_g", 200)
+                    for f in foods_found
+                )
+                portion_size = f"{len(foods_found)} yemek (~{total_g}g)"
+
             return {
                 "success": True,
-                "food_name": result.get("food_name", "Namelum Qida"),
-                "calories": int(result.get("calories", 0)),
-                "protein": round(float(result.get("protein", 0.0)), 1),
-                "carbs": round(float(result.get("carbs", 0.0)), 1),
-                "fats": round(float(result.get("fats", 0.0)), 1),
-                "portion_size": result.get("portion_size", "Standart"),
-                "confidence": round(confidence, 2)
-            }
-
-        except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse Claude response: {e}")
-            return {
-                "success": False,
-                "error": "AI cavabi emal edilmedi. Yeniden cehd edin."
-            }
-
-        except httpx.TimeoutException:
-            logger.error("Anthropic API timeout")
-            return {
-                "success": False,
-                "error": "AI servisi cavab vermedi. Yeniden cehd edin."
+                "food_name": food_names,
+                "calories": total_calories,
+                "protein": round(total_protein, 1),
+                "carbs": round(total_carbs, 1),
+                "fats": round(total_fats, 1),
+                "portion_size": portion_size,
+                "confidence": round(avg_confidence, 2),
+                "foods_detail": foods_found,
             }
 
         except Exception as e:
-            logger.error(f"AI food analysis error: {e}")
+            logger.error(f"ML food analysis xetasi: {e}", exc_info=True)
             return {
                 "success": False,
                 "error": "AI analizi ugursuz oldu. Yeniden cehd edin."
             }
 
     def _mock_analysis(self) -> Dict:
-        """Mock analysis for testing without API key"""
+        """Test ucun mock data (ML model yuklenmeyende)"""
         import random
 
         mock_foods = [
-            {"name": "Plov", "cal": 450, "p": 18.0, "c": 55.0, "f": 15.0, "portion": "1 bosqab (~350g)"},
-            {"name": "Dusbere", "cal": 320, "p": 22.0, "c": 38.0, "f": 9.0, "portion": "1 kasa (~300g)"},
-            {"name": "Qutab (et)", "cal": 280, "p": 12.0, "c": 35.0, "f": 11.0, "portion": "2 eded (~200g)"},
-            {"name": "Lule kebab", "cal": 350, "p": 38.0, "c": 5.0, "f": 18.0, "portion": "1 porsiya (~250g)"},
-            {"name": "Salat", "cal": 120, "p": 4.0, "c": 12.0, "f": 6.0, "portion": "1 qab (~200g)"},
+            {"name": "Plov", "cal": 630, "p": 19.3, "c": 87.5, "f": 24.5, "portion": "1 boşqab (~350g)"},
+            {"name": "Düşbərə", "cal": 360, "p": 25.5, "c": 42.0, "f": 10.5, "portion": "1 kasa (~300g)"},
+            {"name": "Qutab", "cal": 420, "p": 14.0, "c": 56.0, "f": 16.0, "portion": "2 ədəd (~200g)"},
+            {"name": "Lule Kebab", "cal": 550, "p": 45.0, "c": 5.0, "f": 40.0, "portion": "1 porsiya (~250g)"},
+            {"name": "Salad", "cal": 40, "p": 3.0, "c": 7.0, "f": 0.4, "portion": "1 qab (~200g)"},
         ]
 
         food = random.choice(mock_foods)
-        logger.info("MOCK MODE: AI Food Analysis (API key not set)")
+        logger.info("MOCK MODE: ML Food Analysis (model yuklenmeyib)")
 
         return {
             "success": True,
@@ -240,7 +202,7 @@ Otvet TOLKO v etom JSON formate:
             "fats": food["f"],
             "portion_size": food["portion"],
             "confidence": 0.85,
-            "is_mock": True
+            "is_mock": True,
         }
 
 

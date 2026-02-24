@@ -5,13 +5,13 @@ import Foundation
 struct MarketplaceProduct: Identifiable, Codable {
     let id: String
     let sellerId: String
-    let productType: String  // workout_plan, meal_plan, ebook, consultation
+    let productType: String  // workout_plan, meal_plan, training_program, ebook, video_course
     let title: String
     let description: String
     let price: Double
     let currency: String
     let coverImageUrl: String?
-    let isActive: Bool
+    let isPublished: Bool
     let createdAt: Date
     let updatedAt: Date
 
@@ -25,7 +25,7 @@ struct MarketplaceProduct: Identifiable, Codable {
         case sellerId = "seller_id"
         case productType = "product_type"
         case coverImageUrl = "cover_image_url"
-        case isActive = "is_active"
+        case isPublished = "is_published"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
         case seller
@@ -69,12 +69,12 @@ struct CreateProductRequest: Codable {
     let description: String
     let price: Double
     let currency: String
-    let isActive: Bool
+    let isPublished: Bool
 
     enum CodingKeys: String, CodingKey {
         case title, description, price, currency
         case productType = "product_type"
-        case isActive = "is_active"
+        case isPublished = "is_published"
     }
 }
 

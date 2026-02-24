@@ -12,7 +12,16 @@ class WebSocketService: NSObject, ObservableObject {
 
     private var webSocketTask: URLSessionWebSocketTask?
     private let sessionId: String
-    private let baseURL = "ws://localhost:8000"  // WebSocket URL
+
+    // APIService baseURL-dan WebSocket URL-i yarat
+    private var baseURL: String {
+        let httpURL = APIService.shared.baseURL
+        if httpURL.hasPrefix("https://") {
+            return httpURL.replacingOccurrences(of: "https://", with: "wss://")
+        } else {
+            return httpURL.replacingOccurrences(of: "http://", with: "ws://")
+        }
+    }
 
     // MARK: - Callbacks
 
@@ -31,7 +40,7 @@ class WebSocketService: NSObject, ObservableObject {
     // MARK: - Connection
 
     func connect() {
-        guard let token = UserDefaults.standard.string(forKey: "accessToken") else {
+        guard let token = KeychainManager.shared.accessToken else {
             print("❌ No auth token")
             return
         }

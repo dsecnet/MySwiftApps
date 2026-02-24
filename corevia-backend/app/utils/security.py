@@ -96,7 +96,8 @@ async def require_trainer(
     current_user: User = Depends(get_current_user),
 ) -> User:
     """Dependency: only trainers can access."""
-    if not current_user.is_trainer:
+    from app.models.user import UserType
+    if current_user.user_type != UserType.trainer:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Bu funksiya yalniz trainer-ler ucundur.",

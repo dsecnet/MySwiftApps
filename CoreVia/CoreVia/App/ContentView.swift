@@ -13,10 +13,9 @@ struct ContentView: View {
         return !hasSeenPermissions
     }
 
-    /// Trainer login olub amma hele verified deyilse → verifikasiya sehifesini goster
+    /// Trainer verification deaktiv — trainer birbaşa app-a daxil olur
     private var needsTrainerVerification: Bool {
-        guard let user = authManager.currentUser else { return false }
-        return user.userType == "trainer" && user.verificationStatus != "verified"
+        return false
     }
 
     /// Client onboarding tamamlanıb mı? (yalnız server state-ə əsasən)
@@ -145,7 +144,7 @@ struct MainTabView: View {
                 case 4:
                     NavigationStack {
                         if isTrainer {
-                            TrainerContentView()
+                            TrainerHubView()
                                 .navigationTitle("")
                         } else {
                             ActivitiesView()

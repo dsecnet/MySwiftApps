@@ -11,6 +11,14 @@ struct HomeView: View {
     // FIX E: NEW - Overall statistics sheet
     @State private var showOverallStatistics: Bool = false
 
+    // AI ML Recommendation — backend-den gelen tovsiye
+    @State private var backendRecommendation: AIRecommendation?
+    @State private var isLoadingAIRec = false
+
+    // Daily Survey
+    @State private var showDailySurvey = false
+    @State private var isSurveyCompleted = false
+
     var body: some View {
         ZStack {
             // FIX 10: Remove ignoresSafeArea to prevent overlap
@@ -48,6 +56,51 @@ struct HomeView: View {
                         )
                     }
                     
+                    // MARK: - Daily Survey Prompt
+                    if !isSurveyCompleted {
+                        Button(action: { showDailySurvey = true }) {
+                            HStack(spacing: 12) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.blue.opacity(0.15))
+                                        .frame(width: 42, height: 42)
+                                    Image(systemName: "list.clipboard.fill")
+                                        .font(.system(size: 18))
+                                        .foregroundColor(.blue)
+                                }
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(loc.localized("daily_survey_prompt"))
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(AppTheme.Colors.primaryText)
+                                    Text(loc.localized("daily_survey_prompt_desc"))
+                                        .font(.system(size: 11))
+                                        .foregroundColor(AppTheme.Colors.secondaryText)
+                                }
+
+                                Spacer()
+
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(AppTheme.Colors.tertiaryText)
+                            }
+                            .padding(12)
+                            .background(
+                                LinearGradient(
+                                    colors: [Color.blue.opacity(0.05), Color.blue.opacity(0.1)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .cornerRadius(AppTheme.CornerRadius.md)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: AppTheme.CornerRadius.md)
+                                    .stroke(Color.blue.opacity(0.2), lineWidth: 1)
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+
                     // MARK: - Daily Goal (Real Progress)
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
@@ -145,7 +198,7 @@ struct HomeView: View {
                         }
 
                         CompactQuickAction(
-                            title: "Statistika",
+                            title: loc.localized("home_statistics"),
                             icon: "chart.bar.fill"
                         ) {
                             showOverallStatistics = true
@@ -206,9 +259,34 @@ struct HomeView: View {
         .sheet(isPresented: $showOverallStatistics) {
             OverallStatisticsView()
         }
+        // Daily Survey sheet
+        .sheet(isPresented: $showDailySurvey) {
+            DailySurveyView()
+                .onDisappear {
+                    checkSurveyStatus()
+                }
+        }
+        .onAppear {
+            checkSurveyStatus()
+        }
     }
 
-    // MARK: - AI Recommendation Card
+    // MARK: - Survey Status Check
+    private func checkSurveyStatus() {
+        Task {
+            do {
+                let status = try await DailySurveyService.shared.getTodayStatus()
+                await MainActor.run {
+                    isSurveyCompleted = status.completed
+                }
+            } catch {
+                // Xeta olsa prompt gosterilsin
+                print("Survey status xetasi: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    // MARK: - AI Recommendation Card (Backend ML + lokal fallback)
     private var aiRecommendationCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
@@ -222,12 +300,17 @@ struct HomeView: View {
 
                 Spacer()
 
-                Image(systemName: "sparkles")
-                    .foregroundColor(.purple)
+                if isLoadingAIRec {
+                    ProgressView()
+                        .scaleEffect(0.7)
+                } else {
+                    Image(systemName: "sparkles")
+                        .foregroundColor(.purple)
+                }
             }
 
-            // Dynamic recommendation based on data
-            let recommendation = generateRecommendation()
+            // Backend ML tovsiyesi varsa onu goster, yoxsa lokal fallback
+            let recommendation = currentRecommendation()
 
             Text(recommendation.title)
                 .font(.system(size: 15, weight: .semibold))
@@ -265,9 +348,12 @@ struct HomeView: View {
             RoundedRectangle(cornerRadius: 14)
                 .stroke(Color.purple.opacity(0.2), lineWidth: 1)
         )
+        .onAppear {
+            loadBackendRecommendation()
+        }
     }
 
-    private struct AIRecommendation {
+    private struct HomeAIRec {
         let title: String
         let description: String
         let icon: String
@@ -275,14 +361,83 @@ struct HomeView: View {
         let category: String
     }
 
-    private func generateRecommendation() -> AIRecommendation {
+    /// Backend ML tovsiyesini yukle
+    private func loadBackendRecommendation() {
+        guard backendRecommendation == nil, !isLoadingAIRec else { return }
+        isLoadingAIRec = true
+        Task {
+            do {
+                let response = try await AIRecommendationService.shared.getRecommendations()
+                await MainActor.run {
+                    self.backendRecommendation = response.recommendations.first
+                    self.isLoadingAIRec = false
+                }
+            } catch {
+                await MainActor.run {
+                    self.isLoadingAIRec = false
+                    // Backend cavab vermese lokal fallback isleyecek
+                    print("AI Rec backend xetasi: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+
+    /// Backend ML varsa onu, yoxsa lokal fallback
+    private func currentRecommendation() -> HomeAIRec {
+        if let rec = backendRecommendation {
+            return HomeAIRec(
+                title: rec.title,
+                description: rec.description,
+                icon: rec.iconName ?? typeToIcon(rec.type),
+                color: typeToColor(rec.type),
+                category: typeToCategory(rec.type)
+            )
+        }
+        return generateLocalFallback()
+    }
+
+    private func typeToIcon(_ type: String) -> String {
+        switch type {
+        case "workout": return "figure.run"
+        case "meal": return "fork.knife"
+        case "hydration": return "drop.fill"
+        case "sleep": return "moon.fill"
+        case "rest": return "leaf.fill"
+        default: return "sparkles"
+        }
+    }
+
+    private func typeToColor(_ type: String) -> Color {
+        switch type {
+        case "workout": return AppTheme.Colors.accent
+        case "meal": return .orange
+        case "hydration": return .blue
+        case "sleep": return .purple
+        case "rest": return AppTheme.Colors.success
+        default: return AppTheme.Colors.accent
+        }
+    }
+
+    private func typeToCategory(_ type: String) -> String {
+        switch type {
+        case "workout": return loc.localized("task_type_workout")
+        case "meal": return loc.localized("task_type_nutrition")
+        case "hydration": return loc.localized("ai_rec_hydration")
+        case "sleep": return loc.localized("ai_rec_sleep")
+        case "rest": return loc.localized("ai_rec_rest")
+        default: return type.capitalized
+        }
+    }
+
+    /// Lokal fallback — backend cavab vermese (movcut meantiq qorunur)
+    private func generateLocalFallback() -> HomeAIRec {
         let todayWorkouts = workoutManager.todayWorkouts.count
         let _ = workoutManager.todayWorkouts.filter { $0.isCompleted }.count
         let progress = workoutManager.todayProgress
         let foodCalories = FoodManager.shared.todayTotalCalories
 
         if todayWorkouts == 0 {
-            return AIRecommendation(
+            return HomeAIRec(
                 title: loc.localized("ai_rec_no_workout_title"),
                 description: loc.localized("ai_rec_no_workout_desc"),
                 icon: "figure.walk",
@@ -290,7 +445,7 @@ struct HomeView: View {
                 category: loc.localized("task_type_workout")
             )
         } else if progress >= 1.0 {
-            return AIRecommendation(
+            return HomeAIRec(
                 title: loc.localized("ai_rec_goal_done_title"),
                 description: loc.localized("ai_rec_goal_done_desc"),
                 icon: "trophy.fill",
@@ -298,7 +453,7 @@ struct HomeView: View {
                 category: loc.localized("ai_rec_motivation")
             )
         } else if foodCalories < 500 {
-            return AIRecommendation(
+            return HomeAIRec(
                 title: loc.localized("ai_rec_eat_more_title"),
                 description: loc.localized("ai_rec_eat_more_desc"),
                 icon: "fork.knife",
@@ -306,7 +461,7 @@ struct HomeView: View {
                 category: loc.localized("task_type_nutrition")
             )
         } else {
-            return AIRecommendation(
+            return HomeAIRec(
                 title: loc.localized("ai_rec_keep_going_title"),
                 description: loc.localized("ai_rec_keep_going_desc"),
                 icon: "flame.fill",

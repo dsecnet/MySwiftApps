@@ -2,7 +2,7 @@
 Live Session Schemas - OWASP A03 Input Validation
 """
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 
@@ -25,9 +25,9 @@ class CreateLiveSessionRequest(BaseModel):
     """Create live session - OWASP A03 validation"""
     title: str = Field(..., min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=2000)
-    session_type: str = Field(..., regex="^(group|one_on_one|open)$")
+    session_type: str = Field(..., pattern="^(group|one_on_one|open)$")
     max_participants: int = Field(10, ge=1, le=100)
-    difficulty_level: str = Field(..., regex="^(beginner|intermediate|advanced)$")
+    difficulty_level: str = Field(..., pattern="^(beginner|intermediate|advanced)$")
     duration_minutes: int = Field(..., ge=15, le=180)
 
     scheduled_start: datetime
@@ -36,12 +36,13 @@ class CreateLiveSessionRequest(BaseModel):
     # Pricing
     is_paid: bool = False
     price: Optional[float] = Field(None, ge=0, le=1000)
-    currency: str = Field("USD", regex="^(USD|EUR|AZN)$")
+    currency: str = Field("USD", pattern="^(USD|EUR|AZN)$")
 
     # Workout plan
-    workout_plan: List[WorkoutExercise] = Field(..., min_items=1, max_items=50)
+    workout_plan: List[WorkoutExercise] = Field(..., min_length=1, max_length=50)
 
-    @validator('scheduled_start')
+    @field_validator('scheduled_start')
+    @classmethod
     def validate_start_time(cls, v):
         """Ensure session is scheduled in future"""
         if v < datetime.utcnow():
@@ -214,8 +215,8 @@ class PoseDetectionRequest(BaseModel):
     """Submit pose detection data"""
     exercise_id: str
     rep_number: int = Field(..., ge=1, le=1000)
-    keypoints: List[KeyPoint] = Field(..., min_items=1, max_items=50)
-    angles: List[JointAngle] = Field(..., min_items=1, max_items=20)
+    keypoints: List[KeyPoint] = Field(..., min_length=1, max_length=50)
+    angles: List[JointAngle] = Field(..., min_length=1, max_length=20)
     timestamp: datetime
 
 

@@ -916,7 +916,8 @@ class LocalizationManager: ObservableObject {
         "marketplace_workout_plan": [.az: "Məşq Planı", .en: "Workout Plan", .ru: "План тренировок"],
         "marketplace_meal_plan": [.az: "Qida Planı", .en: "Meal Plan", .ru: "План питания"],
         "marketplace_ebook": [.az: "E-Kitab", .en: "E-Book", .ru: "Электронная книга"],
-        "marketplace_consultation": [.az: "Məsləhət", .en: "Consultation", .ru: "Консультация"],
+        "marketplace_training_program": [.az: "Məşq Proqramı", .en: "Training Program", .ru: "Программа тренировок"],
+        "marketplace_video_course": [.az: "Video Kurs", .en: "Video Course", .ru: "Видеокурс"],
         "marketplace_no_products": [.az: "Məhsul tapılmadı", .en: "No products found", .ru: "Товары не найдены"],
         "marketplace_no_products_desc": [.az: "Bu kateqoriyada hələ məhsul yoxdur", .en: "No products in this category yet", .ru: "В этой категории пока нет товаров"],
         "marketplace_description": [.az: "Təsvir", .en: "Description", .ru: "Описание"],
@@ -987,6 +988,88 @@ class LocalizationManager: ObservableObject {
         "time_month_ago": [.az: "ay əvvəl", .en: "month ago", .ru: "месяц назад"],
         "time_months_ago": [.az: "ay əvvəl", .en: "months ago", .ru: "месяцев назад"],
         "time_year_ago": [.az: "il əvvəl", .en: "year ago", .ru: "год назад"],
-        "time_years_ago": [.az: "il əvvəl", .en: "years ago", .ru: "лет назад"],
+        "time_years_ago": [.az: "il \u{0259}vv\u{0259}l", .en: "years ago", .ru: "лет назад"],
+
+        // MARK: - Trainer Hub
+        "trainer_hub_title": [.az: "Trainer Hub", .en: "Trainer Hub", .ru: "Хаб тренера"],
+        "trainer_hub_subtitle": [.az: "Sessiyalar v\u{0259} m\u{0259}hsullar", .en: "Sessions & products", .ru: "Сессии и продукты"],
+        "trainer_hub_sessions": [.az: "Sessiyalar", .en: "Sessions", .ru: "Сессии"],
+        "trainer_hub_market": [.az: "Market", .en: "Market", .ru: "Маркет"],
+        "trainer_hub_no_sessions": [.az: "Sessiya yoxdur", .en: "No sessions", .ru: "Нет сессий"],
+        "trainer_hub_no_sessions_desc": [.az: "Yeni canl\u{0131} sessiya yarad\u{0131}n", .en: "Create a new live session", .ru: "Создайте новую сессию"],
+        "trainer_hub_create_session": [.az: "Sessiya yarat", .en: "Create Session", .ru: "Создать сессию"],
+        "trainer_hub_no_products": [.az: "M\u{0259}hsul yoxdur", .en: "No products", .ru: "Нет продуктов"],
+        "trainer_hub_no_products_desc": [.az: "Market\u{0259} m\u{0259}hsul \u{0259}lav\u{0259} edin", .en: "Add a product to marketplace", .ru: "Добавьте продукт на маркет"],
+        "trainer_hub_create_product": [.az: "M\u{0259}hsul yarat", .en: "Create Product", .ru: "Создать продукт"],
+
+        // MARK: - Create Product
+        "product_type": [.az: "M\u{0259}hsul tipi", .en: "Product type", .ru: "Тип продукта"],
+        "product_title_placeholder": [.az: "M\u{0259}hsul ad\u{0131}", .en: "Product name", .ru: "Название продукта"],
+        "product_description": [.az: "T\u{0259}svir", .en: "Description", .ru: "Описание"],
+        "product_price": [.az: "Qiym\u{0259}t", .en: "Price", .ru: "Цена"],
+        "product_currency": [.az: "Valyuta", .en: "Currency", .ru: "Валюта"],
+        "product_is_active": [.az: "Yay\u{0131}mla", .en: "Publish", .ru: "Опубликовать"],
+
+        // MARK: - AI Calorie Analysis
+        "ai_calorie_title": [.az: "AI Kalori Analizi", .en: "AI Calorie Analysis", .ru: "AI анализ калорий"],
+        "ai_calorie_header": [.az: "Qida foto analizi", .en: "Food photo analysis", .ru: "Фото анализ еды"],
+        "ai_calorie_desc": [.az: "\u{015E}\u{0259}kil \u{00E7}\u{0259}kin v\u{0259} ya se\u{00E7}in, backend ML analiz etsin", .en: "Take or select a photo, backend ML will analyze", .ru: "Сфотографируйте, ML проанализирует"],
+        "ai_calorie_camera": [.az: "Kamera", .en: "Camera", .ru: "Камера"],
+        "ai_calorie_gallery": [.az: "Qalereya", .en: "Gallery", .ru: "Галерея"],
+        "ai_calorie_change_photo": [.az: "\u{015E}\u{0259}kli d\u{0259}yi\u{015F}", .en: "Change photo", .ru: "Сменить фото"],
+        "ai_calorie_analyze": [.az: "Analiz et", .en: "Analyze", .ru: "Анализировать"],
+        "ai_calorie_analyzing": [.az: "ML analiz edir...", .en: "ML analyzing...", .ru: "ML анализирует..."],
+        "ai_calorie_detected_foods": [.az: "A\u{015F}kar edilmi\u{015F} qidalar", .en: "Detected foods", .ru: "Обнаруженные продукты"],
+        "ai_calorie_confidence": [.az: "D\u{0259}qiqlik", .en: "Confidence", .ru: "Точность"],
+
+        // MARK: - AI Recommendation
+        "ai_recommendation_title": [.az: "AI T\u{00F6}vsiy\u{0259}l\u{0259}r", .en: "AI Recommendations", .ru: "AI рекомендации"],
+        "ai_recommendation_empty": [.az: "T\u{00F6}vsiy\u{0259} yoxdur", .en: "No recommendations", .ru: "Нет рекомендаций"],
+        "ai_recommendation_empty_desc": [.az: "M\u{0259}\u{015F}q v\u{0259} qidalanma m\u{0259}lumatlar\u{0131}n\u{0131}z\u{0131} daxil edin", .en: "Enter your workout and nutrition data", .ru: "Введите данные о тренировках и питании"],
+        "ai_rec_all": [.az: "Ham\u{0131}s\u{0131}", .en: "All", .ru: "Все"],
+        "ai_rec_workout": [.az: "M\u{0259}\u{015F}q", .en: "Workout", .ru: "Тренировка"],
+        "ai_rec_meal": [.az: "Qida", .en: "Meal", .ru: "Питание"],
+        "ai_rec_hydration": [.az: "Su", .en: "Hydration", .ru: "Гидратация"],
+        "ai_rec_sleep": [.az: "Yuxu", .en: "Sleep", .ru: "Сон"],
+        "ai_rec_rest": [.az: "\u{0130}stirahat", .en: "Rest", .ru: "Отдых"],
+
+        // MARK: - AI Calorie History
+        "ai_calorie_history_title": [.az: "Analiz Tarix\u{00E7}\u{0259}si", .en: "Analysis History", .ru: "История анализов"],
+        "ai_calorie_history_empty": [.az: "Tarix\u{00E7}\u{0259} bo\u{015F}dur", .en: "No history yet", .ru: "Истории пока нет"],
+        "ai_calorie_history_empty_desc": [.az: "Qida \u{015F}\u{0259}kli analiz etdikd\u{0259} burada g\u{00F6}r\u{00FC}n\u{0259}c\u{0259}k", .en: "Analyses will appear here", .ru: "Анализы появятся здесь"],
+
+        // MARK: - Home Statistics
+        "home_statistics": [.az: "Statistika", .en: "Statistics", .ru: "Статистика"],
+
+        // MARK: - Daily Survey
+        "daily_survey_title": [.az: "G\u{00FC}nd\u{0259}lik Yoxlama", .en: "Daily Check-in", .ru: "Ежедневная проверка"],
+        "daily_survey_prompt": [.az: "G\u{00FC}nd\u{0259}lik v\u{0259}ziyy\u{0259}tini bildir", .en: "How are you feeling today?", .ru: "Как вы себя чувствуете?"],
+        "daily_survey_prompt_desc": [.az: "Daha yax\u{015F}\u{0131} t\u{00F6}vsiy\u{0259}l\u{0259}r \u{00FC}\u{00E7}\u{00FC}n cavabla", .en: "Answer for better recommendations", .ru: "Ответьте для лучших рекомендаций"],
+        "daily_survey_energy": [.az: "Enerji s\u{0259}viyy\u{0259}si", .en: "Energy Level", .ru: "Уровень энергии"],
+        "daily_survey_energy_desc": [.az: "Bu g\u{00FC}n \u{00F6}z\u{00FC}n\u{00FC} nec\u{0259} hiss edirs\u{0259}n?", .en: "How are you feeling today?", .ru: "Как вы себя чувствуете сегодня?"],
+        "daily_survey_sleep": [.az: "Yuxu saat\u{0131}", .en: "Sleep Hours", .ru: "Часы сна"],
+        "daily_survey_sleep_desc": [.az: "D\u{00FC}n\u{0259}n gec\u{0259} ne\u{00E7}\u{0259} saat yatd\u{0131}n?", .en: "How many hours did you sleep?", .ru: "Сколько часов вы спали?"],
+        "daily_survey_sleep_quality": [.az: "Yuxu keyfiyy\u{0259}ti", .en: "Sleep Quality", .ru: "Качество сна"],
+        "daily_survey_sleep_quality_desc": [.az: "Yuxunun keyfiyy\u{0259}ti nec\u{0259} idi?", .en: "How was your sleep quality?", .ru: "Как было качество сна?"],
+        "daily_survey_stress": [.az: "Stress s\u{0259}viyy\u{0259}si", .en: "Stress Level", .ru: "Уровень стресса"],
+        "daily_survey_stress_desc": [.az: "Stress s\u{0259}viyy\u{0259}n nec\u{0259}dir?", .en: "What's your stress level?", .ru: "Каков ваш уровень стресса?"],
+        "daily_survey_soreness": [.az: "\u{018F}z\u{0259}l\u{0259} a\u{011F}r\u{0131}s\u{0131}", .en: "Muscle Soreness", .ru: "Мышечная боль"],
+        "daily_survey_soreness_desc": [.az: "\u{018F}z\u{0259}l\u{0259} a\u{011F}r\u{0131}n var?", .en: "Any muscle soreness?", .ru: "Есть мышечная боль?"],
+        "daily_survey_mood": [.az: "\u{018F}hval", .en: "Mood", .ru: "Настроение"],
+        "daily_survey_mood_desc": [.az: "\u{00DC}mumi \u{0259}hval\u{0131}n nec\u{0259}dir?", .en: "How's your overall mood?", .ru: "Какое у вас настроение?"],
+        "daily_survey_water": [.az: "Su q\u{0259}bulu", .en: "Water Intake", .ru: "Потребление воды"],
+        "daily_survey_water_desc": [.az: "Bu g\u{00FC}n ne\u{00E7}\u{0259} st\u{0259}kan su i\u{00E7}din?", .en: "How many glasses of water today?", .ru: "Сколько стаканов воды сегодня?"],
+        "daily_survey_hours": [.az: "saat", .en: "hours", .ru: "часов"],
+        "daily_survey_submit": [.az: "G\u{00F6}nd\u{0259}r", .en: "Submit", .ru: "Отправить"],
+        "daily_survey_completed": [.az: "Bug\u{00FC}nk\u{00FC} yoxlama tamamland\u{0131}", .en: "Today's check-in done", .ru: "Проверка на сегодня завершена"],
+        "daily_survey_completed_desc": [.az: "Cavablar\u{0131}n\u{0131}z n\u{0259}z\u{0259}r\u{0259} al\u{0131}nacaq", .en: "Your answers will be considered", .ru: "Ваши ответы будут учтены"],
+
+        // MARK: - Live Sessions Payment
+        "live_sessions_pay_join": [.az: "\u{00D6}d\u{0259} v\u{0259} Qo\u{015F}ul", .en: "Pay & Join", .ru: "Оплатить и присоединиться"],
+        "live_sessions_pay_confirm": [.az: "Bu sessiyaya qo\u{015F}ulmaq \u{00FC}\u{00E7}\u{00FC}n \u{00F6}d\u{0259}ni\u{015F} laz\u{0131}md\u{0131}r", .en: "Payment required to join this session", .ru: "Для присоединения требуется оплата"],
+
+        // MARK: - AI Recommendation (priority badge)
+        "ai_rec_important": [.az: "Vacib", .en: "Important", .ru: "Важно"],
+
     ]
 }

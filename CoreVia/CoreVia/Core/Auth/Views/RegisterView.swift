@@ -21,6 +21,14 @@ struct RegisterView: View {
     @State private var currentStep: Int = 1 // 1: Form, 2: OTP Verification
     @State private var otpCode: String = ""
 
+    // Trainer extra fields
+    @State private var instagram: String = ""
+    @State private var selectedSpecialization: String = "Fitness"
+    @State private var experience: Int = 1
+    @State private var bio: String = ""
+
+    let specializations = ["Fitness", "Yoga", "Kardio", "Güc", "Qidalanma"]
+
     @ObservedObject private var loc = LocalizationManager.shared
 
     enum UserType: String, CaseIterable {
@@ -66,6 +74,12 @@ struct RegisterView: View {
                             titleSection
                             userTypeSelection
                             inputFields
+
+                            // Trainer əlavə sahələri
+                            if userType == .trainer {
+                                trainerExtraFields
+                            }
+
                             termsCheckbox
 
                             if showError {
@@ -226,6 +240,131 @@ struct RegisterView: View {
         }
     }
     
+    // MARK: - Trainer Extra Fields
+    private var trainerExtraFields: some View {
+        VStack(spacing: 14) {
+            // Instagram
+            VStack(alignment: .leading, spacing: 6) {
+                Label("Instagram", systemImage: "camera.circle")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(AppTheme.Colors.primaryText)
+                    .padding(.horizontal, 20)
+
+                HStack(spacing: 10) {
+                    Text("@")
+                        .foregroundColor(AppTheme.Colors.accent)
+                        .font(.system(size: 16, weight: .bold))
+
+                    TextField("instagram_username", text: $instagram)
+                        .foregroundColor(AppTheme.Colors.primaryText)
+                        .autocapitalization(.none)
+                        .font(.system(size: 14))
+                }
+                .padding()
+                .background(AppTheme.Colors.secondaryBackground)
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(instagram.isEmpty ? AppTheme.Colors.separator : AppTheme.Colors.accent.opacity(0.5), lineWidth: 1)
+                )
+                .padding(.horizontal, 20)
+            }
+
+            // İxtisas
+            VStack(alignment: .leading, spacing: 6) {
+                Label("İxtisas", systemImage: "star.fill")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(AppTheme.Colors.primaryText)
+                    .padding(.horizontal, 20)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(specializations, id: \.self) { spec in
+                            Button {
+                                withAnimation(.spring()) {
+                                    selectedSpecialization = spec
+                                }
+                            } label: {
+                                Text(spec)
+                                    .font(.system(size: 12, weight: selectedSpecialization == spec ? .bold : .medium))
+                                    .foregroundColor(selectedSpecialization == spec ? .white : AppTheme.Colors.primaryText)
+                                    .padding(.horizontal, 14)
+                                    .padding(.vertical, 8)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .fill(selectedSpecialization == spec ? AppTheme.Colors.accent : AppTheme.Colors.secondaryBackground)
+                                    )
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                }
+            }
+
+            // Təcrübə
+            VStack(alignment: .leading, spacing: 6) {
+                Label("Təcrübə", systemImage: "clock.fill")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(AppTheme.Colors.primaryText)
+                    .padding(.horizontal, 20)
+
+                HStack {
+                    Text("\(experience) il")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(AppTheme.Colors.primaryText)
+                        .frame(width: 50)
+
+                    Slider(value: Binding(
+                        get: { Double(experience) },
+                        set: { experience = Int($0) }
+                    ), in: 1...30, step: 1)
+                    .tint(AppTheme.Colors.accent)
+                }
+                .padding()
+                .background(AppTheme.Colors.secondaryBackground)
+                .cornerRadius(12)
+                .padding(.horizontal, 20)
+            }
+
+            // Bio
+            VStack(alignment: .leading, spacing: 6) {
+                Label("Haqqınızda", systemImage: "text.alignleft")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(AppTheme.Colors.primaryText)
+                    .padding(.horizontal, 20)
+
+                TextEditor(text: $bio)
+                    .foregroundColor(AppTheme.Colors.primaryText)
+                    .font(.system(size: 14))
+                    .frame(height: 80)
+                    .padding(8)
+                    .background(AppTheme.Colors.secondaryBackground)
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(AppTheme.Colors.separator, lineWidth: 1)
+                    )
+                    .overlay(alignment: .topLeading) {
+                        if bio.isEmpty {
+                            Text("Özünüz haqqında qısa məlumat yazın...")
+                                .foregroundColor(AppTheme.Colors.secondaryText.opacity(0.5))
+                                .font(.system(size: 14))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 16)
+                                .allowsHitTesting(false)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+
+                Text("\(bio.count)/500")
+                    .font(.system(size: 11))
+                    .foregroundColor(bio.count > 500 ? AppTheme.Colors.error : AppTheme.Colors.secondaryText)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .padding(.horizontal, 20)
+            }
+        }
+    }
+
     // MARK: - Password Strength
     private var passwordStrengthIndicator: some View {
         VStack(spacing: 6) {
@@ -611,7 +750,11 @@ struct RegisterView: View {
                     "email": email.trimmingCharacters(in: .whitespaces).lowercased(),
                     "password": password,
                     "user_type": "trainer",
-                    "otp_code": "" // Empty OTP for trainers
+                    "otp_code": "",
+                    "instagram": instagram.trimmingCharacters(in: .whitespaces),
+                    "specialization": selectedSpecialization,
+                    "experience_years": experience,
+                    "bio": bio.trimmingCharacters(in: .whitespaces)
                 ]
                 request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
