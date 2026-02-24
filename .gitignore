@@ -1,0 +1,5 @@
+# Large ML weights
+CoreVia/CoreVia/Resources/ML/FoodClassifier.mlpackage/Data/com.apple.CoreML/weights/weight.bin
+
+# Python virtual environments
+corevia-backend/.venv311/
