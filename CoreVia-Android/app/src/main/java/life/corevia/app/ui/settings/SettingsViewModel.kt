@@ -1,138 +1,181 @@
 package life.corevia.app.ui.settings
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
+import android.content.Context
+import android.content.SharedPreferences
+import android.os.Build
+import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import life.corevia.app.data.api.ApiClient
-import life.corevia.app.data.api.ErrorParser
-import life.corevia.app.data.api.TokenManager
-import life.corevia.app.data.models.ChangePasswordRequest
-import life.corevia.app.data.models.DeleteAccountRequest
-import life.corevia.app.data.models.UserSettingsResponse
-import life.corevia.app.data.models.UserSettingsUpdateRequest
+import life.corevia.app.data.local.TokenManager
+import java.security.MessageDigest
+import javax.inject.Inject
 
 /**
- * iOS SettingsView.swift — Android SettingsViewModel
- *
- * Loads and saves user settings via the API.
- * Also handles change-password and delete-account actions.
+ * iOS SettingsManager.swift equivalent
+ * Tənzimləmələr — bildirişlər, biometrik, şifrə, premium
  */
-class SettingsViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val api = ApiClient.getInstance(application).api
-    private val tokenManager = TokenManager.getInstance(application)
+data class SettingsUiState(
+    // Notifications
+    val notificationsEnabled: Boolean = true,
+    val workoutReminders: Boolean = true,
+    val mealReminders: Boolean = true,
+    val weeklyReports: Boolean = false,
 
-    private val _settings = MutableStateFlow<UserSettingsResponse?>(null)
-    val settings: StateFlow<UserSettingsResponse?> = _settings.asStateFlow()
+    // Security
+    val biometricEnabled: Boolean = false,
+    val hasAppPassword: Boolean = false,
+    val biometricType: String = "Biometrik",
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    // Premium
+    val isPremium: Boolean = false,
+    val hasPremiumAccess: Boolean = false,
 
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+    // UI
+    val darkModeEnabled: Boolean = false,
+    val selectedLanguage: String = "Azərbaycan dili",
+    val appVersion: String = "1.0.0"
+)
 
-    private val _successMessage = MutableStateFlow<String?>(null)
-    val successMessage: StateFlow<String?> = _successMessage.asStateFlow()
+@HiltViewModel
+class SettingsViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val tokenManager: TokenManager,
+    private val sharedPreferences: SharedPreferences
+) : ViewModel() {
 
-    private val _accountDeleted = MutableStateFlow(false)
-    val accountDeleted: StateFlow<Boolean> = _accountDeleted.asStateFlow()
+    companion object {
+        private const val SETTINGS_PREFIX = "settings_"
+        private const val KEY_NOTIFICATIONS = "${SETTINGS_PREFIX}notifications"
+        private const val KEY_WORKOUT_REMINDERS = "${SETTINGS_PREFIX}workout_reminders"
+        private const val KEY_MEAL_REMINDERS = "${SETTINGS_PREFIX}meal_reminders"
+        private const val KEY_WEEKLY_REPORTS = "${SETTINGS_PREFIX}weekly_reports"
+        private const val KEY_BIOMETRIC_ENABLED = "${SETTINGS_PREFIX}biometric_enabled"
+        private const val KEY_HAS_PASSWORD = "${SETTINGS_PREFIX}has_password"
+        private const val KEY_PASSWORD_HASH = "${SETTINGS_PREFIX}password_hash"
+        private const val KEY_IS_PREMIUM = "${SETTINGS_PREFIX}is_premium"
+        private const val KEY_DARK_MODE = "${SETTINGS_PREFIX}dark_mode"
+        private const val KEY_LANGUAGE = "${SETTINGS_PREFIX}language"
+    }
+
+    private val _uiState = MutableStateFlow(SettingsUiState())
+    val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
     init {
         loadSettings()
     }
 
-    fun loadSettings() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val result = api.getSettings()
-                withContext(Dispatchers.Main) { _settings.value = result }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    _errorMessage.value = ErrorParser.parseMessage(e)
-                }
-            }
+    // ─── Load Settings ───────────────────────────────────────────────
+
+    private fun loadSettings() {
+        val userType = tokenManager.getUserType()
+        val isPremium = sharedPreferences.getBoolean(KEY_IS_PREMIUM, false)
+
+        _uiState.value = SettingsUiState(
+            notificationsEnabled = sharedPreferences.getBoolean(KEY_NOTIFICATIONS, true),
+            workoutReminders = sharedPreferences.getBoolean(KEY_WORKOUT_REMINDERS, true),
+            mealReminders = sharedPreferences.getBoolean(KEY_MEAL_REMINDERS, true),
+            weeklyReports = sharedPreferences.getBoolean(KEY_WEEKLY_REPORTS, false),
+            biometricEnabled = sharedPreferences.getBoolean(KEY_BIOMETRIC_ENABLED, false),
+            hasAppPassword = sharedPreferences.getBoolean(KEY_HAS_PASSWORD, false),
+            biometricType = getBiometricType(),
+            isPremium = isPremium,
+            hasPremiumAccess = userType == "trainer" || isPremium,
+            darkModeEnabled = sharedPreferences.getBoolean(KEY_DARK_MODE, false),
+            selectedLanguage = sharedPreferences.getString(KEY_LANGUAGE, "Azərbaycan dili") ?: "Azərbaycan dili",
+            appVersion = getAppVersion()
+        )
+    }
+
+    // ─── Toggle Functions ────────────────────────────────────────────
+
+    fun toggleNotifications(enabled: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_NOTIFICATIONS, enabled).apply()
+        _uiState.value = _uiState.value.copy(notificationsEnabled = enabled)
+    }
+
+    fun toggleWorkoutReminders(enabled: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_WORKOUT_REMINDERS, enabled).apply()
+        _uiState.value = _uiState.value.copy(workoutReminders = enabled)
+    }
+
+    fun toggleMealReminders(enabled: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_MEAL_REMINDERS, enabled).apply()
+        _uiState.value = _uiState.value.copy(mealReminders = enabled)
+    }
+
+    fun toggleWeeklyReports(enabled: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_WEEKLY_REPORTS, enabled).apply()
+        _uiState.value = _uiState.value.copy(weeklyReports = enabled)
+    }
+
+    fun toggleBiometric(enabled: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_BIOMETRIC_ENABLED, enabled).apply()
+        _uiState.value = _uiState.value.copy(biometricEnabled = enabled)
+    }
+
+    fun toggleDarkMode(enabled: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_DARK_MODE, enabled).apply()
+        _uiState.value = _uiState.value.copy(darkModeEnabled = enabled)
+    }
+
+    fun setLanguage(language: String) {
+        sharedPreferences.edit().putString(KEY_LANGUAGE, language).apply()
+        _uiState.value = _uiState.value.copy(selectedLanguage = language)
+    }
+
+    // ─── Password Management ─────────────────────────────────────────
+
+    fun setPassword(password: String) {
+        val hashed = hashPin(password)
+        sharedPreferences.edit()
+            .putString(KEY_PASSWORD_HASH, hashed)
+            .putBoolean(KEY_HAS_PASSWORD, true)
+            .apply()
+        _uiState.value = _uiState.value.copy(hasAppPassword = true)
+    }
+
+    fun removePassword() {
+        sharedPreferences.edit()
+            .remove(KEY_PASSWORD_HASH)
+            .putBoolean(KEY_HAS_PASSWORD, false)
+            .apply()
+        _uiState.value = _uiState.value.copy(hasAppPassword = false)
+    }
+
+    fun verifyPassword(password: String): Boolean {
+        val savedHash = sharedPreferences.getString(KEY_PASSWORD_HASH, null) ?: return false
+        return hashPin(password) == savedHash
+    }
+
+    private fun hashPin(pin: String): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        val hashBytes = digest.digest(pin.toByteArray(Charsets.UTF_8))
+        return hashBytes.joinToString("") { "%02x".format(it) }
+    }
+
+    // ─── Biometric ───────────────────────────────────────────────────
+
+    private fun getBiometricType(): String {
+        // Biometric: SDK P+ dəstəklənir, tam biometric support üçün androidx.biometric əlavə edilə bilər
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) "Biometrik" else "Mövcud deyil"
+    }
+
+    fun canUseBiometric(): Boolean {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+    }
+
+    // ─── Helpers ─────────────────────────────────────────────────────
+
+    private fun getAppVersion(): String {
+        return try {
+            val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+            pInfo.versionName ?: "1.0.0"
+        } catch (_: Exception) {
+            "1.0.0"
         }
     }
-
-    fun updateNotificationsEnabled(enabled: Boolean) {
-        updateSetting(UserSettingsUpdateRequest(notificationsEnabled = enabled))
-    }
-
-    fun updateWorkoutReminders(enabled: Boolean) {
-        updateSetting(UserSettingsUpdateRequest(workoutReminders = enabled))
-    }
-
-    fun updateMealReminders(enabled: Boolean) {
-        updateSetting(UserSettingsUpdateRequest(mealReminders = enabled))
-    }
-
-    fun updateWeeklyReport(enabled: Boolean) {
-        updateSetting(UserSettingsUpdateRequest(weeklyReports = enabled))
-    }
-
-    fun updateLanguage(language: String) {
-        tokenManager.selectedLanguage = language
-        updateSetting(UserSettingsUpdateRequest(language = language))
-    }
-
-    fun updateDarkMode(enabled: Boolean) {
-        updateSetting(UserSettingsUpdateRequest(darkMode = enabled))
-    }
-
-    private fun updateSetting(request: UserSettingsUpdateRequest) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val result = api.updateSettings(request)
-                withContext(Dispatchers.Main) { _settings.value = result }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    _errorMessage.value = ErrorParser.parseMessage(e)
-                }
-            }
-        }
-    }
-
-    fun changePassword(currentPassword: String, newPassword: String) {
-        _isLoading.value = true
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                api.changePassword(ChangePasswordRequest(currentPassword, newPassword))
-                withContext(Dispatchers.Main) {
-                    _successMessage.value = "Sifre ugurla deyisdirildi"
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    _errorMessage.value = ErrorParser.parseMessage(e)
-                }
-            }
-            withContext(Dispatchers.Main) { _isLoading.value = false }
-        }
-    }
-
-    fun deleteAccount(password: String) {
-        _isLoading.value = true
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                api.deleteAccount(DeleteAccountRequest(password))
-                withContext(Dispatchers.Main) {
-                    tokenManager.clearTokens()
-                    _accountDeleted.value = true
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    _errorMessage.value = ErrorParser.parseMessage(e)
-                }
-            }
-            withContext(Dispatchers.Main) { _isLoading.value = false }
-        }
-    }
-
-    fun clearError() { _errorMessage.value = null }
-    fun clearSuccess() { _successMessage.value = null }
 }

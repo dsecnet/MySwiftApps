@@ -1,510 +1,918 @@
 package life.corevia.app.ui.auth
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Notes
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import life.corevia.app.ui.theme.AppTheme
+import androidx.hilt.navigation.compose.hiltViewModel
+import life.corevia.app.ui.theme.*
 
-/**
- * iOS RegisterView.swift-in Android tam ekvivalenti.
- * 2-step qeydiyyat:
- *  - Step 1: Ad, email, şifrə, user type, şərtlər — form
- *  - Step 2: 6-rəqəmli OTP verification (yalnız client üçün)
- *
- * iOS ilə tam uyğun:
- *  - Back button: chevron.left icon + "Geri" text, secondaryBackground, cornerRadius 10
- *  - User type cards: 50dp circle icon, cornerRadius 14
- *  - Compact input fields: Material icons (person.fill, envelope.fill, lock.fill)
- *  - Password toggle: eye / eye.slash Material icons
- *  - Password strength: 3 bar, height 3dp, cornerRadius 1.5
- *  - Terms checkbox: 20dp, 2dp accent border, cornerRadius 5
- *  - Button: gradient + shadow + arrow
- */
 @Composable
 fun RegisterScreen(
+    onBack: () -> Unit,
     onRegisterSuccess: () -> Unit,
-    onNavigateToLogin: () -> Unit,
-    viewModel: AuthViewModel = viewModel()
+    viewModel: RegisterViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
     val focusManager = LocalFocusManager.current
+    val uiState by viewModel.uiState.collectAsState()
 
-    var name by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var userType by remember { mutableStateOf("client") }
-    var passwordVisible by remember { mutableStateOf(false) }
-    var confirmPasswordVisible by remember { mutableStateOf(false) }
-    var acceptTerms by remember { mutableStateOf(false) }
-
-    var currentStep by remember { mutableStateOf(1) }
-    var otpCode by remember { mutableStateOf("") }
-
-    val showError = uiState is AuthUiState.Error
-    val errorMessage = if (uiState is AuthUiState.Error) (uiState as AuthUiState.Error).message else ""
-    val isLoading = uiState is AuthUiState.Loading
-
-    LaunchedEffect(uiState) {
-        if (uiState is AuthUiState.Success) onRegisterSuccess()
-        if (uiState is AuthUiState.RegisterSuccess) onNavigateToLogin()  // iOS kimi: login ekranına qayıt
-        if (uiState is AuthUiState.RegisterOtpSent) currentStep = 2
+    // Navigate on successful registration
+    LaunchedEffect(uiState.isRegistered) {
+        if (uiState.isRegistered) {
+            onRegisterSuccess()
+        }
     }
 
-    // iOS: passwordStrength 0-3 (< 6 → 0, 6-7 → 1, 8+ without digits → 2, 8+ with digits → 3)
-    val passwordStrength = when {
-        password.length < 6 -> 0
-        password.length < 8 -> 1
-        password.length >= 8 && password.any { it.isDigit() } -> 3
-        else -> 2
-    }
-    val strengthColor = when (passwordStrength) {
-        0, 1 -> AppTheme.Colors.error
-        2 -> AppTheme.Colors.warning
-        else -> AppTheme.Colors.success
-    }
-    val strengthText = when (passwordStrength) {
-        0, 1 -> "Zəif şifrə"
-        2 -> "Orta şifrə"
-        else -> "Güclü şifrə"
-    }
-    val passwordsMatch = confirmPassword.isNotEmpty() && password == confirmPassword
-
-    val isFormValid = name.isNotBlank() &&
-            email.isNotBlank() && email.contains("@") &&
-            password.length >= 6 && passwordsMatch && acceptTerms
-
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppTheme.Colors.background)
-            .imePadding()
+            .background(MaterialTheme.colorScheme.background)
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) { focusManager.clearFocus() }
     ) {
-        // Header (iOS: HStack { back button (chevron.left + "Geri") })
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(AppTheme.Colors.background)
-                .padding(16.dp)
-        ) {
-            // iOS: chevron.left icon + "Geri" text, secondaryBackground bg, cornerRadius 10
-            Row(
-                modifier = Modifier
-                    .background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(10.dp))
-                    .clickable(onClick = onNavigateToLogin)
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = null,
-                    tint = AppTheme.Colors.accent,
-                    modifier = Modifier.size(14.dp)
-                )
-                Text(
-                    text = "Geri",
-                    color = AppTheme.Colors.accent,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-        }
-
         Column(
             modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 30.dp)
         ) {
-            if (currentStep == 1) {
-                // Title (iOS: VStack spacing:8 { "Qeydiyyat" 32sp black + subtitle })
-                Column(
-                    modifier = Modifier.padding(top = 10.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text("Qeydiyyat", fontSize = 32.sp, fontWeight = FontWeight.Black, color = AppTheme.Colors.primaryText)
-                    Text("Hesab yaradın", fontSize = 14.sp, color = AppTheme.Colors.secondaryText)
-                }
+            // ── Header ──
+            RegisterHeader(onBack = onBack)
 
-                Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-                // User Type Selection (iOS: VStack alignment: .leading, spacing: 12)
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
-                ) {
-                    Text("Hesab növü seçin", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.primaryText)
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        // iOS: person.fill icon + "Tələbə" + description, 50dp circle
-                        RegisterUserTypeCard(
-                            label = "Tələbə", isClient = true, description = "İdman və qidalanmanı izlə",
-                            isSelected = userType == "client", modifier = Modifier.weight(1f),
-                            onClick = { userType = "client" }
-                        )
-                        // iOS: person.2.fill icon + "Məşqçi" + description, 50dp circle
-                        RegisterUserTypeCard(
-                            label = "Məşqçi", isClient = false, description = "Tələbələri idarə et",
-                            isSelected = userType == "trainer", modifier = Modifier.weight(1f),
-                            onClick = { userType = "trainer" }
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Input Fields (iOS: VStack spacing: 14)
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    // Name — iOS: person.fill icon, 14sp font
-                    RegisterInputField(
-                        value = name, onValueChange = { name = it; viewModel.clearError() },
-                        placeholder = "Ad və soyad",
-                        leadingIcon = { Icon(Icons.Outlined.Person, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(16.dp)) },
-                        hasValue = name.isNotEmpty()
+            // ── Step Content ──
+            AnimatedContent(
+                targetState = uiState.currentStep,
+                transitionSpec = {
+                    slideInHorizontally { it } + fadeIn() togetherWith
+                            slideOutHorizontally { -it } + fadeOut()
+                },
+                label = "register-step"
+            ) { step ->
+                if (step == 1) {
+                    RegisterFormContent(
+                        uiState = uiState,
+                        viewModel = viewModel
                     )
-                    // Email — iOS: envelope.fill icon
-                    RegisterInputField(
-                        value = email, onValueChange = { email = it; viewModel.clearError() },
-                        placeholder = "E-poçt",
-                        leadingIcon = { Icon(Icons.Outlined.Email, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(16.dp)) },
-                        keyboardType = KeyboardType.Email, hasValue = email.isNotEmpty()
+                } else {
+                    RegisterOTPContent(
+                        uiState = uiState,
+                        viewModel = viewModel
                     )
-                    // Password — iOS: lock.fill icon + eye toggle
-                    RegisterPasswordField(
-                        value = password, onValueChange = { password = it; viewModel.clearError() },
-                        placeholder = "Şifrə", isVisible = passwordVisible,
-                        onToggle = { passwordVisible = !passwordVisible }, hasValue = password.isNotEmpty()
-                    )
-
-                    // Password strength (iOS: 3 bars, height 3, cornerRadius 1.5)
-                    if (password.isNotEmpty()) {
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                                repeat(3) { idx ->
-                                    Box(modifier = Modifier.weight(1f).height(3.dp)
-                                        .background(if (passwordStrength > idx) strengthColor else AppTheme.Colors.separator, RoundedCornerShape(1.5.dp)))
-                                }
-                            }
-                            Text(strengthText, fontSize = 11.sp, color = strengthColor)
-                        }
-                    }
-
-                    // Confirm password — iOS: lock.fill icon + eye toggle
-                    RegisterPasswordField(
-                        value = confirmPassword, onValueChange = { confirmPassword = it },
-                        placeholder = "Şifrəni təkrar daxil edin", isVisible = confirmPasswordVisible,
-                        onToggle = { confirmPasswordVisible = !confirmPasswordVisible }, hasValue = confirmPassword.isNotEmpty()
-                    )
-
-                    // Password match indicator (iOS: checkmark.circle.fill / xmark.circle.fill)
-                    if (confirmPassword.isNotEmpty()) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text(if (passwordsMatch) "✓" else "✗", fontSize = 12.sp,
-                                color = if (passwordsMatch) AppTheme.Colors.success else AppTheme.Colors.error)
-                            Text(if (passwordsMatch) "Şifrələr uyğundur" else "Şifrələr uyğun deyil",
-                                fontSize = 11.sp, color = if (passwordsMatch) AppTheme.Colors.success else AppTheme.Colors.error)
-                        }
-                    }
-
-                    // Terms checkbox (iOS: 20dp, 2dp accent border, cornerRadius 5)
-                    Row(
-                        modifier = Modifier.fillMaxWidth().clickable { acceptTerms = !acceptTerms },
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(modifier = Modifier.size(20.dp).border(2.dp, AppTheme.Colors.accent, RoundedCornerShape(5.dp)),
-                            contentAlignment = Alignment.Center) {
-                            if (acceptTerms) Text("✓", fontSize = 12.sp, color = AppTheme.Colors.accent, fontWeight = FontWeight.Bold)
-                        }
-                        Text("İstifadə şərtlərini qəbul edirəm", fontSize = 13.sp, color = AppTheme.Colors.primaryText)
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Error
-                AnimatedVisibility(visible = showError, enter = slideInVertically() + fadeIn(), exit = fadeOut(),
-                    modifier = Modifier.padding(horizontal = 20.dp)) {
-                    Row(modifier = Modifier.fillMaxWidth()
-                        .background(AppTheme.Colors.error.copy(alpha = 0.2f), RoundedCornerShape(10.dp)).padding(12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Outlined.Warning, null, tint = AppTheme.Colors.error, modifier = Modifier.size(16.dp))
-                        Text(errorMessage, fontSize = 13.sp, color = AppTheme.Colors.primaryText)
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Register button (iOS: gradient accent→accent(0.8), shadow, cornerRadius 12)
-                val btnEnabled = isFormValid && !isLoading
-                Box(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Brush.horizontalGradient(listOf(
-                            AppTheme.Colors.accent.copy(alpha = if (btnEnabled) 1f else 0.5f),
-                            AppTheme.Colors.accent.copy(alpha = if (btnEnabled) 0.8f else 0.4f)
-                        )))
-                        .clickable(enabled = btnEnabled) {
-                            focusManager.clearFocus()
-                            viewModel.register(name.trim(), email.trim(), password, userType)
-                        }
-                        .padding(vertical = 14.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(modifier = Modifier.size(22.dp), color = Color.White, strokeWidth = 2.dp)
-                    } else {
-                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text(if (userType == "client") "OTP Göndər" else "Qeydiyyat",
-                                fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                            Text("→", fontSize = 14.sp, color = Color.White, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(30.dp))
-
-            } else {
-                // Step 2: OTP (iOS ilə tam uyğun)
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 28.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(24.dp)
-                ) {
-                    Spacer(modifier = Modifier.height(40.dp))
-                    Text("OTP Kodu", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = AppTheme.Colors.primaryText)
-                    Text("$email ünvanına göndərilən\n6 rəqəmli kodu daxil edin",
-                        fontSize = 14.sp, color = AppTheme.Colors.secondaryText, textAlign = TextAlign.Center)
-
-                    // OTP TextField — iOS: 28sp monospaced bold, cornerRadius 12
-                    OutlinedTextField(
-                        value = otpCode,
-                        onValueChange = { otpCode = it.filter { c -> c.isDigit() }.take(6) },
-                        placeholder = {
-                            Text("000000", fontSize = 28.sp, fontFamily = FontFamily.Monospace,
-                                fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
-                                color = AppTheme.Colors.placeholderText, modifier = Modifier.fillMaxWidth())
-                        },
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
-                        textStyle = androidx.compose.ui.text.TextStyle(
-                            fontSize = 28.sp, fontFamily = FontFamily.Monospace,
-                            fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
-                            color = AppTheme.Colors.primaryText
-                        ),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword, imeAction = ImeAction.Done),
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = AppTheme.Colors.accent,
-                            unfocusedBorderColor = AppTheme.Colors.separator,
-                            focusedContainerColor = AppTheme.Colors.secondaryBackground,
-                            unfocusedContainerColor = AppTheme.Colors.secondaryBackground,
-                            focusedTextColor = AppTheme.Colors.primaryText,
-                            unfocusedTextColor = AppTheme.Colors.primaryText
-                        ),
-                        shape = RoundedCornerShape(12.dp)
-                    )
-
-                    // Error
-                    AnimatedVisibility(visible = showError, enter = fadeIn(), exit = fadeOut()) {
-                        Row(modifier = Modifier.fillMaxWidth()
-                            .background(AppTheme.Colors.error.copy(alpha = 0.2f), RoundedCornerShape(10.dp)).padding(12.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Outlined.Warning, null, tint = AppTheme.Colors.error, modifier = Modifier.size(16.dp))
-                            Text(errorMessage, fontSize = 13.sp, color = AppTheme.Colors.primaryText)
-                        }
-                    }
-
-                    // Verify button
-                    val verifyEnabled = otpCode.length == 6 && !isLoading
-                    Box(
-                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
-                            .background(Brush.horizontalGradient(listOf(
-                                AppTheme.Colors.accent.copy(alpha = if (verifyEnabled) 1f else 0.5f),
-                                AppTheme.Colors.accent.copy(alpha = if (verifyEnabled) 0.8f else 0.4f)
-                            )))
-                            .clickable(enabled = verifyEnabled) {
-                                focusManager.clearFocus()
-                                viewModel.verifyRegisterOtp(name.trim(), email.trim(), password, userType, otpCode.trim())
-                            }
-                            .padding(vertical = 14.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (isLoading) {
-                            CircularProgressIndicator(modifier = Modifier.size(22.dp), color = Color.White, strokeWidth = 2.dp)
-                        } else {
-                            Text("Təsdiq Et və Qeydiyyatdan Keç", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                        }
-                    }
-
-                    // Resend + Back buttons
-                    TextButton(onClick = { viewModel.register(name.trim(), email.trim(), password, userType) }) {
-                        Text("OTP-ni yenidən göndər", fontSize = 14.sp, color = AppTheme.Colors.accent)
-                    }
-                    TextButton(onClick = { currentStep = 1; otpCode = ""; viewModel.clearError() }) {
-                        Text("Geri qayıt", fontSize = 14.sp, color = AppTheme.Colors.accent)
-                    }
                 }
             }
         }
     }
 }
 
-// ─── User Type Card (iOS: VStack { 50dp Circle icon + label + description }, cornerRadius 14) ─
+// ═══════════════════════════════════════════════════════════════════
+// HEADER — iOS headerView
+// ═══════════════════════════════════════════════════════════════════
 @Composable
-fun RegisterUserTypeCard(
-    label: String, isClient: Boolean, description: String,
-    isSelected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit
+private fun RegisterHeader(onBack: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, end = 16.dp, top = 52.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            modifier = Modifier
+                .clip(RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                .clickable(onClick = onBack)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = CoreViaPrimary
+            )
+            Text(
+                text = "Geri",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Medium,
+                color = CoreViaPrimary
+            )
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// STEP 1: FORM CONTENT
+// ═══════════════════════════════════════════════════════════════════
+@Composable
+private fun RegisterFormContent(
+    uiState: RegisterUiState,
+    viewModel: RegisterViewModel
 ) {
-    val bgColor by animateColorAsState(
-        if (isSelected) AppTheme.Colors.accent.copy(alpha = 0.1f) else AppTheme.Colors.secondaryBackground,
-        animationSpec = spring(), label = "regTypeBg"
-    )
-    val borderColor by animateColorAsState(
-        if (isSelected) AppTheme.Colors.accent else AppTheme.Colors.separator,
-        animationSpec = spring(), label = "regTypeBorder"
-    )
-    val iconColor by animateColorAsState(
-        if (isSelected) AppTheme.Colors.accent else AppTheme.Colors.secondaryText,
-        animationSpec = spring(), label = "regTypeIcon"
-    )
     Column(
-        modifier = modifier.background(bgColor, RoundedCornerShape(14.dp))
-            .border(if (isSelected) 2.dp else 1.dp, borderColor, RoundedCornerShape(14.dp))
-            .clickable(onClick = onClick).padding(vertical = 14.dp, horizontal = 8.dp),
+        modifier = Modifier.padding(bottom = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(0.dp)
+    ) {
+        // ── Title ──
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Qeydiyyat",
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "CoreVia ailəsinə qoşulun",
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // ── User Type Selection ──
+        UserTypeSelection(
+            selectedType = uiState.userType,
+            onTypeSelected = { viewModel.updateUserType(it) }
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // ── Input Fields ──
+        Column(
+            modifier = Modifier.padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            // Ad və Soyad
+            RegisterInputField(
+                icon = Icons.Filled.Person,
+                placeholder = "Ad və Soyad",
+                value = uiState.name,
+                onValueChange = { viewModel.updateName(it) }
+            )
+
+            // Email
+            RegisterInputField(
+                icon = Icons.Filled.Email,
+                placeholder = "Email",
+                value = uiState.email,
+                onValueChange = { viewModel.updateEmail(it) },
+                keyboardType = KeyboardType.Email
+            )
+
+            // Şifrə
+            RegisterSecureField(
+                icon = Icons.Filled.Lock,
+                placeholder = "Şifrə",
+                value = uiState.password,
+                onValueChange = { viewModel.updatePassword(it) },
+                isVisible = uiState.isPasswordVisible,
+                onToggleVisibility = { viewModel.togglePasswordVisibility() }
+            )
+
+            // Password strength indicator
+            if (uiState.password.isNotEmpty()) {
+                PasswordStrengthIndicator(strength = uiState.passwordStrength, text = uiState.strengthText)
+            }
+
+            // Şifrə təkrarı
+            RegisterSecureField(
+                icon = Icons.Filled.Lock,
+                placeholder = "Şifrə təkrarı",
+                value = uiState.confirmPassword,
+                onValueChange = { viewModel.updateConfirmPassword(it) },
+                isVisible = uiState.isConfirmPasswordVisible,
+                onToggleVisibility = { viewModel.toggleConfirmPasswordVisibility() }
+            )
+
+            // Password match indicator
+            if (uiState.confirmPassword.isNotEmpty()) {
+                PasswordMatchIndicator(match = uiState.passwordsMatch)
+            }
+        }
+
+        // ── Trainer Extra Fields ──
+        if (uiState.isTrainer) {
+            Spacer(modifier = Modifier.height(14.dp))
+            TrainerExtraFields(
+                instagram = uiState.instagram,
+                onInstagramChange = { viewModel.updateInstagram(it) },
+                selectedSpecialization = uiState.selectedSpecialization,
+                onSpecializationChange = { viewModel.updateSpecialization(it) },
+                experience = uiState.experience,
+                onExperienceChange = { viewModel.updateExperience(it) },
+                bio = uiState.bio,
+                onBioChange = { viewModel.updateBio(it) }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // ── Terms Checkbox ──
+        TermsCheckbox(
+            accepted = uiState.acceptTerms,
+            onToggle = { viewModel.toggleAcceptTerms() }
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // ── Error Message ──
+        AnimatedVisibility(
+            visible = uiState.errorMessage != null,
+            enter = slideInVertically() + fadeIn(),
+            exit = slideOutVertically() + fadeOut()
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 20.dp)
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(CoreViaError.copy(alpha = 0.1f))
+                    .padding(14.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Filled.Warning, null, Modifier.size(18.dp), tint = CoreViaError)
+                Text(
+                    uiState.errorMessage ?: "",
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // ── Register / Send OTP Button ──
+        Button(
+            onClick = { viewModel.sendOTPOrRegister() },
+            enabled = !uiState.isLoading && uiState.isFormValid,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(54.dp)
+                .padding(horizontal = 20.dp)
+                .shadow(
+                    8.dp,
+                    RoundedCornerShape(14.dp),
+                    ambientColor = CoreViaPrimary.copy(alpha = 0.4f)
+                ),
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = CoreViaPrimary)
+        ) {
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    color = Color.White,
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (uiState.isTrainer) "Qeydiyyat" else "OTP Gondar",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowForward,
+                        null,
+                        Modifier.size(20.dp),
+                        tint = Color.White
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// USER TYPE SELECTION — iOS userTypeSelection
+// ═══════════════════════════════════════════════════════════════════
+@Composable
+private fun UserTypeSelection(
+    selectedType: String,
+    onTypeSelected: (String) -> Unit
+) {
+    Column(
+        modifier = Modifier.padding(horizontal = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            text = "Hesab novunu secin",
+            fontSize = 15.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            RegisterUserTypeCard(
+                modifier = Modifier.weight(1f),
+                icon = Icons.Filled.Person,
+                title = "Talaba",
+                description = "Mesq ve qida planlari alin",
+                isSelected = selectedType == "client",
+                onClick = { onTypeSelected("client") }
+            )
+            RegisterUserTypeCard(
+                modifier = Modifier.weight(1f),
+                icon = Icons.Filled.Groups,
+                title = "Muallim",
+                description = "Talabalara mesq planlari yaradir",
+                isSelected = selectedType == "trainer",
+                onClick = { onTypeSelected("trainer") }
+            )
+        }
+    }
+}
+
+@Composable
+private fun RegisterUserTypeCard(
+    modifier: Modifier = Modifier,
+    icon: ImageVector,
+    title: String,
+    description: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(
+                if (isSelected) CoreViaPrimary.copy(alpha = 0.1f)
+                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            )
+            .border(
+                width = if (isSelected) 2.dp else 1.dp,
+                color = if (isSelected) CoreViaPrimary else TextSeparator,
+                shape = RoundedCornerShape(14.dp)
+            )
+            .clickable(onClick = onClick)
+            .padding(vertical = 14.dp, horizontal = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        // iOS: 50dp circle with person.fill / person.2.fill icon (20pt)
-        Box(modifier = Modifier.size(50.dp)
-            .background(if (isSelected) AppTheme.Colors.accent.copy(alpha = 0.2f) else AppTheme.Colors.cardBackground, CircleShape),
-            contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .size(50.dp)
+                .clip(CircleShape)
+                .background(
+                    if (isSelected) CoreViaPrimary.copy(alpha = 0.2f)
+                    else MaterialTheme.colorScheme.surfaceVariant
+                ),
+            contentAlignment = Alignment.Center
+        ) {
             Icon(
-                imageVector = Icons.Outlined.Person,
-                contentDescription = null,
-                tint = iconColor,
-                modifier = Modifier.size(20.dp)
+                icon, null,
+                modifier = Modifier.size(20.dp),
+                tint = if (isSelected) CoreViaPrimary else TextSecondary
             )
         }
-        // iOS: VStack(spacing:3) { name 14sp bold + description 10sp }
+
+        Text(
+            text = title,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            color = if (isSelected) MaterialTheme.colorScheme.onBackground else TextSecondary
+        )
+
+        Text(
+            text = description,
+            fontSize = 10.sp,
+            color = TextSecondary,
+            textAlign = TextAlign.Center,
+            lineHeight = 13.sp,
+            maxLines = 2
+        )
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// INPUT FIELDS
+// ═══════════════════════════════════════════════════════════════════
+@Composable
+private fun RegisterInputField(
+    icon: ImageVector,
+    placeholder: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    keyboardType: KeyboardType = KeyboardType.Text
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = Modifier.fillMaxWidth(),
+        placeholder = { Text(placeholder, color = TextHint) },
+        leadingIcon = { Icon(icon, null, Modifier.size(20.dp), tint = CoreViaPrimary) },
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        singleLine = true,
+        shape = RoundedCornerShape(12.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = CoreViaPrimary.copy(alpha = 0.5f),
+            unfocusedBorderColor = TextSeparator,
+            focusedContainerColor = Color(0xFFF8F8F8),
+            unfocusedContainerColor = Color(0xFFF8F8F8)
+        )
+    )
+}
+
+@Composable
+private fun RegisterSecureField(
+    icon: ImageVector,
+    placeholder: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    isVisible: Boolean,
+    onToggleVisibility: () -> Unit
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = Modifier.fillMaxWidth(),
+        placeholder = { Text(placeholder, color = TextHint) },
+        leadingIcon = { Icon(icon, null, Modifier.size(20.dp), tint = CoreViaPrimary) },
+        trailingIcon = {
+            IconButton(onClick = onToggleVisibility) {
+                Icon(
+                    if (isVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                    null, Modifier.size(20.dp), tint = TextSecondary
+                )
+            }
+        },
+        visualTransformation = if (isVisible) VisualTransformation.None else PasswordVisualTransformation(),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+        singleLine = true,
+        shape = RoundedCornerShape(12.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = CoreViaPrimary.copy(alpha = 0.5f),
+            unfocusedBorderColor = TextSeparator,
+            focusedContainerColor = Color(0xFFF8F8F8),
+            unfocusedContainerColor = Color(0xFFF8F8F8)
+        )
+    )
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PASSWORD STRENGTH INDICATOR
+// ═══════════════════════════════════════════════════════════════════
+@Composable
+private fun PasswordStrengthIndicator(strength: Int, text: String) {
+    val color = when (strength) {
+        0, 1 -> CoreViaError
+        2 -> CoreViaWarning
+        3 -> CoreViaSuccess
+        else -> TextSecondary
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(3.dp)
+        ) {
+            repeat(3) { index ->
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(3.dp)
+                        .clip(RoundedCornerShape(1.5.dp))
+                        .background(if (strength > index) color else TextSeparator)
+                )
+            }
+        }
+        Text(text = text, fontSize = 11.sp, color = color)
+    }
+}
+
+@Composable
+private fun PasswordMatchIndicator(match: Boolean) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            if (match) Icons.Filled.CheckCircle else Icons.Filled.Cancel,
+            null,
+            Modifier.size(12.dp),
+            tint = if (match) CoreViaSuccess else CoreViaError
+        )
+        Text(
+            text = if (match) "Sifralar uygunlasir" else "Sifralar uygunlasmir",
+            fontSize = 11.sp,
+            color = if (match) CoreViaSuccess else CoreViaError
+        )
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TRAINER EXTRA FIELDS — iOS trainerExtraFields
+// ═══════════════════════════════════════════════════════════════════
+@Composable
+private fun TrainerExtraFields(
+    instagram: String,
+    onInstagramChange: (String) -> Unit,
+    selectedSpecialization: String,
+    onSpecializationChange: (String) -> Unit,
+    experience: Int,
+    onExperienceChange: (Int) -> Unit,
+    bio: String,
+    onBioChange: (String) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        // ── Instagram ──
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(3.dp)
+            modifier = Modifier.padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Text(label, fontSize = 14.sp, fontWeight = FontWeight.Bold,
-                color = if (isSelected) AppTheme.Colors.primaryText else AppTheme.Colors.secondaryText)
-            Text(description, fontSize = 10.sp, color = AppTheme.Colors.secondaryText,
-                textAlign = TextAlign.Center, maxLines = 2)
-        }
-    }
-}
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Filled.CameraAlt, null, Modifier.size(13.dp), tint = CoreViaPrimary)
+                Text(
+                    "Instagram",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
 
-// ─── Input Field (iOS: HStack { icon + TextField }, cornerRadius 12) ──────────
-@Composable
-fun RegisterInputField(
-    value: String, onValueChange: (String) -> Unit, placeholder: String,
-    leadingIcon: @Composable () -> Unit, keyboardType: KeyboardType = KeyboardType.Text, hasValue: Boolean = false
-) {
-    var isFocused by remember { mutableStateOf(false) }
-    val borderColor by animateColorAsState(
-        if (hasValue || isFocused) AppTheme.Colors.accent.copy(alpha = 0.5f) else AppTheme.Colors.separator, label = "regFieldBorder")
-    Row(modifier = Modifier.fillMaxWidth()
-        .background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(12.dp))
-        .border(1.dp, borderColor, RoundedCornerShape(12.dp)).padding(horizontal = 16.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        leadingIcon()
-        OutlinedTextField(
-            value = value, onValueChange = onValueChange,
-            placeholder = { Text(placeholder, color = AppTheme.Colors.placeholderText, fontSize = 14.sp) },
-            modifier = Modifier.weight(1f).onFocusChanged { isFocused = it.isFocused },
-            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color.Transparent, unfocusedBorderColor = Color.Transparent,
-                focusedTextColor = AppTheme.Colors.primaryText, unfocusedTextColor = AppTheme.Colors.primaryText,
-                cursorColor = AppTheme.Colors.accent),
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = ImeAction.Next), singleLine = true
-        )
-    }
-}
-
-// ─── Password Field (iOS: HStack { lock.fill + TextField + eye toggle }, cornerRadius 12) ─
-@Composable
-fun RegisterPasswordField(
-    value: String, onValueChange: (String) -> Unit, placeholder: String,
-    isVisible: Boolean, onToggle: () -> Unit, hasValue: Boolean = false
-) {
-    var isFocused by remember { mutableStateOf(false) }
-    val borderColor by animateColorAsState(
-        if (hasValue || isFocused) AppTheme.Colors.accent.copy(alpha = 0.5f) else AppTheme.Colors.separator, label = "regPassBorder")
-    Row(modifier = Modifier.fillMaxWidth()
-        .background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(12.dp))
-        .border(1.dp, borderColor, RoundedCornerShape(12.dp)).padding(horizontal = 16.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        // iOS: lock.fill icon
-        Icon(Icons.Outlined.Lock, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(16.dp))
-        OutlinedTextField(
-            value = value, onValueChange = onValueChange,
-            placeholder = { Text(placeholder, color = AppTheme.Colors.placeholderText, fontSize = 14.sp) },
-            modifier = Modifier.weight(1f).onFocusChanged { isFocused = it.isFocused },
-            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color.Transparent, unfocusedBorderColor = Color.Transparent,
-                focusedTextColor = AppTheme.Colors.primaryText, unfocusedTextColor = AppTheme.Colors.primaryText,
-                cursorColor = AppTheme.Colors.accent),
-            visualTransformation = if (!isVisible) PasswordVisualTransformation() else VisualTransformation.None,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next), singleLine = true
-        )
-        // iOS: eye.fill / eye.slash.fill — Material icons (not emojis)
-        IconButton(
-            onClick = onToggle,
-            modifier = Modifier.size(32.dp)
-        ) {
-            Icon(
-                imageVector = if (isVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                contentDescription = if (isVisible) "Şifrəni gizlət" else "Şifrəni göstər",
-                tint = AppTheme.Colors.secondaryText,
-                modifier = Modifier.size(16.dp)
+            OutlinedTextField(
+                value = instagram,
+                onValueChange = onInstagramChange,
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("instagram_username", color = TextHint) },
+                leadingIcon = {
+                    Text(
+                        "@",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = CoreViaPrimary,
+                        modifier = Modifier.padding(start = 14.dp)
+                    )
+                },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = CoreViaPrimary.copy(alpha = 0.5f),
+                    unfocusedBorderColor = TextSeparator,
+                    focusedContainerColor = Color(0xFFF8F8F8),
+                    unfocusedContainerColor = Color(0xFFF8F8F8)
+                )
             )
         }
+
+        // ── Ixtisas ──
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(
+                modifier = Modifier.padding(horizontal = 20.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Filled.Star, null, Modifier.size(13.dp), tint = CoreViaPrimary)
+                Text(
+                    "Ixtisas",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                specializations.forEach { spec ->
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(
+                                if (selectedSpecialization == spec) CoreViaPrimary
+                                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                            )
+                            .clickable { onSpecializationChange(spec) }
+                            .padding(horizontal = 14.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = spec,
+                            fontSize = 12.sp,
+                            fontWeight = if (selectedSpecialization == spec) FontWeight.Bold else FontWeight.Medium,
+                            color = if (selectedSpecialization == spec) Color.White
+                            else MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                }
+            }
+        }
+
+        // ── Tacruba ──
+        Column(
+            modifier = Modifier.padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Filled.Schedule, null, Modifier.size(13.dp), tint = CoreViaPrimary)
+                Text(
+                    "Tacruba",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFFF8F8F8))
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "$experience il",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.width(50.dp)
+                )
+                Slider(
+                    value = experience.toFloat(),
+                    onValueChange = { onExperienceChange(it.toInt()) },
+                    valueRange = 1f..30f,
+                    steps = 28,
+                    modifier = Modifier.weight(1f),
+                    colors = SliderDefaults.colors(
+                        thumbColor = CoreViaPrimary,
+                        activeTrackColor = CoreViaPrimary
+                    )
+                )
+            }
+        }
+
+        // ── Haqqinizda (Bio) ──
+        Column(
+            modifier = Modifier.padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.AutoMirrored.Filled.Notes, null, Modifier.size(13.dp), tint = CoreViaPrimary)
+                Text(
+                    "Haqqinizda",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
+
+            OutlinedTextField(
+                value = bio,
+                onValueChange = onBioChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp),
+                placeholder = { Text("Ozunuz haqqinda qisa melumat yazin...", color = TextHint, fontSize = 14.sp) },
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = CoreViaPrimary.copy(alpha = 0.5f),
+                    unfocusedBorderColor = TextSeparator,
+                    focusedContainerColor = Color(0xFFF8F8F8),
+                    unfocusedContainerColor = Color(0xFFF8F8F8)
+                )
+            )
+
+            Text(
+                text = "${bio.length}/500",
+                fontSize = 11.sp,
+                color = if (bio.length > 500) CoreViaError else TextSecondary,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.End
+            )
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TERMS CHECKBOX
+// ═══════════════════════════════════════════════════════════════════
+@Composable
+private fun TermsCheckbox(
+    accepted: Boolean,
+    onToggle: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .clickable(onClick = onToggle),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(20.dp)
+                .clip(RoundedCornerShape(5.dp))
+                .border(2.dp, CoreViaPrimary, RoundedCornerShape(5.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            if (accepted) {
+                Icon(
+                    Icons.Filled.Check,
+                    null,
+                    modifier = Modifier.size(12.dp),
+                    tint = CoreViaPrimary
+                )
+            }
+        }
+
+        Text(
+            text = "Sertlar va qaydalar ile raziyam",
+            fontSize = 13.sp,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// STEP 2: OTP VERIFICATION — iOS otpVerificationSection
+// ═══════════════════════════════════════════════════════════════════
+@Composable
+private fun RegisterOTPContent(
+    uiState: RegisterUiState,
+    viewModel: RegisterViewModel
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(40.dp))
+
+        Text(
+            text = "OTP Kodu",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = "${uiState.email} unvanina gonderilen 6 reqemli kodu daxil edin",
+            fontSize = 14.sp,
+            color = TextSecondary,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 30.dp)
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // OTP Input
+        OutlinedTextField(
+            value = uiState.otpCode,
+            onValueChange = { viewModel.updateOtpCode(it) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 40.dp),
+            placeholder = { Text("000000", color = TextHint) },
+            textStyle = LocalTextStyle.current.copy(
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                letterSpacing = 8.sp
+            ),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            singleLine = true,
+            shape = RoundedCornerShape(14.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = CoreViaPrimary,
+                unfocusedBorderColor = Color(0xFFE8E8E8),
+                focusedContainerColor = Color(0xFFF8F8F8),
+                unfocusedContainerColor = Color(0xFFF8F8F8)
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Error
+        AnimatedVisibility(
+            visible = uiState.errorMessage != null,
+            enter = slideInVertically() + fadeIn(),
+            exit = slideOutVertically() + fadeOut()
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 24.dp)
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(CoreViaError.copy(alpha = 0.1f))
+                    .padding(14.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Filled.Warning, null, Modifier.size(18.dp), tint = CoreViaError)
+                Text(uiState.errorMessage ?: "", fontSize = 13.sp, color = MaterialTheme.colorScheme.onBackground)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Verify Button
+        Button(
+            onClick = { viewModel.verifyOTPAndRegister() },
+            enabled = !uiState.isLoading && uiState.otpCode.length == 6,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(54.dp)
+                .padding(horizontal = 20.dp),
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = CoreViaPrimary)
+        ) {
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    color = Color.White,
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text(
+                    "Tesdiq Et ve Qeydiyyatdan Kec",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Resend OTP
+        Text(
+            text = "OTP-ni yeniden gonder",
+            fontSize = 14.sp,
+            color = CoreViaPrimary,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.clickable { viewModel.sendOTPOrRegister() }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Go back
+        Text(
+            text = "Geri qayit",
+            fontSize = 14.sp,
+            color = TextSecondary,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.clickable { viewModel.goBackToForm() }
+        )
     }
 }

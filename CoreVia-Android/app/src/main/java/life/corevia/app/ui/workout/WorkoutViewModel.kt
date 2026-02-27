@@ -1,223 +1,148 @@
 package life.corevia.app.ui.workout
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import life.corevia.app.data.api.ErrorParser
-import life.corevia.app.data.models.*
+import life.corevia.app.data.model.Workout
+import life.corevia.app.data.model.WorkoutCreateRequest
 import life.corevia.app.data.repository.WorkoutRepository
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import life.corevia.app.ui.theme.*
+import life.corevia.app.util.NetworkResult
+import timber.log.Timber
+import javax.inject.Inject
 
-/**
- * iOS WorkoutManager.swift (@MainActor ObservableObject) →
- * Android WorkoutViewModel (AndroidViewModel + StateFlow)
- *
- * Screen bu ViewModel-dən oxuyur.
- * ViewModel WorkoutRepository-ni çağırır.
- * Screen heç vaxt Repository-yə toxunmur.
- */
-class WorkoutViewModel(application: Application) : AndroidViewModel(application) {
+data class WorkoutUiState(
+    val isLoading: Boolean = false,
+    val workouts: List<Workout> = emptyList(),
+    val showAddWorkout: Boolean = false,
+    val error: String? = null
+) {
+    val todayWorkouts: List<Workout> get() = workouts.filter { !it.isCompleted }
+    val completedWorkouts: List<Workout> get() = workouts.filter { it.isCompleted }
 
-    private val repository = WorkoutRepository.getInstance(application)
+    val weekWorkoutCount: Int get() = workouts.size
+    val weekCompletedCount: Int get() = completedWorkouts.size
+    val weekTotalMinutes: Int get() = workouts.sumOf { it.duration }
+    val weekTotalCalories: Int get() = workouts.sumOf { it.caloriesBurned }
 
-    // ─── State ────────────────────────────────────────────────────────────────
-    // iOS: @Published var workouts: [Workout] = []
-    private val _workouts = MutableStateFlow<List<Workout>>(emptyList())
-    val workouts: StateFlow<List<Workout>> = _workouts.asStateFlow()
+    val todayProgress: Float get() {
+        if (workouts.isEmpty()) return 0f
+        return (completedWorkouts.size.toFloat() / workouts.size).coerceIn(0f, 1f)
+    }
+    val todayTotalMinutes: Int get() = workouts.sumOf { it.duration }
+    val todayTotalCalories: Int get() = workouts.sumOf { it.caloriesBurned }
+}
 
-    // iOS: @Published var isLoading = false
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+fun workoutCategoryIcon(type: String): ImageVector = when (type) {
+    "strength" -> Icons.Filled.FitnessCenter
+    "cardio" -> Icons.Filled.DirectionsRun
+    "flexibility" -> Icons.Filled.SelfImprovement
+    "hiit" -> Icons.Filled.FlashOn
+    "yoga" -> Icons.Filled.Spa
+    else -> Icons.Filled.FitnessCenter
+}
 
-    // iOS: @Published var errorMessage: String?
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+fun workoutCategoryColor(type: String): Color = when (type) {
+    "strength" -> CoreViaPrimary
+    "cardio" -> Color(0xFFFF9800)
+    "flexibility" -> Color(0xFF9C27B0)
+    "hiit" -> Color(0xFFE91E63)
+    "yoga" -> CoreViaSuccess
+    else -> CoreViaPrimary
+}
 
-    // iOS: @Published var showAddWorkout = false
-    private val _showAddWorkout = MutableStateFlow(false)
-    val showAddWorkout: StateFlow<Boolean> = _showAddWorkout.asStateFlow()
+fun workoutCategoryName(type: String): String = when (type) {
+    "strength" -> "Güc"
+    "cardio" -> "Kardio"
+    "flexibility" -> "Elastiklik"
+    "hiit" -> "HIIT"
+    "yoga" -> "Yoga"
+    else -> type
+}
 
-    // Detail screen: selected workout for navigation
-    private val _selectedWorkout = MutableStateFlow<Workout?>(null)
-    val selectedWorkout: StateFlow<Workout?> = _selectedWorkout.asStateFlow()
+@HiltViewModel
+class WorkoutViewModel @Inject constructor(
+    private val workoutRepository: WorkoutRepository
+) : ViewModel() {
 
-    // Backend stats endpoint data
-    private val _workoutStats = MutableStateFlow<WorkoutStatsResponse?>(null)
-    val workoutStats: StateFlow<WorkoutStatsResponse?> = _workoutStats.asStateFlow()
-
-    // ─── Computed Properties ──────────────────────────────────────────────────
-
-    // iOS: var todayWorkouts: [Workout]
-    val todayWorkouts: List<Workout>
-        get() {
-            val today = LocalDate.now().toString()   // "2026-02-17"
-            return _workouts.value.filter { it.date.startsWith(today) }
-        }
-
-    // iOS: calculateWeeklyMinutes() — HomeView + WorkoutView istifadə edir
-    val weeklyMinutes: Int
-        get() {
-            val weekAgo = LocalDate.now().minusDays(7)
-            return _workouts.value
-                .filter {
-                    try {
-                        val date = LocalDate.parse(it.date.take(10))
-                        date.isAfter(weekAgo)
-                    } catch (e: Exception) { false }
-                }
-                .sumOf { it.duration }
-        }
-
-    // iOS: calculateWeeklyCaloriesBurned()
-    val weeklyCaloriesBurned: Int
-        get() {
-            val weekAgo = LocalDate.now().minusDays(7)
-            return _workouts.value
-                .filter {
-                    try {
-                        val date = LocalDate.parse(it.date.take(10))
-                        date.isAfter(weekAgo)
-                    } catch (e: Exception) { false }
-                }
-                .sumOf { it.caloriesBurned ?: 0 }
-        }
-
-    // iOS: weekWorkoutCount
-    val weekWorkoutCount: Int
-        get() {
-            val weekAgo = LocalDate.now().minusDays(7)
-            return _workouts.value.count {
-                try {
-                    val date = LocalDate.parse(it.date.take(10))
-                    date.isAfter(weekAgo)
-                } catch (e: Exception) { false }
-            }
-        }
-
-    // ─── Actions ──────────────────────────────────────────────────────────────
+    private val _uiState = MutableStateFlow(WorkoutUiState())
+    val uiState: StateFlow<WorkoutUiState> = _uiState.asStateFlow()
 
     init {
         loadWorkouts()
-        loadStats()
     }
 
-    // iOS: func loadWorkouts() async
     fun loadWorkouts() {
         viewModelScope.launch {
-            _isLoading.value = true
-            repository.getWorkouts().fold(
-                onSuccess = { _workouts.value = it },
-                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
-            )
-            _isLoading.value = false
+            _uiState.value = _uiState.value.copy(isLoading = true)
+            when (val result = workoutRepository.getWorkouts()) {
+                is NetworkResult.Success -> {
+                    _uiState.value = _uiState.value.copy(workouts = result.data, isLoading = false)
+                }
+                is NetworkResult.Error -> {
+                    _uiState.value = _uiState.value.copy(isLoading = false, error = result.message)
+                }
+                is NetworkResult.Loading -> {}
+            }
         }
     }
 
-    // iOS: func addWorkout(_ workout: Workout)
-    fun addWorkout(
-        title: String,
-        category: String,
-        duration: Int,
-        caloriesBurned: Int?,
-        notes: String?
-    ) {
+    fun toggleCompletion(workout: Workout) {
         viewModelScope.launch {
-            _isLoading.value = true
+            when (workoutRepository.toggleWorkout(workout.id)) {
+                is NetworkResult.Success -> loadWorkouts()
+                is NetworkResult.Error -> {}
+                is NetworkResult.Loading -> {}
+            }
+        }
+    }
+
+    fun addWorkout(title: String, category: String, duration: Int, calories: Int, notes: String?) {
+        viewModelScope.launch {
+            val dateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
             val request = WorkoutCreateRequest(
                 title = title,
                 category = category,
                 duration = duration,
-                caloriesBurned = caloriesBurned,
+                caloriesBurned = if (calories > 0) calories else null,
                 notes = notes,
-                date = LocalDateTime.now().format(
-                    DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.000000")
-                )
+                date = dateStr
             )
-            repository.createWorkout(request).fold(
-                onSuccess = {
-                    _workouts.value = _workouts.value + it
-                    _showAddWorkout.value = false
-                },
-                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
-            )
-            _isLoading.value = false
+            when (val result = workoutRepository.createWorkout(request)) {
+                is NetworkResult.Success -> {
+                    _uiState.value = _uiState.value.copy(showAddWorkout = false)
+                    loadWorkouts()
+                }
+                is NetworkResult.Error -> {
+                    Timber.e("Create failed: ${result.message} code=${result.code}")
+                }
+                is NetworkResult.Loading -> {}
+            }
         }
     }
 
-    // iOS: func toggleComplete(_ workout: Workout)
-    fun toggleComplete(workout: Workout) {
+    fun deleteWorkout(id: String) {
         viewModelScope.launch {
-            val request = WorkoutUpdateRequest(
-                title = null,
-                category = null,
-                duration = null,
-                caloriesBurned = null,
-                notes = null,
-                isCompleted = !workout.isCompleted
-            )
-            repository.updateWorkout(workout.id, request).fold(
-                onSuccess = { updated ->
-                    _workouts.value = _workouts.value.map {
-                        if (it.id == updated.id) updated else it
-                    }
-                },
-                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
-            )
+            when (workoutRepository.deleteWorkout(id)) {
+                is NetworkResult.Success -> loadWorkouts()
+                is NetworkResult.Error -> {}
+                is NetworkResult.Loading -> {}
+            }
         }
     }
 
-    // iOS: func deleteWorkout(_ workout: Workout)
-    fun deleteWorkout(workoutId: String) {
-        viewModelScope.launch {
-            repository.deleteWorkout(workoutId).fold(
-                onSuccess = {
-                    _workouts.value = _workouts.value.filter { it.id != workoutId }
-                },
-                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
-            )
-        }
+    fun toggleAddSheet() {
+        _uiState.value = _uiState.value.copy(showAddWorkout = !_uiState.value.showAddWorkout)
     }
-
-    // ─── Update workout (edit) ────────────────────────────────────────────────
-    fun updateWorkout(workoutId: String, request: WorkoutUpdateRequest) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            repository.updateWorkout(workoutId, request).fold(
-                onSuccess = { updated ->
-                    _workouts.value = _workouts.value.map {
-                        if (it.id == updated.id) updated else it
-                    }
-                    // Update selected workout if it's the one being edited
-                    if (_selectedWorkout.value?.id == updated.id) {
-                        _selectedWorkout.value = updated
-                    }
-                },
-                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
-            )
-            _isLoading.value = false
-        }
-    }
-
-    // ─── Detail screen navigation ──────────────────────────────────────────────
-    fun selectWorkout(workout: Workout) { _selectedWorkout.value = workout }
-    fun clearSelectedWorkout() { _selectedWorkout.value = null }
-
-    // ─── Backend stats endpoint ────────────────────────────────────────────────
-    fun loadStats() {
-        viewModelScope.launch {
-            repository.getWorkoutStats().fold(
-                onSuccess = { _workoutStats.value = it },
-                onFailure = { /* Stats yükləmə xətası – sessiz keç */ }
-            )
-        }
-    }
-
-    fun setShowAddWorkout(show: Boolean) { _showAddWorkout.value = show }
-    fun clearError() { _errorMessage.value = null }
 }

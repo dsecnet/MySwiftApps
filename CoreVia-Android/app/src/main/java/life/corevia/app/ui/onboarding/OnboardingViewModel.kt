@@ -1,125 +1,160 @@
 package life.corevia.app.ui.onboarding
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import life.corevia.app.data.api.ApiClient
-import life.corevia.app.data.api.TokenManager
+import life.corevia.app.data.model.OnboardingOption
+import life.corevia.app.data.repository.OnboardingRepository
+import life.corevia.app.util.NetworkResult
+import javax.inject.Inject
 
-data class OnboardingData(
-    val gender: String? = null,
-    val age: Int = 25,
-    val weight: Int = 70,
-    val height: Int = 170,
-    val fitnessGoal: String? = null,
-    val fitnessLevel: String = "beginner",
-    // Trainer-specific fields
-    val specialization: String? = null,
-    val experience: Int = 1,
-    val bio: String = ""
-)
+data class OnboardingUiState(
+    val currentStep: Int = 0, // 0=Goal, 1=FitnessLevel, 2=BodyInfo, 3=TrainerType
+    val totalSteps: Int = 4,
+    // Options from backend
+    val goalOptions: List<OnboardingOption> = emptyList(),
+    val fitnessLevelOptions: List<OnboardingOption> = emptyList(),
+    val trainerTypeOptions: List<OnboardingOption> = emptyList(),
+    // User selections
+    val selectedGoal: String = "",
+    val selectedFitnessLevel: String = "",
+    val selectedTrainerType: String = "",
+    // Body info
+    val age: String = "",
+    val weight: String = "",
+    val height: String = "",
+    // State
+    val isLoading: Boolean = false,
+    val isCompleted: Boolean = false,
+    val errorMessage: String? = null
+) {
+    val progress: Float get() = (currentStep + 1).toFloat() / totalSteps
 
-sealed class OnboardingUiState {
-    object Idle : OnboardingUiState()
-    object Loading : OnboardingUiState()
-    object Success : OnboardingUiState()
-    data class Error(val message: String) : OnboardingUiState()
+    val bmi: Double?
+        get() {
+            val w = weight.toDoubleOrNull() ?: return null
+            val h = (height.toDoubleOrNull() ?: return null) / 100.0
+            if (h <= 0) return null
+            return w / (h * h)
+        }
+
+    val bmiCategory: String
+        get() = when {
+            bmi == null -> ""
+            bmi!! < 18.5 -> "Arıq"
+            bmi!! < 25.0 -> "Normal"
+            bmi!! < 30.0 -> "Artıq çəki"
+            else -> "Piylənmə"
+        }
+
+    val canProceed: Boolean
+        get() = when (currentStep) {
+            0 -> selectedGoal.isNotEmpty()
+            1 -> selectedFitnessLevel.isNotEmpty()
+            2 -> age.isNotEmpty() && weight.isNotEmpty() && height.isNotEmpty()
+            3 -> selectedTrainerType.isNotEmpty()
+            else -> false
+        }
 }
 
-class OnboardingViewModel(application: Application) : AndroidViewModel(application) {
-    val isTrainer: Boolean = TokenManager.getInstance(application).isTrainer
+@HiltViewModel
+class OnboardingViewModel @Inject constructor(
+    private val onboardingRepository: OnboardingRepository
+) : ViewModel() {
 
-    private val _data = MutableStateFlow(OnboardingData())
-    val data: StateFlow<OnboardingData> = _data
+    private val _uiState = MutableStateFlow(OnboardingUiState())
+    val uiState: StateFlow<OnboardingUiState> = _uiState.asStateFlow()
 
-    private val _uiState = MutableStateFlow<OnboardingUiState>(OnboardingUiState.Idle)
-    val uiState: StateFlow<OnboardingUiState> = _uiState
-
-    private val _currentStep = MutableStateFlow(0)
-    val currentStep: StateFlow<Int> = _currentStep
-
-    // Client: Welcome, Gender, Age, Weight/Height, Goal
-    // Trainer: Welcome, Gender, Specialization, Experience/Bio, Confirmation
-    val totalSteps = 5
-
-    fun setGender(gender: String) {
-        _data.value = _data.value.copy(gender = gender)
+    init {
+        loadOptions()
     }
 
-    fun setAge(age: Int) {
-        _data.value = _data.value.copy(age = age)
+    private fun loadOptions() {
+        _uiState.value = _uiState.value.copy(isLoading = true)
+        viewModelScope.launch {
+            when (val result = onboardingRepository.fetchOptions()) {
+                is NetworkResult.Success -> {
+                    result.data?.let { options ->
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            goalOptions = options.goals,
+                            fitnessLevelOptions = options.fitnessLevels,
+                            trainerTypeOptions = options.trainerTypes
+                        )
+                    }
+                }
+                is NetworkResult.Error -> {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        errorMessage = result.message
+                    )
+                }
+                is NetworkResult.Loading -> {}
+            }
+        }
     }
 
-    fun setWeight(weight: Int) {
-        _data.value = _data.value.copy(weight = weight)
+    fun selectGoal(value: String) {
+        _uiState.value = _uiState.value.copy(selectedGoal = value)
     }
 
-    fun setHeight(height: Int) {
-        _data.value = _data.value.copy(height = height)
+    fun selectFitnessLevel(value: String) {
+        _uiState.value = _uiState.value.copy(selectedFitnessLevel = value)
     }
 
-    fun setFitnessGoal(goal: String) {
-        _data.value = _data.value.copy(fitnessGoal = goal)
+    fun selectTrainerType(value: String) {
+        _uiState.value = _uiState.value.copy(selectedTrainerType = value)
     }
 
-    fun setSpecialization(spec: String) {
-        _data.value = _data.value.copy(specialization = spec)
+    fun updateAge(value: String) {
+        _uiState.value = _uiState.value.copy(age = value.filter { it.isDigit() })
     }
 
-    fun setExperience(exp: Int) {
-        _data.value = _data.value.copy(experience = exp)
+    fun updateWeight(value: String) {
+        _uiState.value = _uiState.value.copy(weight = value.filter { it.isDigit() || it == '.' })
     }
 
-    fun setBio(bio: String) {
-        _data.value = _data.value.copy(bio = bio)
+    fun updateHeight(value: String) {
+        _uiState.value = _uiState.value.copy(height = value.filter { it.isDigit() || it == '.' })
     }
 
     fun nextStep() {
-        if (_currentStep.value < totalSteps - 1) {
-            _currentStep.value = _currentStep.value + 1
+        val state = _uiState.value
+        if (state.currentStep < state.totalSteps - 1) {
+            _uiState.value = state.copy(currentStep = state.currentStep + 1)
+        } else {
+            completeOnboarding()
         }
     }
 
     fun previousStep() {
-        if (_currentStep.value > 0) {
-            _currentStep.value = _currentStep.value - 1
+        val state = _uiState.value
+        if (state.currentStep > 0) {
+            _uiState.value = state.copy(currentStep = state.currentStep - 1)
         }
     }
 
-    fun completeOnboarding() {
+    private fun completeOnboarding() {
+        val state = _uiState.value
+        _uiState.value = state.copy(isLoading = true, errorMessage = null)
+
         viewModelScope.launch {
-            _uiState.value = OnboardingUiState.Loading
-            try {
-                val currentData = _data.value
-                val body = if (isTrainer) {
-                    mapOf(
-                        "specialization" to (currentData.specialization ?: "fitness"),
-                        "experience" to currentData.experience,
-                        "bio" to currentData.bio,
-                        "gender" to currentData.gender,
-                        "age" to currentData.age
-                    )
-                } else {
-                    mapOf(
-                        "fitness_goal" to (currentData.fitnessGoal ?: "stay_fit"),
-                        "fitness_level" to currentData.fitnessLevel,
-                        "gender" to currentData.gender,
-                        "age" to currentData.age,
-                        "weight" to currentData.weight.toFloat(),
-                        "height" to currentData.height.toFloat()
-                    )
+            when (val result = onboardingRepository.complete(
+                goal = state.selectedGoal,
+                level = state.selectedFitnessLevel,
+                trainerType = state.selectedTrainerType
+            )) {
+                is NetworkResult.Success -> {
+                    _uiState.value = _uiState.value.copy(isLoading = false, isCompleted = true)
                 }
-                ApiClient.getInstance(getApplication()).api.completeOnboarding(body)
-                val tokenManager = TokenManager.getInstance(getApplication())
-                tokenManager.hasCompletedOnboarding = true
-                _uiState.value = OnboardingUiState.Success
-            } catch (e: Exception) {
-                _uiState.value = OnboardingUiState.Success // Still proceed even on error
-                val tokenManager = TokenManager.getInstance(getApplication())
-                tokenManager.hasCompletedOnboarding = true
+                is NetworkResult.Error -> {
+                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = result.message)
+                }
+                is NetworkResult.Loading -> {}
             }
         }
     }

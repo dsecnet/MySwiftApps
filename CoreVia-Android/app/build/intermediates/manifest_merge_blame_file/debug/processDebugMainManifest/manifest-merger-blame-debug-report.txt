@@ -1,0 +1,347 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="life.corevia.app"
+4    android:versionCode="1"
+5    android:versionName="1.0.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="26"
+9        android:targetSdkVersion="35" />
+10
+11    <uses-permission android:name="android.permission.INTERNET" />
+11-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:5:5-67
+11-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:5:22-64
+12    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+12-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:6:5-79
+12-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:6:22-76
+13    <uses-permission android:name="android.permission.CAMERA" />
+13-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:7:5-65
+13-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:7:22-62
+14    <uses-permission
+14-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:8:5-9:38
+15        android:name="android.permission.READ_EXTERNAL_STORAGE"
+15-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:8:22-77
+16        android:maxSdkVersion="32" />
+16-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:9:9-35
+17    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+17-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:10:5-76
+17-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:10:22-73
+18    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+18-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:11:5-79
+18-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:11:22-76
+19    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+19-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:12:5-81
+19-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:12:22-78
+20    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+20-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:13:5-79
+20-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:13:22-76
+21    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+21-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:14:5-77
+21-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:14:22-74
+22    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+22-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:15:5-77
+22-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:15:22-74
+23
+24    <uses-feature
+24-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:17:5-85
+25        android:name="android.hardware.camera"
+25-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:17:19-57
+26        android:required="false" />
+26-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:17:58-82
+27    <uses-feature
+27-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:18:5-97
+28        android:name="android.hardware.sensor.stepcounter"
+28-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:18:19-69
+29        android:required="false" />
+29-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:18:70-94
+30    <uses-feature
+30-->[com.google.android.gms:play-services-maps:19.0.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/112ed747c6adf8ea6e8cedc88d01761d/transformed/play-services-maps-19.0.0/AndroidManifest.xml:26:5-28:35
+31        android:glEsVersion="0x00020000"
+31-->[com.google.android.gms:play-services-maps:19.0.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/112ed747c6adf8ea6e8cedc88d01761d/transformed/play-services-maps-19.0.0/AndroidManifest.xml:27:9-41
+32        android:required="true" />
+32-->[com.google.android.gms:play-services-maps:19.0.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/112ed747c6adf8ea6e8cedc88d01761d/transformed/play-services-maps-19.0.0/AndroidManifest.xml:28:9-32
+33
+34    <queries>
+34-->[com.google.android.gms:play-services-maps:19.0.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/112ed747c6adf8ea6e8cedc88d01761d/transformed/play-services-maps-19.0.0/AndroidManifest.xml:30:5-34:15
+35
+36        <!-- Needs to be explicitly declared on Android R+ -->
+37        <package android:name="com.google.android.apps.maps" />
+37-->[com.google.android.gms:play-services-maps:19.0.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/112ed747c6adf8ea6e8cedc88d01761d/transformed/play-services-maps-19.0.0/AndroidManifest.xml:33:9-64
+37-->[com.google.android.gms:play-services-maps:19.0.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/112ed747c6adf8ea6e8cedc88d01761d/transformed/play-services-maps-19.0.0/AndroidManifest.xml:33:18-61
+38    </queries>
+39
+40    <permission
+40-->[androidx.core:core:1.15.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/e9c999e2f41d730b30cffb79a87d2198/transformed/core-1.15.0/AndroidManifest.xml:22:5-24:47
+41        android:name="life.corevia.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+41-->[androidx.core:core:1.15.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/e9c999e2f41d730b30cffb79a87d2198/transformed/core-1.15.0/AndroidManifest.xml:23:9-81
+42        android:protectionLevel="signature" />
+42-->[androidx.core:core:1.15.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/e9c999e2f41d730b30cffb79a87d2198/transformed/core-1.15.0/AndroidManifest.xml:24:9-44
+43
+44    <uses-permission android:name="life.corevia.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+44-->[androidx.core:core:1.15.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/e9c999e2f41d730b30cffb79a87d2198/transformed/core-1.15.0/AndroidManifest.xml:26:5-97
+44-->[androidx.core:core:1.15.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/e9c999e2f41d730b30cffb79a87d2198/transformed/core-1.15.0/AndroidManifest.xml:26:22-94
+45
+46    <application
+46-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:20:5-55:19
+47        android:name="life.corevia.app.CoreViaApp"
+47-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:21:9-35
+48        android:allowBackup="false"
+48-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:22:9-36
+49        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+49-->[androidx.core:core:1.15.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/e9c999e2f41d730b30cffb79a87d2198/transformed/core-1.15.0/AndroidManifest.xml:28:18-86
+50        android:debuggable="true"
+51        android:extractNativeLibs="false"
+52        android:icon="@mipmap/ic_launcher"
+52-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:23:9-43
+53        android:label="@string/app_name"
+53-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:24:9-41
+54        android:networkSecurityConfig="@xml/network_security_config"
+54-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:28:9-69
+55        android:roundIcon="@mipmap/ic_launcher_round"
+55-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:25:9-54
+56        android:supportsRtl="true"
+56-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:26:9-35
+57        android:theme="@style/Theme.CoreVia" >
+57-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:27:9-45
+58        <meta-data
+59            android:name="com.google.android.geo.API_KEY"
+59-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:32:13-58
+60            android:value="YOUR_REAL_MAPS_API_KEY_HERE" />
+60-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:33:13-44
+61
+62        <activity
+62-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:35:9-43:20
+63            android:name="life.corevia.app.MainActivity"
+63-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:36:13-41
+64            android:exported="true"
+64-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:37:13-36
+65            android:theme="@style/Theme.CoreVia" >
+65-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:38:13-49
+66            <intent-filter>
+66-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:39:13-42:29
+67                <action android:name="android.intent.action.MAIN" />
+67-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:40:17-69
+67-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:40:25-66
+68
+69                <category android:name="android.intent.category.LAUNCHER" />
+69-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:41:17-77
+69-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:41:27-74
+70            </intent-filter>
+71        </activity>
+72
+73        <provider
+74            android:name="androidx.core.content.FileProvider"
+74-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:46:13-62
+75            android:authorities="life.corevia.app.provider"
+75-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:47:13-60
+76            android:exported="false"
+76-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:48:13-37
+77            android:grantUriPermissions="true" >
+77-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:49:13-47
+78            <meta-data
+78-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:50:13-52:54
+79                android:name="android.support.FILE_PROVIDER_PATHS"
+79-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:51:17-67
+80                android:resource="@xml/file_paths" />
+80-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:52:17-51
+81        </provider>
+82
+83        <service
+83-->[androidx.camera:camera-camera2:1.4.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/6aa5884977f3c73e2b1944511ebd8a67/transformed/camera-camera2-1.4.1/AndroidManifest.xml:24:9-33:19
+84            android:name="androidx.camera.core.impl.MetadataHolderService"
+84-->[androidx.camera:camera-camera2:1.4.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/6aa5884977f3c73e2b1944511ebd8a67/transformed/camera-camera2-1.4.1/AndroidManifest.xml:25:13-75
+85            android:enabled="false"
+85-->[androidx.camera:camera-camera2:1.4.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/6aa5884977f3c73e2b1944511ebd8a67/transformed/camera-camera2-1.4.1/AndroidManifest.xml:26:13-36
+86            android:exported="false" >
+86-->[androidx.camera:camera-camera2:1.4.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/6aa5884977f3c73e2b1944511ebd8a67/transformed/camera-camera2-1.4.1/AndroidManifest.xml:27:13-37
+87            <meta-data
+87-->[androidx.camera:camera-camera2:1.4.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/6aa5884977f3c73e2b1944511ebd8a67/transformed/camera-camera2-1.4.1/AndroidManifest.xml:30:13-32:89
+88                android:name="androidx.camera.core.impl.MetadataHolderService.DEFAULT_CONFIG_PROVIDER"
+88-->[androidx.camera:camera-camera2:1.4.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/6aa5884977f3c73e2b1944511ebd8a67/transformed/camera-camera2-1.4.1/AndroidManifest.xml:31:17-103
+89                android:value="androidx.camera.camera2.Camera2Config$DefaultProvider" />
+89-->[androidx.camera:camera-camera2:1.4.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/6aa5884977f3c73e2b1944511ebd8a67/transformed/camera-camera2-1.4.1/AndroidManifest.xml:32:17-86
+90        </service>
+91        <service
+91-->[com.google.mlkit:image-labeling:17.0.9] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/8659a779206dfffe52ef0e0607b64ccb/transformed/image-labeling-17.0.9/AndroidManifest.xml:8:9-14:19
+92            android:name="com.google.mlkit.common.internal.MlKitComponentDiscoveryService"
+92-->[com.google.mlkit:image-labeling:17.0.9] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/8659a779206dfffe52ef0e0607b64ccb/transformed/image-labeling-17.0.9/AndroidManifest.xml:9:13-91
+93            android:directBootAware="true"
+93-->[com.google.mlkit:common:18.11.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/1ee1c0934fc3824341f1c19a74197c05/transformed/common-18.11.0/AndroidManifest.xml:17:13-43
+94            android:exported="false" >
+94-->[com.google.mlkit:image-labeling:17.0.9] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/8659a779206dfffe52ef0e0607b64ccb/transformed/image-labeling-17.0.9/AndroidManifest.xml:10:13-37
+95            <meta-data
+95-->[com.google.mlkit:image-labeling:17.0.9] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/8659a779206dfffe52ef0e0607b64ccb/transformed/image-labeling-17.0.9/AndroidManifest.xml:11:13-13:85
+96                android:name="com.google.firebase.components:com.google.mlkit.vision.label.defaults.internal.BundledLabelRegistrar"
+96-->[com.google.mlkit:image-labeling:17.0.9] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/8659a779206dfffe52ef0e0607b64ccb/transformed/image-labeling-17.0.9/AndroidManifest.xml:12:17-132
+97                android:value="com.google.firebase.components.ComponentRegistrar" />
+97-->[com.google.mlkit:image-labeling:17.0.9] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/8659a779206dfffe52ef0e0607b64ccb/transformed/image-labeling-17.0.9/AndroidManifest.xml:13:17-82
+98            <meta-data
+98-->[com.google.mlkit:image-labeling-custom:17.0.3] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/01cd4d3fbd3c01d7d931d5e43c8ced8f/transformed/image-labeling-custom-17.0.3/AndroidManifest.xml:11:13-13:85
+99                android:name="com.google.firebase.components:com.google.mlkit.vision.label.custom.internal.CustomLabelRegistrar"
+99-->[com.google.mlkit:image-labeling-custom:17.0.3] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/01cd4d3fbd3c01d7d931d5e43c8ced8f/transformed/image-labeling-custom-17.0.3/AndroidManifest.xml:12:17-129
+100                android:value="com.google.firebase.components.ComponentRegistrar" />
+100-->[com.google.mlkit:image-labeling-custom:17.0.3] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/01cd4d3fbd3c01d7d931d5e43c8ced8f/transformed/image-labeling-custom-17.0.3/AndroidManifest.xml:13:17-82
+101            <meta-data
+101-->[com.google.mlkit:vision-internal-vkp:18.2.3] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/4b75f6236169bec3e6ed6e185724ecc7/transformed/vision-internal-vkp-18.2.3/AndroidManifest.xml:14:13-16:85
+102                android:name="com.google.firebase.components:com.google.mlkit.vision.vkp.VkpRegistrar"
+102-->[com.google.mlkit:vision-internal-vkp:18.2.3] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/4b75f6236169bec3e6ed6e185724ecc7/transformed/vision-internal-vkp-18.2.3/AndroidManifest.xml:15:17-103
+103                android:value="com.google.firebase.components.ComponentRegistrar" />
+103-->[com.google.mlkit:vision-internal-vkp:18.2.3] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/4b75f6236169bec3e6ed6e185724ecc7/transformed/vision-internal-vkp-18.2.3/AndroidManifest.xml:16:17-82
+104            <meta-data
+104-->[com.google.mlkit:vision-common:17.3.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/6e17e9ed47e85d16e893a7af6846b018/transformed/vision-common-17.3.0/AndroidManifest.xml:12:13-14:85
+105                android:name="com.google.firebase.components:com.google.mlkit.vision.common.internal.VisionCommonRegistrar"
+105-->[com.google.mlkit:vision-common:17.3.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/6e17e9ed47e85d16e893a7af6846b018/transformed/vision-common-17.3.0/AndroidManifest.xml:13:17-124
+106                android:value="com.google.firebase.components.ComponentRegistrar" />
+106-->[com.google.mlkit:vision-common:17.3.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/6e17e9ed47e85d16e893a7af6846b018/transformed/vision-common-17.3.0/AndroidManifest.xml:14:17-82
+107            <meta-data
+107-->[com.google.mlkit:common:18.11.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/1ee1c0934fc3824341f1c19a74197c05/transformed/common-18.11.0/AndroidManifest.xml:20:13-22:85
+108                android:name="com.google.firebase.components:com.google.mlkit.common.internal.CommonComponentRegistrar"
+108-->[com.google.mlkit:common:18.11.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/1ee1c0934fc3824341f1c19a74197c05/transformed/common-18.11.0/AndroidManifest.xml:21:17-120
+109                android:value="com.google.firebase.components.ComponentRegistrar" />
+109-->[com.google.mlkit:common:18.11.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/1ee1c0934fc3824341f1c19a74197c05/transformed/common-18.11.0/AndroidManifest.xml:22:17-82
+110        </service> <!-- Needs to be explicitly declared on P+ -->
+111        <uses-library
+111-->[com.google.android.gms:play-services-maps:19.0.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/112ed747c6adf8ea6e8cedc88d01761d/transformed/play-services-maps-19.0.0/AndroidManifest.xml:39:9-41:40
+112            android:name="org.apache.http.legacy"
+112-->[com.google.android.gms:play-services-maps:19.0.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/112ed747c6adf8ea6e8cedc88d01761d/transformed/play-services-maps-19.0.0/AndroidManifest.xml:40:13-50
+113            android:required="false" />
+113-->[com.google.android.gms:play-services-maps:19.0.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/112ed747c6adf8ea6e8cedc88d01761d/transformed/play-services-maps-19.0.0/AndroidManifest.xml:41:13-37
+114
+115        <provider
+115-->[com.google.mlkit:common:18.11.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/1ee1c0934fc3824341f1c19a74197c05/transformed/common-18.11.0/AndroidManifest.xml:9:9-13:38
+116            android:name="com.google.mlkit.common.internal.MlKitInitProvider"
+116-->[com.google.mlkit:common:18.11.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/1ee1c0934fc3824341f1c19a74197c05/transformed/common-18.11.0/AndroidManifest.xml:10:13-78
+117            android:authorities="life.corevia.app.mlkitinitprovider"
+117-->[com.google.mlkit:common:18.11.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/1ee1c0934fc3824341f1c19a74197c05/transformed/common-18.11.0/AndroidManifest.xml:11:13-69
+118            android:exported="false"
+118-->[com.google.mlkit:common:18.11.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/1ee1c0934fc3824341f1c19a74197c05/transformed/common-18.11.0/AndroidManifest.xml:12:13-37
+119            android:initOrder="99" />
+119-->[com.google.mlkit:common:18.11.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/1ee1c0934fc3824341f1c19a74197c05/transformed/common-18.11.0/AndroidManifest.xml:13:13-35
+120
+121        <activity
+121-->[com.google.android.gms:play-services-base:18.5.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/2e56ed7bf8647e9366a581961b5e8ebf/transformed/play-services-base-18.5.0/AndroidManifest.xml:5:9-173
+122            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+122-->[com.google.android.gms:play-services-base:18.5.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/2e56ed7bf8647e9366a581961b5e8ebf/transformed/play-services-base-18.5.0/AndroidManifest.xml:5:19-85
+123            android:exported="false"
+123-->[com.google.android.gms:play-services-base:18.5.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/2e56ed7bf8647e9366a581961b5e8ebf/transformed/play-services-base-18.5.0/AndroidManifest.xml:5:146-170
+124            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+124-->[com.google.android.gms:play-services-base:18.5.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/2e56ed7bf8647e9366a581961b5e8ebf/transformed/play-services-base-18.5.0/AndroidManifest.xml:5:86-145
+125
+126        <meta-data
+126-->[com.google.android.gms:play-services-basement:18.4.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/4191f44ad1eaf028229e0015fc1cba7b/transformed/play-services-basement-18.4.0/AndroidManifest.xml:6:9-122
+127            android:name="com.google.android.gms.version"
+127-->[com.google.android.gms:play-services-basement:18.4.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/4191f44ad1eaf028229e0015fc1cba7b/transformed/play-services-basement-18.4.0/AndroidManifest.xml:6:20-65
+128            android:value="@integer/google_play_services_version" />
+128-->[com.google.android.gms:play-services-basement:18.4.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/4191f44ad1eaf028229e0015fc1cba7b/transformed/play-services-basement-18.4.0/AndroidManifest.xml:6:66-119
+129
+130        <provider
+130-->[androidx.emoji2:emoji2:1.3.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/2f4b78fde521a2a8e08b7f6595ff40ff/transformed/emoji2-1.3.0/AndroidManifest.xml:24:9-32:20
+131            android:name="androidx.startup.InitializationProvider"
+131-->[androidx.emoji2:emoji2:1.3.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/2f4b78fde521a2a8e08b7f6595ff40ff/transformed/emoji2-1.3.0/AndroidManifest.xml:25:13-67
+132            android:authorities="life.corevia.app.androidx-startup"
+132-->[androidx.emoji2:emoji2:1.3.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/2f4b78fde521a2a8e08b7f6595ff40ff/transformed/emoji2-1.3.0/AndroidManifest.xml:26:13-68
+133            android:exported="false" >
+133-->[androidx.emoji2:emoji2:1.3.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/2f4b78fde521a2a8e08b7f6595ff40ff/transformed/emoji2-1.3.0/AndroidManifest.xml:27:13-37
+134            <meta-data
+134-->[androidx.emoji2:emoji2:1.3.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/2f4b78fde521a2a8e08b7f6595ff40ff/transformed/emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
+135                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+135-->[androidx.emoji2:emoji2:1.3.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/2f4b78fde521a2a8e08b7f6595ff40ff/transformed/emoji2-1.3.0/AndroidManifest.xml:30:17-75
+136                android:value="androidx.startup" />
+136-->[androidx.emoji2:emoji2:1.3.0] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/2f4b78fde521a2a8e08b7f6595ff40ff/transformed/emoji2-1.3.0/AndroidManifest.xml:31:17-49
+137            <meta-data
+137-->[androidx.lifecycle:lifecycle-process:2.8.7] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/eee9084fff6ec6251c3e197a27f0810b/transformed/lifecycle-process-2.8.7/AndroidManifest.xml:29:13-31:52
+138                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+138-->[androidx.lifecycle:lifecycle-process:2.8.7] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/eee9084fff6ec6251c3e197a27f0810b/transformed/lifecycle-process-2.8.7/AndroidManifest.xml:30:17-78
+139                android:value="androidx.startup" />
+139-->[androidx.lifecycle:lifecycle-process:2.8.7] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/eee9084fff6ec6251c3e197a27f0810b/transformed/lifecycle-process-2.8.7/AndroidManifest.xml:31:17-49
+140            <meta-data
+140-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/748984771a91ddad51660de740a91766/transformed/profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
+141                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+141-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/748984771a91ddad51660de740a91766/transformed/profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
+142                android:value="androidx.startup" />
+142-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/748984771a91ddad51660de740a91766/transformed/profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
+143        </provider>
+144
+145        <activity
+145-->[androidx.compose.ui:ui-test-manifest:1.7.6] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/d48247d4670e8d4608a05c44c19cb24f/transformed/ui-test-manifest-1.7.6/AndroidManifest.xml:23:9-25:39
+146            android:name="androidx.activity.ComponentActivity"
+146-->[androidx.compose.ui:ui-test-manifest:1.7.6] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/d48247d4670e8d4608a05c44c19cb24f/transformed/ui-test-manifest-1.7.6/AndroidManifest.xml:24:13-63
+147            android:exported="true" />
+147-->[androidx.compose.ui:ui-test-manifest:1.7.6] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/d48247d4670e8d4608a05c44c19cb24f/transformed/ui-test-manifest-1.7.6/AndroidManifest.xml:25:13-36
+148        <activity
+148-->[androidx.compose.ui:ui-tooling-android:1.7.6] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/f950066adcdc6e66ea94500bd5265b57/transformed/ui-tooling-release/AndroidManifest.xml:23:9-25:39
+149            android:name="androidx.compose.ui.tooling.PreviewActivity"
+149-->[androidx.compose.ui:ui-tooling-android:1.7.6] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/f950066adcdc6e66ea94500bd5265b57/transformed/ui-tooling-release/AndroidManifest.xml:24:13-71
+150            android:exported="true" />
+150-->[androidx.compose.ui:ui-tooling-android:1.7.6] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/f950066adcdc6e66ea94500bd5265b57/transformed/ui-tooling-release/AndroidManifest.xml:25:13-36
+151
+152        <receiver
+152-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/748984771a91ddad51660de740a91766/transformed/profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
+153            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+153-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/748984771a91ddad51660de740a91766/transformed/profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
+154            android:directBootAware="false"
+154-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/748984771a91ddad51660de740a91766/transformed/profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
+155            android:enabled="true"
+155-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/748984771a91ddad51660de740a91766/transformed/profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
+156            android:exported="true"
+156-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/748984771a91ddad51660de740a91766/transformed/profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
+157            android:permission="android.permission.DUMP" >
+157-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/748984771a91ddad51660de740a91766/transformed/profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
+158            <intent-filter>
+158-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/748984771a91ddad51660de740a91766/transformed/profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
+159                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+159-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/748984771a91ddad51660de740a91766/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
+159-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/748984771a91ddad51660de740a91766/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
+160            </intent-filter>
+161            <intent-filter>
+161-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/748984771a91ddad51660de740a91766/transformed/profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
+162                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+162-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/748984771a91ddad51660de740a91766/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
+162-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/748984771a91ddad51660de740a91766/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
+163            </intent-filter>
+164            <intent-filter>
+164-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/748984771a91ddad51660de740a91766/transformed/profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
+165                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+165-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/748984771a91ddad51660de740a91766/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
+165-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/748984771a91ddad51660de740a91766/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
+166            </intent-filter>
+167            <intent-filter>
+167-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/748984771a91ddad51660de740a91766/transformed/profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
+168                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+168-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/748984771a91ddad51660de740a91766/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
+168-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/748984771a91ddad51660de740a91766/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:25-92
+169            </intent-filter>
+170        </receiver>
+171
+172        <service
+172-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/a55a0d7819216ba516d4ddfc23948cfe/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:29:9-35:19
+173            android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+173-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/a55a0d7819216ba516d4ddfc23948cfe/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:30:13-103
+174            android:exported="false" >
+174-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/a55a0d7819216ba516d4ddfc23948cfe/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:31:13-37
+175            <meta-data
+175-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/a55a0d7819216ba516d4ddfc23948cfe/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:32:13-34:39
+176                android:name="backend:com.google.android.datatransport.cct.CctBackendFactory"
+176-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/a55a0d7819216ba516d4ddfc23948cfe/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:33:17-94
+177                android:value="cct" />
+177-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/a55a0d7819216ba516d4ddfc23948cfe/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:34:17-36
+178        </service>
+179        <service
+179-->[com.google.android.datatransport:transport-runtime:2.2.6] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/ba3daa2de82e943c4a1a10d0f94faff2/transformed/transport-runtime-2.2.6/AndroidManifest.xml:26:9-30:19
+180            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService"
+180-->[com.google.android.datatransport:transport-runtime:2.2.6] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/ba3daa2de82e943c4a1a10d0f94faff2/transformed/transport-runtime-2.2.6/AndroidManifest.xml:27:13-117
+181            android:exported="false"
+181-->[com.google.android.datatransport:transport-runtime:2.2.6] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/ba3daa2de82e943c4a1a10d0f94faff2/transformed/transport-runtime-2.2.6/AndroidManifest.xml:28:13-37
+182            android:permission="android.permission.BIND_JOB_SERVICE" >
+182-->[com.google.android.datatransport:transport-runtime:2.2.6] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/ba3daa2de82e943c4a1a10d0f94faff2/transformed/transport-runtime-2.2.6/AndroidManifest.xml:29:13-69
+183        </service>
+184
+185        <receiver
+185-->[com.google.android.datatransport:transport-runtime:2.2.6] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/ba3daa2de82e943c4a1a10d0f94faff2/transformed/transport-runtime-2.2.6/AndroidManifest.xml:32:9-34:40
+186            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
+186-->[com.google.android.datatransport:transport-runtime:2.2.6] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/ba3daa2de82e943c4a1a10d0f94faff2/transformed/transport-runtime-2.2.6/AndroidManifest.xml:33:13-132
+187            android:exported="false" />
+187-->[com.google.android.datatransport:transport-runtime:2.2.6] /Users/vusaldadashov/.gradle/caches/8.11.1/transforms/ba3daa2de82e943c4a1a10d0f94faff2/transformed/transport-runtime-2.2.6/AndroidManifest.xml:34:13-37
+188    </application>
+189
+190</manifest>

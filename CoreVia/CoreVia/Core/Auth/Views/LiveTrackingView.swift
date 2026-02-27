@@ -8,6 +8,7 @@
 import SwiftUI
 import MapKit
 import CoreLocation
+import CoreMotion
 
 struct LiveTrackingView: View {
 
@@ -120,6 +121,27 @@ struct LiveTrackingView: View {
                             .foregroundColor(AppTheme.Colors.primaryText)
 
                         Text("km/s")
+                            .font(.system(size: 12))
+                            .foregroundColor(AppTheme.Colors.secondaryText)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(10)
+                    .background(AppTheme.Colors.cardBackground)
+                    .cornerRadius(14)
+                }
+
+                // Steps
+                HStack(spacing: 10) {
+                    VStack(spacing: 4) {
+                        Image(systemName: "shoeprints.fill")
+                            .font(.system(size: 22))
+                            .foregroundColor(.cyan)
+
+                        Text("\(locationManager.steps)")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(AppTheme.Colors.primaryText)
+
+                        Text("Addım")
                             .font(.system(size: 12))
                             .foregroundColor(AppTheme.Colors.secondaryText)
                     }
@@ -309,8 +331,11 @@ class LiveTrackingManager: NSObject, ObservableObject, CLLocationManagerDelegate
     @Published var speed: Double = 0.0 // km/h
     @Published var isTracking = false
     @Published var routePoints: [RoutePoint] = []
+    @Published var steps: Int = 0
+    @Published var userWeight: Double = 70.0 // default 70kg
 
     private let manager = CLLocationManager()
+    private let pedometer = CMPedometer()
     private var lastLocation: CLLocation?
     private var timer: Timer?
     private var isPaused = false
@@ -330,10 +355,26 @@ class LiveTrackingManager: NSObject, ObservableObject, CLLocationManagerDelegate
         distance = 0
         calories = 0
         duration = 0
+        steps = 0
         routePoints = []
         lastLocation = nil
 
+        // Load user weight from AuthManager if available
+        if let weight = AuthManager.shared.currentUser?.weight, weight > 0 {
+            userWeight = weight
+        }
+
         manager.startUpdatingLocation()
+
+        // Start pedometer for step counting
+        if CMPedometer.isStepCountingAvailable() {
+            pedometer.startUpdates(from: Date()) { [weak self] data, error in
+                guard let self = self, let data = data else { return }
+                DispatchQueue.main.async {
+                    self.steps = data.numberOfSteps.intValue
+                }
+            }
+        }
 
         // Timer for duration
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
@@ -345,17 +386,30 @@ class LiveTrackingManager: NSObject, ObservableObject, CLLocationManagerDelegate
     func pauseTracking() {
         isPaused = true
         manager.stopUpdatingLocation()
+        pedometer.stopUpdates()
     }
 
     func resumeTracking() {
         isPaused = false
         manager.startUpdatingLocation()
+
+        // Restart pedometer from current point (accumulates with existing steps)
+        if CMPedometer.isStepCountingAvailable() {
+            let currentSteps = steps
+            pedometer.startUpdates(from: Date()) { [weak self] data, error in
+                guard let self = self, let data = data else { return }
+                DispatchQueue.main.async {
+                    self.steps = currentSteps + data.numberOfSteps.intValue
+                }
+            }
+        }
     }
 
     func stopTracking() {
         isTracking = false
         isPaused = false
         manager.stopUpdatingLocation()
+        pedometer.stopUpdates()
         timer?.invalidate()
         timer = nil
     }
@@ -392,8 +446,29 @@ class LiveTrackingManager: NSObject, ObservableObject, CLLocationManagerDelegate
             if delta > 0.003 && delta < 0.1 {
                 distance += delta
 
-                // Calculate calories (rough estimate: 60 kcal per km)
-                calories = Int(distance * 60)
+                // Calculate calories using MET formula
+                let hours = Double(duration) / 3600.0
+                let speedKmH = hours > 0 ? distance / hours : 0.0
+
+                // Dynamic MET based on speed
+                let metValue: Double
+                if speedKmH < 3.0 {
+                    metValue = 2.0  // slow walk
+                } else if speedKmH < 5.0 {
+                    metValue = 3.5  // normal walk
+                } else if speedKmH < 6.5 {
+                    metValue = 4.3  // brisk walk
+                } else if speedKmH < 8.0 {
+                    metValue = 5.0  // very brisk walk
+                } else if speedKmH < 10.0 {
+                    metValue = 8.3  // jogging
+                } else {
+                    metValue = 9.8  // running
+                }
+
+                let metCalories = Int(metValue * userWeight * hours)
+                let stepCalories = Int(Double(steps) * 0.04)
+                calories = max(metCalories, stepCalories)
 
                 // Add point to route
                 routePoints.append(RoutePoint(coordinate: location.coordinate))

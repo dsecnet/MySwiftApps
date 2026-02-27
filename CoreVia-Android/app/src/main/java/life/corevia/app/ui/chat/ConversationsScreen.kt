@@ -1,17 +1,18 @@
 package life.corevia.app.ui.chat
 
-import life.corevia.app.ui.theme.AppTheme
-import life.corevia.app.ui.theme.CoreViaAnimatedBackground
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Email
-import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,305 +21,521 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import life.corevia.app.data.models.Conversation
+import androidx.hilt.navigation.compose.hiltViewModel
+import life.corevia.app.data.model.ChatConversation
+import life.corevia.app.data.model.ChatMessage
+import life.corevia.app.ui.theme.*
 
-/**
- * iOS: ConversationsView.swift — söhbətlər siyahısı
- * Avatar + ad + son mesaj + unread badge
- */
 @Composable
 fun ConversationsScreen(
-    viewModel: ChatViewModel,
-    onOpenChat: (userId: String, userName: String) -> Unit
+    viewModel: ConversationsViewModel = hiltViewModel(),
+    onConversationClick: ((String, String) -> Unit)? = null
 ) {
-    val conversations by viewModel.conversations.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
-    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.accent) {
-    Box(
+    if (uiState.selectedConversation != null) {
+        ChatDetailContent(
+            conversation = uiState.selectedConversation!!,
+            messages = uiState.messages,
+            isLoading = uiState.isLoadingMessages,
+            isSending = uiState.isSending,
+            formatTime = viewModel::formatTime,
+            onSend = viewModel::sendMessage,
+            onBack = viewModel::closeConversation
+        )
+    } else {
+        ConversationsContent(
+            uiState = uiState,
+            formatTime = viewModel::formatTime,
+            onConversationClick = { conversation ->
+                if (onConversationClick != null) {
+                    onConversationClick(conversation.usersId, conversation.userName)
+                } else {
+                    viewModel.openConversation(conversation)
+                }
+            }
+        )
+    }
+}
+
+// ─── Conversations List ─────────────────────────────────────────────
+
+@Composable
+private fun ConversationsContent(
+    uiState: ConversationsUiState,
+    formatTime: (String?) -> String,
+    onConversationClick: (ChatConversation) -> Unit
+) {
+    Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .verticalScroll(rememberScrollState())
+            .padding(bottom = 80.dp)
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Spacer(modifier = Modifier.height(48.dp))
 
-            // ── Header ──────────────────────────────────────────────────────────
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                AppTheme.Colors.accent.copy(alpha = 0.15f),
-                                Color.Transparent
+            // Header
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = "Mesajlar",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = "Treneriniz ilə əlaqə saxlayın",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            // Message Limit
+            if (uiState.messageLimit.remaining < uiState.messageLimit.limit) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(
+                            Brush.linearGradient(
+                                listOf(Color(0xFF2196F3).copy(alpha = 0.05f), Color(0xFF2196F3).copy(alpha = 0.1f))
                             )
                         )
+                        .border(1.dp, Color(0xFF2196F3).copy(alpha = 0.2f), RoundedCornerShape(10.dp))
+                        .padding(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Filled.Info, null,
+                        modifier = Modifier.size(16.dp),
+                        tint = Color(0xFF2196F3)
                     )
-                    .padding(horizontal = 20.dp)
-                    .padding(top = 60.dp, bottom = 20.dp)
-            ) {
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "${uiState.messageLimit.remaining} mesaj hüququnuz qalıb",
+                        fontSize = 13.sp,
+                        color = Color(0xFF2196F3),
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+
+            // Content
+            if (uiState.isLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 60.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = CoreViaPrimary, modifier = Modifier.size(32.dp))
+                }
+            } else if (uiState.conversations.isEmpty()) {
+                // Empty state
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 60.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(CircleShape)
+                            .background(CoreViaPrimary.copy(alpha = 0.1f)),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Icon(
-                            imageVector = Icons.Outlined.Email,
-                            contentDescription = null,
-                            tint = AppTheme.Colors.accent,
-                            modifier = Modifier.size(28.dp)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = "Mesajlar",
-                            fontSize = 28.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = AppTheme.Colors.primaryText
+                            Icons.Filled.ChatBubbleOutline, null,
+                            modifier = Modifier.size(26.dp),
+                            tint = CoreViaPrimary
                         )
                     }
                     Text(
-                        text = "Müəlliminiz və ya studentlərinizlə söhbət edin",
-                        fontSize = 14.sp,
-                        color = AppTheme.Colors.secondaryText,
-                        modifier = Modifier.padding(top = 4.dp)
+                        text = "Hələ mesajınız yoxdur",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Text(
+                        text = "Trenerinizlə söhbətə başlayın",
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            } else {
+                // Conversation list
+                uiState.conversations.forEach { conversation ->
+                    ConversationRow(
+                        conversation = conversation,
+                        formatTime = formatTime,
+                        onClick = { onConversationClick(conversation) }
                     )
                 }
             }
+        }
+    }
+}
 
-            // ── Content ─────────────────────────────────────────────────────────
-            when {
-                isLoading && conversations.isEmpty() -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = AppTheme.Colors.accent)
+@Composable
+private fun ConversationRow(
+    conversation: ChatConversation,
+    formatTime: (String?) -> String,
+    onClick: () -> Unit
+) {
+    val isTrainer = conversation.isTrainer
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(
+                if (isTrainer) CoreViaPrimary.copy(alpha = 0.05f)
+                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            )
+            .then(
+                if (isTrainer) Modifier.border(1.dp, CoreViaPrimary.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                else Modifier
+            )
+            .clickable(onClick = onClick)
+            .padding(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Avatar
+        Box(
+            modifier = Modifier
+                .size(46.dp)
+                .clip(CircleShape)
+                .background(
+                    if (isTrainer) CoreViaPrimary.copy(alpha = 0.15f)
+                    else MaterialTheme.colorScheme.surfaceVariant
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = conversation.userName.take(1).uppercase(),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (isTrainer) CoreViaPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(3.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = conversation.userName,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    if (isTrainer) {
+                        Text(
+                            text = "Trener",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = CoreViaPrimary,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(CoreViaPrimary.copy(alpha = 0.1f))
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
                     }
                 }
-                errorMessage != null && conversations.isEmpty() -> {
+                Text(
+                    text = formatTime(conversation.lastMessageTime),
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = conversation.lastMessage ?: "",
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                if (conversation.unreadCount > 0) {
                     Box(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clip(CircleShape)
+                            .background(CoreViaPrimary),
                         contentAlignment = Alignment.Center
                     ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("⚠️", fontSize = 48.sp)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = errorMessage ?: "",
-                                color = AppTheme.Colors.error,
-                                fontSize = 14.sp
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Button(
-                                onClick = { viewModel.loadConversations() },
-                                colors = ButtonDefaults.buttonColors(containerColor = AppTheme.Colors.accent)
-                            ) {
-                                Text("Yenidən yüklə")
-                            }
-                        }
-                    }
-                }
-                conversations.isEmpty() -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("💬", fontSize = 64.sp)
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "Hələ mesajınız yoxdur",
-                                color = AppTheme.Colors.primaryText,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Text(
-                                text = "Müəlliminizə və ya studentinizə mesaj göndərin",
-                                color = AppTheme.Colors.secondaryText,
-                                fontSize = 14.sp
-                            )
-                        }
-                    }
-                }
-                else -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(conversations, key = { it.userId }) { conversation ->
-                            ConversationCard(
-                                conversation = conversation,
-                                onClick = { onOpenChat(conversation.userId, conversation.userName) }
-                            )
-                        }
+                        Text(
+                            text = "${conversation.unreadCount}",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
                     }
                 }
             }
         }
 
-        // ── Pull-to-refresh loading indicator ───────────────────────────────────
-        if (isLoading && conversations.isNotEmpty()) {
-            LinearProgressIndicator(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.TopCenter),
-                color = AppTheme.Colors.accent,
-                trackColor = Color.Transparent
-            )
-        }
+        Icon(
+            Icons.Filled.ChevronRight, null,
+            modifier = Modifier.size(14.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
-    } // CoreViaAnimatedBackground
 }
 
-// ─── ConversationCard ────────────────────────────────────────────────────────
+// ─── Chat Detail ────────────────────────────────────────────────────
+
 @Composable
-fun ConversationCard(
-    conversation: Conversation,
-    onClick: () -> Unit
+private fun ChatDetailContent(
+    conversation: ChatConversation,
+    messages: List<ChatMessage>,
+    isLoading: Boolean,
+    isSending: Boolean,
+    formatTime: (String?) -> String,
+    onSend: (String) -> Unit,
+    onBack: () -> Unit
 ) {
-    Box(
+    var messageText by remember { mutableStateOf("") }
+    val listState = rememberLazyListState()
+
+    // Auto-scroll to bottom
+    LaunchedEffect(messages.size) {
+        if (messages.isNotEmpty()) {
+            listState.animateScrollToItem(messages.size - 1)
+        }
+    }
+
+    Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(AppTheme.Colors.cardBackground)
-            .clickable(onClick = onClick)
-            .padding(16.dp)
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
     ) {
+        // Top bar
         Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(start = 8.dp, end = 16.dp, top = 52.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Avatar
+            IconButton(onClick = onBack) {
+                Icon(
+                    Icons.Filled.ArrowBack, null,
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+            }
             Box(
                 modifier = Modifier
-                    .size(50.dp)
-                    .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(AppTheme.Colors.accent, AppTheme.Colors.accentDark)
-                        ),
-                        shape = CircleShape
-                    ),
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(CoreViaPrimary.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
-                val initials = conversation.userName
-                    .split(" ")
-                    .take(2)
-                    .mapNotNull { it.firstOrNull()?.uppercaseChar() }
-                    .joinToString("")
-                if (initials.isNotEmpty()) {
-                    Text(
-                        text = initials,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Outlined.Person,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+                Text(
+                    text = conversation.userName.take(1).uppercase(),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = CoreViaPrimary
+                )
             }
-
-            // Name + last message
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = conversation.userName,
                     fontSize = 16.sp,
-                    fontWeight = if (conversation.unreadCount > 0) FontWeight.Bold else FontWeight.SemiBold,
-                    color = AppTheme.Colors.primaryText
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
-                if (conversation.lastMessage != null) {
+                if (conversation.isTrainer) {
                     Text(
-                        text = conversation.lastMessage,
-                        fontSize = 13.sp,
-                        color = if (conversation.unreadCount > 0) AppTheme.Colors.primaryText
-                        else AppTheme.Colors.secondaryText,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        fontWeight = if (conversation.unreadCount > 0) FontWeight.Medium else FontWeight.Normal
+                        text = "Trener",
+                        fontSize = 11.sp,
+                        color = CoreViaPrimary
                     )
                 }
             }
+        }
 
-            // Unread badge + time
-            Column(horizontalAlignment = Alignment.End) {
-                if (conversation.lastMessageTime != null) {
+        // Messages
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = CoreViaPrimary, modifier = Modifier.size(28.dp))
+            }
+        } else if (messages.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        Icons.Filled.ChatBubbleOutline, null,
+                        modifier = Modifier.size(32.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                    )
                     Text(
-                        text = formatChatTime(conversation.lastMessageTime),
-                        fontSize = 11.sp,
-                        color = if (conversation.unreadCount > 0) AppTheme.Colors.accent
-                        else AppTheme.Colors.tertiaryText
+                        text = "Söhbətə başlayın",
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                if (conversation.unreadCount > 0) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Box(
-                        modifier = Modifier
-                            .size(22.dp)
-                            .background(AppTheme.Colors.accent, CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = if (conversation.unreadCount > 99) "99+" else conversation.unreadCount.toString(),
-                            color = Color.White,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                state = listState,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(vertical = 12.dp)
+            ) {
+                items(messages, key = { it.id }) { message ->
+                    val isSent = message.senderId != conversation.usersId
+                    MessageBubble(
+                        message = message,
+                        isSent = isSent,
+                        formatTime = formatTime
+                    )
+                }
+            }
+        }
+
+        // Input bar
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+                .padding(bottom = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            OutlinedTextField(
+                value = messageText,
+                onValueChange = { messageText = it },
+                modifier = Modifier.weight(1f),
+                placeholder = {
+                    Text(
+                        "Mesaj yazın...",
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    )
+                },
+                shape = RoundedCornerShape(20.dp),
+                singleLine = false,
+                maxLines = 3,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = CoreViaPrimary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                )
+            )
+
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (messageText.isNotBlank()) CoreViaPrimary
+                        else CoreViaPrimary.copy(alpha = 0.3f)
+                    )
+                    .clickable(enabled = messageText.isNotBlank() && !isSending) {
+                        onSend(messageText)
+                        messageText = ""
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                if (isSending) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                        color = Color.White
+                    )
+                } else {
+                    Icon(
+                        Icons.Filled.Send, null,
+                        modifier = Modifier.size(18.dp),
+                        tint = Color.White
+                    )
                 }
             }
         }
     }
 }
 
-// ─── Time formatter (nisbi vaxt: indi, 5d əvvəl, dünən, tarix) ──────────────
-private fun formatChatTime(dateString: String): String {
-    return try {
-        if (dateString.length < 16) return dateString.take(10)
-        val date = dateString.take(10)  // "2026-02-19"
-        val time = dateString.substring(11, 16)  // "14:30"
-        val today = java.time.LocalDate.now()
-        val msgDate = java.time.LocalDate.parse(date)
-
-        // Saat ve deqiqe parcala
-        val msgHour = dateString.substring(11, 13).toIntOrNull() ?: 0
-        val msgMin = dateString.substring(14, 16).toIntOrNull() ?: 0
-        val now = java.time.LocalDateTime.now()
-
-        when {
-            msgDate == today -> {
-                // Bugunki mesaj: nisbi vaxt goster
-                val diffMinutes = java.time.Duration.between(
-                    java.time.LocalDateTime.of(msgDate, java.time.LocalTime.of(msgHour, msgMin)),
-                    now
-                ).toMinutes()
-                when {
-                    diffMinutes < 1 -> "indi"
-                    diffMinutes < 60 -> "${diffMinutes}d əvvəl"
-                    else -> time
-                }
-            }
-            msgDate == today.minusDays(1) -> "dünən"
-            msgDate.isAfter(today.minusDays(7)) -> {
-                // Son 7 gun icerisinde: gun adi
-                val dayName = when (msgDate.dayOfWeek) {
-                    java.time.DayOfWeek.MONDAY -> "B.e."
-                    java.time.DayOfWeek.TUESDAY -> "Ç.a."
-                    java.time.DayOfWeek.WEDNESDAY -> "Ç."
-                    java.time.DayOfWeek.THURSDAY -> "C.a."
-                    java.time.DayOfWeek.FRIDAY -> "C."
-                    java.time.DayOfWeek.SATURDAY -> "Ş."
-                    java.time.DayOfWeek.SUNDAY -> "B."
-                }
-                dayName
-            }
-            else -> date.substring(5) // "02-19"
+@Composable
+private fun MessageBubble(
+    message: ChatMessage,
+    isSent: Boolean,
+    formatTime: (String?) -> String
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = if (isSent) Alignment.End else Alignment.Start
+    ) {
+        Box(
+            modifier = Modifier
+                .widthIn(max = 280.dp)
+                .clip(
+                    RoundedCornerShape(
+                        topStart = 16.dp,
+                        topEnd = 16.dp,
+                        bottomStart = if (isSent) 16.dp else 4.dp,
+                        bottomEnd = if (isSent) 4.dp else 16.dp
+                    )
+                )
+                .background(
+                    if (isSent) CoreViaPrimary else MaterialTheme.colorScheme.surfaceVariant
+                )
+                .padding(horizontal = 14.dp, vertical = 10.dp)
+        ) {
+            Text(
+                text = message.message,
+                fontSize = 14.sp,
+                color = if (isSent) Color.White else MaterialTheme.colorScheme.onSurface,
+                lineHeight = 20.sp
+            )
         }
-    } catch (e: Exception) {
-        ""
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = formatTime(message.createdAt),
+            fontSize = 10.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+        )
     }
 }

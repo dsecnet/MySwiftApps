@@ -1,21 +1,20 @@
 package life.corevia.app.ui.food
 
-import life.corevia.app.ui.theme.AppTheme
-import life.corevia.app.ui.theme.CoreViaIconBadge
-import life.corevia.app.ui.theme.CoreViaSectionHeader
-import life.corevia.app.ui.theme.CoreViaAnimatedBackground
-import life.corevia.app.ui.theme.coreViaCard
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,648 +23,1114 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import life.corevia.app.data.models.FoodEntry
-import life.corevia.app.data.models.MealType
+import androidx.hilt.navigation.compose.hiltViewModel
+import life.corevia.app.data.model.FoodEntry
+import life.corevia.app.data.model.MealType
+import life.corevia.app.ui.theme.*
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Size
 
-/**
- * iOS EatingView.swift — Android 1-ə-1 port
- *
- * Bölmələr (iOS ilə eyni sıra):
- *  1. Header: title (32sp bold) + subtitle
- *  2. Daily Progress: circular gradient progress + CalorieStat x3 + Edit Goal
- *  3. Macro Breakdown: 3 MacroCard with emoji + border
- *  4. Meal Sections: forEach MealType — header with icon + entries or add button
- *  5. Add Button: accent gradient inline (no FAB)
- */
 @Composable
 fun FoodScreen(
-    viewModel: FoodViewModel = viewModel(),
-    isPremium: Boolean = false
+    onNavigateToMealPlans: () -> Unit = {},
+    onNavigateToAICalorie: () -> Unit = {},
+    onNavigateToAddFood: () -> Unit = {},
+    viewModel: FoodViewModel = hiltViewModel()
 ) {
-    val foodEntries by viewModel.foodEntries.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val showAddFood by viewModel.showAddFood.collectAsState()
-    val calorieGoal by viewModel.calorieGoal.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
-    val successMessage by viewModel.successMessage.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+    FoodScreenContent(
+        uiState = uiState,
+        onAddWater = viewModel::addWater,
+        onRemoveWater = viewModel::removeWater,
+        onAddClick = viewModel::toggleAddSheet,
+        onEditGoal = viewModel::toggleEditGoal,
+        onDeleteEntry = viewModel::deleteEntry,
+        onAddFood = viewModel::addFood,
+        onUpdateGoal = viewModel::updateCalorieGoal,
+        onDismissAdd = viewModel::toggleAddSheet,
+        onDismissGoal = viewModel::toggleEditGoal,
+        onNavigateToMealPlans = onNavigateToMealPlans,
+        onNavigateToAICalorie = onNavigateToAICalorie
+    )
+}
 
-    // AI Analysis states
-    val analysisResult by viewModel.analysisResult.collectAsState()
-    val isAnalyzing by viewModel.isAnalyzing.collectAsState()
-    val showAnalysisResult by viewModel.showAnalysisResult.collectAsState()
-
-    // Computed
-    val todayEntries   = viewModel.todayEntries
-    val totalCalories  = viewModel.totalCaloriesToday
-    val progress       = viewModel.calorieProgress
-    val totalProtein   = viewModel.totalProtein
-    val totalCarbs     = viewModel.totalCarbs
-    val totalFats      = viewModel.totalFats
-    val remaining      = (calorieGoal - totalCalories).coerceAtLeast(0)
-
-    var showEditGoal   by remember { mutableStateOf(false) }
-    var editingEntry   by remember { mutableStateOf<FoodEntry?>(null) }
-    var deletingEntryId by remember { mutableStateOf<String?>(null) }
-
-    val scrollState = rememberScrollState()
-
-    // Delete confirmation dialog
-    if (deletingEntryId != null) {
-        AlertDialog(
-            onDismissRequest = { deletingEntryId = null },
-            containerColor   = AppTheme.Colors.secondaryBackground,
-            title            = { Text("Qidanı sil?", color = AppTheme.Colors.primaryText) },
-            text             = { Text("Bu qida girişini silmək istədiyinizdən əminsiniz?", color = AppTheme.Colors.secondaryText) },
-            confirmButton    = {
-                TextButton(onClick = {
-                    deletingEntryId?.let { viewModel.deleteFoodEntry(it) }
-                    deletingEntryId = null
-                }) { Text("Sil", color = AppTheme.Colors.error) }
-            },
-            dismissButton    = {
-                TextButton(onClick = { deletingEntryId = null }) {
-                    Text("Ləğv et", color = AppTheme.Colors.secondaryText)
-                }
-            }
-        )
-    }
-
-    // Auto-dismiss messages
-    LaunchedEffect(successMessage) {
-        if (successMessage != null) { kotlinx.coroutines.delay(2000); viewModel.clearSuccess() }
-    }
-    LaunchedEffect(errorMessage) {
-        if (errorMessage != null) { kotlinx.coroutines.delay(3000); viewModel.clearError() }
-    }
-
-    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.warning) {
-        // iOS: ScrollView { VStack(spacing: 24) { ... } .padding() .padding(.bottom, 100) }
+@Composable
+private fun FoodScreenContent(
+    uiState: FoodUiState,
+    onAddWater: () -> Unit,
+    onRemoveWater: () -> Unit,
+    onAddClick: () -> Unit,
+    onEditGoal: () -> Unit,
+    onDeleteEntry: (String) -> Unit,
+    onAddFood: (String, Int, Double?, Double?, Double?, MealType, String?) -> Unit,
+    onUpdateGoal: (Int) -> Unit,
+    onDismissAdd: () -> Unit,
+    onDismissGoal: () -> Unit,
+    onNavigateToMealPlans: () -> Unit,
+    onNavigateToAICalorie: () -> Unit
+) {
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 100.dp)
         ) {
-            Spacer(modifier = Modifier.height(40.dp))
-
-            // ── 1. Header (iOS: title 32sp bold + subtitle 14sp) ─────────────────
             Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                Text(
-                    text       = "Qida İzləmə",
-                    fontSize   = 32.sp,
-                    fontWeight = FontWeight.Bold,
-                    color      = AppTheme.Colors.primaryText
-                )
-                Text(
-                    text     = "Qidalanmanızı izləyin və sağlam qalın",
-                    fontSize = 14.sp,
-                    color    = AppTheme.Colors.secondaryText
-                )
-            }
+                Spacer(modifier = Modifier.height(40.dp))
 
-            // ── Success/Error messages ───────────────────────────────────────────
-            successMessage?.let { msg ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(AppTheme.Colors.success.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
-                        .padding(12.dp)
+                // ─── Header Section (iOS: headerSection) ────────────────
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(text = msg, color = AppTheme.Colors.success, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                }
-            }
-            errorMessage?.let { msg ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(AppTheme.Colors.error.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = msg, color = AppTheme.Colors.error, fontSize = 14.sp, modifier = Modifier.weight(1f))
-                    Text(text = "✕", color = AppTheme.Colors.error, modifier = Modifier.clickable { viewModel.clearError() })
-                }
-            }
-
-            // ── 2. Daily Progress (iOS: circular gradient + CalorieStat x3 + Edit Goal) ──
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .coreViaCard(cornerRadius = 16.dp)
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // iOS: ZStack { Circle stroke + Circle gradient trim + VStack(calories) }
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier         = Modifier.padding(vertical = 20.dp)
-                ) {
-                    CircularProgressIndicator(
-                        progress  = { progress.coerceIn(0f, 1f) },
-                        modifier  = Modifier.size(180.dp),
-                        color     = AppTheme.Colors.accent,
-                        strokeWidth = 20.dp,
-                        trackColor  = AppTheme.Colors.separator,
-                        strokeCap   = StrokeCap.Round
-                    )
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text       = "$totalCalories",
-                            fontSize   = 40.sp,
-                            fontWeight = FontWeight.Bold,
-                            color      = AppTheme.Colors.primaryText
-                        )
-                        Text(
-                            text     = "/ $calorieGoal",
-                            fontSize = 16.sp,
-                            color    = AppTheme.Colors.secondaryText
-                        )
-                        Text(
-                            text     = "kcal",
-                            fontSize = 14.sp,
-                            color    = AppTheme.Colors.tertiaryText
-                        )
-                    }
-                }
-
-                // iOS: HStack(spacing: 20) { CalorieStat x3 — remaining, %, meals }
-                Row(
-                    modifier              = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    FoodCalorieStat(
-                        icon  = Icons.Outlined.LocalFireDepartment,
-                        value = "$remaining",
-                        label = "Qalan",
-                        color = AppTheme.Colors.accent
-                    )
-                    FoodCalorieStat(
-                        icon  = Icons.Outlined.GpsFixed,
-                        value = "${(progress * 100).toInt()}%",
-                        label = "Tamamlandı",
-                        color = AppTheme.Colors.accent
-                    )
-                    FoodCalorieStat(
-                        icon  = Icons.Outlined.Restaurant,
-                        value = "${todayEntries.size}",
-                        label = "Yemək",
-                        color = AppTheme.Colors.accent
-                    )
-                }
-
-                // iOS: Edit Goal button with pencil icon
-                Box(
-                    modifier = Modifier
-                        .background(AppTheme.Colors.accent.copy(alpha = 0.1f), RoundedCornerShape(20.dp))
-                        .clip(RoundedCornerShape(20.dp))
-                        .clickable { showEditGoal = true }
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment     = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector        = Icons.Outlined.Edit,
-                            contentDescription = null,
-                            modifier           = Modifier.size(14.dp),
-                            tint               = AppTheme.Colors.accent
-                        )
-                        Text(
-                            text       = "Hədəfi dəyiş",
-                            fontSize   = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color      = AppTheme.Colors.accent
-                        )
-                    }
-                }
-            }
-
-            // ── 3. Macro Breakdown (iOS: 3 MacroCard with emoji + border) ────────
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                CoreViaSectionHeader(title = "Makro Bölgüsü", subtitle = "Günlük makro xülasəsi")
-
-                Row(
-                    modifier              = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    FoodMacroCard(
-                        modifier = Modifier.weight(1f),
-                        icon     = Icons.Outlined.FitnessCenter,
-                        value    = "${totalProtein.toInt()}q",
-                        label    = "Protein",
-                        color    = AppTheme.Colors.accent
-                    )
-                    FoodMacroCard(
-                        modifier = Modifier.weight(1f),
-                        icon     = Icons.Outlined.Grain,
-                        value    = "${totalCarbs.toInt()}q",
-                        label    = "Karbohidrat",
-                        color    = AppTheme.Colors.accentDark
-                    )
-                    FoodMacroCard(
-                        modifier = Modifier.weight(1f),
-                        icon     = Icons.Outlined.WaterDrop,
-                        value    = "${totalFats.toInt()}q",
-                        label    = "Yağ",
-                        color    = AppTheme.Colors.accent
-                    )
-                }
-            }
-
-            // ── 4. Meal Sections (iOS: ForEach MealType.allCases) ────────────────
-            if (isLoading && foodEntries.isEmpty()) {
-                Box(
-                    modifier         = Modifier.fillMaxWidth().padding(32.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = AppTheme.Colors.accent)
-                }
-            } else {
-                MealType.entries.forEach { mealType ->
-                    val mealEntries = todayEntries.filter { it.mealType == mealType.value }
-                    val mealCalories = mealEntries.sumOf { it.calories }
-
-                    // iOS: meal section with icon + title + total calories
-                    FoodMealSection(
-                        mealType     = mealType,
-                        entries      = mealEntries,
-                        totalCalories = mealCalories,
-                        onAddFood    = { viewModel.setShowAddFood(true) },
-                        onEditEntry  = { editingEntry = it },
-                        onDeleteEntry = { deletingEntryId = it.id }
-                    )
-                }
-            }
-
-            // ── 5. Add Button (iOS: accent gradient inline) ──────────────────────
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .shadow(8.dp, RoundedCornerShape(12.dp), spotColor = AppTheme.Colors.accent.copy(alpha = 0.3f))
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(AppTheme.Colors.accent, AppTheme.Colors.accent.copy(alpha = 0.8f))
-                        ),
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable { viewModel.setShowAddFood(true) }
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment     = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector        = Icons.Outlined.AddCircle,
-                        contentDescription = null,
-                        modifier           = Modifier.size(20.dp),
-                        tint               = Color.White
+                    Text(
+                        text = "Qida Tracking",
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
-                        text       = "Qida Əlavə Et",
-                        fontSize   = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color      = Color.White
+                        text = "Bugünkü qidalanmanızı izləyin",
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-            }
 
-            Spacer(modifier = Modifier.height(100.dp)) // Tab bar üçün yer
+                // ─── Daily Progress Section (iOS: dailyProgressSection - horizontal) ──
+                DailyProgressSection(
+                    consumed = uiState.todayCalories,
+                    goal = uiState.calorieGoal,
+                    remaining = uiState.remainingCalories,
+                    progress = uiState.calorieProgress,
+                    onEditGoal = onEditGoal
+                )
+
+                // ─── Water Tracking (iOS: waterTrackingSection) ──────────
+                WaterTrackingSection(
+                    glasses = uiState.waterGlasses,
+                    onAdd = onAddWater,
+                    onRemove = onRemoveWater
+                )
+
+                // ─── Macro Breakdown (iOS: macroBreakdownSection) ────────
+                MacroBreakdownSection(
+                    protein = uiState.todayProtein,
+                    carbs = uiState.todayCarbs,
+                    fats = uiState.todayFats
+                )
+
+                // ─── Meal Sections (iOS: mealSection) ───────────────────
+                MealType.entries.forEach { mealType ->
+                    MealSection(
+                        mealType = mealType,
+                        entries = uiState.entriesForMeal(mealType),
+                        onDeleteEntry = onDeleteEntry,
+                        onAddClick = onAddClick
+                    )
+                }
+
+                // ─── Add Button (iOS: addButton) ────────────────────────
+                AddFoodButton(onClick = onAddClick)
+            }
         }
     }
 
-    // ─── Add Food Bottom Sheet ───────────────────────────────────────────────
-    if (showAddFood) {
+    // Add Food Sheet
+    if (uiState.showAddSheet) {
         AddFoodSheet(
-            onDismiss = { viewModel.setShowAddFood(false) },
-            isPremium = true, // AI analiz herkese aciq
-            onSave = { name, calories, protein, carbs, fats, mealType, notes ->
-                viewModel.addFoodEntry(name, calories, protein, carbs, fats, mealType, notes)
-            },
-            onAnalyzeImage = { imageFile ->
-                viewModel.analyzeFoodImage(imageFile)
-            },
-            isAnalyzing = isAnalyzing
+            onDismiss = onDismissAdd,
+            onAdd = onAddFood,
+            onNavigateToAICalorie = onNavigateToAICalorie
         )
     }
 
-    // ─── AI Analysis Result Sheet ─────────────────────────────────────────────
-    if (showAnalysisResult && analysisResult != null) {
-        FoodAnalysisSheet(
-            result = analysisResult!!,
-            isLoading = isLoading,
-            onDismiss = { viewModel.dismissAnalysisResult() },
-            onAddAsFood = { result ->
-                viewModel.addFoodFromAnalysis(result, "lunch")
-            }
-        )
-    }
-
-    // ─── Edit Food Bottom Sheet ──────────────────────────────────────────────
-    editingEntry?.let { entry ->
-        EditFoodSheet(
-            entry     = entry,
-            onDismiss = { editingEntry = null },
-            onSave    = { name, calories, protein, carbs, fats, mealType, notes ->
-                viewModel.updateFoodEntry(entry.id, name, calories, protein, carbs, fats, mealType, notes)
-                editingEntry = null
-            }
-        )
-    }
-
-    // ─── Edit Goal Dialog ────────────────────────────────────────────────────
-    if (showEditGoal) {
+    // Edit Goal Dialog
+    if (uiState.showEditGoal) {
         EditGoalDialog(
-            currentGoal = calorieGoal,
-            onDismiss   = { showEditGoal = false },
-            onSave      = { newGoal ->
-                viewModel.setCalorieGoal(newGoal)
-                showEditGoal = false
-            }
+            currentGoal = uiState.calorieGoal,
+            onDismiss = onDismissGoal,
+            onUpdate = onUpdateGoal
         )
     }
 }
 
-// ─── iOS: CalorieStat (icon + value + label) ─────────────────────────────────
+// ─── Daily Progress Section (iOS-style: horizontal layout) ──────────
+
 @Composable
-private fun FoodCalorieStat(
-    icon: ImageVector,
-    value: String,
-    label: String,
-    color: Color
+private fun DailyProgressSection(
+    consumed: Int,
+    goal: Int,
+    remaining: Int,
+    progress: Float,
+    onEditGoal: () -> Unit
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress.coerceIn(0f, 1f),
+        animationSpec = spring(),
+        label = "progress"
+    )
+    val percentage = (progress * 100).toInt().coerceIn(0, 999)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .padding(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        CoreViaIconBadge(icon = icon, tintColor = color, size = 32.dp, iconSize = 16.dp)
-        Text(
-            text       = value,
-            fontSize   = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color      = AppTheme.Colors.primaryText
-        )
-        Text(
-            text     = label,
-            fontSize = 12.sp,
-            color    = AppTheme.Colors.secondaryText
-        )
+        // Compact circular progress on the LEFT (iOS: 90pt)
+        Box(contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(
+                progress = { animatedProgress },
+                modifier = Modifier.size(90.dp),
+                strokeWidth = 10.dp,
+                color = CoreViaPrimary,
+                trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                strokeCap = StrokeCap.Round
+            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "$consumed",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = "kcal",
+                    fontSize = 10.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        // Stats on the RIGHT (iOS style - vertical list)
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Target
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Filled.GpsFixed, null,
+                    modifier = Modifier.size(12.dp),
+                    tint = CoreViaPrimary
+                )
+                Text(
+                    text = "$goal kcal",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = "hədəf",
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            // Remaining
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Filled.LocalFireDepartment, null,
+                    modifier = Modifier.size(12.dp),
+                    tint = CoreViaPrimary
+                )
+                Text(
+                    text = "$remaining",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = "qalıb",
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            // Percentage
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Filled.BarChart, null,
+                    modifier = Modifier.size(12.dp),
+                    tint = CoreViaPrimary
+                )
+                Text(
+                    text = "$percentage%",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = "tamamlandı",
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            // Edit goal button (iOS style pill)
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(CoreViaPrimary.copy(alpha = 0.1f))
+                    .clickable(onClick = onEditGoal)
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Filled.Edit, null,
+                        modifier = Modifier.size(12.dp),
+                        tint = CoreViaPrimary
+                    )
+                    Text(
+                        text = "Hədəfi Dəyiş",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = CoreViaPrimary
+                    )
+                }
+            }
+        }
     }
 }
 
-// ─── iOS: MacroCard (emoji + value + label, with border) ─────────────────────
+// ─── Water Tracking (iOS-style: tappable drops) ─────────────────────
+
 @Composable
-private fun FoodMacroCard(
+private fun WaterTrackingSection(glasses: Int, onAdd: () -> Unit, onRemove: () -> Unit) {
+    val waterGoal = 8
+    val waterProgress = glasses / waterGoal.toFloat()
+    val mlConsumed = glasses * 250
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // Header
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Filled.WaterDrop, null,
+                    modifier = Modifier.size(18.dp),
+                    tint = Color(0xFF2196F3)
+                )
+                Text(
+                    text = "Su İzləmə",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
+            Text(
+                text = "$glasses/$waterGoal",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF2196F3)
+            )
+        }
+
+        // Tappable water drop icons (iOS style)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            (1..waterGoal).forEach { index ->
+                Icon(
+                    Icons.Filled.WaterDrop, null,
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clickable {
+                            // iOS behavior: tap to toggle
+                            if (glasses == index) {
+                                // tapping the last filled one removes it
+                                onRemove()
+                            } else if (index > glasses) {
+                                // fill up to this one
+                                repeat(index - glasses) { onAdd() }
+                            }
+                        },
+                    tint = if (index <= glasses) Color(0xFF2196F3)
+                    else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                )
+            }
+        }
+
+        // Progress bar
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(6.dp)
+                .clip(RoundedCornerShape(3.dp))
+                .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+        ) {
+            val animatedWater by animateFloatAsState(
+                targetValue = waterProgress.coerceIn(0f, 1f),
+                animationSpec = spring(),
+                label = "water"
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(animatedWater)
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(Color(0xFF2196F3))
+            )
+        }
+
+        // Minus / ml / Plus row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Minus button
+            Icon(
+                Icons.Filled.RemoveCircle, null,
+                modifier = Modifier
+                    .size(28.dp)
+                    .clickable(enabled = glasses > 0, onClick = onRemove),
+                tint = if (glasses > 0) Color(0xFF2196F3)
+                else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+            )
+
+            Text(
+                text = "$mlConsumed ml",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            // Plus button
+            Icon(
+                Icons.Filled.AddCircle, null,
+                modifier = Modifier
+                    .size(28.dp)
+                    .clickable(enabled = glasses < waterGoal, onClick = onAdd),
+                tint = if (glasses < waterGoal) Color(0xFF2196F3)
+                else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+            )
+        }
+    }
+}
+
+// ─── Macro Breakdown (iOS-style: bordered cards with emojis) ────────
+
+@Composable
+private fun MacroBreakdownSection(protein: Double, carbs: Double, fats: Double) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            text = "Makro Qırılması",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            MacroCard(
+                modifier = Modifier.weight(1f),
+                emoji = "\uD83D\uDCAA",
+                label = "Protein",
+                value = "${protein.toInt()}q",
+                color = CoreViaPrimary
+            )
+            MacroCard(
+                modifier = Modifier.weight(1f),
+                emoji = "\uD83C\uDF5E",
+                label = "Karbohidrat",
+                value = "${carbs.toInt()}q",
+                color = CoreViaPrimary.copy(red = 0.8f)
+            )
+            MacroCard(
+                modifier = Modifier.weight(1f),
+                emoji = "\uD83E\uDD51",
+                label = "Yağ",
+                value = "${fats.toInt()}q",
+                color = CoreViaPrimary
+            )
+        }
+    }
+}
+
+@Composable
+private fun MacroCard(
     modifier: Modifier = Modifier,
-    icon: ImageVector,
-    value: String,
+    emoji: String,
     label: String,
+    value: String,
     color: Color
 ) {
     Column(
         modifier = modifier
-            .coreViaCard(accentColor = color, cornerRadius = 12.dp)
-            .border(1.dp, color.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
-            .padding(16.dp),
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .border(2.dp, color.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+            .padding(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        CoreViaIconBadge(icon = icon, tintColor = color, size = 40.dp, iconSize = 20.dp)
+        Text(text = emoji, fontSize = 28.sp)
         Text(
-            text       = value,
-            fontSize   = 16.sp,
+            text = value,
+            fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            color      = AppTheme.Colors.primaryText
+            color = MaterialTheme.colorScheme.onBackground
         )
         Text(
-            text     = label,
+            text = label,
             fontSize = 12.sp,
-            color    = AppTheme.Colors.secondaryText
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1
         )
     }
 }
 
-// ─── iOS: Meal Section ───────────────────────────────────────────────────────
+// ─── Meal Section (iOS-style: icons, bordered empty state) ──────────
+
 @Composable
-private fun FoodMealSection(
+private fun MealSection(
     mealType: MealType,
     entries: List<FoodEntry>,
-    totalCalories: Int,
-    onAddFood: () -> Unit,
-    onEditEntry: (FoodEntry) -> Unit,
-    onDeleteEntry: (FoodEntry) -> Unit
+    onDeleteEntry: (String) -> Unit,
+    onAddClick: () -> Unit
 ) {
-    val mealColor = when (mealType) {
-        MealType.BREAKFAST -> AppTheme.Colors.mealBreakfast
-        MealType.LUNCH     -> AppTheme.Colors.mealLunch
-        MealType.DINNER    -> AppTheme.Colors.mealDinner
-        MealType.SNACK     -> AppTheme.Colors.mealSnack
-    }
     val mealIcon = when (mealType) {
-        MealType.BREAKFAST -> Icons.Outlined.WbSunny
-        MealType.LUNCH     -> Icons.Outlined.LightMode
-        MealType.DINNER    -> Icons.Outlined.NightsStay
-        MealType.SNACK     -> Icons.Outlined.Cookie
+        MealType.BREAKFAST -> Icons.Filled.WbSunny
+        MealType.LUNCH -> Icons.Filled.Restaurant
+        MealType.DINNER -> Icons.Filled.DarkMode
+        MealType.SNACK -> Icons.Filled.Cookie
     }
-    val mealLabel = when (mealType) {
-        MealType.BREAKFAST -> "Səhər yeməyi"
-        MealType.LUNCH     -> "Nahar"
-        MealType.DINNER    -> "Axşam yeməyi"
-        MealType.SNACK     -> "Ara öyün"
+    val mealColor = when (mealType) {
+        MealType.BREAKFAST -> Color(0xFFFF9800)
+        MealType.LUNCH -> CoreViaPrimary
+        MealType.DINNER -> Color(0xFF9C27B0)
+        MealType.SNACK -> CoreViaSuccess
     }
+    val totalCalories = entries.sumOf { it.calories }
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        // iOS: HStack { icon + title + Spacer + total calories }
+        // Header
         Row(
-            modifier              = Modifier.fillMaxWidth(),
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Icon(
-                imageVector        = mealIcon,
-                contentDescription = null,
-                modifier           = Modifier.size(20.dp),
-                tint               = mealColor
-            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    mealIcon, null,
+                    modifier = Modifier.size(20.dp),
+                    tint = mealColor
+                )
+                Text(
+                    text = mealType.displayName,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
             Text(
-                text       = mealLabel,
-                fontSize   = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color      = AppTheme.Colors.primaryText
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            Text(
-                text       = "$totalCalories kcal",
-                fontSize   = 14.sp,
+                text = "$totalCalories kcal",
+                fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
-                color      = mealColor
+                color = mealColor
             )
         }
 
         if (entries.isEmpty()) {
-            // iOS: Add button with border
+            // iOS style: bordered empty card
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(12.dp))
-                    .border(1.dp, mealColor.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
                     .clip(RoundedCornerShape(12.dp))
-                    .clickable { onAddFood() }
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    .border(1.dp, mealColor.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                    .clickable(onClick = onAddClick)
                     .padding(16.dp),
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector        = Icons.Outlined.AddCircle,
-                    contentDescription = null,
-                    modifier           = Modifier.size(18.dp),
-                    tint               = mealColor
+                    Icons.Filled.AddCircle, null,
+                    modifier = Modifier.size(20.dp),
+                    tint = mealColor
                 )
                 Text(
-                    text  = "Əlavə et",
-                    color = AppTheme.Colors.primaryText
+                    text = "Qida əlavə et",
+                    fontSize = 15.sp,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
         } else {
-            // iOS: VStack(spacing: 8) { ForEach FoodEntryRow }
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 entries.forEach { entry ->
-                    FoodEntryRowIos(
-                        entry    = entry,
-                        mealColor = mealColor,
-                        mealIcon  = mealIcon,
-                        onEdit   = { onEditEntry(entry) },
-                        onDelete = { onDeleteEntry(entry) }
-                    )
+                    FoodEntryRow(entry = entry, mealColor = mealColor, onDelete = { onDeleteEntry(entry.id) })
                 }
             }
         }
     }
 }
 
-// ─── iOS: FoodEntryRow ───────────────────────────────────────────────────────
+// ─── Food Entry Row (iOS-style: icon left, calories right) ──────────
+
 @Composable
-private fun FoodEntryRowIos(
-    entry: FoodEntry,
-    mealColor: Color,
-    mealIcon: ImageVector,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit
-) {
+private fun FoodEntryRow(entry: FoodEntry, mealColor: Color, onDelete: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .coreViaCard(accentColor = mealColor, cornerRadius = 12.dp)
             .clip(RoundedCornerShape(12.dp))
-            .clickable { onEdit() }
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
             .padding(12.dp),
-        verticalAlignment     = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        // iOS: Circle icon (40x40) with meal color
+        // Meal type icon circle
         Box(
             modifier = Modifier
                 .size(40.dp)
-                .background(mealColor.copy(alpha = 0.2f), CircleShape),
+                .clip(CircleShape)
+                .background(mealColor.copy(alpha = 0.2f)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector        = mealIcon,
-                contentDescription = null,
-                modifier           = Modifier.size(16.dp),
-                tint               = mealColor
+                Icons.Filled.Restaurant, null,
+                modifier = Modifier.size(16.dp),
+                tint = mealColor
             )
         }
 
-        // iOS: VStack { name, macros, time }
+        // Name + macros
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
-                text       = entry.name,
-                fontSize   = 15.sp,
+                text = entry.name,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
-                color      = AppTheme.Colors.primaryText
+                color = MaterialTheme.colorScheme.onBackground,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
-
-            // iOS: P:X C:X F:X
-            val macroText = buildString {
-                entry.protein?.let { append("P:${it.toInt()} ") }
-                entry.carbs?.let { append("K:${it.toInt()} ") }
-                entry.fats?.let { append("Y:${it.toInt()}") }
-            }
-            if (macroText.isNotBlank()) {
+            if (entry.protein != null && entry.carbs != null && entry.fats != null) {
                 Text(
-                    text     = macroText.trim(),
+                    text = "P:${entry.protein!!.toInt()} C:${entry.carbs!!.toInt()} F:${entry.fats!!.toInt()}",
                     fontSize = 12.sp,
-                    color    = AppTheme.Colors.secondaryText
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
 
-        // iOS: Calories badge
+        // Calories on the right (iOS style - prominent)
+        Column(
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            Text(
+                text = "${entry.calories}",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = mealColor
+            )
+            Text(
+                text = "kcal",
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+// ─── Add Food Button (iOS-style: gradient with shadow) ──────────────
+
+@Composable
+private fun AddFoodButton(onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(52.dp)
+            .shadow(8.dp, RoundedCornerShape(12.dp)),
+        shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = CoreViaPrimary)
+    ) {
+        Icon(
+            Icons.Filled.AddCircle, null,
+            modifier = Modifier.size(20.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text       = "${entry.calories} kcal",
-            fontSize   = 14.sp,
-            fontWeight = FontWeight.SemiBold,
-            color      = mealColor
+            text = "Qida Əlavə Et",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold
         )
     }
 }
 
-// ─── Edit Goal Dialog ────────────────────────────────────────────────────────
+// ─── Add Food Bottom Sheet ──────────────────────────────────────────
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditGoalDialog(
-    currentGoal: Int,
+private fun AddFoodSheet(
     onDismiss: () -> Unit,
-    onSave: (Int) -> Unit
+    onAdd: (String, Int, Double?, Double?, Double?, MealType, String?) -> Unit,
+    onNavigateToAICalorie: () -> Unit = {}
 ) {
+    var name by remember { mutableStateOf("") }
+    var calories by remember { mutableStateOf("") }
+    var protein by remember { mutableStateOf("") }
+    var carbs by remember { mutableStateOf("") }
+    var fats by remember { mutableStateOf("") }
+    var selectedMealType by remember { mutableStateOf(MealType.BREAKFAST) }
+    var notes by remember { mutableStateOf("") }
+
+    val isValid = name.isNotBlank() && calories.isNotBlank() && (calories.toIntOrNull() ?: 0) > 0
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 40.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Header: Bağla / Title / Saxla
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Bağla",
+                    fontSize = 14.sp,
+                    color = CoreViaPrimary,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.clickable(onClick = onDismiss)
+                )
+                Text(
+                    text = "Qida Əlavə Et",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "Saxla",
+                    fontSize = 14.sp,
+                    color = if (isValid) CoreViaPrimary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.clickable(enabled = isValid) {
+                        onAdd(
+                            name,
+                            calories.toIntOrNull() ?: 0,
+                            protein.toDoubleOrNull(),
+                            carbs.toDoubleOrNull(),
+                            fats.toDoubleOrNull(),
+                            selectedMealType,
+                            notes.ifBlank { null }
+                        )
+                    }
+                )
+            }
+
+            // AI Analiz button inside sheet
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(Color(0xFF9C27B0).copy(alpha = 0.08f))
+                    .border(1.dp, Color(0xFF9C27B0).copy(alpha = 0.2f), RoundedCornerShape(14.dp))
+                    .clickable {
+                        onDismiss()
+                        onNavigateToAICalorie()
+                    }
+                    .padding(vertical = 14.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Filled.CameraAlt, null,
+                        modifier = Modifier.size(20.dp),
+                        tint = Color(0xFF9C27B0)
+                    )
+                    Column {
+                        Text(
+                            text = "AI ilə Analiz Et",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF9C27B0)
+                        )
+                        Text(
+                            text = "Şəkil çəkin, kalorini öyrənin",
+                            fontSize = 11.sp,
+                            color = Color(0xFF9C27B0).copy(alpha = 0.7f)
+                        )
+                    }
+                }
+            }
+
+            // Quick add - Horizontal scrollable
+            Text(
+                text = "Tez Əlavə Et",
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            data class QuickFood(val emoji: String, val name: String, val portion: String, val cal: Int, val p: Double, val c: Double, val f: Double)
+            val quickFoods = listOf(
+                QuickFood("\uD83E\uDD5A", "Yumurta", "1 ədəd", 78, 6.0, 0.6, 5.0),
+                QuickFood("\uD83C\uDF4C", "Banan", "1 ədəd", 105, 1.3, 27.0, 0.4),
+                QuickFood("\uD83C\uDF57", "Toyuq filesi", "100g", 165, 31.0, 0.0, 3.6),
+                QuickFood("\uD83C\uDF4E", "Alma", "1 ədəd", 95, 0.5, 25.0, 0.3),
+                QuickFood("\uD83E\uDD57", "Salat", "1 porsi", 150, 5.0, 20.0, 7.0),
+                QuickFood("\uD83C\uDF5E", "Çörək", "1 dilim", 79, 3.0, 15.0, 1.0),
+                QuickFood("\uD83C\uDF5A", "Düyü", "100g", 130, 2.7, 28.0, 0.3),
+                QuickFood("\uD83E\uDD5B", "Şorba", "1 kasa", 120, 6.0, 18.0, 3.0)
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                quickFoods.forEach { food ->
+                    Column(
+                        modifier = Modifier
+                            .width(80.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(CoreViaPrimary.copy(alpha = 0.06f))
+                            .clickable {
+                                name = food.name
+                                calories = food.cal.toString()
+                                protein = food.p.toString()
+                                carbs = food.c.toString()
+                                fats = food.f.toString()
+                            }
+                            .padding(vertical = 10.dp, horizontal = 6.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(3.dp)
+                    ) {
+                        Text(text = food.emoji, fontSize = 24.sp)
+                        Text(
+                            text = food.name,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            maxLines = 1,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = food.portion,
+                            fontSize = 9.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "${food.cal} kcal",
+                            fontSize = 10.sp,
+                            color = CoreViaPrimary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+
+            // Meal type selector - "Öğün Növü"
+            Text(
+                text = "Öğün Növü",
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                MealType.entries.forEach { type ->
+                    val isSelected = selectedMealType == type
+                    val mealColor = when (type) {
+                        MealType.BREAKFAST -> Color(0xFFFF9800)
+                        MealType.LUNCH -> CoreViaPrimary
+                        MealType.DINNER -> Color(0xFF9C27B0)
+                        MealType.SNACK -> CoreViaSuccess
+                    }
+                    val mealEmoji = when (type) {
+                        MealType.BREAKFAST -> "\u2600\uFE0F"
+                        MealType.LUNCH -> "\uD83C\uDF5D"
+                        MealType.DINNER -> "\uD83C\uDF19"
+                        MealType.SNACK -> "\uD83C\uDF6A"
+                    }
+                    val mealLabel = when (type) {
+                        MealType.BREAKFAST -> "Səhər"
+                        MealType.LUNCH -> "Günorta"
+                        MealType.DINNER -> "Axşam"
+                        MealType.SNACK -> "Snack"
+                    }
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(
+                                if (isSelected) mealColor.copy(alpha = 0.2f)
+                                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                            )
+                            .then(
+                                if (isSelected) Modifier.border(1.dp, mealColor, RoundedCornerShape(10.dp))
+                                else Modifier
+                            )
+                            .clickable { selectedMealType = type }
+                            .padding(vertical = 8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        Text(text = mealEmoji, fontSize = 14.sp)
+                        Text(
+                            text = mealLabel,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = if (isSelected) mealColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1
+                        )
+                    }
+                }
+            }
+
+            // Food name
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Qida Adı") },
+                placeholder = { Text("məs: Yumurta omlet", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true,
+                leadingIcon = { Icon(Icons.Filled.Restaurant, null, modifier = Modifier.size(18.dp)) }
+            )
+
+            // Calories
+            OutlinedTextField(
+                value = calories,
+                onValueChange = { calories = it.filter { c -> c.isDigit() } },
+                label = { Text("Kalori (kcal)") },
+                placeholder = { Text("məs: 250", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
+                leadingIcon = { Icon(Icons.Filled.LocalFireDepartment, null, modifier = Modifier.size(18.dp)) }
+            )
+
+            // Macros with emoji labels
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = "Makrolar (opsional)",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "· qram",
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedTextField(
+                    value = protein,
+                    onValueChange = { protein = it },
+                    label = { Text("\uD83D\uDCAA Protein") },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = carbs,
+                    onValueChange = { carbs = it },
+                    label = { Text("\uD83C\uDF5E Karb") },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = fats,
+                    onValueChange = { fats = it },
+                    label = { Text("\uD83E\uDD51 Yağ") },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    singleLine = true
+                )
+            }
+
+            // Notes
+            Text(
+                text = "Qeydlər (opsional)",
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            OutlinedTextField(
+                value = notes,
+                onValueChange = { notes = it },
+                placeholder = { Text("Əlavə məlumat yazın...", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(90.dp),
+                shape = RoundedCornerShape(12.dp),
+                maxLines = 4
+            )
+
+            // Save button
+            Button(
+                onClick = {
+                    onAdd(
+                        name,
+                        calories.toIntOrNull() ?: 0,
+                        protein.toDoubleOrNull(),
+                        carbs.toDoubleOrNull(),
+                        fats.toDoubleOrNull(),
+                        selectedMealType,
+                        notes.ifBlank { null }
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .shadow(8.dp, RoundedCornerShape(12.dp)),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = CoreViaPrimary),
+                enabled = isValid
+            ) {
+                Icon(Icons.Filled.AddCircle, null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Saxla", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+// ─── Edit Goal Dialog ───────────────────────────────────────────────
+
+@Composable
+private fun EditGoalDialog(currentGoal: Int, onDismiss: () -> Unit, onUpdate: (Int) -> Unit) {
     var goalText by remember { mutableStateOf(currentGoal.toString()) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor   = AppTheme.Colors.secondaryBackground,
-        title            = { Text("Günləlik Kalori Hədəfi", color = AppTheme.Colors.primaryText) },
+        title = { Text("Kalori hədəfi", fontWeight = FontWeight.Bold) },
         text = {
-            OutlinedTextField(
-                value         = goalText,
-                onValueChange = { goalText = it.filter { c -> c.isDigit() } },
-                label         = { Text("Kalori (kal)", color = AppTheme.Colors.secondaryText) },
-                colors        = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor  = AppTheme.Colors.accent,
-                    unfocusedBorderColor = AppTheme.Colors.separator,
-                    focusedTextColor    = AppTheme.Colors.primaryText,
-                    unfocusedTextColor  = AppTheme.Colors.primaryText,
-                    cursorColor         = AppTheme.Colors.accent
-                ),
-                singleLine    = true
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(
+                    value = goalText,
+                    onValueChange = { goalText = it.filter { c -> c.isDigit() } },
+                    label = { Text("Gündəlik hədəf (kcal)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true
+                )
+
+                Text(
+                    text = "Tez seçim",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    listOf(1500, 2000, 2500, 3000).forEach { goal ->
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(
+                                    if (goalText == goal.toString()) CoreViaPrimary
+                                    else CoreViaPrimary.copy(alpha = 0.1f)
+                                )
+                                .clickable { goalText = goal.toString() }
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "$goal",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (goalText == goal.toString()) Color.White else CoreViaPrimary
+                            )
+                        }
+                    }
+                }
+            }
         },
         confirmButton = {
-            TextButton(onClick = { goalText.toIntOrNull()?.let { onSave(it) } }) {
-                Text("Saxla", color = AppTheme.Colors.accent)
+            TextButton(onClick = {
+                goalText.toIntOrNull()?.let { onUpdate(it) }
+            }) {
+                Text("Saxla", color = CoreViaPrimary, fontWeight = FontWeight.SemiBold)
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Ləğv et", color = AppTheme.Colors.secondaryText)
-            }
+            TextButton(onClick = onDismiss) { Text("Ləğv et") }
         }
     )
 }

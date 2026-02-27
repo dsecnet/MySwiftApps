@@ -1,213 +1,318 @@
 package life.corevia.app.ui.marketplace
 
-import life.corevia.app.ui.theme.AppTheme
-import life.corevia.app.ui.theme.CoreViaAnimatedBackground
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import life.corevia.app.data.models.Product
+import androidx.hilt.navigation.compose.hiltViewModel
+import life.corevia.app.data.model.MarketplaceProduct
+import life.corevia.app.data.model.MarketplaceProductType
+import life.corevia.app.ui.theme.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MarketplaceScreen(
-    viewModel: MarketplaceViewModel,
-    onBack: () -> Unit,
-    onProductSelected: (Product) -> Unit
+    onBack: () -> Unit = {},
+    onNavigateToProduct: ((String) -> Unit)? = null,
+    viewModel: MarketplaceViewModel = hiltViewModel()
 ) {
-    val products by viewModel.products.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val searchQuery by viewModel.searchQuery.collectAsState()
-    val selectedCategory by viewModel.selectedCategory.collectAsState()
-    val successMessage by viewModel.successMessage.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
-    val filteredProducts = viewModel.filteredProducts
-    val categories = listOf("supplements", "equipment", "clothing", "accessories")
-    val categoryLabels = mapOf(
-        "supplements" to "Əlavələr",
-        "equipment" to "Avadanlıq",
-        "clothing" to "Geyim",
-        "accessories" to "Aksesuar"
-    )
-
-    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.accent) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            // Header
-            Box(
-                modifier = Modifier.fillMaxWidth()
-                    .background(Brush.verticalGradient(listOf(AppTheme.Colors.accent.copy(alpha = 0.15f), Color.Transparent)))
-                    .padding(horizontal = 16.dp).padding(top = 50.dp, bottom = 16.dp)
-            ) {
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Geri", tint = AppTheme.Colors.accent)
-                        }
-                        Spacer(Modifier.width(8.dp))
-                        Text("Mağaza", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = AppTheme.Colors.primaryText)
-                    }
-
-                    Spacer(Modifier.height(12.dp))
-
-                    // Search
-                    OutlinedTextField(
-                        value = searchQuery,
-                        onValueChange = { viewModel.updateSearchQuery(it) },
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Məhsul axtar...", color = AppTheme.Colors.tertiaryText) },
-                        leadingIcon = { Icon(Icons.Outlined.Search, null, tint = AppTheme.Colors.tertiaryText) },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = AppTheme.Colors.accent,
-                            unfocusedBorderColor = AppTheme.Colors.cardBackground,
-                            focusedContainerColor = AppTheme.Colors.cardBackground,
-                            unfocusedContainerColor = AppTheme.Colors.cardBackground,
-                            focusedTextColor = AppTheme.Colors.primaryText,
-                            unfocusedTextColor = AppTheme.Colors.primaryText
-                        ),
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        "Marketplace",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 22.sp
                     )
-
-                    Spacer(Modifier.height(12.dp))
-
-                    // Category filters
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        FilterChip(
-                            selected = selectedCategory == null,
-                            onClick = { viewModel.selectCategory(null) },
-                            label = { Text("Hamısı", fontSize = 12.sp) },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = AppTheme.Colors.accent,
-                                selectedLabelColor = Color.White,
-                                containerColor = AppTheme.Colors.cardBackground,
-                                labelColor = AppTheme.Colors.secondaryText
-                            )
-                        )
-                        categories.forEach { cat ->
-                            FilterChip(
-                                selected = selectedCategory == cat,
-                                onClick = { viewModel.selectCategory(if (selectedCategory == cat) null else cat) },
-                                label = { Text(categoryLabels[cat] ?: cat, fontSize = 12.sp) },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = AppTheme.Colors.accent,
-                                    selectedLabelColor = Color.White,
-                                    containerColor = AppTheme.Colors.cardBackground,
-                                    labelColor = AppTheme.Colors.secondaryText
-                                )
-                            )
-                        }
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri")
                     }
-                }
-            }
-
-            when {
-                isLoading && products.isEmpty() -> {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = AppTheme.Colors.accent)
-                    }
-                }
-                products.isEmpty() -> {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("🛍️", fontSize = 64.sp)
-                            Spacer(Modifier.height(16.dp))
-                            Text("Məhsul tapılmadı", color = AppTheme.Colors.primaryText, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-                            Text("Yeni məhsullar tezliklə əlavə olunacaq", color = AppTheme.Colors.secondaryText, fontSize = 14.sp)
-                        }
-                    }
-                }
-                else -> {
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(2),
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        items(filteredProducts, key = { it.id }) { product ->
-                            ProductCard(product) {
-                                viewModel.selectProduct(product)
-                                onProductSelected(product)
-                            }
-                        }
-                    }
-                }
-            }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent
+                )
+            )
         }
-
-        successMessage?.let { msg ->
-            Snackbar(Modifier.align(Alignment.BottomCenter).padding(16.dp), containerColor = AppTheme.Colors.success) {
-                Text(msg, color = Color.White)
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(padding)
+        ) {
+            // ── Filter Tabs — iOS horizontal scroll ──
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                FilterChipItem(
+                    label = "Hamısı",
+                    isSelected = uiState.selectedFilter == "all",
+                    onClick = { viewModel.setFilter("all") }
+                )
+                MarketplaceProductType.entries.forEach { type ->
+                    FilterChipItem(
+                        label = type.displayName,
+                        isSelected = uiState.selectedFilter == type.value,
+                        onClick = { viewModel.setFilter(type.value) }
+                    )
+                }
             }
-            LaunchedEffect(msg) { kotlinx.coroutines.delay(2000); viewModel.clearSuccess() }
+
+            // ── Content ──
+            when {
+                uiState.isLoading && uiState.filteredProducts.isEmpty() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = CoreViaPrimary)
+                    }
+                }
+
+                !uiState.isLoading && uiState.filteredProducts.isEmpty() -> {
+                    // iOS empty state
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(40.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            Icons.Filled.ShoppingCart, null,
+                            modifier = Modifier.size(70.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Hələ məhsul yoxdur",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Tezliklə yeni məhsullar əlavə olunacaq",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                else -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        uiState.filteredProducts.forEach { product ->
+                            ProductCard(
+                                product = product,
+                                onClick = { onNavigateToProduct?.invoke(product.id) }
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(20.dp))
+                    }
+                }
+            }
         }
     }
-    } // CoreViaAnimatedBackground
 }
 
 @Composable
-fun ProductCard(product: Product, onClick: () -> Unit) {
+private fun FilterChipItem(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
     Box(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp))
-            .background(AppTheme.Colors.cardBackground).clickable(onClick = onClick)
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            // Product image placeholder
-            Box(
-                modifier = Modifier.fillMaxWidth().height(100.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(AppTheme.Colors.accent.copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("🏋️", fontSize = 36.sp)
-            }
-
-            Spacer(Modifier.height(8.dp))
-
-            Text(
-                product.name, fontSize = 14.sp, fontWeight = FontWeight.Bold,
-                color = AppTheme.Colors.primaryText, maxLines = 2, overflow = TextOverflow.Ellipsis
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(
+                if (isSelected) CoreViaPrimary
+                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
             )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Text(
+            text = label,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
 
-            Spacer(Modifier.height(4.dp))
+/**
+ * iOS ProductCard equivalent:
+ * HStack(alignment: .top, spacing: 12)
+ * - 100x100 cover image/icon
+ * - VStack: type badge, title, seller, price+rating
+ * - padding + systemBackground + cornerRadius(16) + shadow(0.05, radius 10, y: 2)
+ */
+@Composable
+private fun ProductCard(
+    product: MarketplaceProduct,
+    onClick: () -> Unit
+) {
+    val isDark = isSystemInDarkTheme()
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
+    val typeIcon: ImageVector = when (product.productType) {
+        "workout_plan" -> Icons.Filled.FitnessCenter
+        "meal_plan" -> Icons.Filled.Restaurant
+        "training_program" -> Icons.Filled.School
+        "ebook" -> Icons.Filled.MenuBook
+        "video_course" -> Icons.Filled.PlayCircle
+        else -> Icons.Filled.ShoppingBag
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 4.dp,
+                shape = RoundedCornerShape(16.dp),
+                ambientColor = Color.Black.copy(alpha = 0.05f),
+                spotColor = Color.Black.copy(alpha = 0.05f)
+            )
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .clickable(onClick = onClick)
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // LEFT: 100x100 cover image/icon placeholder
+        Box(
+            modifier = Modifier
+                .size(100.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(CoreViaPrimary.copy(alpha = 0.1f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                typeIcon, null,
+                modifier = Modifier.size(36.dp),
+                tint = CoreViaPrimary
+            )
+        }
+
+        // RIGHT: Content VStack
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .height(100.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                // Type badge — iOS: PrimaryColor 0.1 bg, cornerRadius 6
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(CoreViaPrimary.copy(alpha = 0.1f))
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = product.productTypeEnum.displayName,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = CoreViaPrimary
+                    )
+                }
+
+                // Title — iOS: headline, lineLimit 2
                 Text(
-                    "${product.price} ₼", fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold, color = AppTheme.Colors.accent
+                    text = product.title,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
-                Spacer(Modifier.weight(1f))
-                if (product.rating != null) {
-                    Icon(Icons.Outlined.Star, null, Modifier.size(12.dp), tint = AppTheme.Colors.warning)
-                    Spacer(Modifier.width(2.dp))
-                    Text("${product.rating}", fontSize = 11.sp, color = AppTheme.Colors.secondaryText)
+
+                // Seller — iOS: person.circle + name, caption gray
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Filled.AccountCircle, null,
+                        modifier = Modifier.size(14.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = product.seller.fullName,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
 
-            if (!product.inStock) {
-                Spacer(Modifier.height(4.dp))
-                Text("Stokda yoxdur", fontSize = 11.sp, color = AppTheme.Colors.error)
+            // Price & Rating — iOS: headline PrimaryColor + star.fill yellow
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = product.displayPrice,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = CoreViaPrimary
+                )
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Filled.Star, null,
+                        modifier = Modifier.size(14.dp),
+                        tint = Color(0xFFFFCC00) // yellow like iOS
+                    )
+                    Text(
+                        text = "%.1f".format(product.rating),
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "(${product.reviewsCount})",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                }
             }
         }
     }

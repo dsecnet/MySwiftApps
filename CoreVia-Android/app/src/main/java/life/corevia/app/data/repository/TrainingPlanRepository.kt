@@ -1,70 +1,112 @@
 package life.corevia.app.data.repository
 
-import android.content.Context
-import life.corevia.app.data.api.ApiClient
-import life.corevia.app.data.models.TrainingPlan
-import life.corevia.app.data.models.TrainingPlanCreateRequest
+import life.corevia.app.data.model.TrainingPlan
+import life.corevia.app.data.model.TrainingPlanCreateRequest
+import life.corevia.app.data.model.TrainingPlanUpdateRequest
+import life.corevia.app.data.remote.ApiService
+import life.corevia.app.util.NetworkResult
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
- * iOS TrainingPlanManager.swift-in Android Repository ekvivalenti.
- * FIXED: createTrainingPlan request model düzəldildi + complete/delete əlavə edildi
+ * iOS TrainingPlanManager.swift CRUD equivalent
+ * İdman planı idarəsi — Backend API ilə
  */
-class TrainingPlanRepository(context: Context) {
+@Singleton
+class TrainingPlanRepository @Inject constructor(
+    private val apiService: ApiService
+) {
 
-    private val api = ApiClient.getInstance(context).api
+    // ─── Get All Training Plans ──────────────────────────────────────
 
-    // iOS: TrainingPlanManager.loadPlans()
-    suspend fun getTrainingPlans(): Result<List<TrainingPlan>> {
+    suspend fun getTrainingPlans(): NetworkResult<List<TrainingPlan>> {
         return try {
-            Result.success(api.getTrainingPlans())
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    // iOS: TrainingPlanManager.createPlan(_:)
-    suspend fun createTrainingPlan(request: TrainingPlanCreateRequest): Result<TrainingPlan> {
-        return try {
-            Result.success(api.createTrainingPlan(request))
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    // Update training plan (title, workouts, etc.)
-    suspend fun updateTrainingPlan(planId: String, request: TrainingPlanCreateRequest): Result<TrainingPlan> {
-        return try {
-            Result.success(api.updateTrainingPlan(planId, request))
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    // iOS: TrainingPlanManager.completePlan(_:)
-    suspend fun completeTrainingPlan(planId: String): Result<TrainingPlan> {
-        return try {
-            Result.success(api.completeTrainingPlan(planId))
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    // iOS: TrainingPlanManager.deletePlan(_:)
-    suspend fun deleteTrainingPlan(planId: String): Result<Unit> {
-        return try {
-            api.deleteTrainingPlan(planId)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    companion object {
-        @Volatile private var instance: TrainingPlanRepository? = null
-        fun getInstance(context: Context): TrainingPlanRepository =
-            instance ?: synchronized(this) {
-                instance ?: TrainingPlanRepository(context.applicationContext).also { instance = it }
+            val response = apiService.getTrainingPlans()
+            if (response.isSuccessful) {
+                NetworkResult.Success(response.body() ?: emptyList())
+            } else {
+                NetworkResult.Error("İdman planları yüklənə bilmədi", response.code())
             }
-        fun clearInstance() { instance = null }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
+    }
+
+    // ─── Get Training Plan by ID ─────────────────────────────────────
+
+    suspend fun getTrainingPlan(id: String): NetworkResult<TrainingPlan> {
+        return try {
+            val response = apiService.getTrainingPlan(id)
+            if (response.isSuccessful) {
+                NetworkResult.Success(response.body()!!)
+            } else {
+                NetworkResult.Error("İdman planı tapılmadı", response.code())
+            }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
+    }
+
+    // ─── Create Training Plan ────────────────────────────────────────
+
+    suspend fun createTrainingPlan(request: TrainingPlanCreateRequest): NetworkResult<TrainingPlan> {
+        return try {
+            val response = apiService.createTrainingPlan(request)
+            if (response.isSuccessful) {
+                NetworkResult.Success(response.body()!!)
+            } else {
+                NetworkResult.Error("İdman planı yaradıla bilmədi", response.code())
+            }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
+    }
+
+    // ─── Update Training Plan ────────────────────────────────────────
+
+    suspend fun updateTrainingPlan(
+        id: String,
+        request: TrainingPlanUpdateRequest
+    ): NetworkResult<TrainingPlan> {
+        return try {
+            val response = apiService.updateTrainingPlan(id, request)
+            if (response.isSuccessful) {
+                NetworkResult.Success(response.body()!!)
+            } else {
+                NetworkResult.Error("İdman planı yenilənə bilmədi", response.code())
+            }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
+    }
+
+    // ─── Delete Training Plan ────────────────────────────────────────
+
+    suspend fun deleteTrainingPlan(id: String): NetworkResult<Unit> {
+        return try {
+            val response = apiService.deleteTrainingPlan(id)
+            if (response.isSuccessful) {
+                NetworkResult.Success(Unit)
+            } else {
+                NetworkResult.Error("İdman planı silinə bilmədi", response.code())
+            }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
+    }
+
+    // ─── Complete Training Plan ──────────────────────────────────────
+
+    suspend fun completeTrainingPlan(id: String): NetworkResult<TrainingPlan> {
+        return try {
+            val response = apiService.completeTrainingPlan(id)
+            if (response.isSuccessful) {
+                NetworkResult.Success(response.body()!!)
+            } else {
+                NetworkResult.Error("Plan tamamlana bilmədi", response.code())
+            }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
     }
 }

@@ -1,0 +1,13 @@
+-keep,allowobfuscation,allowshrinking class life.corevia.app.ui.settings.SettingsViewModel
+-keep,allowobfuscation,allowshrinking class life.corevia.app.ui.settings.SettingsViewModel
+-keep,allowobfuscation,allowshrinking class life.corevia.app.ui.home.TrainerHomeViewModel
+-keep,allowobfuscation,allowshrinking class life.corevia.app.ui.home.TrainerHomeViewModel
+-keep,allowobfuscation,allowshrinking class life.corevia.app.ui.home.HomeViewModel
+-keep,allowobfuscation,allowshrinking class life.corevia.app.ui.home.HomeViewModel
+-keep,allowobfuscation,allowshrinking class life.corevia.app.ui.aicalorie.AICalorieViewModel
+-keep,allowobfuscation,allowshrinking class life.corevia.app.ui.aicalorie.AICalorieViewModel
+-keep,allowobfuscation,allowshrinking class life.corevia.app.ui.livesession.LiveSessionDetailViewModel
+-keep,allowobfuscation,allowshrinking class life.corevia.app.ui.livesession.LiveSessionDetailViewModel
+-keep,allowobfuscation,allowshrinking class life.corevia.app.ui.livesession.LiveSessionViewModel
+-keep,allowobfuscation,allowshrinking class life.corevia.app.ui.livesession.LiveSessionViewModel
+-keep,allowobfuscation,allowshrinking class life.corevia.app.ui.route.RouteViewModel

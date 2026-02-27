@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Production: yalnız HTTPS icazə ver, cleartext qadağan -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- API server üçün SSL pin-lər -->
+    <domain-config>
+        <domain includeSubdomains="true">api.corevia.life</domain>
+        <pin-set expiration="2027-01-01">
+            <!-- Primary pin — api.corevia.life leaf certificate -->
+            <pin digest="SHA-256">+HqKaqge8gUxRdJ6dHhZhpr+54rxXMm4UPbAcPzgZMA=</pin>
+            <!-- Backup pin — intermediate CA -->
+            <pin digest="SHA-256">iFvwVyJSxnQdyaUvUERIf+8qk7gRze3612JMwoO3zdU=</pin>
+        </pin-set>
+    </domain-config>
+
+    <!-- Debug build üçün: local debug proxy (Charles, mitmproxy) icazə -->
+    <debug-overrides>
+        <trust-anchors>
+            <certificates src="user" />
+            <certificates src="system" />
+        </trust-anchors>
+    </debug-overrides>
+</network-security-config>

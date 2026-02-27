@@ -1,68 +1,115 @@
 package life.corevia.app.data.repository
 
-import android.content.Context
-import life.corevia.app.data.api.ApiClient
-import life.corevia.app.data.models.*
+import life.corevia.app.data.model.CreateReviewRequest
+import life.corevia.app.data.model.CreateProductRequest
+import life.corevia.app.data.model.MarketplaceProduct
+import life.corevia.app.data.model.ProductReview
+import life.corevia.app.data.model.ProductsResponse
+import life.corevia.app.data.remote.ApiService
+import life.corevia.app.util.NetworkResult
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class MarketplaceRepository(context: Context) {
-
-    private val api = ApiClient.getInstance(context).api
-
-    suspend fun getProducts(): Result<List<Product>> {
+@Singleton
+class MarketplaceRepository @Inject constructor(
+    private val apiService: ApiService
+) {
+    suspend fun getProducts(
+        productType: String? = null,
+        page: Int = 1,
+        limit: Int = 20
+    ): NetworkResult<ProductsResponse> {
         return try {
-            val response = api.getProducts()
-            Result.success(response.products)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getProduct(productId: String): Result<Product> {
-        return try {
-            Result.success(api.getProduct(productId))
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun createOrder(request: CreateOrderRequest): Result<Order> {
-        return try {
-            Result.success(api.createOrder(request))
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getOrders(): Result<List<Order>> {
-        return try {
-            Result.success(api.getOrders())
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getProductReviews(productId: String): Result<List<ProductReview>> {
-        return try {
-            Result.success(api.getProductReviews(productId))
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun createProductReview(request: CreateProductReviewRequest): Result<ProductReview> {
-        return try {
-            Result.success(api.createProductReview(request))
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    companion object {
-        @Volatile private var instance: MarketplaceRepository? = null
-        fun getInstance(context: Context): MarketplaceRepository =
-            instance ?: synchronized(this) {
-                instance ?: MarketplaceRepository(context.applicationContext).also { instance = it }
+            val response = apiService.getMarketplaceProducts(
+                productType = productType,
+                page = page,
+                limit = limit
+            )
+            if (response.isSuccessful) {
+                NetworkResult.Success(response.body() ?: ProductsResponse())
+            } else {
+                NetworkResult.Error("Məhsullar yüklənə bilmədi", response.code())
             }
-        fun clearInstance() { instance = null }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
+    }
+
+    suspend fun getProduct(productId: String): NetworkResult<MarketplaceProduct> {
+        return try {
+            val response = apiService.getMarketplaceProduct(productId)
+            if (response.isSuccessful) {
+                NetworkResult.Success(response.body() ?: MarketplaceProduct())
+            } else {
+                NetworkResult.Error("Məhsul tapılmadı", response.code())
+            }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
+    }
+
+    suspend fun getProductReviews(productId: String): NetworkResult<List<ProductReview>> {
+        return try {
+            val response = apiService.getProductReviews(productId)
+            if (response.isSuccessful) {
+                NetworkResult.Success(response.body() ?: emptyList())
+            } else {
+                NetworkResult.Error("Rəylər yüklənə bilmədi", response.code())
+            }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
+    }
+
+    suspend fun createReview(productId: String, request: CreateReviewRequest): NetworkResult<ProductReview> {
+        return try {
+            val response = apiService.createProductReview(productId, request)
+            if (response.isSuccessful) {
+                NetworkResult.Success(response.body() ?: ProductReview())
+            } else {
+                NetworkResult.Error("Rəy əlavə edilə bilmədi", response.code())
+            }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
+    }
+
+    suspend fun createProduct(request: CreateProductRequest): NetworkResult<MarketplaceProduct> {
+        return try {
+            val response = apiService.createMarketplaceProduct(request)
+            if (response.isSuccessful) {
+                NetworkResult.Success(response.body() ?: MarketplaceProduct())
+            } else {
+                NetworkResult.Error("Məhsul yaradıla bilmədi", response.code())
+            }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
+    }
+
+    suspend fun getMyProducts(): NetworkResult<List<MarketplaceProduct>> {
+        return try {
+            val response = apiService.getMyMarketplaceProducts()
+            if (response.isSuccessful) {
+                NetworkResult.Success(response.body() ?: emptyList())
+            } else {
+                NetworkResult.Error("Məhsullar yüklənə bilmədi", response.code())
+            }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
+    }
+
+    suspend fun deleteProduct(productId: String): NetworkResult<Unit> {
+        return try {
+            val response = apiService.deleteMarketplaceProduct(productId)
+            if (response.isSuccessful) {
+                NetworkResult.Success(Unit)
+            } else {
+                NetworkResult.Error("Məhsul silinə bilmədi", response.code())
+            }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
     }
 }

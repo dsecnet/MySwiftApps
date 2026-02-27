@@ -1,84 +1,46 @@
 package life.corevia.app.data.repository
 
-import android.content.Context
-import life.corevia.app.data.api.ApiClient
-import life.corevia.app.data.models.*
+import life.corevia.app.data.remote.ApiService
+import life.corevia.app.util.NetworkResult
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
- * iOS PremiumManager.swift-in Android Repository ekvivalenti.
+ * Premium status və aktivasiya — Backend API ilə
  */
-class PremiumRepository(context: Context) {
+@Singleton
+class PremiumRepository @Inject constructor(
+    private val apiService: ApiService
+) {
 
-    private val api = ApiClient.getInstance(context).api
+    // ─── Get Premium Status ──────────────────────────────────────────
 
-    suspend fun getStatus(): Result<PremiumStatus> {
+    suspend fun getPremiumStatus(): NetworkResult<Boolean> {
         return try {
-            Result.success(api.getPremiumStatus())
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getPlans(): Result<List<PremiumPlan>> {
-        return try {
-            val response = api.getPremiumPlans()
-            Result.success(response.plans)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun subscribe(request: SubscribeRequest): Result<Unit> {
-        return try {
-            api.subscribe(request)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    // iOS: POST /api/v1/premium/activate (body yoxdur)
-    suspend fun activate(): Result<Unit> {
-        return try {
-            api.activatePremium()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun cancel(): Result<Unit> {
-        return try {
-            api.cancelSubscription()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun restore(): Result<Unit> {
-        return try {
-            api.restoreSubscription()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getHistory(): Result<List<SubscriptionHistory>> {
-        return try {
-            Result.success(api.getSubscriptionHistory())
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    companion object {
-        @Volatile private var instance: PremiumRepository? = null
-        fun getInstance(context: Context): PremiumRepository =
-            instance ?: synchronized(this) {
-                instance ?: PremiumRepository(context.applicationContext).also { instance = it }
+            val response = apiService.getCurrentUser()
+            if (response.isSuccessful) {
+                val isPremium = response.body()?.isPremium ?: false
+                NetworkResult.Success(isPremium)
+            } else {
+                NetworkResult.Error("Premium status yüklənə bilmədi", response.code())
             }
-        fun clearInstance() { instance = null }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
+    }
+
+    // ─── Activate Premium ────────────────────────────────────────────
+
+    suspend fun activatePremium(): NetworkResult<Unit> {
+        return try {
+            val response = apiService.activatePremium()
+            if (response.isSuccessful) {
+                NetworkResult.Success(Unit)
+            } else {
+                NetworkResult.Error("Premium aktivasiya uğursuz oldu", response.code())
+            }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
     }
 }

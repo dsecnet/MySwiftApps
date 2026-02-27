@@ -1,338 +1,591 @@
 package life.corevia.app.ui.livesession
 
-import life.corevia.app.ui.theme.AppTheme
-import life.corevia.app.ui.theme.CoreViaAnimatedBackground
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import life.corevia.app.data.model.LiveSession
+import life.corevia.app.data.model.LiveSessionDifficulty
+import life.corevia.app.data.model.LiveSessionStatus
+import life.corevia.app.ui.theme.*
 
+/**
+ * iOS LiveSessionDetailView equivalent
+ * Sessiya detalları — info card, status badge, join button
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LiveSessionDetailScreen(
-    viewModel: LiveSessionsViewModel,
-    onBack: () -> Unit
+    sessionId: String = "",
+    onBack: () -> Unit = {},
+    onNavigateToLiveWorkout: (String) -> Unit = {},
+    viewModel: LiveSessionDetailViewModel = hiltViewModel()
 ) {
-    val session by viewModel.selectedSession.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val successMessage by viewModel.successMessage.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+    val isDark = isSystemInDarkTheme()
 
-    val currentSession = session ?: return
-
-    val isLive = currentSession.status == "live"
-    val isScheduled = currentSession.status == "scheduled"
-    val isEnded = currentSession.status in listOf("completed", "ended", "cancelled")
-    val isJoined = currentSession.isJoined
-    val isFull = currentSession.currentParticipants >= currentSession.maxParticipants
-
-    val statusColor = when (currentSession.status) {
-        "live" -> AppTheme.Colors.success
-        "scheduled" -> AppTheme.Colors.warning
-        "cancelled" -> AppTheme.Colors.error
-        else -> AppTheme.Colors.tertiaryText
-    }
-    val statusText = when (currentSession.status) {
-        "live" -> "CANLI"
-        "scheduled" -> "Planlanmış"
-        "completed", "ended" -> "Bitib"
-        "cancelled" -> "Ləğv edilib"
-        else -> currentSession.status
-    }
-
-    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.accent) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
-        ) {
-            // Header
-            Box(
-                modifier = Modifier.fillMaxWidth()
-                    .background(Brush.verticalGradient(listOf(AppTheme.Colors.accent.copy(alpha = 0.2f), Color.Transparent)))
-                    .padding(horizontal = 16.dp).padding(top = 50.dp, bottom = 24.dp)
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Geri", tint = AppTheme.Colors.accent)
-                        }
-                        Spacer(Modifier.weight(1f))
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        "Sessiya Detalları",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 22.sp
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri")
                     }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent
+                )
+            )
+        }
+    ) { padding ->
+        when {
+            uiState.isLoading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = CoreViaPrimary)
+                }
+            }
 
-                    // Status badge
-                    Box(
-                        Modifier.clip(RoundedCornerShape(12.dp))
-                            .background(statusColor.copy(alpha = 0.15f))
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
+            uiState.error != null -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            Icons.Filled.ErrorOutline,
+                            contentDescription = null,
+                            modifier = Modifier.size(60.dp),
+                            tint = CoreViaError
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = uiState.error ?: "Xəta baş verdi",
+                            fontSize = 16.sp,
+                            color = TextSecondary,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = { viewModel.loadSession() },
+                            colors = ButtonDefaults.buttonColors(containerColor = CoreViaPrimary)
+                        ) {
+                            Text("Yenidən cəhd et")
+                        }
+                    }
+                }
+            }
+
+            uiState.session != null -> {
+                val session = uiState.session!!
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.background)
+                        .padding(padding)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .verticalScroll(rememberScrollState())
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (isLive) {
-                                // Pulsating dot for live
-                                Box(Modifier.size(10.dp).background(statusColor, CircleShape))
-                            } else {
-                                Box(Modifier.size(8.dp).background(statusColor, CircleShape))
-                            }
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                statusText,
-                                fontWeight = FontWeight.Bold, fontSize = 14.sp,
-                                color = statusColor
+                        // ── Header Card ──
+                        SessionHeaderCard(session = session, isDark = isDark)
+
+                        // ── Description Card ──
+                        if (session.description.isNotBlank()) {
+                            SessionDescriptionCard(
+                                description = session.description,
+                                isDark = isDark
                             )
                         }
+
+                        // ── Details Card ──
+                        SessionDetailsCard(session = session, isDark = isDark)
+
+                        // ── Participants Card ──
+                        SessionParticipantsCard(session = session, isDark = isDark)
+
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
 
-                    Spacer(Modifier.height(16.dp))
-                    Text(
-                        currentSession.title, fontSize = 26.sp, fontWeight = FontWeight.Bold,
-                        color = AppTheme.Colors.primaryText, textAlign = TextAlign.Center
-                    )
-                    currentSession.trainerName?.let {
-                        Spacer(Modifier.height(4.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Outlined.Person, null, Modifier.size(16.dp), tint = AppTheme.Colors.secondaryText)
-                            Spacer(Modifier.width(4.dp))
-                            Text("Müəllim: $it", fontSize = 15.sp, color = AppTheme.Colors.secondaryText)
-                        }
-                    }
-                }
-            }
-
-            // Info cards
-            Row(
-                Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                // Duration
-                Box(
-                    Modifier.weight(1f).clip(RoundedCornerShape(12.dp))
-                        .background(AppTheme.Colors.cardBackground).padding(12.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Outlined.Schedule, null, Modifier.size(20.dp), tint = AppTheme.Colors.accent)
-                        Spacer(Modifier.height(4.dp))
-                        Text("${currentSession.durationMinutes} dəq", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.primaryText)
-                        Text("Müddət", fontSize = 10.sp, color = AppTheme.Colors.tertiaryText)
-                    }
-                }
-
-                // Participants
-                Box(
-                    Modifier.weight(1f).clip(RoundedCornerShape(12.dp))
-                        .background(AppTheme.Colors.cardBackground).padding(12.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Outlined.Group, null, Modifier.size(20.dp), tint = AppTheme.Colors.accent)
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            "${currentSession.currentParticipants}/${currentSession.maxParticipants}",
-                            fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.primaryText
-                        )
-                        Text("İştirakçı", fontSize = 10.sp, color = AppTheme.Colors.tertiaryText)
-                    }
-                }
-
-                // Date
-                Box(
-                    Modifier.weight(1f).clip(RoundedCornerShape(12.dp))
-                        .background(AppTheme.Colors.cardBackground).padding(12.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Outlined.CalendarMonth, null, Modifier.size(20.dp), tint = AppTheme.Colors.accent)
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            try { (currentSession.scheduledTime ?: "").take(10) } catch (e: Exception) { "" },
-                            fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.primaryText
-                        )
-                        Text(
-                            try { (currentSession.scheduledTime ?: "").substring(11, 16) } catch (e: Exception) { "" },
-                            fontSize = 10.sp, color = AppTheme.Colors.tertiaryText
-                        )
-                    }
-                }
-            }
-
-            // Participant progress bar
-            Spacer(Modifier.height(16.dp))
-            Box(
-                Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-                    .clip(RoundedCornerShape(16.dp)).background(AppTheme.Colors.cardBackground).padding(16.dp)
-            ) {
-                Column {
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                    // ── Bottom Join Button ──
+                    if (session.statusEnum == LiveSessionStatus.UPCOMING ||
+                        session.statusEnum == LiveSessionStatus.LIVE
                     ) {
-                        Text("İştirakçı sayı", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.primaryText)
-                        Text(
-                            if (isFull) "Doludur" else "${currentSession.maxParticipants - currentSession.currentParticipants} yer qalıb",
-                            fontSize = 12.sp, color = if (isFull) AppTheme.Colors.error else AppTheme.Colors.success,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                    Spacer(Modifier.height(8.dp))
-                    val progress = if (currentSession.maxParticipants > 0)
-                        currentSession.currentParticipants.toFloat() / currentSession.maxParticipants
-                    else 0f
-                    LinearProgressIndicator(
-                        progress = { progress },
-                        modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
-                        color = if (isFull) AppTheme.Colors.error else AppTheme.Colors.accent,
-                        trackColor = AppTheme.Colors.separator,
-                    )
-                }
-            }
-
-            // Description
-            currentSession.description?.let { desc ->
-                Spacer(Modifier.height(16.dp))
-                Box(
-                    Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-                        .clip(RoundedCornerShape(16.dp)).background(AppTheme.Colors.cardBackground).padding(16.dp)
-                ) {
-                    Column {
-                        Text("Təsvir", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.primaryText)
-                        Spacer(Modifier.height(8.dp))
-                        Text(desc, fontSize = 14.sp, color = AppTheme.Colors.secondaryText, lineHeight = 22.sp)
-                    }
-                }
-            }
-
-            // Session type badge
-            Spacer(Modifier.height(16.dp))
-            Box(
-                Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-                    .clip(RoundedCornerShape(16.dp)).background(AppTheme.Colors.cardBackground).padding(16.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        when (currentSession.sessionType) {
-                            "group" -> Icons.Outlined.Group
-                            "one_on_one" -> Icons.Outlined.Person
-                            else -> Icons.Outlined.Public
-                        },
-                        null, Modifier.size(20.dp), tint = AppTheme.Colors.accent
-                    )
-                    Spacer(Modifier.width(12.dp))
-                    Column {
-                        Text("Sessiya növü", fontSize = 11.sp, color = AppTheme.Colors.tertiaryText)
-                        Text(
-                            when (currentSession.sessionType) {
-                                "group" -> "Qrup sessiyası"
-                                "one_on_one" -> "Fərdi sessiya"
-                                "open" -> "Açıq sessiya"
-                                else -> currentSession.sessionType
-                            },
-                            fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.primaryText
+                        JoinSessionButton(
+                            session = session,
+                            isJoining = uiState.isJoining,
+                            onJoin = {
+                                viewModel.joinSession {
+                                    onNavigateToLiveWorkout(session.id)
+                                }
+                            }
                         )
                     }
                 }
             }
-
-            Spacer(Modifier.height(120.dp))
-        }
-
-        // Join/Leave button
-        Box(Modifier.fillMaxWidth().align(Alignment.BottomCenter).background(AppTheme.Colors.background).padding(20.dp)) {
-            if (isJoined && !isEnded) {
-                // Show Leave button
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    if (isLive) {
-                        // Join live button
-                        Button(
-                            onClick = { /* Open live session stream */ },
-                            modifier = Modifier.weight(1f).height(56.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = AppTheme.Colors.success),
-                            shape = RoundedCornerShape(16.dp),
-                        ) {
-                            Icon(Icons.Filled.PlayArrow, null, Modifier.size(20.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text("Canlı Bağlan", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                    OutlinedButton(
-                        onClick = { viewModel.leaveSession(currentSession.id) },
-                        modifier = Modifier.then(if (isLive) Modifier else Modifier.fillMaxWidth()).height(56.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = AppTheme.Colors.error),
-                        shape = RoundedCornerShape(16.dp),
-                        enabled = !isLoading
-                    ) {
-                        if (isLoading) {
-                            CircularProgressIndicator(color = AppTheme.Colors.error, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                        } else {
-                            Icon(Icons.Outlined.ExitToApp, null, Modifier.size(20.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text("Ayrıl", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                }
-            } else {
-                // Show Join button
-                Button(
-                    onClick = { viewModel.joinSession(currentSession.id) },
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isEnded) AppTheme.Colors.tertiaryText else AppTheme.Colors.accent
-                    ),
-                    shape = RoundedCornerShape(16.dp),
-                    enabled = !isLoading && !isEnded && !isFull
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                    } else {
-                        Icon(
-                            if (isEnded) Icons.Outlined.Block
-                            else if (isLive) Icons.Filled.PlayArrow
-                            else Icons.Outlined.PersonAdd,
-                            null, Modifier.size(20.dp)
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            when {
-                                isEnded -> "Sessiya bitib"
-                                isFull -> "Sessiya doludur"
-                                isLive -> "Sessiyaya Qoşul"
-                                else -> "Qeydiyyatdan Keç"
-                            },
-                            fontSize = 16.sp, fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
-        }
-
-        successMessage?.let { msg ->
-            Snackbar(Modifier.align(Alignment.BottomCenter).padding(16.dp).padding(bottom = 80.dp), containerColor = AppTheme.Colors.success) {
-                Text(msg, color = Color.White)
-            }
-            LaunchedEffect(msg) { kotlinx.coroutines.delay(2000); viewModel.clearSuccess() }
-        }
-
-        errorMessage?.let { msg ->
-            Snackbar(Modifier.align(Alignment.BottomCenter).padding(16.dp).padding(bottom = 80.dp), containerColor = AppTheme.Colors.error) {
-                Text(msg, color = Color.White)
-            }
-            LaunchedEffect(msg) { kotlinx.coroutines.delay(2000); viewModel.clearError() }
         }
     }
-    } // CoreViaAnimatedBackground
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MARK: - Header Card
+// ═══════════════════════════════════════════════════════════════════
+
+@Composable
+private fun SessionHeaderCard(session: LiveSession, isDark: Boolean) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 4.dp,
+                shape = RoundedCornerShape(16.dp),
+                ambientColor = Color.Black.copy(alpha = 0.05f),
+                spotColor = Color.Black.copy(alpha = 0.08f)
+            )
+            .clip(RoundedCornerShape(16.dp))
+            .background(if (isDark) CoreViaSurfaceNight else CoreViaSurface)
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // Title + Status
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top
+        ) {
+            Text(
+                text = session.title,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            StatusBadge(status = session.statusEnum)
+        }
+
+        // Trainer
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                Icons.Filled.Person,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = CoreViaPrimary
+            )
+            Text(
+                text = session.trainerName.ifBlank { "Naməlum Təlimçi" },
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+
+        // Session Type + Difficulty Badges
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            SessionTypeBadgeDetail(sessionType = session.sessionType)
+            DifficultyBadgeDetail(difficulty = session.difficulty)
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MARK: - Description Card
+// ═══════════════════════════════════════════════════════════════════
+
+@Composable
+private fun SessionDescriptionCard(description: String, isDark: Boolean) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 4.dp,
+                shape = RoundedCornerShape(16.dp),
+                ambientColor = Color.Black.copy(alpha = 0.05f),
+                spotColor = Color.Black.copy(alpha = 0.08f)
+            )
+            .clip(RoundedCornerShape(16.dp))
+            .background(if (isDark) CoreViaSurfaceNight else CoreViaSurface)
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = "Haqqında",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = description,
+            fontSize = 14.sp,
+            lineHeight = 20.sp,
+            color = TextSecondary
+        )
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MARK: - Details Card
+// ═══════════════════════════════════════════════════════════════════
+
+@Composable
+private fun SessionDetailsCard(session: LiveSession, isDark: Boolean) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 4.dp,
+                shape = RoundedCornerShape(16.dp),
+                ambientColor = Color.Black.copy(alpha = 0.05f),
+                spotColor = Color.Black.copy(alpha = 0.08f)
+            )
+            .clip(RoundedCornerShape(16.dp))
+            .background(if (isDark) CoreViaSurfaceNight else CoreViaSurface)
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            text = "Detallar",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        DetailInfoRow(
+            icon = Icons.Filled.Schedule,
+            label = "Tarix",
+            value = session.formattedDate.ifBlank { "Tarix yoxdur" },
+            iconTint = AccentBlue
+        )
+
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 8.dp),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+            thickness = 0.5.dp
+        )
+
+        DetailInfoRow(
+            icon = Icons.Filled.Timer,
+            label = "Müddət",
+            value = "${session.duration} dəqiqə",
+            iconTint = AccentOrange
+        )
+
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 8.dp),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+            thickness = 0.5.dp
+        )
+
+        DetailInfoRow(
+            icon = Icons.Filled.Payments,
+            label = "Qiymət",
+            value = session.displayPrice,
+            iconTint = CoreViaPrimary
+        )
+
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 8.dp),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+            thickness = 0.5.dp
+        )
+
+        DetailInfoRow(
+            icon = Icons.Filled.FitnessCenter,
+            label = "Çətinlik",
+            value = session.difficultyDisplayName,
+            iconTint = when (LiveSessionDifficulty.fromValue(session.difficulty)) {
+                LiveSessionDifficulty.BEGINNER -> CoreViaSuccess
+                LiveSessionDifficulty.INTERMEDIATE -> AccentOrange
+                LiveSessionDifficulty.ADVANCED -> CoreViaError
+            }
+        )
+
+        if (session.isPublic) {
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 8.dp),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                thickness = 0.5.dp
+            )
+
+            DetailInfoRow(
+                icon = Icons.Filled.Public,
+                label = "Görünürlük",
+                value = "İctimai sessiya",
+                iconTint = CoreViaSuccess
+            )
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MARK: - Detail Info Row
+// ═══════════════════════════════════════════════════════════════════
+
+@Composable
+private fun DetailInfoRow(
+    icon: ImageVector,
+    label: String,
+    value: String,
+    iconTint: Color
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Icon(
+                icon,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = iconTint
+            )
+            Text(
+                text = label,
+                fontSize = 14.sp,
+                color = TextSecondary
+            )
+        }
+        Text(
+            text = value,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MARK: - Participants Card
+// ═══════════════════════════════════════════════════════════════════
+
+@Composable
+private fun SessionParticipantsCard(session: LiveSession, isDark: Boolean) {
+    val progress = if (session.maxParticipants > 0)
+        session.currentParticipants.toFloat() / session.maxParticipants
+    else 0f
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 4.dp,
+                shape = RoundedCornerShape(16.dp),
+                ambientColor = Color.Black.copy(alpha = 0.05f),
+                spotColor = Color.Black.copy(alpha = 0.08f)
+            )
+            .clip(RoundedCornerShape(16.dp))
+            .background(if (isDark) CoreViaSurfaceNight else CoreViaSurface)
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "İştirakçılar",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Icon(
+                    Icons.Filled.Group,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                    tint = AccentOrange
+                )
+                Text(
+                    text = "${session.currentParticipants} / ${session.maxParticipants}",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+
+        // Progress bar
+        LinearProgressIndicator(
+            progress = { progress.coerceIn(0f, 1f) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(8.dp)
+                .clip(RoundedCornerShape(4.dp)),
+            color = if (progress > 0.8f) CoreViaError else CoreViaPrimary,
+            trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+        )
+
+        // Slots remaining
+        val slotsLeft = (session.maxParticipants - session.currentParticipants).coerceAtLeast(0)
+        Text(
+            text = if (slotsLeft > 0) "$slotsLeft yer qalıb"
+            else "Tam dolu",
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            color = if (slotsLeft > 0) CoreViaSuccess else CoreViaError
+        )
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MARK: - Join Button
+// ═══════════════════════════════════════════════════════════════════
+
+@Composable
+private fun JoinSessionButton(
+    session: LiveSession,
+    isJoining: Boolean,
+    onJoin: () -> Unit
+) {
+    val isFull = session.currentParticipants >= session.maxParticipants && session.maxParticipants > 0
+    val buttonLabel = when {
+        isJoining -> "Qoşulur..."
+        session.statusEnum == LiveSessionStatus.LIVE -> "Canlı Qoşul"
+        isFull -> "Tam Dolu"
+        else -> "Qoşul"
+    }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shadowElevation = 8.dp,
+        color = MaterialTheme.colorScheme.surface
+    ) {
+        Button(
+            onClick = onJoin,
+            enabled = !isJoining && !isFull,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .height(52.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = CoreViaPrimary,
+                contentColor = Color.White,
+                disabledContainerColor = CoreViaPrimary.copy(alpha = 0.4f),
+                disabledContentColor = Color.White.copy(alpha = 0.6f)
+            )
+        ) {
+            if (isJoining) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = Color.White,
+                    strokeWidth = 2.dp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+            Text(
+                text = buttonLabel,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MARK: - Session Type Badge (Detail variant)
+// ═══════════════════════════════════════════════════════════════════
+
+@Composable
+private fun SessionTypeBadgeDetail(sessionType: String) {
+    val label = when (sessionType) {
+        "strength" -> "Güc"
+        "cardio" -> "Kardiyo"
+        "yoga" -> "Yoga"
+        "hiit" -> "HIIT"
+        "stretching" -> "Esnəmə"
+        "pilates" -> "Pilates"
+        else -> sessionType.replaceFirstChar { it.uppercaseChar() }
+    }
+
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(AccentPurple.copy(alpha = 0.12f))
+            .padding(horizontal = 10.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            color = AccentPurple
+        )
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MARK: - Difficulty Badge (Detail variant)
+// ═══════════════════════════════════════════════════════════════════
+
+@Composable
+private fun DifficultyBadgeDetail(difficulty: String) {
+    val diffEnum = LiveSessionDifficulty.fromValue(difficulty)
+    val color = when (diffEnum) {
+        LiveSessionDifficulty.BEGINNER -> CoreViaSuccess
+        LiveSessionDifficulty.INTERMEDIATE -> AccentOrange
+        LiveSessionDifficulty.ADVANCED -> CoreViaError
+    }
+
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(color.copy(alpha = 0.12f))
+            .padding(horizontal = 10.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = diffEnum.displayName,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            color = color
+        )
+    }
 }

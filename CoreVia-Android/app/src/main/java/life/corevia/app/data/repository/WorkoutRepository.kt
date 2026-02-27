@@ -1,72 +1,65 @@
 package life.corevia.app.data.repository
 
-import android.content.Context
-import life.corevia.app.data.api.ApiClient
-import life.corevia.app.data.models.*
+import life.corevia.app.data.model.Workout
+import life.corevia.app.data.model.WorkoutCreateRequest
+import life.corevia.app.data.remote.ApiService
+import life.corevia.app.util.NetworkResult
+import javax.inject.Inject
+import javax.inject.Singleton
 
-/**
- * iOS WorkoutManager.swift-in Android Repository ekvivalenti.
- *
- * WorkoutViewModel bu class-ı çağırır.
- * Screen WorkoutViewModel-i çağırır.
- * Heç bir Screen birbaşa bu class-a toxunmur.
- */
-class WorkoutRepository(context: Context) {
-
-    private val api = ApiClient.getInstance(context).api
-
-    // iOS: WorkoutManager.loadWorkouts()
-    suspend fun getWorkouts(): Result<List<Workout>> {
+@Singleton
+class WorkoutRepository @Inject constructor(
+    private val apiService: ApiService
+) {
+    suspend fun getWorkouts(): NetworkResult<List<Workout>> {
         return try {
-            Result.success(api.getWorkouts())
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    // iOS: WorkoutManager.addWorkout(_ workout:)
-    suspend fun createWorkout(request: WorkoutCreateRequest): Result<Workout> {
-        return try {
-            Result.success(api.createWorkout(request))
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    // iOS: WorkoutManager.updateWorkout(_ workout:)
-    suspend fun updateWorkout(id: String, request: WorkoutUpdateRequest): Result<Workout> {
-        return try {
-            Result.success(api.updateWorkout(id, request))
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    // iOS: WorkoutManager.deleteWorkout(_ workout:)
-    suspend fun deleteWorkout(id: String): Result<Unit> {
-        return try {
-            api.deleteWorkout(id)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    // iOS: WorkoutManager.loadStats()
-    suspend fun getWorkoutStats(): Result<WorkoutStatsResponse> {
-        return try {
-            Result.success(api.getWorkoutStats())
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    companion object {
-        @Volatile private var instance: WorkoutRepository? = null
-        fun getInstance(context: Context): WorkoutRepository =
-            instance ?: synchronized(this) {
-                instance ?: WorkoutRepository(context.applicationContext).also { instance = it }
+            val response = apiService.getWorkouts()
+            if (response.isSuccessful) {
+                NetworkResult.Success(response.body() ?: emptyList())
+            } else {
+                NetworkResult.Error("Məşqlər yüklənə bilmədi", response.code())
             }
-        fun clearInstance() { instance = null }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
+    }
+
+    suspend fun createWorkout(request: WorkoutCreateRequest): NetworkResult<Workout> {
+        return try {
+            val response = apiService.createWorkout(request)
+            if (response.isSuccessful) {
+                NetworkResult.Success(response.body()!!)
+            } else {
+                NetworkResult.Error("Məşq əlavə edilə bilmədi", response.code())
+            }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
+    }
+
+    suspend fun toggleWorkout(id: String): NetworkResult<Workout> {
+        return try {
+            val response = apiService.toggleWorkout(id)
+            if (response.isSuccessful) {
+                NetworkResult.Success(response.body()!!)
+            } else {
+                NetworkResult.Error("Status dəyişdirilə bilmədi", response.code())
+            }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
+    }
+
+    suspend fun deleteWorkout(id: String): NetworkResult<Unit> {
+        return try {
+            val response = apiService.deleteWorkout(id)
+            if (response.isSuccessful) {
+                NetworkResult.Success(Unit)
+            } else {
+                NetworkResult.Error("Məşq silinə bilmədi", response.code())
+            }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
     }
 }

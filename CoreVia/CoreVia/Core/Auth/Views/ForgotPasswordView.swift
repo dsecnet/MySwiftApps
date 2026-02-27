@@ -361,9 +361,9 @@ struct ForgotPasswordView: View {
     private var stepDescription: String {
         switch currentStep {
         case .enterEmail:
-            return "WhatsApp nömrənizə OTP kodu göndərəcəyik"
+            return "Email adresinize OTP kodu göndərəcəyik"
         case .enterOTP:
-            return "WhatsApp-a göndərilən 6 rəqəmli kodu daxil edin"
+            return "Email -ə göndərilən 6 rəqəmli kodu daxil edin"
         case .enterNewPassword:
             return "Yeni şifrənizi daxil edin"
         }

@@ -1,0 +1,3437 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+@page { size: A4; margin: 1.5cm; }
+body { font-family: -apple-system, Helvetica Neue, Arial, sans-serif; font-size: 11px; line-height: 1.5; color: #1a1a1a; max-width: 100%; }
+h1 { color: #6C63FF; font-size: 22px; border-bottom: 3px solid #6C63FF; padding-bottom: 8px; margin-top: 30px; }
+h2 { color: #4a42d1; font-size: 18px; border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-top: 25px; }
+h3 { color: #333; font-size: 14px; margin-top: 18px; }
+h4 { color: #555; font-size: 12px; margin-top: 14px; }
+table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 10px; }
+th { background-color: #6C63FF; color: white; padding: 6px 8px; text-align: left; }
+td { border: 1px solid #ddd; padding: 5px 8px; }
+tr:nth-child(even) { background-color: #f8f8ff; }
+code { background-color: #f4f4f4; padding: 1px 4px; border-radius: 3px; font-size: 10px; font-family: Menlo, Monaco, monospace; }
+pre { background-color: #1e1e2e; color: #cdd6f4; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 10px; }
+pre code { background-color: transparent; color: inherit; }
+hr { border: none; border-top: 2px solid #6C63FF; margin: 20px 0; }
+strong { color: #333; }
+em { color: #666; }
+blockquote { border-left: 3px solid #6C63FF; padding-left: 10px; color: #555; }
+</style>
+</head>
+<body>
+<h1 id="corevia-business-analysis-document">CoreVia - Business Analysis Document</h1>
+<h2 id="ios-android-migration-blueprint">iOS → Android Migration Blueprint</h2>
+<p><strong>Tarix:</strong> 2026-02-24
+<strong>Versiya:</strong> 1.0
+<strong>Məqsəd:</strong> iOS (SwiftUI) appinin 1:1 Android (Kotlin + Jetpack Compose) versiyasını yaratmaq</p>
+<hr />
+<h2 id="1-umumi-mlumat">1. ÜMUMI MƏLUMAT</h2>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>App Adı</strong></td>
+<td>CoreVia</td>
+</tr>
+<tr>
+<td><strong>Platforma</strong></td>
+<td>iOS (mövcud) → Android (yaradılacaq)</td>
+</tr>
+<tr>
+<td><strong>Backend</strong></td>
+<td>FastAPI (Python) - Hetzner Server</td>
+</tr>
+<tr>
+<td><strong>API Base URL</strong></td>
+<td><code>https://api.corevia.life</code></td>
+</tr>
+<tr>
+<td><strong>Direct IP</strong></td>
+<td><code>http://89.167.53.205</code></td>
+</tr>
+<tr>
+<td><strong>Database</strong></td>
+<td>PostgreSQL (corevia_db)</td>
+</tr>
+<tr>
+<td><strong>iOS Fayl Sayı</strong></td>
+<td>111 Swift fayl</td>
+</tr>
+<tr>
+<td><strong>Dillər</strong></td>
+<td>Azərbaycan 🇦🇿, İngilis 🇬🇧, Rus 🇷🇺</td>
+</tr>
+<tr>
+<td><strong>User Types</strong></td>
+<td>Client (Tələbə), Trainer (Müəllim)</td>
+</tr>
+<tr>
+<td><strong>Package Name</strong></td>
+<td><code>life.corevia.app</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="2-texnologiya-stack-i">2. TEXNOLOGİYA STACK-İ</h2>
+<h3 id="ios-movcud">iOS (Mövcud)</h3>
+<table>
+<thead>
+<tr>
+<th>Texnologiya</th>
+<th>Məqsəd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SwiftUI</td>
+<td>UI Framework</td>
+</tr>
+<tr>
+<td>MVVM + Manager</td>
+<td>Arxitektura</td>
+</tr>
+<tr>
+<td>async/await</td>
+<td>Asinxron əməliyyatlar</td>
+</tr>
+<tr>
+<td>CoreML (YOLO v8 + EfficientNet)</td>
+<td>AI Food Detection</td>
+</tr>
+<tr>
+<td>Keychain</td>
+<td>Token saxlama</td>
+</tr>
+<tr>
+<td>NavigationStack</td>
+<td>Naviqasiya</td>
+</tr>
+<tr>
+<td>StoreKit</td>
+<td>In-App Purchase</td>
+</tr>
+<tr>
+<td>URLSession</td>
+<td>Networking</td>
+</tr>
+</tbody>
+</table>
+<h3 id="android-yaradlacaq">Android (Yaradılacaq)</h3>
+<table>
+<thead>
+<tr>
+<th>Texnologiya</th>
+<th>Məqsəd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kotlin</td>
+<td>Proqramlaşdırma dili</td>
+</tr>
+<tr>
+<td>Jetpack Compose</td>
+<td>UI Framework</td>
+</tr>
+<tr>
+<td>MVVM + Repository</td>
+<td>Arxitektura</td>
+</tr>
+<tr>
+<td>Kotlin Coroutines + Flow</td>
+<td>Asinxron əməliyyatlar</td>
+</tr>
+<tr>
+<td>TensorFlow Lite</td>
+<td>AI Food Detection</td>
+</tr>
+<tr>
+<td>EncryptedSharedPreferences</td>
+<td>Token saxlama</td>
+</tr>
+<tr>
+<td>Navigation Compose</td>
+<td>Naviqasiya</td>
+</tr>
+<tr>
+<td>Google Play Billing</td>
+<td>In-App Purchase</td>
+</tr>
+<tr>
+<td>Retrofit + OkHttp</td>
+<td>Networking</td>
+</tr>
+<tr>
+<td>Hilt</td>
+<td>Dependency Injection</td>
+</tr>
+<tr>
+<td>Coil</td>
+<td>Şəkil yükləmə</td>
+</tr>
+<tr>
+<td>CameraX</td>
+<td>Kamera</td>
+</tr>
+<tr>
+<td>kotlinx.serialization</td>
+<td>JSON parsing</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-naviqasiya-strukturu">3. NAVİQASİYA STRUKTURU</h2>
+<h3 id="31-client-tlb-6-tab">3.1 Client (Tələbə) - 6 Tab</h3>
+<pre class="codehilite"><code>┌─────────────────────────────────────────────────────┐
+│  Tab 1: 🏠 Home (Ana Səhifə)                       │
+│  Tab 2: 💪 Workouts (Məşqlər)                      │
+│  Tab 3: 🍎 Food (Qidalanma / AI Kalori)            │
+│  Tab 4: 💬 Chat (Mesajlar)                          │
+│  Tab 5: 📊 Analytics (Statistika)                   │
+│  Tab 6: 👤 Profile (Profil)                         │
+└─────────────────────────────────────────────────────┘
+</code></pre>
+
+<h3 id="32-trainer-mullim-6-tab">3.2 Trainer (Müəllim) - 6 Tab</h3>
+<pre class="codehilite"><code>┌─────────────────────────────────────────────────────┐
+│  Tab 1: 🏠 Trainer Home (Trainer Dashboard)         │
+│  Tab 2: 📋 Training Plans (Məşq Planları)           │
+│  Tab 3: 🍽️ Meal Plans (Qidalanma Planları)         │
+│  Tab 4: 💬 Chat (Mesajlar)                          │
+│  Tab 5: 🏪 Trainer Hub (Məhsul/Session İdarə)      │
+│  Tab 6: 👤 Profile (Profil)                         │
+└─────────────────────────────────────────────────────┘
+</code></pre>
+
+<h3 id="33-ortaq-ekranlar-hr-iki-tip-ucun">3.3 Ortaq Ekranlar (Hər iki tip üçün)</h3>
+<pre class="codehilite"><code>- Login / Register / Forgot Password / OTP
+- Onboarding (yalnız Client üçün)
+- Marketplace (Browse Products)
+- Live Sessions (Browse/Join)
+- Social Feed
+- Daily Survey
+- Settings
+- Premium
+- Trainer Browse (yalnız Client)
+</code></pre>
+
+<hr />
+<h2 id="4-ekranlar-tam-siyahi">4. EKRANLAR - TAM SİYAHI</h2>
+<h3 id="41-auth-ekranlari">4.1 AUTH EKRANLARI</h3>
+<h4 id="screen-1-loginview-loginscreen">Screen 1: LoginView → LoginScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>LoginView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/auth/LoginScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>✅ HAZIR (artıq yazılıb)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Dil seçici (AZ 🇦🇿 / EN 🇬🇧 / RU 🇷🇺)
+- CoreVia logo (glow effekti ilə)
+- User type seçimi (Client / Trainer)
+- Email input field
+- Password input field (göz ikonu ilə göstər/gizlə)
+- "Şifrəni unutdum?" linki
+- Login düyməsi (gradient)
+- "Hesabın yoxdur? Qeydiyyat" linki
+- OTP verification step (6 rəqəmli kod)
+- 60 saniyə geri sayım (resend üçün)</p>
+<p><strong>API:</strong>
+- <code>POST /api/v1/auth/login</code> → <code>AuthResponse</code></p>
+<hr />
+<h4 id="screen-2-registerview-registerscreen">Screen 2: RegisterView → RegisterScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>RegisterView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/auth/RegisterScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- User type seçimi (Client / Trainer)
+- Ad input field
+- Email input field
+- Şifrə input field
+- Şifrə təsdiq input field
+- Qeydiyyat düyməsi
+- "Hesabın var? Giriş" linki</p>
+<p><strong>API:</strong>
+- <code>POST /api/v1/auth/register</code> → <code>UserResponse</code>
+- Request: <code>{ name, email, password, userType }</code></p>
+<hr />
+<h4 id="screen-3-forgotpasswordview-forgotpasswordscreen">Screen 3: ForgotPasswordView → ForgotPasswordScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>ForgotPasswordView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/auth/ForgotPasswordScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Step 1: Email daxil et → OTP göndər
+- Step 2: OTP kodu daxil et (6 rəqəm)
+- Step 3: Yeni şifrə daxil et + təsdiqlə
+- 60 saniyə geri sayım (resend üçün)</p>
+<p><strong>API:</strong>
+- <code>POST /api/v1/auth/forgot-password</code> → <code>OTPResponse</code>
+- <code>POST /api/v1/auth/reset-password</code> → <code>ResetPasswordResponse</code>
+- Request: <code>{ email, otp_code, new_password }</code></p>
+<hr />
+<h3 id="42-onboarding-ekranlari">4.2 ONBOARDING EKRANLARI</h3>
+<h4 id="screen-4-onboardingview-onboardingscreen">Screen 4: OnboardingView → OnboardingScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>OnboardingView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/onboarding/OnboardingScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Yalnız Client üçün! Trainer skip edir.</strong></p>
+<p><strong>4 Step:</strong>
+1. <strong>Fitness Goal seçimi</strong> - Backend-dən gələn optionlar
+2. <strong>Fitness Level seçimi</strong> - Backend-dən gələn optionlar
+3. <strong>Bədən məlumatları</strong> - Yaş, Çəki (kg), Boy (cm)
+4. <strong>Trainer tipi seçimi</strong> - İstəyə bağlı (optional)</p>
+<p><strong>API:</strong>
+- <code>GET /api/v1/onboarding/options</code> → Goals, Levels, Trainer Types
+- <code>POST /api/v1/onboarding/complete</code> → <code>OnboardingStatusResponse</code>
+- <code>GET /api/v1/onboarding/status</code> → Tamamlanıb/tamamlanmayıb</p>
+<hr />
+<h3 id="43-client-home">4.3 CLIENT HOME</h3>
+<h4 id="screen-5-homeview-homescreen">Screen 5: HomeView → HomeScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>HomeView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/home/HomeScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Salamlama başlığı ("Salam, {ad}!")
+- Gündəlik statistika kartları:
+  - Məşq vaxtı (dəqiqə)
+  - Yandırılan kalori
+- Daily Survey prompt (doldurulmayıbsa)
+- Gündəlik hədəf progress bar
+- Bugünkü məşqlər preview (top 2)
+- AI Recommendation bölməsi
+- Ümumi statistikaya keçid
+- Pull-to-refresh</p>
+<p><strong>API:</strong>
+- <code>GET /api/v1/workouts/</code> → Bugünkü məşqlər
+- <code>GET /api/v1/ai/recommendations</code> → Tövsiyələr
+- <code>GET /api/v1/survey/daily/today</code> → Survey status</p>
+<hr />
+<h3 id="44-trainer-home">4.4 TRAINER HOME</h3>
+<h4 id="screen-6-trainerhomeview-trainerhomescreen">Screen 6: TrainerHomeView → TrainerHomeScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>TrainerHomeView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/home/TrainerHomeScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Profil şəkli ilə header
+- 2x2 Statistika grid:
+  - Toplam abunəçi sayı
+  - Aktiv tələbə sayı
+  - Aylıq gəlir
+  - Toplam plan sayı
+- Tələbə proqresi bölməsi
+- Quick action düymələri
+- Pull-to-refresh</p>
+<p><strong>API:</strong>
+- <code>GET /api/v1/trainer/stats</code> → Trainer statistikaları</p>
+<hr />
+<h3 id="45-workout-ekranlari-client">4.5 WORKOUT EKRANLARI (Client)</h3>
+<h4 id="screen-7-workoutview-workoutscreen">Screen 7: WorkoutView → WorkoutScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>WorkoutView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/workout/WorkoutScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Məşq siyahısı (LazyColumn)
+- Kateqoriya filtri (strength, cardio, flexibility, endurance)
+- Tarix filtri
+- Hər məşq kartında:
+  - Başlıq, kateqoriya
+  - Müddət, kalori
+  - Tamamlanma statusu
+  - Silmə/redaktə
+- FloatingActionButton → AddWorkout
+- Pull-to-refresh</p>
+<p><strong>API:</strong>
+- <code>GET /api/v1/workouts/</code> → <code>[Workout]</code>
+- <code>DELETE /api/v1/workouts/{id}</code>
+- <code>PATCH /api/v1/workouts/{id}/toggle</code></p>
+<hr />
+<h4 id="screen-8-addworkoutview-addworkoutscreen">Screen 8: AddWorkoutView → AddWorkoutScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>AddWorkoutView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/workout/AddWorkoutScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Başlıq input
+- Kateqoriya seçici (strength, cardio, flexibility, endurance)
+- Müddət (dəqiqə) input
+- Kalori (optional) input
+- Qeydlər (optional) input
+- Tarix seçici (DatePicker)
+- Saxla düyməsi</p>
+<p><strong>API:</strong>
+- <code>POST /api/v1/workouts/</code> → <code>Workout</code>
+- Request: <code>{ title, category, duration, caloriesBurned?, notes?, date? }</code></p>
+<hr />
+<h3 id="46-food-ai-kalori-ekranlari">4.6 FOOD / AI KALORİ EKRANLARI</h3>
+<h4 id="screen-9-eatingview-foodscreen">Screen 9: EatingView → FoodScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>EatingView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/food/FoodScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Qida girişləri siyahısı
+- Gündəlik nutrition xülasəsi (kalori, protein, karbohidrat, yağ)
+- Yemək tipi filtri (breakfast, lunch, dinner, snack)
+- Hər giriş kartında:
+  - Adı, kalori
+  - Makro dəyərlər
+  - Yemək tipi
+  - Silmə/redaktə
+- FloatingActionButton → AddFood
+- AI Kalori düyməsi (kamera)</p>
+<p><strong>API:</strong>
+- <code>GET /api/v1/food/</code> → <code>[FoodEntry]</code>
+- <code>DELETE /api/v1/food/{id}</code></p>
+<hr />
+<h4 id="screen-10-addfoodview-addfoodscreen">Screen 10: AddFoodView → AddFoodScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>AddFoodView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/food/AddFoodScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Kamera / Qalereyadan şəkil seç
+- Şəkil preview
+- AI analiz düyməsi
+- Manuel giriş:
+  - Adı input
+  - Kalori input
+  - Protein input (optional)
+  - Karbohidrat input (optional)
+  - Yağ input (optional)
+  - Yemək tipi seçici
+  - Qeydlər (optional)
+- Saxla düyməsi</p>
+<p><strong>API:</strong>
+- <code>POST /api/v1/food/</code> → <code>FoodEntry</code>
+- <code>POST /api/v1/food/{id}/image</code> → Şəkil upload
+- <code>POST /api/v1/food/analyze</code> → AI analiz (multipart)</p>
+<hr />
+<h4 id="screen-11-aicalorieanalysisview-aicalorieresultscreen">Screen 11: AICalorieAnalysisView → AICalorieResultScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>AICalorieAnalysisView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/food/AICalorieResultScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Aşkar edilmiş yeməklər siyahısı
+- Hər yemək üçün:
+  - Adı
+  - Kalori
+  - Protein, karbohidrat, yağ
+  - Porsiya ölçüsü
+  - Confidence score (%)
+- Toplam nutrition xülasəsi
+- Porsiyaları redaktə et
+- Food log-a saxla düyməsi</p>
+<p><strong>ML Pipeline (On-Device):</strong>
+1. Kameradan şəkil al
+2. YOLO v8 → Yemək obyektlərini aşkar et
+3. EfficientNet → Hər yeməyi təsnifləşdir
+4. USDA Database → Qida dəyərlərini tap
+5. Nəticəni göstər</p>
+<p><strong>Android üçün:</strong> TensorFlow Lite (YOLO v8 + EfficientNet .tflite modelləri)</p>
+<hr />
+<h4 id="screen-12-aicaloriehistoryview-aicaloriehistoryscreen">Screen 12: AICalorieHistoryView → AICalorieHistoryScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>AICalorieHistoryView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/food/AICalorieHistoryScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Analiz tarixçəsi siyahısı
+- Hər giriş: tarix, kalori, yemək sayı
+- Gündəlik toplamlar
+- Pagination</p>
+<p><strong>API:</strong>
+- <code>GET /api/v1/food?page=1&amp;page_size=20</code> → <code>CalorieHistoryResponse</code></p>
+<hr />
+<h3 id="47-chat-ekranlari">4.7 CHAT EKRANLARI</h3>
+<h4 id="screen-13-conversationsview-conversationsscreen">Screen 13: ConversationsView → ConversationsScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>ChatView.swift</code> (conversations part)</td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/chat/ConversationsScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Söhbət siyahısı
+- Trainer bölməsi (əgər təyin olunubsa)
+- Hər söhbətdə:
+  - Profil şəkli
+  - İstifadəçi adı
+  - Son mesaj preview
+  - Vaxt
+  - Oxunmamış sayı badge
+- Pull-to-refresh</p>
+<p><strong>Giriş Nəzarəti:</strong>
+- Client: Premium lazımdır (gündəlik mesaj limiti)
+- Trainer: Pulsuz (limitsiz)
+- Free client: "Premium al" mesajı</p>
+<p><strong>API:</strong>
+- <code>GET /api/v1/chat/conversations</code> → <code>[ChatConversation]</code>
+- <code>GET /api/v1/chat/limit</code> → <code>MessageLimitResponse</code></p>
+<hr />
+<h4 id="screen-14-chatdetailview-chatdetailscreen">Screen 14: ChatDetailView → ChatDetailScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>ChatView.swift</code> (detail part)</td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/chat/ChatDetailScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Mesaj tarixçəsi (LazyColumn, reverse)
+- Göndərən/alan mesaj bubble-ları
+- Mesaj input field
+- Göndər düyməsi
+- Oxunma indikatoru</p>
+<p><strong>API:</strong>
+- <code>GET /api/v1/chat/history/{userId}</code> → <code>[ChatMessageResponse]</code>
+- <code>POST /api/v1/chat/send</code> → <code>ChatMessageResponse</code>
+- Request: <code>{ receiverId, message }</code></p>
+<hr />
+<h3 id="48-trainer-browse-client-ucun">4.8 TRAINER BROWSE (Client üçün)</h3>
+<h4 id="screen-15-trainerbrowsingview-trainerbrowsescreen">Screen 15: TrainerBrowsingView → TrainerBrowseScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>Teachers.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/trainers/TrainerBrowseScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Axtarış field (ad ilə)
+- Kateqoriya/ixtisas filtri
+- Rating filtri
+- Qiymət aralığı filtri
+- Trainer kartları:
+  - Profil şəkli
+  - Ad
+  - İxtisaslar
+  - Təcrübə
+  - Rating (ulduzlar)
+  - Qiymət/session
+  - Bio
+- Trainer profile detail
+- Mesaj göndər düyməsi
+- Abunə ol düyməsi</p>
+<p><strong>API:</strong>
+- <code>GET /api/v1/users/trainers</code> → <code>[TrainerResponse]</code>
+- <code>POST /api/v1/users/assign-trainer/{trainerId}</code>
+- <code>DELETE /api/v1/users/unassign-trainer</code></p>
+<hr />
+<h3 id="49-training-plan-ekranlari-trainer">4.9 TRAİNİNG PLAN EKRANLARI (Trainer)</h3>
+<h4 id="screen-16-trainingplanview-trainingplanscreen">Screen 16: TrainingPlanView → TrainingPlanScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>TrainingPlanView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/plans/TrainingPlanScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Plan siyahısı
+- Tələbəyə görə filtr
+- Plan tipinə görə filtr
+- Hər plan kartında:
+  - Başlıq, tip
+  - Təyin olunmuş tələbə
+  - Tamamlanma statusu
+  - Silmə/redaktə
+- FAB → AddTrainingPlan</p>
+<p><strong>API:</strong>
+- <code>GET /api/v1/plans/training</code> → <code>[TrainingPlan]</code>
+- <code>DELETE /api/v1/plans/training/{id}</code></p>
+<hr />
+<h4 id="screen-17-addtrainingplanview-addtrainingplanscreen">Screen 17: AddTrainingPlanView → AddTrainingPlanScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>AddTrainingPlanView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/plans/AddTrainingPlanScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Plan başlığı input
+- Plan tipi seçici (weight_loss, weight_gain, strength_training)
+- Exercises əlavə et:
+  - Hərəkət adı
+  - Set sayı
+  - Təkrar sayı
+  - Müddət
+- Tələbə seçici (assign)
+- Qeydlər
+- Saxla düyməsi</p>
+<p><strong>API:</strong>
+- <code>POST /api/v1/plans/training</code> → <code>TrainingPlan</code>
+- Request: <code>{ title, planType, notes?, assignedStudentId?, workouts: [...] }</code></p>
+<hr />
+<h3 id="410-meal-plan-ekranlari-trainer">4.10 MEAL PLAN EKRANLARI (Trainer)</h3>
+<h4 id="screen-18-mealplanview-mealplanscreen">Screen 18: MealPlanView → MealPlanScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>MealPlanView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/plans/MealPlanScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Plan siyahısı
+- Tələbəyə görə filtr
+- Hər plan kartında:
+  - Başlıq
+  - Gündəlik kalori hədəfi
+  - Təyin olunmuş tələbə
+  - Silmə/redaktə
+- FAB → AddMealPlan</p>
+<p><strong>API:</strong>
+- <code>GET /api/v1/plans/meal</code> → <code>[MealPlan]</code>
+- <code>DELETE /api/v1/plans/meal/{id}</code></p>
+<hr />
+<h4 id="screen-19-addmealplanview-addmealplanscreen">Screen 19: AddMealPlanView → AddMealPlanScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>AddMealPlanView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/plans/AddMealPlanScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Plan başlığı input
+- Gündəlik kalori hədəfi input
+- Yemək əlavə et:
+  - Adı
+  - Kalori
+  - Protein, karb, yağ
+  - Yemək tipi (breakfast, lunch, dinner, snack)
+- Tələbə seçici
+- Qeydlər
+- Saxla düyməsi</p>
+<p><strong>API:</strong>
+- <code>POST /api/v1/plans/meal</code> → <code>MealPlan</code>
+- Request: <code>{ title, planType, dailyCalorieTarget, notes?, assignedStudentId?, items: [...] }</code></p>
+<hr />
+<h3 id="411-marketplace-ekranlari">4.11 MARKETPLACE EKRANLARI</h3>
+<h4 id="screen-20-marketplaceview-marketplacescreen">Screen 20: MarketplaceView → MarketplaceScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>MarketplaceView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/marketplace/MarketplaceScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Məhsul tipi filtri:
+  - Hamısı
+  - Workout Plan
+  - Meal Plan
+  - Training Program
+  - E-book
+  - Video Course
+- Məhsul kartları:
+  - Cover şəkli
+  - Başlıq
+  - Qiymət
+  - Rating (ulduzlar)
+  - Satıcı məlumatı
+- Pagination
+- Pull-to-refresh</p>
+<p><strong>API:</strong>
+- <code>GET /api/v1/marketplace/products?page=1&amp;page_size=20&amp;product_type=all</code></p>
+<hr />
+<h4 id="screen-21-productdetailview-productdetailscreen">Screen 21: ProductDetailView → ProductDetailScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>ProductDetailView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/marketplace/ProductDetailScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Cover şəkli (tam genişlik)
+- Başlıq, təsvir
+- Qiymət
+- Satıcı info (şəkil, ad)
+- Orta rating
+- Reviews siyahısı
+- "Rəy yaz" düyməsi
+- "Satın al" düyməsi</p>
+<p><strong>API:</strong>
+- <code>GET /api/v1/marketplace/products/{id}</code> → <code>MarketplaceProduct</code>
+- <code>GET /api/v1/marketplace/products/{id}/reviews</code> → <code>[ProductReview]</code>
+- <code>POST /api/v1/marketplace/purchase</code> → <code>ProductPurchase</code></p>
+<hr />
+<h4 id="screen-22-writereviewview-writereviewscreen">Screen 22: WriteReviewView → WriteReviewScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>WriteReviewView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/marketplace/WriteReviewScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Ulduz rating seçimi (1-5)
+- Şərh text area
+- Saxla düyməsi</p>
+<p><strong>API:</strong>
+- <code>POST /api/v1/marketplace/reviews</code>
+- Request: <code>{ productId, rating, comment }</code></p>
+<hr />
+<h3 id="412-trainer-hub-ekranlari-trainer">4.12 TRAINER HUB EKRANLARI (Trainer)</h3>
+<h4 id="screen-23-trainerhubview-trainerhubscreen">Screen 23: TrainerHubView → TrainerHubScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>TrainerHubView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/trainerhub/TrainerHubScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Quick stats
+- Alt bölmələrə naviqasiya:
+  - Məhsullarım
+  - Live Sessionlarım
+  - Satışlar
+- Quick action düymələri</p>
+<hr />
+<h4 id="screen-24-trainermarketplaceview-trainerproductsscreen">Screen 24: TrainerMarketplaceView → TrainerProductsScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>TrainerMarketplaceView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/trainerhub/TrainerProductsScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Trainer-in öz məhsulları siyahısı
+- Tipə görə filtr
+- Hər məhsul: başlıq, qiymət, rating, satış
+- Yeni məhsul yarat düyməsi
+- Silmə/redaktə</p>
+<hr />
+<h4 id="screen-25-createproductview-createproductscreen">Screen 25: CreateProductView → CreateProductScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>CreateProductView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/trainerhub/CreateProductScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Məhsul tipi seçici
+- Başlıq input
+- Təsvir input
+- Qiymət input
+- Cover şəkli upload
+- Published toggle
+- Saxla düyməsi</p>
+<p><strong>API:</strong>
+- <code>POST /api/v1/marketplace/products</code> → <code>MarketplaceProduct</code></p>
+<hr />
+<h4 id="screen-26-trainersessionsview-trainersessionsscreen">Screen 26: TrainerSessionsView → TrainerSessionsScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>TrainerSessionsView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/trainerhub/TrainerSessionsScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Trainer-in sessionları siyahısı
+- Statusa görə filtr (scheduled, live, completed, cancelled)
+- Hər session: başlıq, tarix, iştirakçı sayı
+- Yeni session yarat
+- Silmə/redaktə</p>
+<hr />
+<h4 id="screen-27-createlivesessionview-createlivesessionscreen">Screen 27: CreateLiveSessionView → CreateLiveSessionScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>CreateLiveSessionView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/trainerhub/CreateLiveSessionScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Başlıq input
+- Təsvir input
+- Session tipi seçici (group, one_on_one, open)
+- Max iştirakçı sayı
+- Çətinlik səviyyəsi
+- Müddət (dəqiqə)
+- Tarix/vaxt seçici (DateTimePicker)
+- Public/Private toggle
+- Ödənişli/Pulsuz toggle
+- Qiymət (ödənişli olarsa)
+- Exercises əlavə et
+- Saxla düyməsi</p>
+<p><strong>API:</strong>
+- <code>POST /api/v1/live-sessions</code> → <code>LiveSession</code></p>
+<hr />
+<h3 id="413-live-session-ekranlari">4.13 LIVE SESSION EKRANLARI</h3>
+<h4 id="screen-28-livesessionlistview-livesessionlistscreen">Screen 28: LiveSessionListView → LiveSessionListScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>LiveSessionListView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/livesession/LiveSessionListScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Session siyahısı
+- Çətinlik filtri
+- Session tipi filtri
+- Session kartları:
+  - Başlıq
+  - Trainer info
+  - Qiymət
+  - İştirakçı sayı / Max
+  - Tarix/vaxt
+  - Qeydiyyat düyməsi
+- Pagination</p>
+<p><strong>API:</strong>
+- <code>GET /api/v1/live-sessions?page=1&amp;page_size=20</code></p>
+<hr />
+<h4 id="screen-29-livesessiondetailview-livesessiondetailscreen">Screen 29: LiveSessionDetailView → LiveSessionDetailScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>LiveSessionDetailView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/livesession/LiveSessionDetailScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Başlıq, təsvir
+- Trainer info
+- Cədvəl vaxtı
+- Çətinlik
+- Max iştirakçı / Qeydiyyatlı sayı
+- Workout planı preview
+- Qeydiyyat / Qoşul düyməsi
+- İştirakçılar siyahısı
+- Rating (tamamlandıqdan sonra)</p>
+<p><strong>API:</strong>
+- <code>GET /api/v1/live-sessions/{id}</code> → <code>LiveSession</code>
+- <code>POST /api/v1/live-sessions/{id}/join</code>
+- <code>GET /api/v1/live-sessions/{id}/participants</code></p>
+<hr />
+<h4 id="screen-30-liveworkoutview-liveworkoutscreen">Screen 30: LiveWorkoutView → LiveWorkoutScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>LiveWorkoutView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/livesession/LiveWorkoutScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Canlı geri sayım
+- Cari hərəkət göstəricisi
+- Kamera ilə poza aşkarlama feedback
+- Real-time iştirakçı siyahısı
+- Performans metrikləri
+- Trainer ilə chat
+- Session taymer</p>
+<p><strong>WebSocket:</strong> <code>wss://api.corevia.life/api/v1/live-sessions/ws/{sessionId}?token={accessToken}</code></p>
+<p><strong>Messages (Göndərilən):</strong>
+- <code>form_update</code> - Poza yeniləmə
+- <code>exercise_complete</code> - Hərəkət tamamlandı
+- <code>heartbeat</code> - Bağlantı yoxlaması</p>
+<p><strong>Messages (Alınan):</strong>
+- <code>session_start</code> - Session başladı
+- <code>session_end</code> - Session bitdi
+- <code>form_correction</code> - Forma düzəlişi
+- <code>participant_joined</code> - Yeni iştirakçı
+- <code>exercise_start</code> - Hərəkət başladı</p>
+<hr />
+<h3 id="414-social-ekranlari">4.14 SOCIAL EKRANLARI</h3>
+<h4 id="screen-31-socialfeedview-socialfeedscreen">Screen 31: SocialFeedView → SocialFeedScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>SocialFeedView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/social/SocialFeedScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Post siyahısı (feed)
+- Hər postda:
+  - Müəllif info (şəkil, ad)
+  - Mətn/təsvir
+  - Şəkil (əgər varsa)
+  - Like sayı, şərh sayı
+  - Like düyməsi (❤️)
+  - Şərh düyməsi (💬)
+  - Post tipi badge
+- FAB → CreatePost
+- Pagination
+- Pull-to-refresh</p>
+<p><strong>API:</strong>
+- <code>GET /api/v1/social/feed?page=1&amp;page_size=20</code> → <code>FeedResponse</code>
+- <code>POST /api/v1/social/posts/{id}/like</code> (Like)
+- <code>DELETE /api/v1/social/posts/{id}/like</code> (Unlike)</p>
+<hr />
+<h4 id="screen-32-createpostview-createpostscreen">Screen 32: CreatePostView → CreatePostScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>CreatePostView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/social/CreatePostScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Post tipi seçici (workout, meal, progress, achievement, general)
+- Mətn input
+- Şəkil əlavə et (optional)
+- Workout/meal bağla (optional)
+- Public/Private toggle
+- Paylaş düyməsi</p>
+<p><strong>API:</strong>
+- <code>POST /api/v1/social/posts</code> → <code>SocialPost</code>
+- <code>POST /api/v1/social/posts/{id}/image</code> → Şəkil upload</p>
+<hr />
+<h4 id="screen-33-commentsview-commentsscreen">Screen 33: CommentsView → CommentsScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>CommentsView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/social/CommentsScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Şərhlərin siyahısı
+- Hər şərh: müəllif, mətn, vaxt
+- Şərh input field
+- Göndər düyməsi</p>
+<p><strong>API:</strong>
+- <code>GET /api/v1/social/posts/{id}/comments</code> → <code>[PostComment]</code>
+- <code>POST /api/v1/social/posts/{id}/comments</code>
+- Request: <code>{ content }</code></p>
+<hr />
+<h3 id="415-daily-survey">4.15 DAILY SURVEY</h3>
+<h4 id="screen-34-dailysurveyview-dailysurveyscreen">Screen 34: DailySurveyView → DailySurveyScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>DailySurveyView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/survey/DailySurveyScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Enerji səviyyəsi (1-5 slider)
+- Yuxu saatı (0-24 slider)
+- Yuxu keyfiyyəti (1-5 slider)
+- Stress səviyyəsi (1-5 slider)
+- Əzələ ağrısı (1-5 slider)
+- Əhval (1-5 slider)
+- Su stəkanları (0-30)
+- Qeydlər (optional)
+- Təsdiqlə düyməsi</p>
+<p><strong>Suallar backend-dən gəlir (multi-language)</strong></p>
+<p><strong>API:</strong>
+- <code>GET /api/v1/survey/questions?lang=az</code> → Suallar
+- <code>POST /api/v1/survey/daily</code> → <code>DailySurveyResponse</code>
+- <code>GET /api/v1/survey/daily/today</code> → Status (doldurulub/doldurulmayıb)
+- Request: <code>{ energyLevel, sleepHours, sleepQuality, stressLevel, muscleSoreness, mood, waterGlasses, notes? }</code></p>
+<hr />
+<h3 id="416-analytics-ekranlari">4.16 ANALYTICS EKRANLARI</h3>
+<h4 id="screen-35-analyticsdashboardview-analyticsdashboardscreen">Screen 35: AnalyticsDashboardView → AnalyticsDashboardScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>AnalyticsDashboardView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/analytics/AnalyticsDashboardScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Cari həftə statistikası
+- Çəki trendi çart (line chart)
+- Məşq trendi çart
+- Qidalanma trendi çart
+- Workout streak sayğacı
+- 30 günlük toplamlar:
+  - Toplam məşq
+  - Toplam dəqiqə
+  - Toplam yandırılan kalori
+  - Orta gündəlik kalori</p>
+<p><strong>API:</strong>
+- <code>GET /api/v1/analytics/dashboard</code> → <code>AnalyticsDashboardResponse</code></p>
+<hr />
+<h4 id="screen-36-overallstatisticsview-overallstatsscreen">Screen 36: OverallStatisticsView → OverallStatsScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td>(HomeView daxilindən keçid)</td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/analytics/OverallStatsScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Toplam məşq sayı
+- Toplam dəqiqə
+- Toplam yandırılan kalori
+- Orta gündəlik kalori
+- Consistency faizi (%)</p>
+<hr />
+<h3 id="417-profil-ekranlari">4.17 PROFİL EKRANLARI</h3>
+<h4 id="screen-37-profileviewdynamic-profilescreen">Screen 37: ProfileViewDynamic → ProfileScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>ProfileViewDynamic.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/profile/ProfileScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- User type-a görə fərqli content göstər
+- Profil şəkli
+- İstifadəçi statistikaları
+- Edit düyməsi
+- Settings düyməsi
+- Logout düyməsi</p>
+<p><strong>Client profil:</strong>
+- Ad, email, yaş, çəki, boy, hədəf</p>
+<p><strong>Trainer profil:</strong>
+- Ad, email, ixtisas, təcrübə, bio, qiymət/session
+- Verification status
+- Instagram handle</p>
+<p><strong>API:</strong>
+- <code>GET /api/v1/auth/me</code> → <code>UserResponse</code></p>
+<hr />
+<h4 id="screen-38-editprofileview-editprofilescreen">Screen 38: EditProfileView → EditProfileScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>EditProfileViews.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/profile/EditProfileScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Client input-ları:</strong>
+- Ad, yaş, çəki, boy, hədəf
+- Profil şəkli upload</p>
+<p><strong>Trainer input-ları:</strong>
+- Ad, ixtisas, təcrübə, bio, qiymət/session
+- Profil şəkli upload</p>
+<p><strong>API:</strong>
+- <code>PUT /api/v1/users/profile</code> → <code>UserResponse</code>
+- <code>POST /api/v1/uploads/profile-image</code> → Şəkil upload</p>
+<hr />
+<h3 id="418-settings">4.18 SETTINGS</h3>
+<h4 id="screen-39-settingsview-settingsscreen">Screen 39: SettingsView → SettingsScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>SettingsView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/settings/SettingsScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Dil seçici (AZ, EN, RU)
+- Tema (Light / Dark)
+- Bildiriş ayarları
+- Gizlilik ayarları
+- Hesabı sil düyməsi (təsdiq dialog ilə)
+- Çıxış düyməsi</p>
+<p><strong>API:</strong>
+- <code>DELETE /api/v1/auth/delete-account</code>
+- Request: <code>{ password }</code></p>
+<hr />
+<h3 id="419-premium">4.19 PREMIUM</h3>
+<h4 id="screen-40-premiumview-premiumscreen">Screen 40: PremiumView → PremiumScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>PremiumView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/premium/PremiumScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Premium üstünlükləri siyahısı:
+  - Limitsiz chat
+  - Ətraflı analitika
+  - Prioritet dəstək
+  - Eksklüziv content
+- Qiymət göstəricisi
+- Abunə ol düyməsi
+- Alışları bərpa et düyməsi</p>
+<p><strong>iOS:</strong> StoreKit → <strong>Android:</strong> Google Play Billing Library</p>
+<p><strong>API:</strong>
+- <code>POST /api/v1/premium/activate</code>
+- <code>POST /api/v1/premium/cancel</code></p>
+<hr />
+<h3 id="420-trainer-verification">4.20 TRAINER VERIFICATION</h3>
+<h4 id="screen-41-trainerverificationview-trainerverificationscreen">Screen 41: TrainerVerificationView → TrainerVerificationScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>TrainerVerificationView.swift</code></td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/auth/TrainerVerificationScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Verification foto upload
+- Instagram handle input
+- Status göstəricisi (pending/verified/rejected)
+- Göndər düyməsi</p>
+<p><strong>API:</strong>
+- <code>POST /api/v1/auth/verify-trainer</code> → Multipart (şəkil)</p>
+<hr />
+<h3 id="421-route-tracking">4.21 ROUTE TRACKING</h3>
+<h4 id="screen-42-routetrackingview-routetrackingscreen">Screen 42: RouteTrackingView → RouteTrackingScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td><code>RouteManager.swift</code> + related views</td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/route/RouteTrackingScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Xəritə görünüşü (Google Maps)
+- Start/Stop düyməsi
+- Fəaliyyət tipi seçimi
+- Məsafə göstəricisi
+- Müddət göstəricisi
+- Kalori göstəricisi
+- Marşrut tarixçəsi</p>
+<p><strong>API:</strong>
+- <code>POST /api/v1/routes/</code> → Marşrut saxla
+- <code>GET /api/v1/routes/</code> → Marşrut siyahısı
+- <code>GET /api/v1/routes/stats?days=7</code> → Statistika
+- <code>DELETE /api/v1/routes/{id}</code> → Sil</p>
+<hr />
+<h3 id="422-content-trainer-content">4.22 CONTENT (Trainer Content)</h3>
+<h4 id="screen-43-trainercontentview-trainercontentscreen">Screen 43: TrainerContentView → TrainerContentScreen</h4>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Dəyər</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iOS Fayl</strong></td>
+<td>Content-related views</td>
+</tr>
+<tr>
+<td><strong>Android Fayl</strong></td>
+<td><code>ui/content/TrainerContentScreen.kt</code></td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>⬜ Yazılmalı</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Elementlər:</strong>
+- Content siyahısı
+- Yeni content yarat düyməsi
+- Hər content: başlıq, tip, premium/free
+- Silmə/redaktə</p>
+<p><strong>API:</strong>
+- <code>GET /api/v1/content/my</code> → <code>[ContentResponse]</code>
+- <code>POST /api/v1/content/</code> → <code>ContentResponse</code>
+- <code>POST /api/v1/content/{id}/image</code> → Şəkil upload
+- <code>DELETE /api/v1/content/{id}</code></p>
+<hr />
+<h2 id="5-data-modellri">5. DATA MODELLƏRİ</h2>
+<h3 id="51-auth-models">5.1 Auth Models</h3>
+<pre class="codehilite"><code class="language-kotlin">// LoginRequest
+data class LoginRequest(
+    val email: String,
+    val password: String
+)
+
+// RegisterRequest
+data class RegisterRequest(
+    val name: String,
+    val email: String,
+    val password: String,
+    val userType: String // &quot;client&quot; or &quot;trainer&quot;
+)
+
+// AuthResponse (Token)
+data class AuthResponse(
+    val accessToken: String,
+    val refreshToken: String,
+    val tokenType: String
+)
+
+// UserResponse
+data class UserResponse(
+    val id: String,
+    val name: String,
+    val email: String,
+    val userType: String,
+    val profileImageUrl: String?,
+    val isActive: Boolean,
+    val isPremium: Boolean,
+    val createdAt: String,
+    val age: Int?,
+    val weight: Double?,
+    val height: Double?,
+    val goal: String?,
+    val trainerId: String?,
+    val specialization: String?,
+    val experience: Int?,
+    val rating: Double?,
+    val pricePerSession: Double?,
+    val bio: String?,
+    val verificationStatus: String?,
+    val instagramHandle: String?,
+    val verificationPhotoUrl: String?,
+    val verificationScore: Double?
+)
+
+// OTPResponse
+data class OTPResponse(
+    val success: Boolean,
+    val message: String,
+    val code: String? // Test mode only
+)
+</code></pre>
+
+<h3 id="52-workout-models">5.2 Workout Models</h3>
+<pre class="codehilite"><code class="language-kotlin">data class Workout(
+    val id: String,
+    val userId: String,
+    val title: String,
+    val category: String, // strength, cardio, flexibility, endurance
+    val duration: Int, // minutes
+    val caloriesBurned: Int?,
+    val notes: String?,
+    val date: String,
+    val isCompleted: Boolean,
+    val createdAt: String
+)
+
+data class WorkoutCreateRequest(
+    val title: String,
+    val category: String,
+    val duration: Int,
+    val caloriesBurned: Int?,
+    val notes: String?,
+    val date: String?
+)
+</code></pre>
+
+<h3 id="53-food-models">5.3 Food Models</h3>
+<pre class="codehilite"><code class="language-kotlin">data class FoodEntry(
+    val id: String,
+    val userId: String,
+    val name: String,
+    val calories: Int,
+    val protein: Double?,
+    val carbs: Double?,
+    val fats: Double?,
+    val mealType: String, // breakfast, lunch, dinner, snack
+    val date: String,
+    val imageUrl: String?,
+    val notes: String?,
+    val createdAt: String
+)
+
+data class FoodCreateRequest(
+    val name: String,
+    val calories: Int,
+    val protein: Double?,
+    val carbs: Double?,
+    val fats: Double?,
+    val mealType: String,
+    val date: String?,
+    val notes: String?
+)
+
+data class AICalorieResult(
+    val foods: List&lt;DetectedFood&gt;,
+    val totalCalories: Double,
+    val totalProtein: Double,
+    val totalCarbs: Double,
+    val totalFat: Double,
+    val confidence: Double,
+    val imageUrl: String?
+)
+
+data class DetectedFood(
+    val name: String,
+    val calories: Double,
+    val protein: Double,
+    val carbs: Double,
+    val fat: Double,
+    val portionSize: String,
+    val confidence: Double
+)
+</code></pre>
+
+<h3 id="54-training-plan-models">5.4 Training Plan Models</h3>
+<pre class="codehilite"><code class="language-kotlin">data class TrainingPlan(
+    val id: String,
+    val trainerId: String,
+    val title: String,
+    val planType: String, // weight_loss, weight_gain, strength_training
+    val workouts: List&lt;PlanWorkout&gt;,
+    val assignedStudentId: String?,
+    val isCompleted: Boolean,
+    val notes: String?,
+    val createdAt: String
+)
+
+data class PlanWorkout(
+    val id: String,
+    val name: String,
+    val sets: Int,
+    val reps: Int,
+    val duration: Int?
+)
+</code></pre>
+
+<h3 id="55-meal-plan-models">5.5 Meal Plan Models</h3>
+<pre class="codehilite"><code class="language-kotlin">data class MealPlan(
+    val id: String,
+    val trainerId: String,
+    val title: String,
+    val planType: String,
+    val dailyCalorieTarget: Int,
+    val items: List&lt;MealPlanItem&gt;,
+    val assignedStudentId: String?,
+    val notes: String?,
+    val createdAt: String
+)
+
+data class MealPlanItem(
+    val id: String,
+    val name: String,
+    val calories: Int,
+    val protein: Double,
+    val carbs: Double,
+    val fats: Double,
+    val mealType: String // breakfast, lunch, dinner, snack
+)
+</code></pre>
+
+<h3 id="56-chat-models">5.6 Chat Models</h3>
+<pre class="codehilite"><code class="language-kotlin">data class ChatConversation(
+    val userId: String,
+    val userName: String,
+    val userProfileImage: String?,
+    val lastMessage: String?,
+    val lastMessageTime: String?,
+    val unreadCount: Int
+)
+
+data class ChatMessageResponse(
+    val id: String,
+    val senderId: String,
+    val receiverId: String,
+    val message: String,
+    val isRead: Boolean,
+    val createdAt: String
+)
+
+data class ChatMessageCreate(
+    val receiverId: String,
+    val message: String
+)
+
+data class MessageLimitResponse(
+    val dailyLimit: Int,
+    val usedToday: Int,
+    val remaining: Int
+)
+</code></pre>
+
+<h3 id="57-marketplace-models">5.7 Marketplace Models</h3>
+<pre class="codehilite"><code class="language-kotlin">data class MarketplaceProduct(
+    val id: String,
+    val sellerId: String,
+    val productType: String, // workout_plan, meal_plan, training_program, ebook, video_course
+    val title: String,
+    val description: String,
+    val price: Double,
+    val currency: String,
+    val coverImageUrl: String?,
+    val isPublished: Boolean,
+    val createdAt: String,
+    val updatedAt: String,
+    val seller: ProductSeller?,
+    val averageRating: Double?,
+    val reviewCount: Int?
+)
+
+data class ProductSeller(
+    val id: String,
+    val name: String,
+    val profileImageUrl: String?
+)
+
+data class ProductReview(
+    val id: String,
+    val productId: String,
+    val userId: String,
+    val rating: Int, // 1-5
+    val comment: String?,
+    val createdAt: String,
+    val reviewer: ReviewAuthor?
+)
+</code></pre>
+
+<h3 id="58-live-session-models">5.8 Live Session Models</h3>
+<pre class="codehilite"><code class="language-kotlin">data class LiveSession(
+    val id: String,
+    val trainerId: String,
+    val title: String,
+    val description: String?,
+    val sessionType: String, // group, one_on_one, open
+    val maxParticipants: Int,
+    val difficultyLevel: String,
+    val durationMinutes: Int,
+    val scheduledStart: String,
+    val scheduledEnd: String,
+    val actualStart: String?,
+    val actualEnd: String?,
+    val status: String, // scheduled, live, completed, cancelled
+    val isPublic: Boolean,
+    val isPaid: Boolean,
+    val price: Double,
+    val currency: String,
+    val workoutPlan: List&lt;WorkoutExercise&gt;?,
+    val registeredCount: Int?,
+    val activeCount: Int?,
+    val trainer: SessionTrainer?,
+    val createdAt: String,
+    val updatedAt: String
+)
+</code></pre>
+
+<h3 id="59-social-models">5.9 Social Models</h3>
+<pre class="codehilite"><code class="language-kotlin">data class SocialPost(
+    val id: String,
+    val userId: String,
+    val postType: String, // workout, meal, progress, achievement, general
+    val content: String?,
+    val imageUrl: String?,
+    val workoutId: String?,
+    val foodEntryId: String?,
+    val likesCount: Int,
+    val commentsCount: Int,
+    val isPublic: Boolean,
+    val createdAt: String,
+    val updatedAt: String,
+    val author: PostAuthor?,
+    val isLiked: Boolean
+)
+
+data class PostComment(
+    val id: String,
+    val postId: String,
+    val userId: String,
+    val content: String,
+    val createdAt: String,
+    val author: CommentAuthor?
+)
+</code></pre>
+
+<h3 id="510-daily-survey-models">5.10 Daily Survey Models</h3>
+<pre class="codehilite"><code class="language-kotlin">data class DailySurveyRequest(
+    val energyLevel: Int, // 1-5
+    val sleepHours: Double, // 0-24
+    val sleepQuality: Int, // 1-5
+    val stressLevel: Int, // 1-5
+    val muscleSoreness: Int, // 1-5
+    val mood: Int, // 1-5
+    val waterGlasses: Int, // 0-30
+    val notes: String?
+)
+
+data class DailySurveyResponse(
+    val id: String,
+    val date: String,
+    val energyLevel: Int,
+    val sleepHours: Double,
+    val sleepQuality: Int,
+    val stressLevel: Int,
+    val muscleSoreness: Int,
+    val mood: Int,
+    val waterGlasses: Int,
+    val notes: String?,
+    val createdAt: String
+)
+</code></pre>
+
+<h3 id="511-analytics-models">5.11 Analytics Models</h3>
+<pre class="codehilite"><code class="language-kotlin">data class AnalyticsDashboardResponse(
+    val currentWeek: WeekStats,
+    val weightTrend: List&lt;WeightPoint&gt;,
+    val workoutTrend: List&lt;WorkoutPoint&gt;,
+    val nutritionTrend: List&lt;NutritionPoint&gt;,
+    val totalWorkouts30d: Int,
+    val totalMinutes30d: Int,
+    val totalCaloriesBurned30d: Int,
+    val avgDailyCalories: Int,
+    val workoutStreakDays: Int
+)
+
+data class BodyMeasurementResponse(
+    val id: String,
+    val userId: String,
+    val measuredAt: String,
+    val weightKg: Double,
+    val bodyFatPercent: Double?,
+    val muscleMassKg: Double?,
+    val chestCm: Double?,
+    val waistCm: Double?,
+    val hipsCm: Double?,
+    val armsCm: Double?,
+    val legsCm: Double?,
+    val notes: String?,
+    val createdAt: String
+)
+</code></pre>
+
+<h3 id="512-route-models">5.12 Route Models</h3>
+<pre class="codehilite"><code class="language-kotlin">data class RouteCreateRequest(
+    val activityType: String,
+    val startLatitude: Double,
+    val startLongitude: Double,
+    val endLatitude: Double?,
+    val endLongitude: Double?,
+    val coordinatesJson: String?,
+    val distanceKm: Double,
+    val durationSeconds: Int,
+    val startedAt: String,
+    val finishedAt: String?
+)
+
+data class RouteResponse(
+    val id: String,
+    val userId: String,
+    val activityType: String,
+    val distanceKm: Double,
+    val durationSeconds: Int,
+    val caloriesBurned: Int?,
+    val startedAt: String,
+    val finishedAt: String?,
+    val createdAt: String
+)
+
+data class RouteStatsResponse(
+    val totalRoutes: Int,
+    val totalDistanceKm: Double,
+    val totalDurationSeconds: Int,
+    val totalCalories: Int,
+    val avgPace: Double?,
+    val avgSpeedKmh: Double?,
+    val longestRouteKm: Double,
+    val activityBreakdown: Map&lt;String, Int&gt;
+)
+</code></pre>
+
+<hr />
+<h2 id="6-api-endpointlri-tam-siyahi">6. API ENDPOİNTLƏRİ - TAM SİYAHI</h2>
+<h3 id="61-authentication-8-endpoint">6.1 Authentication (8 endpoint)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Auth</th>
+<th>Məqsəd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>POST</td>
+<td><code>/api/v1/auth/login</code></td>
+<td>❌</td>
+<td>Giriş</td>
+</tr>
+<tr>
+<td>2</td>
+<td>POST</td>
+<td><code>/api/v1/auth/register</code></td>
+<td>❌</td>
+<td>Qeydiyyat</td>
+</tr>
+<tr>
+<td>3</td>
+<td>GET</td>
+<td><code>/api/v1/auth/me</code></td>
+<td>✅</td>
+<td>Cari istifadəçi</td>
+</tr>
+<tr>
+<td>4</td>
+<td>POST</td>
+<td><code>/api/v1/auth/refresh</code></td>
+<td>❌</td>
+<td>Token yeniləmə</td>
+</tr>
+<tr>
+<td>5</td>
+<td>POST</td>
+<td><code>/api/v1/auth/refresh-claims</code></td>
+<td>✅</td>
+<td>Claims yeniləmə</td>
+</tr>
+<tr>
+<td>6</td>
+<td>DELETE</td>
+<td><code>/api/v1/auth/delete-account</code></td>
+<td>✅</td>
+<td>Hesab silmə</td>
+</tr>
+<tr>
+<td>7</td>
+<td>POST</td>
+<td><code>/api/v1/auth/forgot-password</code></td>
+<td>❌</td>
+<td>Şifrə sıfırlama OTP</td>
+</tr>
+<tr>
+<td>8</td>
+<td>POST</td>
+<td><code>/api/v1/auth/reset-password</code></td>
+<td>❌</td>
+<td>Yeni şifrə təyin et</td>
+</tr>
+</tbody>
+</table>
+<h3 id="62-userprofile-6-endpoint">6.2 User/Profile (6 endpoint)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Auth</th>
+<th>Məqsəd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>9</td>
+<td>PUT</td>
+<td><code>/api/v1/users/profile</code></td>
+<td>✅</td>
+<td>Profil yenilə</td>
+</tr>
+<tr>
+<td>10</td>
+<td>POST</td>
+<td><code>/api/v1/uploads/profile-image</code></td>
+<td>✅</td>
+<td>Profil şəkli upload</td>
+</tr>
+<tr>
+<td>11</td>
+<td>GET</td>
+<td><code>/api/v1/users/trainers</code></td>
+<td>✅</td>
+<td>Bütün trainerlər</td>
+</tr>
+<tr>
+<td>12</td>
+<td>POST</td>
+<td><code>/api/v1/users/assign-trainer/{id}</code></td>
+<td>✅</td>
+<td>Trainer təyin et</td>
+</tr>
+<tr>
+<td>13</td>
+<td>DELETE</td>
+<td><code>/api/v1/users/unassign-trainer</code></td>
+<td>✅</td>
+<td>Trainer silmə</td>
+</tr>
+<tr>
+<td>14</td>
+<td>GET</td>
+<td><code>/api/v1/users/my-students</code></td>
+<td>✅</td>
+<td>Tələbələrim</td>
+</tr>
+</tbody>
+</table>
+<h3 id="63-workouts-5-endpoint">6.3 Workouts (5 endpoint)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Auth</th>
+<th>Məqsəd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15</td>
+<td>POST</td>
+<td><code>/api/v1/workouts/</code></td>
+<td>✅</td>
+<td>Məşq yarat</td>
+</tr>
+<tr>
+<td>16</td>
+<td>GET</td>
+<td><code>/api/v1/workouts/</code></td>
+<td>✅</td>
+<td>Məşqlər siyahısı</td>
+</tr>
+<tr>
+<td>17</td>
+<td>PUT</td>
+<td><code>/api/v1/workouts/{id}</code></td>
+<td>✅</td>
+<td>Məşq yenilə</td>
+</tr>
+<tr>
+<td>18</td>
+<td>DELETE</td>
+<td><code>/api/v1/workouts/{id}</code></td>
+<td>✅</td>
+<td>Məşq sil</td>
+</tr>
+<tr>
+<td>19</td>
+<td>PATCH</td>
+<td><code>/api/v1/workouts/{id}/toggle</code></td>
+<td>✅</td>
+<td>Tamamlanma toggle</td>
+</tr>
+</tbody>
+</table>
+<h3 id="64-food-6-endpoint">6.4 Food (6 endpoint)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Auth</th>
+<th>Məqsəd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>20</td>
+<td>POST</td>
+<td><code>/api/v1/food/</code></td>
+<td>✅</td>
+<td>Qida əlavə et</td>
+</tr>
+<tr>
+<td>21</td>
+<td>GET</td>
+<td><code>/api/v1/food/</code></td>
+<td>✅</td>
+<td>Qida siyahısı</td>
+</tr>
+<tr>
+<td>22</td>
+<td>PUT</td>
+<td><code>/api/v1/food/{id}</code></td>
+<td>✅</td>
+<td>Qida yenilə</td>
+</tr>
+<tr>
+<td>23</td>
+<td>DELETE</td>
+<td><code>/api/v1/food/{id}</code></td>
+<td>✅</td>
+<td>Qida sil</td>
+</tr>
+<tr>
+<td>24</td>
+<td>POST</td>
+<td><code>/api/v1/food/{id}/image</code></td>
+<td>✅</td>
+<td>Qida şəkli upload</td>
+</tr>
+<tr>
+<td>25</td>
+<td>POST</td>
+<td><code>/api/v1/food/analyze</code></td>
+<td>✅</td>
+<td>AI analiz (multipart)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="65-training-plans-5-endpoint">6.5 Training Plans (5 endpoint)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Auth</th>
+<th>Məqsəd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>26</td>
+<td>POST</td>
+<td><code>/api/v1/plans/training</code></td>
+<td>✅</td>
+<td>Plan yarat</td>
+</tr>
+<tr>
+<td>27</td>
+<td>GET</td>
+<td><code>/api/v1/plans/training</code></td>
+<td>✅</td>
+<td>Planlar siyahısı</td>
+</tr>
+<tr>
+<td>28</td>
+<td>PUT</td>
+<td><code>/api/v1/plans/training/{id}</code></td>
+<td>✅</td>
+<td>Plan yenilə</td>
+</tr>
+<tr>
+<td>29</td>
+<td>DELETE</td>
+<td><code>/api/v1/plans/training/{id}</code></td>
+<td>✅</td>
+<td>Plan sil</td>
+</tr>
+<tr>
+<td>30</td>
+<td>PUT</td>
+<td><code>/api/v1/plans/training/{id}/complete</code></td>
+<td>✅</td>
+<td>Plan tamamla</td>
+</tr>
+</tbody>
+</table>
+<h3 id="66-meal-plans-5-endpoint">6.6 Meal Plans (5 endpoint)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Auth</th>
+<th>Məqsəd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>31</td>
+<td>POST</td>
+<td><code>/api/v1/plans/meal</code></td>
+<td>✅</td>
+<td>Meal plan yarat</td>
+</tr>
+<tr>
+<td>32</td>
+<td>GET</td>
+<td><code>/api/v1/plans/meal</code></td>
+<td>✅</td>
+<td>Meal planlar</td>
+</tr>
+<tr>
+<td>33</td>
+<td>PUT</td>
+<td><code>/api/v1/plans/meal/{id}</code></td>
+<td>✅</td>
+<td>Meal plan yenilə</td>
+</tr>
+<tr>
+<td>34</td>
+<td>DELETE</td>
+<td><code>/api/v1/plans/meal/{id}</code></td>
+<td>✅</td>
+<td>Meal plan sil</td>
+</tr>
+<tr>
+<td>35</td>
+<td>PUT</td>
+<td><code>/api/v1/plans/meal/{id}/complete</code></td>
+<td>✅</td>
+<td>Meal plan tamamla</td>
+</tr>
+</tbody>
+</table>
+<h3 id="67-chat-4-endpoint">6.7 Chat (4 endpoint)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Auth</th>
+<th>Məqsəd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>36</td>
+<td>GET</td>
+<td><code>/api/v1/chat/conversations</code></td>
+<td>✅</td>
+<td>Söhbətlər</td>
+</tr>
+<tr>
+<td>37</td>
+<td>GET</td>
+<td><code>/api/v1/chat/history/{userId}</code></td>
+<td>✅</td>
+<td>Mesaj tarixçəsi</td>
+</tr>
+<tr>
+<td>38</td>
+<td>POST</td>
+<td><code>/api/v1/chat/send</code></td>
+<td>✅</td>
+<td>Mesaj göndər</td>
+</tr>
+<tr>
+<td>39</td>
+<td>GET</td>
+<td><code>/api/v1/chat/limit</code></td>
+<td>✅</td>
+<td>Mesaj limiti</td>
+</tr>
+</tbody>
+</table>
+<h3 id="68-social-8-endpoint">6.8 Social (8 endpoint)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Auth</th>
+<th>Məqsəd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>40</td>
+<td>GET</td>
+<td><code>/api/v1/social/feed</code></td>
+<td>✅</td>
+<td>Feed</td>
+</tr>
+<tr>
+<td>41</td>
+<td>POST</td>
+<td><code>/api/v1/social/posts</code></td>
+<td>✅</td>
+<td>Post yarat</td>
+</tr>
+<tr>
+<td>42</td>
+<td>POST</td>
+<td><code>/api/v1/social/posts/{id}/image</code></td>
+<td>✅</td>
+<td>Post şəkli</td>
+</tr>
+<tr>
+<td>43</td>
+<td>POST</td>
+<td><code>/api/v1/social/posts/{id}/like</code></td>
+<td>✅</td>
+<td>Like</td>
+</tr>
+<tr>
+<td>44</td>
+<td>DELETE</td>
+<td><code>/api/v1/social/posts/{id}/like</code></td>
+<td>✅</td>
+<td>Unlike</td>
+</tr>
+<tr>
+<td>45</td>
+<td>DELETE</td>
+<td><code>/api/v1/social/posts/{id}</code></td>
+<td>✅</td>
+<td>Post sil</td>
+</tr>
+<tr>
+<td>46</td>
+<td>GET</td>
+<td><code>/api/v1/social/posts/{id}/comments</code></td>
+<td>✅</td>
+<td>Şərhlər</td>
+</tr>
+<tr>
+<td>47</td>
+<td>POST</td>
+<td><code>/api/v1/social/posts/{id}/comments</code></td>
+<td>✅</td>
+<td>Şərh yaz</td>
+</tr>
+</tbody>
+</table>
+<h3 id="69-live-sessions-7-endpoint-websocket">6.9 Live Sessions (7 endpoint + WebSocket)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Auth</th>
+<th>Məqsəd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>48</td>
+<td>GET</td>
+<td><code>/api/v1/live-sessions</code></td>
+<td>✅</td>
+<td>Session siyahısı</td>
+</tr>
+<tr>
+<td>49</td>
+<td>POST</td>
+<td><code>/api/v1/live-sessions</code></td>
+<td>✅</td>
+<td>Session yarat</td>
+</tr>
+<tr>
+<td>50</td>
+<td>GET</td>
+<td><code>/api/v1/live-sessions/{id}</code></td>
+<td>✅</td>
+<td>Session detalları</td>
+</tr>
+<tr>
+<td>51</td>
+<td>POST</td>
+<td><code>/api/v1/live-sessions/{id}/join</code></td>
+<td>✅</td>
+<td>Qoşul</td>
+</tr>
+<tr>
+<td>52</td>
+<td>GET</td>
+<td><code>/api/v1/live-sessions/{id}/participants</code></td>
+<td>✅</td>
+<td>İştirakçılar</td>
+</tr>
+<tr>
+<td>53</td>
+<td>DELETE</td>
+<td><code>/api/v1/live-sessions/{id}</code></td>
+<td>✅</td>
+<td>Session sil</td>
+</tr>
+<tr>
+<td>54</td>
+<td>WS</td>
+<td><code>/api/v1/live-sessions/ws/{id}?token=</code></td>
+<td>✅</td>
+<td>WebSocket</td>
+</tr>
+</tbody>
+</table>
+<h3 id="610-marketplace-8-endpoint">6.10 Marketplace (8 endpoint)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Auth</th>
+<th>Məqsəd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>55</td>
+<td>GET</td>
+<td><code>/api/v1/marketplace/products</code></td>
+<td>✅</td>
+<td>Məhsullar</td>
+</tr>
+<tr>
+<td>56</td>
+<td>GET</td>
+<td><code>/api/v1/marketplace/products/{id}</code></td>
+<td>✅</td>
+<td>Məhsul detalları</td>
+</tr>
+<tr>
+<td>57</td>
+<td>POST</td>
+<td><code>/api/v1/marketplace/products</code></td>
+<td>✅</td>
+<td>Məhsul yarat</td>
+</tr>
+<tr>
+<td>58</td>
+<td>DELETE</td>
+<td><code>/api/v1/marketplace/products/{id}</code></td>
+<td>✅</td>
+<td>Məhsul sil</td>
+</tr>
+<tr>
+<td>59</td>
+<td>GET</td>
+<td><code>/api/v1/marketplace/products/{id}/reviews</code></td>
+<td>✅</td>
+<td>Rəylər</td>
+</tr>
+<tr>
+<td>60</td>
+<td>POST</td>
+<td><code>/api/v1/marketplace/reviews</code></td>
+<td>✅</td>
+<td>Rəy yaz</td>
+</tr>
+<tr>
+<td>61</td>
+<td>POST</td>
+<td><code>/api/v1/marketplace/purchase</code></td>
+<td>✅</td>
+<td>Satın al</td>
+</tr>
+<tr>
+<td>62</td>
+<td>GET</td>
+<td><code>/api/v1/marketplace/my-purchases</code></td>
+<td>✅</td>
+<td>Alışlarım</td>
+</tr>
+</tbody>
+</table>
+<h3 id="611-trainer-reviews-4-endpoint">6.11 Trainer Reviews (4 endpoint)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Auth</th>
+<th>Məqsəd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>63</td>
+<td>GET</td>
+<td><code>/api/v1/trainer/{id}/reviews</code></td>
+<td>✅</td>
+<td>Trainer rəyləri</td>
+</tr>
+<tr>
+<td>64</td>
+<td>GET</td>
+<td><code>/api/v1/trainer/{id}/reviews/summary</code></td>
+<td>✅</td>
+<td>Rəy xülasəsi</td>
+</tr>
+<tr>
+<td>65</td>
+<td>POST</td>
+<td><code>/api/v1/trainer/{id}/reviews</code></td>
+<td>✅</td>
+<td>Rəy yaz</td>
+</tr>
+<tr>
+<td>66</td>
+<td>DELETE</td>
+<td><code>/api/v1/trainer/{id}/reviews</code></td>
+<td>✅</td>
+<td>Rəy sil</td>
+</tr>
+</tbody>
+</table>
+<h3 id="612-content-5-endpoint">6.12 Content (5 endpoint)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Auth</th>
+<th>Məqsəd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>67</td>
+<td>GET</td>
+<td><code>/api/v1/content/my</code></td>
+<td>✅</td>
+<td>Öz contentim</td>
+</tr>
+<tr>
+<td>68</td>
+<td>GET</td>
+<td><code>/api/v1/content/trainer/{id}</code></td>
+<td>✅</td>
+<td>Trainer contenti</td>
+</tr>
+<tr>
+<td>69</td>
+<td>POST</td>
+<td><code>/api/v1/content/</code></td>
+<td>✅</td>
+<td>Content yarat</td>
+</tr>
+<tr>
+<td>70</td>
+<td>POST</td>
+<td><code>/api/v1/content/{id}/image</code></td>
+<td>✅</td>
+<td>Şəkil upload</td>
+</tr>
+<tr>
+<td>71</td>
+<td>DELETE</td>
+<td><code>/api/v1/content/{id}</code></td>
+<td>✅</td>
+<td>Content sil</td>
+</tr>
+</tbody>
+</table>
+<h3 id="613-survey-4-endpoint">6.13 Survey (4 endpoint)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Auth</th>
+<th>Məqsəd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>72</td>
+<td>GET</td>
+<td><code>/api/v1/survey/questions</code></td>
+<td>✅</td>
+<td>Suallar</td>
+</tr>
+<tr>
+<td>73</td>
+<td>POST</td>
+<td><code>/api/v1/survey/daily</code></td>
+<td>✅</td>
+<td>Survey göndər</td>
+</tr>
+<tr>
+<td>74</td>
+<td>GET</td>
+<td><code>/api/v1/survey/daily/today</code></td>
+<td>✅</td>
+<td>Bugünkü status</td>
+</tr>
+<tr>
+<td>75</td>
+<td>GET</td>
+<td><code>/api/v1/survey/daily/history</code></td>
+<td>✅</td>
+<td>Tarixçə</td>
+</tr>
+</tbody>
+</table>
+<h3 id="614-routes-4-endpoint">6.14 Routes (4 endpoint)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Auth</th>
+<th>Məqsəd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>76</td>
+<td>POST</td>
+<td><code>/api/v1/routes/</code></td>
+<td>✅</td>
+<td>Marşrut yarat</td>
+</tr>
+<tr>
+<td>77</td>
+<td>GET</td>
+<td><code>/api/v1/routes/</code></td>
+<td>✅</td>
+<td>Marşrut siyahısı</td>
+</tr>
+<tr>
+<td>78</td>
+<td>GET</td>
+<td><code>/api/v1/routes/stats</code></td>
+<td>✅</td>
+<td>Statistika</td>
+</tr>
+<tr>
+<td>79</td>
+<td>DELETE</td>
+<td><code>/api/v1/routes/{id}</code></td>
+<td>✅</td>
+<td>Marşrut sil</td>
+</tr>
+</tbody>
+</table>
+<h3 id="615-analytics-1-endpoint">6.15 Analytics (1 endpoint)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Auth</th>
+<th>Məqsəd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>80</td>
+<td>GET</td>
+<td><code>/api/v1/analytics/dashboard</code></td>
+<td>✅</td>
+<td>Dashboard</td>
+</tr>
+</tbody>
+</table>
+<h3 id="616-ai-recommendations-1-endpoint">6.16 AI Recommendations (1 endpoint)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Auth</th>
+<th>Məqsəd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>81</td>
+<td>GET</td>
+<td><code>/api/v1/ai/recommendations</code></td>
+<td>✅</td>
+<td>Tövsiyələr</td>
+</tr>
+</tbody>
+</table>
+<h3 id="617-onboarding-3-endpoint">6.17 Onboarding (3 endpoint)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Auth</th>
+<th>Məqsəd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>82</td>
+<td>GET</td>
+<td><code>/api/v1/onboarding/options</code></td>
+<td>❌</td>
+<td>Seçimlər</td>
+</tr>
+<tr>
+<td>83</td>
+<td>GET</td>
+<td><code>/api/v1/onboarding/status</code></td>
+<td>✅</td>
+<td>Status</td>
+</tr>
+<tr>
+<td>84</td>
+<td>POST</td>
+<td><code>/api/v1/onboarding/complete</code></td>
+<td>✅</td>
+<td>Tamamla</td>
+</tr>
+</tbody>
+</table>
+<h3 id="618-premium-2-endpoint">6.18 Premium (2 endpoint)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Auth</th>
+<th>Məqsəd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>85</td>
+<td>POST</td>
+<td><code>/api/v1/premium/activate</code></td>
+<td>✅</td>
+<td>Aktivləşdir</td>
+</tr>
+<tr>
+<td>86</td>
+<td>POST</td>
+<td><code>/api/v1/premium/cancel</code></td>
+<td>✅</td>
+<td>Ləğv et</td>
+</tr>
+</tbody>
+</table>
+<h3 id="619-trainer-stats-1-endpoint">6.19 Trainer Stats (1 endpoint)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Auth</th>
+<th>Məqsəd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>87</td>
+<td>GET</td>
+<td><code>/api/v1/trainer/stats</code></td>
+<td>✅</td>
+<td>Trainer stats</td>
+</tr>
+</tbody>
+</table>
+<h3 id="620-trainer-verification-1-endpoint">6.20 Trainer Verification (1 endpoint)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Auth</th>
+<th>Məqsəd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>88</td>
+<td>POST</td>
+<td><code>/api/v1/auth/verify-trainer</code></td>
+<td>✅</td>
+<td>Verifikasiya</td>
+</tr>
+</tbody>
+</table>
+<h3 id="621-news-3-endpoint">6.21 News (3 endpoint)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Auth</th>
+<th>Məqsəd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>89</td>
+<td>GET</td>
+<td><code>/news/</code></td>
+<td>✅</td>
+<td>Xəbərlər</td>
+</tr>
+<tr>
+<td>90</td>
+<td>GET</td>
+<td><code>/news/categories</code></td>
+<td>✅</td>
+<td>Kateqoriyalar</td>
+</tr>
+<tr>
+<td>91</td>
+<td>POST</td>
+<td><code>/news/refresh</code></td>
+<td>✅</td>
+<td>Cache yenilə</td>
+</tr>
+</tbody>
+</table>
+<p><strong>TOPLAM: 91 endpoint + 1 WebSocket = 92 connection point</strong></p>
+<hr />
+<h2 id="7-android-paket-strukturu">7. ANDROID PAKET STRUKTURU</h2>
+<pre class="codehilite"><code>life.corevia.app/
+├── CoreViaApp.kt                    (Hilt Application)
+├── MainActivity.kt                  (Single Activity)
+│
+├── data/
+│   ├── remote/
+│   │   ├── ApiService.kt           (Retrofit interface - bütün endpointlər)
+│   │   ├── AuthInterceptor.kt      (OkHttp interceptor - JWT token)
+│   │   └── TokenRefreshAuthenticator.kt  (Auto token refresh)
+│   │
+│   ├── local/
+│   │   ├── TokenManager.kt         (EncryptedSharedPreferences)
+│   │   ├── PreferencesManager.kt   (App settings, language, theme)
+│   │   └── UserPreferences.kt      (DataStore preferences)
+│   │
+│   ├── repository/
+│   │   ├── AuthRepository.kt
+│   │   ├── WorkoutRepository.kt
+│   │   ├── FoodRepository.kt
+│   │   ├── TrainingPlanRepository.kt
+│   │   ├── MealPlanRepository.kt
+│   │   ├── ChatRepository.kt
+│   │   ├── SocialRepository.kt
+│   │   ├── MarketplaceRepository.kt
+│   │   ├── LiveSessionRepository.kt
+│   │   ├── AnalyticsRepository.kt
+│   │   ├── SurveyRepository.kt
+│   │   ├── RouteRepository.kt
+│   │   ├── TrainerRepository.kt
+│   │   ├── ContentRepository.kt
+│   │   ├── PremiumRepository.kt
+│   │   └── OnboardingRepository.kt
+│   │
+│   └── model/
+│       ├── AuthModels.kt
+│       ├── UserModels.kt
+│       ├── WorkoutModels.kt
+│       ├── FoodModels.kt
+│       ├── TrainingPlanModels.kt
+│       ├── MealPlanModels.kt
+│       ├── ChatModels.kt
+│       ├── SocialModels.kt
+│       ├── MarketplaceModels.kt
+│       ├── LiveSessionModels.kt
+│       ├── AnalyticsModels.kt
+│       ├── SurveyModels.kt
+│       ├── RouteModels.kt
+│       ├── ContentModels.kt
+│       └── OnboardingModels.kt
+│
+├── di/
+│   ├── AppModule.kt                (Hilt - general bindings)
+│   ├── NetworkModule.kt            (Hilt - Retrofit, OkHttp)
+│   └── RepositoryModule.kt         (Hilt - repository bindings)
+│
+├── ui/
+│   ├── navigation/
+│   │   └── AppNavigation.kt        (NavHost, bütün route-lar)
+│   │
+│   ├── theme/
+│   │   ├── Color.kt
+│   │   ├── Type.kt
+│   │   └── Theme.kt
+│   │
+│   ├── components/                  (Shared UI components)
+│   │   ├── CoreViaButton.kt
+│   │   ├── CoreViaTextField.kt
+│   │   ├── CoreViaCard.kt
+│   │   ├── LoadingIndicator.kt
+│   │   ├── ErrorDialog.kt
+│   │   ├── FilterChip.kt
+│   │   ├── RatingStars.kt
+│   │   ├── ImagePicker.kt
+│   │   └── LanguageSelector.kt
+│   │
+│   ├── auth/
+│   │   ├── LoginScreen.kt          ✅ HAZIR
+│   │   ├── LoginViewModel.kt
+│   │   ├── RegisterScreen.kt
+│   │   ├── RegisterViewModel.kt
+│   │   ├── ForgotPasswordScreen.kt
+│   │   └── ForgotPasswordViewModel.kt
+│   │
+│   ├── onboarding/
+│   │   ├── OnboardingScreen.kt
+│   │   └── OnboardingViewModel.kt
+│   │
+│   ├── home/
+│   │   ├── HomeScreen.kt           (Client)
+│   │   ├── HomeViewModel.kt
+│   │   ├── TrainerHomeScreen.kt     (Trainer)
+│   │   └── TrainerHomeViewModel.kt
+│   │
+│   ├── workout/
+│   │   ├── WorkoutScreen.kt
+│   │   ├── WorkoutViewModel.kt
+│   │   ├── AddWorkoutScreen.kt
+│   │   └── AddWorkoutViewModel.kt
+│   │
+│   ├── food/
+│   │   ├── FoodScreen.kt
+│   │   ├── FoodViewModel.kt
+│   │   ├── AddFoodScreen.kt
+│   │   ├── AddFoodViewModel.kt
+│   │   ├── AICalorieResultScreen.kt
+│   │   ├── AICalorieHistoryScreen.kt
+│   │   └── AICalorieViewModel.kt
+│   │
+│   ├── chat/
+│   │   ├── ConversationsScreen.kt
+│   │   ├── ConversationsViewModel.kt
+│   │   ├── ChatDetailScreen.kt
+│   │   └── ChatDetailViewModel.kt
+│   │
+│   ├── trainers/
+│   │   ├── TrainerBrowseScreen.kt
+│   │   └── TrainerBrowseViewModel.kt
+│   │
+│   ├── plans/
+│   │   ├── TrainingPlanScreen.kt
+│   │   ├── TrainingPlanViewModel.kt
+│   │   ├── AddTrainingPlanScreen.kt
+│   │   ├── MealPlanScreen.kt
+│   │   ├── MealPlanViewModel.kt
+│   │   └── AddMealPlanScreen.kt
+│   │
+│   ├── marketplace/
+│   │   ├── MarketplaceScreen.kt
+│   │   ├── MarketplaceViewModel.kt
+│   │   ├── ProductDetailScreen.kt
+│   │   ├── ProductDetailViewModel.kt
+│   │   └── WriteReviewScreen.kt
+│   │
+│   ├── trainerhub/
+│   │   ├── TrainerHubScreen.kt
+│   │   ├── TrainerProductsScreen.kt
+│   │   ├── CreateProductScreen.kt
+│   │   ├── TrainerSessionsScreen.kt
+│   │   └── CreateLiveSessionScreen.kt
+│   │
+│   ├── livesession/
+│   │   ├── LiveSessionListScreen.kt
+│   │   ├── LiveSessionDetailScreen.kt
+│   │   ├── LiveWorkoutScreen.kt
+│   │   └── LiveSessionViewModel.kt
+│   │
+│   ├── social/
+│   │   ├── SocialFeedScreen.kt
+│   │   ├── SocialFeedViewModel.kt
+│   │   ├── CreatePostScreen.kt
+│   │   └── CommentsScreen.kt
+│   │
+│   ├── survey/
+│   │   ├── DailySurveyScreen.kt
+│   │   └── DailySurveyViewModel.kt
+│   │
+│   ├── analytics/
+│   │   ├── AnalyticsDashboardScreen.kt
+│   │   ├── AnalyticsViewModel.kt
+│   │   └── OverallStatsScreen.kt
+│   │
+│   ├── profile/
+│   │   ├── ProfileScreen.kt
+│   │   ├── ProfileViewModel.kt
+│   │   └── EditProfileScreen.kt
+│   │
+│   ├── settings/
+│   │   ├── SettingsScreen.kt
+│   │   └── SettingsViewModel.kt
+│   │
+│   ├── premium/
+│   │   ├── PremiumScreen.kt
+│   │   └── PremiumViewModel.kt
+│   │
+│   ├── route/
+│   │   ├── RouteTrackingScreen.kt
+│   │   └── RouteViewModel.kt
+│   │
+│   └── content/
+│       ├── TrainerContentScreen.kt
+│       └── ContentViewModel.kt
+│
+└── util/
+    ├── Constants.kt                 (API URLs, keys)
+    ├── Extensions.kt                (Kotlin extensions)
+    ├── DateUtils.kt                 (Date formatting)
+    ├── NetworkResult.kt             (Sealed class for API results)
+    └── LocalizationManager.kt       (Multi-language support)
+</code></pre>
+
+<hr />
+<h2 id="8-inkisaf-plani-prioritet-srasna-gor">8. İNKİŞAF PLANI (Prioritet Sırasına Görə)</h2>
+<h3 id="phase-1-sas-infrastruktur">Phase 1: Əsas İnfrastruktur ⚙️</h3>
+<ol>
+<li>✅ Layihə yaradılması (build.gradle, dependencies)</li>
+<li>✅ Theme (Color, Type, Theme)</li>
+<li>⬜ NetworkModule (Retrofit + OkHttp + Auth Interceptor)</li>
+<li>⬜ TokenManager (EncryptedSharedPreferences)</li>
+<li>⬜ ApiService (Retrofit interface)</li>
+<li>⬜ NetworkResult sealed class</li>
+<li>⬜ AppNavigation (bütün route-lar)</li>
+</ol>
+<h3 id="phase-2-auth">Phase 2: Auth 🔐</h3>
+<ol>
+<li>✅ LoginScreen (UI hazır)</li>
+<li>⬜ LoginViewModel (API call)</li>
+<li>⬜ RegisterScreen + ViewModel</li>
+<li>⬜ ForgotPasswordScreen + ViewModel</li>
+<li>⬜ AuthRepository</li>
+</ol>
+<h3 id="phase-3-core-screens">Phase 3: Core Screens 🏠</h3>
+<ol>
+<li>⬜ OnboardingScreen + ViewModel</li>
+<li>⬜ HomeScreen (Client) + ViewModel</li>
+<li>⬜ TrainerHomeScreen + ViewModel</li>
+<li>⬜ Custom TabBar (user type-a görə)</li>
+<li>⬜ ProfileScreen + EditProfileScreen</li>
+</ol>
+<h3 id="phase-4-workout-food">Phase 4: Workout &amp; Food 💪🍎</h3>
+<ol>
+<li>⬜ WorkoutScreen + AddWorkoutScreen</li>
+<li>⬜ FoodScreen + AddFoodScreen</li>
+<li>⬜ AI Calorie (TensorFlow Lite) - Sonraya buraxıla bilər</li>
+</ol>
+<h3 id="phase-5-plans-chat">Phase 5: Plans &amp; Chat 📋💬</h3>
+<ol>
+<li>⬜ TrainingPlanScreen + AddTrainingPlanScreen</li>
+<li>⬜ MealPlanScreen + AddMealPlanScreen</li>
+<li>⬜ ConversationsScreen + ChatDetailScreen</li>
+</ol>
+<h3 id="phase-6-marketplace-social">Phase 6: Marketplace &amp; Social 🏪📱</h3>
+<ol>
+<li>⬜ MarketplaceScreen + ProductDetailScreen</li>
+<li>⬜ SocialFeedScreen + CreatePostScreen + CommentsScreen</li>
+<li>⬜ TrainerBrowseScreen</li>
+</ol>
+<h3 id="phase-7-advanced-features">Phase 7: Advanced Features 🚀</h3>
+<ol>
+<li>⬜ Live Sessions (WebSocket + UI)</li>
+<li>⬜ Trainer Hub (Product/Session management)</li>
+<li>⬜ Analytics Dashboard (Charts)</li>
+<li>⬜ Daily Survey</li>
+<li>⬜ Route Tracking (Google Maps)</li>
+<li>⬜ Premium (Google Play Billing)</li>
+<li>⬜ Settings + Localization</li>
+</ol>
+<hr />
+<h2 id="9-xulas-cdvli">9. XÜLASƏ CƏDVƏLİ</h2>
+<table>
+<thead>
+<tr>
+<th>Kateqoriya</th>
+<th>Say</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Toplam Ekranlar</strong></td>
+<td>43</td>
+</tr>
+<tr>
+<td><strong>Toplam API Endpointlər</strong></td>
+<td>91 + 1 WS = 92</td>
+</tr>
+<tr>
+<td><strong>Data Modelləri</strong></td>
+<td>30+</td>
+</tr>
+<tr>
+<td><strong>Repository-lər</strong></td>
+<td>16</td>
+</tr>
+<tr>
+<td><strong>ViewModel-lər</strong></td>
+<td>25+</td>
+</tr>
+<tr>
+<td><strong>Dillər</strong></td>
+<td>3 (AZ, EN, RU)</td>
+</tr>
+<tr>
+<td><strong>User Types</strong></td>
+<td>2 (Client, Trainer)</td>
+</tr>
+<tr>
+<td><strong>iOS Fayl Sayı</strong></td>
+<td>111</td>
+</tr>
+<tr>
+<td><strong>Android Təxmini Fayl Sayı</strong></td>
+<td>~120-130</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><strong>Bu sənəd CoreVia iOS appinin tam analizinə əsaslanır və Android versiyasının 1:1 yaradılması üçün blueprint kimi istifadə olunacaq.</strong></p>
+</body>
+</html>

@@ -1,116 +1,179 @@
 package life.corevia.app.ui.content
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import life.corevia.app.data.api.ErrorParser
-import life.corevia.app.data.models.ContentCreateRequest
-import life.corevia.app.data.models.ContentResponse
+import life.corevia.app.data.model.ContentCreateRequest
+import life.corevia.app.data.model.ContentResponse
 import life.corevia.app.data.repository.ContentRepository
+import life.corevia.app.util.NetworkResult
+import javax.inject.Inject
 
-/**
- * iOS ContentManager.swift — Android ViewModel ekvivalenti.
- * Trainer kontent idar+etm+si: fetch, create, delete.
- */
-class ContentViewModel(application: Application) : AndroidViewModel(application) {
+data class ContentUiState(
+    val isLoading: Boolean = false,
+    val contents: List<ContentResponse> = emptyList(),
+    val error: String? = null,
 
-    private val repository = ContentRepository.getInstance(application)
+    // Create form
+    val showCreateSheet: Boolean = false,
+    val createTitle: String = "",
+    val createBody: String = "",
+    val createIsPremiumOnly: Boolean = false,
+    val isCreating: Boolean = false,
 
-    private val _myContents = MutableStateFlow<List<ContentResponse>>(emptyList())
-    val myContents: StateFlow<List<ContentResponse>> = _myContents.asStateFlow()
+    // Delete
+    val isDeleting: Boolean = false,
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    // Mode
+    val isTrainerMode: Boolean = false
+) {
+    val isCreateFormValid: Boolean
+        get() = createTitle.isNotBlank() && createBody.isNotBlank()
+}
 
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+@HiltViewModel
+class ContentViewModel @Inject constructor(
+    private val contentRepository: ContentRepository
+) : ViewModel() {
 
-    private val _successMessage = MutableStateFlow<String?>(null)
-    val successMessage: StateFlow<String?> = _successMessage.asStateFlow()
+    private val _uiState = MutableStateFlow(ContentUiState())
+    val uiState: StateFlow<ContentUiState> = _uiState.asStateFlow()
 
-    init {
-        fetchMyContent()
-    }
+    // ─── Load My Content (Trainer mode) ──────────────────────────────
 
-    fun fetchMyContent() {
-        viewModelScope.launch(Dispatchers.IO) {
-            withContext(Dispatchers.Main) { _isLoading.value = true }
-            repository.getMyContent().fold(
-                onSuccess = { withContext(Dispatchers.Main) { _myContents.value = it } },
-                onFailure = { withContext(Dispatchers.Main) { _errorMessage.value = ErrorParser.parseMessage(it as Exception) } }
-            )
-            withContext(Dispatchers.Main) { _isLoading.value = false }
-        }
-    }
-
-    fun createContent(title: String, body: String?, isPremiumOnly: Boolean) {
-        viewModelScope.launch(Dispatchers.IO) {
-            withContext(Dispatchers.Main) { _isLoading.value = true }
-            val request = ContentCreateRequest(
-                title = title,
-                body = body,
-                contentType = "text",
-                isPremiumOnly = isPremiumOnly
-            )
-            repository.createContent(request).fold(
-                onSuccess = {
-                    withContext(Dispatchers.Main) { _successMessage.value = "Kontent yaradildi" }
-                    // Refresh list
-                    repository.getMyContent().fold(
-                        onSuccess = { list -> withContext(Dispatchers.Main) { _myContents.value = list } },
-                        onFailure = { /* ignore refresh error */ }
+    fun loadMyContent() {
+        _uiState.value = _uiState.value.copy(isTrainerMode = true)
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            when (val result = contentRepository.fetchMyContent()) {
+                is NetworkResult.Success -> {
+                    _uiState.value = _uiState.value.copy(
+                        contents = result.data,
+                        isLoading = false
                     )
-                },
-                onFailure = { withContext(Dispatchers.Main) { _errorMessage.value = ErrorParser.parseMessage(it as Exception) } }
-            )
-            withContext(Dispatchers.Main) { _isLoading.value = false }
+                }
+                is NetworkResult.Error -> {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = result.message
+                    )
+                }
+                is NetworkResult.Loading -> {}
+            }
         }
     }
 
-    fun updateContent(contentId: String, title: String, body: String?, isPremiumOnly: Boolean) {
-        viewModelScope.launch(Dispatchers.IO) {
-            withContext(Dispatchers.Main) { _isLoading.value = true }
-            val request = ContentCreateRequest(
-                title = title,
-                body = body,
-                contentType = "text",
-                isPremiumOnly = isPremiumOnly
-            )
-            repository.updateContent(contentId, request).fold(
-                onSuccess = {
-                    withContext(Dispatchers.Main) { _successMessage.value = "Kontent yeniləndi" }
-                    // Refresh list
-                    repository.getMyContent().fold(
-                        onSuccess = { list -> withContext(Dispatchers.Main) { _myContents.value = list } },
-                        onFailure = { /* ignore refresh error */ }
+    // ─── Load Trainer Content (Student mode) ─────────────────────────
+
+    fun loadTrainerContent(trainerId: String) {
+        _uiState.value = _uiState.value.copy(isTrainerMode = false)
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            when (val result = contentRepository.fetchTrainerContent(trainerId)) {
+                is NetworkResult.Success -> {
+                    _uiState.value = _uiState.value.copy(
+                        contents = result.data,
+                        isLoading = false
                     )
-                },
-                onFailure = { withContext(Dispatchers.Main) { _errorMessage.value = ErrorParser.parseMessage(it as Exception) } }
-            )
-            withContext(Dispatchers.Main) { _isLoading.value = false }
+                }
+                is NetworkResult.Error -> {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = result.message
+                    )
+                }
+                is NetworkResult.Loading -> {}
+            }
         }
     }
+
+    // ─── Create Content ──────────────────────────────────────────────
+
+    fun createContent() {
+        val state = _uiState.value
+        if (!state.isCreateFormValid) return
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isCreating = true, error = null)
+            val request = ContentCreateRequest(
+                title = state.createTitle,
+                body = state.createBody,
+                contentType = "article",
+                isPremiumOnly = state.createIsPremiumOnly
+            )
+            when (contentRepository.createContent(request)) {
+                is NetworkResult.Success -> {
+                    _uiState.value = _uiState.value.copy(
+                        isCreating = false,
+                        showCreateSheet = false,
+                        createTitle = "",
+                        createBody = "",
+                        createIsPremiumOnly = false
+                    )
+                    loadMyContent()
+                }
+                is NetworkResult.Error -> {
+                    _uiState.value = _uiState.value.copy(
+                        isCreating = false,
+                        error = "Məzmun yaradıla bilmədi"
+                    )
+                }
+                is NetworkResult.Loading -> {}
+            }
+        }
+    }
+
+    // ─── Delete Content ──────────────────────────────────────────────
 
     fun deleteContent(contentId: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.deleteContent(contentId).fold(
-                onSuccess = {
-                    withContext(Dispatchers.Main) {
-                        _myContents.value = _myContents.value.filter { it.id != contentId }
-                        _successMessage.value = "Kontent silindi"
-                    }
-                },
-                onFailure = { withContext(Dispatchers.Main) { _errorMessage.value = ErrorParser.parseMessage(it as Exception) } }
-            )
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isDeleting = true)
+            when (contentRepository.deleteContent(contentId)) {
+                is NetworkResult.Success -> {
+                    _uiState.value = _uiState.value.copy(isDeleting = false)
+                    loadMyContent()
+                }
+                is NetworkResult.Error -> {
+                    _uiState.value = _uiState.value.copy(
+                        isDeleting = false,
+                        error = "Məzmun silinə bilmədi"
+                    )
+                }
+                is NetworkResult.Loading -> {}
+            }
         }
     }
 
-    fun clearError() { _errorMessage.value = null }
-    fun clearSuccess() { _successMessage.value = null }
+    // ─── Form Updates ────────────────────────────────────────────────
+
+    fun updateCreateTitle(title: String) {
+        _uiState.value = _uiState.value.copy(createTitle = title)
+    }
+
+    fun updateCreateBody(body: String) {
+        _uiState.value = _uiState.value.copy(createBody = body)
+    }
+
+    fun togglePremiumOnly() {
+        _uiState.value = _uiState.value.copy(
+            createIsPremiumOnly = !_uiState.value.createIsPremiumOnly
+        )
+    }
+
+    fun toggleCreateSheet() {
+        _uiState.value = _uiState.value.copy(
+            showCreateSheet = !_uiState.value.showCreateSheet,
+            createTitle = "",
+            createBody = "",
+            createIsPremiumOnly = false
+        )
+    }
+
+    fun clearError() {
+        _uiState.value = _uiState.value.copy(error = null)
+    }
 }

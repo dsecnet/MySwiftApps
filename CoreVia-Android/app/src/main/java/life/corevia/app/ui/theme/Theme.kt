@@ -1,100 +1,70 @@
 package life.corevia.app.ui.theme
 
+import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
-/**
- * CoreVia Material3 Theme — Qırmızı rəng sistemi.
- * Dark + Light mode dəstəyi.
- *
- * CompositionLocalProvider ilə AppTheme.Colors avtomatik dark/light qaytarır.
- */
-
-// ─── Dark Color Scheme (Material3) ──────────────────────────────────────────
-private val CoreViaDarkColorScheme = darkColorScheme(
-    primary            = DarkCoreViaColors.accent,
-    onPrimary          = Color.White,
-    primaryContainer   = DarkCoreViaColors.accentDark,
-    onPrimaryContainer = Color.White,
-
-    secondary          = DarkCoreViaColors.accentDark,
-    onSecondary        = Color.White,
-    secondaryContainer = DarkCoreViaColors.accentLight,
-    onSecondaryContainer = DarkCoreViaColors.accent,
-
-    tertiary           = DarkCoreViaColors.success,
-    onTertiary         = Color.White,
-
-    background         = DarkCoreViaColors.background,
-    onBackground       = DarkCoreViaColors.primaryText,
-
-    surface            = DarkCoreViaColors.secondaryBackground,
-    onSurface          = DarkCoreViaColors.primaryText,
-
-    surfaceVariant     = DarkCoreViaColors.cardBackground,
-    onSurfaceVariant   = DarkCoreViaColors.secondaryText,
-
-    outline            = DarkCoreViaColors.separator,
-    outlineVariant     = DarkCoreViaColors.separator.copy(alpha = 0.5f),
-
-    error              = DarkCoreViaColors.error,
-    onError            = Color.White,
-    errorContainer     = DarkCoreViaColors.error.copy(alpha = 0.15f),
-    onErrorContainer   = DarkCoreViaColors.error,
+private val LightColorScheme = lightColorScheme(
+    primary = CoreViaPrimary,
+    onPrimary = Color.White,
+    primaryContainer = CoreViaPrimary.copy(alpha = 0.1f),
+    secondary = CoreViaSecondary,
+    onSecondary = Color.White,
+    background = CoreViaBackground,
+    onBackground = TextPrimary,
+    surface = CoreViaSurface,
+    onSurface = TextPrimary,
+    error = CoreViaError,
+    onError = Color.White,
+    surfaceVariant = Color(0xFFF0F0F5),
+    onSurfaceVariant = TextSecondary,
+    outline = Color(0xFFE0E0E0)
 )
 
-// ─── Light Color Scheme (Material3) ─────────────────────────────────────────
-private val CoreViaLightColorScheme = lightColorScheme(
-    primary            = LightCoreViaColors.accent,
-    onPrimary          = Color.White,
-    primaryContainer   = LightCoreViaColors.accentLight,
-    onPrimaryContainer = LightCoreViaColors.accentDark,
-
-    secondary          = LightCoreViaColors.accentDark,
-    onSecondary        = Color.White,
-    secondaryContainer = LightCoreViaColors.accentLight,
-    onSecondaryContainer = LightCoreViaColors.accentDark,
-
-    tertiary           = LightCoreViaColors.success,
-    onTertiary         = Color.White,
-
-    background         = LightCoreViaColors.background,
-    onBackground       = LightCoreViaColors.primaryText,
-
-    surface            = LightCoreViaColors.secondaryBackground,
-    onSurface          = LightCoreViaColors.primaryText,
-
-    surfaceVariant     = LightCoreViaColors.cardBackground,
-    onSurfaceVariant   = LightCoreViaColors.secondaryText,
-
-    outline            = LightCoreViaColors.separator,
-    outlineVariant     = LightCoreViaColors.separator.copy(alpha = 0.5f),
-
-    error              = LightCoreViaColors.error,
-    onError            = Color.White,
-    errorContainer     = LightCoreViaColors.error.copy(alpha = 0.15f),
-    onErrorContainer   = LightCoreViaColors.error,
+private val DarkColorScheme = darkColorScheme(
+    primary = CoreViaPrimaryNight,
+    onPrimary = Color.Black,
+    primaryContainer = CoreViaPrimaryNight.copy(alpha = 0.2f),
+    secondary = CoreViaSecondary,
+    onSecondary = Color.Black,
+    background = CoreViaBackgroundNight,
+    onBackground = CoreViaOnSurfaceNight,
+    surface = CoreViaSurfaceNight,
+    onSurface = CoreViaOnSurfaceNight,
+    error = CoreViaError,
+    onError = Color.Black,
+    surfaceVariant = Color(0xFF2C2C2C),
+    onSurfaceVariant = Color(0xFFB0B0B0),
+    outline = Color(0xFF3C3C3C)
 )
 
-// ─── Theme Composable ────────────────────────────────────────────────────────
 @Composable
 fun CoreViaTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) CoreViaDarkColorScheme else CoreViaLightColorScheme
-    val coreViaColors = if (darkTheme) DarkCoreViaColors else LightCoreViaColors
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
-    CompositionLocalProvider(LocalCoreViaColors provides coreViaColors) {
-        MaterialTheme(
-            colorScheme = colorScheme,
-            typography  = Typography,
-            content     = content
-        )
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = Color.Transparent.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+        }
     }
+
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = Typography,
+        content = content
+    )
 }

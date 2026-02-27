@@ -1,265 +1,146 @@
 package life.corevia.app.ui.food
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import life.corevia.app.data.api.ErrorParser
-import life.corevia.app.data.models.*
+import life.corevia.app.data.model.DailyFoodStats
+import life.corevia.app.data.model.FoodCreateRequest
+import life.corevia.app.data.model.FoodEntry
+import life.corevia.app.data.model.MealType
 import life.corevia.app.data.repository.FoodRepository
-import life.corevia.app.data.repository.UserRepository
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.asRequestBody
-import java.io.File
-import java.time.LocalDate
+import life.corevia.app.util.NetworkResult
+import javax.inject.Inject
 
-/**
- * iOS FoodManager.swift (@MainActor ObservableObject) ->
- * Android FoodViewModel
- * UPDATED: updateFoodEntry + successMessage elave edildi
- */
-class FoodViewModel(application: Application) : AndroidViewModel(application) {
+data class FoodUiState(
+    val isLoading: Boolean = false,
+    val dailyStats: DailyFoodStats = DailyFoodStats(),
+    val entries: List<FoodEntry> = emptyList(),
+    val waterGlasses: Int = 0,
+    val calorieGoal: Int = 2000,
+    val error: String? = null,
+    val showAddSheet: Boolean = false,
+    val showEditGoal: Boolean = false
+) {
+    val todayCalories: Int get() = dailyStats.totalCalories
+    val todayProtein: Double get() = dailyStats.totalProtein
+    val todayCarbs: Double get() = dailyStats.totalCarbs
+    val todayFats: Double get() = dailyStats.totalFats
+    val calorieProgress: Float get() {
+        if (calorieGoal <= 0) return 0f
+        return (todayCalories.toFloat() / calorieGoal).coerceIn(0f, 1.5f)
+    }
+    val remainingCalories: Int get() = calorieGoal - todayCalories
 
-    private val repository = FoodRepository.getInstance(application)
-    private val userRepository = UserRepository.getInstance(application)
+    fun entriesForMeal(mealType: MealType): List<FoodEntry> =
+        entries.filter { it.mealType == mealType.value }
+}
 
-    // iOS: @Published var foodEntries: [FoodEntry] = []
-    private val _foodEntries = MutableStateFlow<List<FoodEntry>>(emptyList())
-    val foodEntries: StateFlow<List<FoodEntry>> = _foodEntries.asStateFlow()
+@HiltViewModel
+class FoodViewModel @Inject constructor(
+    private val foodRepository: FoodRepository
+) : ViewModel() {
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
-
-    private val _successMessage = MutableStateFlow<String?>(null)
-    val successMessage: StateFlow<String?> = _successMessage.asStateFlow()
-
-    // iOS: @Published var showAddFood = false
-    private val _showAddFood = MutableStateFlow(false)
-    val showAddFood: StateFlow<Boolean> = _showAddFood.asStateFlow()
-
-    // iOS: @AppStorage("dailyCalorieGoal") var dailyCalorieGoal = 2000
-    private val _calorieGoal = MutableStateFlow(2000)
-    val calorieGoal: StateFlow<Int> = _calorieGoal.asStateFlow()
-
-    // AI Food Analysis states
-    private val _analysisResult = MutableStateFlow<FoodAnalysisResult?>(null)
-    val analysisResult: StateFlow<FoodAnalysisResult?> = _analysisResult.asStateFlow()
-
-    private val _isAnalyzing = MutableStateFlow(false)
-    val isAnalyzing: StateFlow<Boolean> = _isAnalyzing.asStateFlow()
-
-    private val _showAnalysisResult = MutableStateFlow(false)
-    val showAnalysisResult: StateFlow<Boolean> = _showAnalysisResult.asStateFlow()
-
-    // ─── Computed Properties ──────────────────────────────────────────────────
-
-    // iOS: var todayEntries: [FoodEntry]
-    val todayEntries: List<FoodEntry>
-        get() {
-            val today = LocalDate.now().toString()
-            return _foodEntries.value.filter { it.date.startsWith(today) }
-        }
-
-    // iOS: var totalCaloriesToday: Int
-    val totalCaloriesToday: Int
-        get() = todayEntries.sumOf { it.calories }
-
-    // iOS: var totalProtein, totalCarbs, totalFats
-    val totalProtein: Double get() = todayEntries.sumOf { it.protein ?: 0.0 }
-    val totalCarbs: Double   get() = todayEntries.sumOf { it.carbs   ?: 0.0 }
-    val totalFats: Double    get() = todayEntries.sumOf { it.fats    ?: 0.0 }
-
-    // iOS: var calorieProgress: Double
-    val calorieProgress: Float
-        get() = if (_calorieGoal.value > 0)
-            (totalCaloriesToday.toFloat() / _calorieGoal.value).coerceIn(0f, 1f)
-        else 0f
-
-    // ─── Actions ──────────────────────────────────────────────────────────────
+    private val _uiState = MutableStateFlow(FoodUiState())
+    val uiState: StateFlow<FoodUiState> = _uiState.asStateFlow()
 
     init {
-        loadFoodEntries()
-        loadCalorieGoalFromProfile()
+        loadData()
     }
 
-    /**
-     * Load calorie goal from user profile.
-     * Calculates based on weight using simplified Mifflin-St Jeor formula:
-     * BMR ~ weight(kg) * 24, then adjust based on goal.
-     * Falls back to 2000 if weight is not available.
-     */
-    private fun loadCalorieGoalFromProfile() {
+    fun loadData() {
         viewModelScope.launch {
-            userRepository.getMe().fold(
-                onSuccess = { user ->
-                    val weight = user.weight
-                    if (weight != null && weight > 0) {
-                        val bmr = (weight * 24).toInt()
-                        val goal = when (user.goal?.lowercase()) {
-                            "weight_loss", "lose_weight", "cut" -> (bmr * 0.8).toInt()
-                            "weight_gain", "gain_weight", "bulk" -> (bmr * 1.15).toInt()
-                            else -> bmr
-                        }
-                        _calorieGoal.value = goal.coerceIn(1200, 5000)
-                    }
-                    // If weight is null, keep the default 2000
-                },
-                onFailure = { /* Keep default 2000 on failure */ }
-            )
+            _uiState.value = _uiState.value.copy(isLoading = true)
+            launch { loadDailyStats() }
+            launch { loadEntries() }
         }
     }
 
-    // iOS: func loadFoodEntries() async
-    fun loadFoodEntries() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            repository.getFoodEntries().fold(
-                onSuccess = { _foodEntries.value = it },
-                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
-            )
-            _isLoading.value = false
-        }
-    }
-
-    // iOS: func addFoodEntry(name:calories:protein:carbs:fats:mealType:notes:)
-    fun addFoodEntry(
-        name: String,
-        calories: Int,
-        protein: Double?,
-        carbs: Double?,
-        fats: Double?,
-        mealType: String,
-        notes: String?
-    ) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            val request = FoodEntryCreateRequest(
-                name = name,
-                calories = calories,
-                protein = protein,
-                carbs = carbs,
-                fats = fats,
-                mealType = mealType,
-                date = LocalDate.now().toString(),
-                notes = notes
-            )
-            repository.createFoodEntry(request).fold(
-                onSuccess = {
-                    _foodEntries.value = _foodEntries.value + it
-                    _showAddFood.value = false
-                    _successMessage.value = "Qida elave edildi"
-                },
-                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
-            )
-            _isLoading.value = false
-        }
-    }
-
-    // iOS: func updateFoodEntry
-    fun updateFoodEntry(
-        id: String,
-        name: String,
-        calories: Int,
-        protein: Double?,
-        carbs: Double?,
-        fats: Double?,
-        mealType: String,
-        notes: String?
-    ) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            val request = FoodEntryCreateRequest(
-                name = name,
-                calories = calories,
-                protein = protein,
-                carbs = carbs,
-                fats = fats,
-                mealType = mealType,
-                date = null,
-                notes = notes
-            )
-            repository.updateFoodEntry(id, request).fold(
-                onSuccess = { updated ->
-                    _foodEntries.value = _foodEntries.value.map {
-                        if (it.id == updated.id) updated else it
-                    }
-                    _successMessage.value = "Qida yenilendi"
-                },
-                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
-            )
-            _isLoading.value = false
-        }
-    }
-
-    // iOS: func deleteFoodEntry(_ entry: FoodEntry)
-    fun deleteFoodEntry(id: String) {
-        viewModelScope.launch {
-            repository.deleteFoodEntry(id).fold(
-                onSuccess = {
-                    _foodEntries.value = _foodEntries.value.filter { it.id != id }
-                    _successMessage.value = "Qida silindi"
-                },
-                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
-            )
-        }
-    }
-
-    // AI Food Analysis — Sekli backend-e gonder, Claude analiz etsin
-    fun analyzeFoodImage(imageFile: File) {
-        viewModelScope.launch {
-            _isAnalyzing.value = true
-            _errorMessage.value = null
-
-            try {
-                val requestBody = imageFile.asRequestBody("image/jpeg".toMediaTypeOrNull())
-                val filePart = MultipartBody.Part.createFormData("file", imageFile.name, requestBody)
-
-                repository.analyzeFoodImage(filePart).fold(
-                    onSuccess = { result ->
-                        _analysisResult.value = result
-                        _showAnalysisResult.value = true
-                    },
-                    onFailure = { e ->
-                        _errorMessage.value = ErrorParser.parseMessage(e as Exception)
-                    }
+    private suspend fun loadDailyStats() {
+        when (val result = foodRepository.getDailyStats()) {
+            is NetworkResult.Success -> {
+                _uiState.value = _uiState.value.copy(
+                    dailyStats = result.data,
+                    calorieGoal = result.data.calorieGoal,
+                    waterGlasses = result.data.waterGlasses,
+                    isLoading = false
                 )
-            } catch (e: Exception) {
-                _errorMessage.value = "Sekil gonderilemedi: ${e.message}"
             }
-
-            _isAnalyzing.value = false
+            is NetworkResult.Error -> {
+                _uiState.value = _uiState.value.copy(isLoading = false, error = result.message)
+            }
+            is NetworkResult.Loading -> {}
         }
     }
 
-    // AI neticesi ile qida elave et
-    fun addFoodFromAnalysis(result: FoodAnalysisResult, mealType: String) {
-        addFoodEntry(
-            name = result.foodName,
-            calories = result.calories,
-            protein = result.protein,
-            carbs = result.carbs,
-            fats = result.fats,
-            mealType = mealType,
-            notes = "AI analiz: ${result.portionSize ?: ""}"
-        )
-        _showAnalysisResult.value = false
-        _analysisResult.value = null
+    private suspend fun loadEntries() {
+        when (val result = foodRepository.getFoodEntries()) {
+            is NetworkResult.Success -> {
+                _uiState.value = _uiState.value.copy(entries = result.data, isLoading = false)
+            }
+            is NetworkResult.Error -> {
+                _uiState.value = _uiState.value.copy(isLoading = false)
+            }
+            is NetworkResult.Loading -> {}
+        }
     }
 
-    fun dismissAnalysisResult() {
-        _showAnalysisResult.value = false
-        _analysisResult.value = null
+    fun addFood(name: String, calories: Int, protein: Double?, carbs: Double?, fats: Double?, mealType: MealType, notes: String?) {
+        viewModelScope.launch {
+            val request = FoodCreateRequest(
+                name = name,
+                calories = calories,
+                protein = protein,
+                carbs = carbs,
+                fats = fats,
+                mealType = mealType.value,
+                notes = notes
+            )
+            when (foodRepository.addEntry(request)) {
+                is NetworkResult.Success -> {
+                    _uiState.value = _uiState.value.copy(showAddSheet = false)
+                    loadData()
+                }
+                is NetworkResult.Error -> {}
+                is NetworkResult.Loading -> {}
+            }
+        }
     }
 
-    fun setCalorieGoal(goal: Int)    { _calorieGoal.value = goal }
-    fun setShowAddFood(show: Boolean) { _showAddFood.value = show }
-    fun clearError()                  { _errorMessage.value = null }
-    fun clearSuccess()                { _successMessage.value = null }
+    fun deleteEntry(id: String) {
+        viewModelScope.launch {
+            when (foodRepository.deleteEntry(id)) {
+                is NetworkResult.Success -> loadData()
+                is NetworkResult.Error -> {}
+                is NetworkResult.Loading -> {}
+            }
+        }
+    }
+
+    fun addWater() {
+        if (_uiState.value.waterGlasses < 8) {
+            _uiState.value = _uiState.value.copy(waterGlasses = _uiState.value.waterGlasses + 1)
+        }
+    }
+
+    fun removeWater() {
+        if (_uiState.value.waterGlasses > 0) {
+            _uiState.value = _uiState.value.copy(waterGlasses = _uiState.value.waterGlasses - 1)
+        }
+    }
+
+    fun toggleAddSheet() {
+        _uiState.value = _uiState.value.copy(showAddSheet = !_uiState.value.showAddSheet)
+    }
+
+    fun toggleEditGoal() {
+        _uiState.value = _uiState.value.copy(showEditGoal = !_uiState.value.showEditGoal)
+    }
+
+    fun updateCalorieGoal(goal: Int) {
+        _uiState.value = _uiState.value.copy(calorieGoal = goal, showEditGoal = false)
+    }
 }

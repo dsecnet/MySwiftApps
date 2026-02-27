@@ -1,20 +1,19 @@
 package life.corevia.app.ui.home
 
-import life.corevia.app.ui.theme.AppTheme
-import life.corevia.app.ui.theme.CoreViaAnimatedBackground
-import life.corevia.app.ui.theme.CoreViaSectionHeader
-import life.corevia.app.ui.theme.CoreViaGradientProgressBar
-import life.corevia.app.ui.theme.coreViaCard
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,797 +28,675 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import life.corevia.app.data.models.DashboardStudentSummary
-import life.corevia.app.data.models.DashboardStatsSummary
+import androidx.hilt.navigation.compose.hiltViewModel
+import life.corevia.app.data.model.DashboardStudentSummary
+import life.corevia.app.ui.theme.*
 
 /**
- * iOS TrainerHomeView.swift — Android 1-ə-1 port
- *
- * Bölmələr (iOS ilə eyni sıra):
- *  1. Header: Avatar + greeting + name + refresh button
- *  2. Stats Cards: 2x2 grid (subscribers, active, earnings, plans)
- *  3. Student Progress: student list with avatars
- *  4. Stats Summary: 3 SummaryRow
- *  5. Empty Students: when no students
+ * iOS TrainerDashboardView equivalent
+ * Trainer Ana Ekranı — statistikalar, tələbələr, planlar
  */
+
 @Composable
 fun TrainerHomeScreen(
-    userName: String = "",
-    userInitial: String = "",
-    viewModel: TrainerHomeViewModel = viewModel()
+    viewModel: TrainerHomeViewModel = hiltViewModel(),
+    onNavigateToStudentDetail: (String) -> Unit = {},
+    onNavigateToTrainingPlans: () -> Unit = {},
+    onNavigateToMealPlans: () -> Unit = {},
+    onNavigateToMessages: () -> Unit = {}
 ) {
-    val stats by viewModel.stats.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val scrollState = rememberScrollState()
+    val uiState by viewModel.uiState.collectAsState()
 
-    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.accent) {
-    Box(
+    // Reload data every time screen appears
+    @Suppress("DEPRECATION")
+    val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                viewModel.loadDashboard()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .verticalScroll(rememberScrollState())
+            .padding(bottom = 80.dp)
     ) {
-        // iOS: ScrollView(showsIndicators: false) { VStack(spacing: 20) { ... } .padding() }
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Spacer(modifier = Modifier.height(40.dp))
+            // ── Header ──
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Profile avatar with gradient circle
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    CoreViaPrimary.copy(alpha = 0.3f),
+                                    CoreViaPrimary
+                                )
+                            )
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = uiState.userName.firstOrNull()?.uppercase() ?: "T",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
 
-            // ── 1. Header Section (iOS: headerSection) ──────────────────────────
-            TrainerHeaderSection(
-                userName    = userName,
-                userInitial = userInitial,
-                onRefresh   = { viewModel.fetchStats() }
-            )
+                // Greeting + Name
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "Xoş gəldiniz \uD83D\uDC4B",
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = uiState.userName,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
 
-            // ── 2. Stats Cards (iOS: statsCardsSection — 2x2 grid) ─────────────
-            TrainerStatsCardsSection(
-                totalSubscribers = stats?.totalSubscribers ?: 0,
-                activeStudents   = stats?.activeStudents ?: 0,
-                currency         = stats?.currency ?: "₼",
-                monthlyEarnings  = stats?.monthlyEarnings ?: 0.0,
-                totalPlans       = (stats?.totalTrainingPlans ?: 0) + (stats?.totalMealPlans ?: 0)
-            )
+                Spacer(modifier = Modifier.weight(1f))
 
-            // ── 3/4/5. Student Progress + Stats Summary OR Empty State ──────────
-            val students = stats?.students ?: emptyList()
-            if (stats != null) {
-                if (students.isEmpty()) {
-                    // iOS: emptyStudentsSection
-                    TrainerEmptyStudentsSection()
-                } else {
-                    // Student Progress Overview section (new)
-                    StudentProgressOverviewSection(students = students)
-
-                    // iOS: studentProgressSection
-                    TrainerStudentProgressSection(students = students)
-
-                    // iOS: statsSummarySection
-                    stats?.statsSummary?.let { summary ->
-                        TrainerStatsSummarySection(summary = summary)
-                    }
-
-                    // Recent Activity Feed section (new)
-                    RecentActivitySection(students = students)
+                // Refresh button
+                IconButton(
+                    onClick = { viewModel.loadDashboard() },
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                ) {
+                    Icon(
+                        Icons.Filled.Refresh,
+                        contentDescription = "Yenilə",
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(100.dp)) // Tab bar ucun yer
-        }
-
-        // iOS: loading overlay — ProgressView when isLoading && stats == nil
-        if (isLoading && stats == null) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center),
-                color    = AppTheme.Colors.accent
-            )
-        }
-    }
-    } // CoreViaAnimatedBackground
-}
-
-// ─── iOS: headerSection ──────────────────────────────────────────────────────
-@Composable
-private fun TrainerHeaderSection(
-    userName: String,
-    userInitial: String,
-    onRefresh: () -> Unit
-) {
-    Row(
-        modifier              = Modifier.fillMaxWidth(),
-        verticalAlignment     = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp)
-    ) {
-        // iOS: ZStack { Circle gradient + Text(initial) }  — 56x56
-        Box(
-            modifier = Modifier
-                .size(56.dp)
-                .background(
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            AppTheme.Colors.accent.copy(alpha = 0.3f),
-                            AppTheme.Colors.accent
-                        )
-                    ),
-                    shape = CircleShape
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text       = (userInitial.ifEmpty { userName.take(1) }).uppercase(),
-                fontSize   = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color      = Color.White
-            )
-        }
-
-        // iOS: VStack(alignment: .leading, spacing: 4) { greeting + name }
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(text = "Salam", fontSize = 14.sp, color = AppTheme.Colors.secondaryText)
-                Icon(Icons.Outlined.WavingHand, null, modifier = Modifier.size(14.dp), tint = AppTheme.Colors.accent)
+            // ── Loading indicator ──
+            if (uiState.isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp,
+                        color = CoreViaPrimary
+                    )
+                }
             }
+
+            // ── Error message ──
+            if (uiState.errorMessage != null) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(CoreViaError.copy(alpha = 0.1f))
+                        .padding(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Filled.ErrorOutline, null,
+                        modifier = Modifier.size(16.dp),
+                        tint = CoreViaError
+                    )
+                    Text(
+                        text = uiState.errorMessage ?: "",
+                        fontSize = 13.sp,
+                        color = CoreViaError
+                    )
+                }
+            }
+
+            // ── Quick Stats Row ──
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                TrainerStatCard(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Filled.People,
+                    value = "${uiState.activeStudents}",
+                    label = "Aktiv Tələbə",
+                    color = CoreViaPrimary
+                )
+                TrainerStatCard(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Filled.Groups,
+                    value = "${uiState.totalSubscribers}",
+                    label = "Abunəçi",
+                    color = AccentBlue
+                )
+            }
+
+            // ── Earnings Card ──
+            EarningsCard(
+                earnings = uiState.monthlyEarnings,
+                currency = uiState.currency
+            )
+
+            // ── Plans Overview ──
+            PlansOverviewSection(
+                trainingPlans = uiState.totalTrainingPlans,
+                mealPlans = uiState.totalMealPlans,
+                onTrainingPlansClick = onNavigateToTrainingPlans,
+                onMealPlansClick = onNavigateToMealPlans
+            )
+
+            // ── Quick Actions ──
             Text(
-                text       = userName.ifEmpty { "Məşqçi" },
-                fontSize   = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color      = AppTheme.Colors.primaryText
+                text = "Tez Əməliyyatlar",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground
             )
-        }
 
-        // iOS: Button → arrow.clockwise in circle
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(AppTheme.Colors.secondaryBackground, CircleShape)
-                .clip(CircleShape)
-                .clickable { onRefresh() },
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector        = Icons.Outlined.Refresh,
-                contentDescription = "Yenilə",
-                modifier           = Modifier.size(16.dp),
-                tint               = AppTheme.Colors.secondaryText
-            )
-        }
-    }
-}
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                TrainerQuickAction(
+                    modifier = Modifier.weight(1f),
+                    title = "Plan Yarat",
+                    icon = Icons.Filled.Add,
+                    onClick = onNavigateToTrainingPlans
+                )
+                TrainerQuickAction(
+                    modifier = Modifier.weight(1f),
+                    title = "Mesaj Göndər",
+                    icon = Icons.AutoMirrored.Filled.Send,
+                    onClick = onNavigateToMessages
+                )
+                TrainerQuickAction(
+                    modifier = Modifier.weight(1f),
+                    title = "Qida Planı",
+                    icon = Icons.Filled.Restaurant,
+                    onClick = onNavigateToMealPlans
+                )
+            }
 
-// ─── iOS: statsCardsSection — 2x2 grid ──────────────────────────────────────
-@Composable
-private fun TrainerStatsCardsSection(
-    totalSubscribers: Int,
-    activeStudents: Int,
-    currency: String,
-    monthlyEarnings: Double,
-    totalPlans: Int
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        // iOS: HStack(spacing: 12) — row 1
-        Row(
-            modifier              = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            DashboardStatCard(
-                modifier = Modifier.weight(1f),
-                icon     = Icons.Outlined.People,
-                value    = "$totalSubscribers",
-                label    = "Ümumi Abunəçilər",
-                color    = AppTheme.Colors.accent
-            )
-            DashboardStatCard(
-                modifier = Modifier.weight(1f),
-                icon     = Icons.Outlined.PersonSearch,
-                value    = "$activeStudents",
-                label    = "Aktiv Tələbələr",
-                color    = AppTheme.Colors.accent
-            )
-        }
+            // ── Students Section ──
+            if (uiState.students.isNotEmpty()) {
+                StudentsSection(
+                    students = uiState.students,
+                    onStudentClick = onNavigateToStudentDetail
+                )
+            }
 
-        // iOS: HStack(spacing: 12) — row 2
-        Row(
-            modifier              = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            DashboardStatCard(
-                modifier = Modifier.weight(1f),
-                icon     = Icons.Outlined.CreditCard,
-                value    = "$currency ${monthlyEarnings.toInt()}",
-                label    = "Aylıq Gəlir",
-                color    = AppTheme.Colors.accent
-            )
-            DashboardStatCard(
-                modifier = Modifier.weight(1f),
-                icon     = Icons.Outlined.Description,
-                value    = "$totalPlans",
-                label    = "Ümumi Planlar",
-                color    = AppTheme.Colors.accentDark
+            // ── Stats Summary ──
+            StatsSummarySection(
+                avgWorkoutsPerWeek = uiState.avgWorkoutsPerWeek,
+                totalWorkouts = uiState.totalWorkoutsAllStudents,
+                avgWeight = uiState.avgStudentWeight
             )
         }
     }
 }
 
-// ─── iOS: DashboardStatCard ──────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+// STAT CARD
+// ═══════════════════════════════════════════════════════════════════
 @Composable
-private fun DashboardStatCard(
+private fun TrainerStatCard(
     modifier: Modifier = Modifier,
     icon: ImageVector,
     value: String,
     label: String,
     color: Color
 ) {
-    Column(
+    Row(
         modifier = modifier
-            .coreViaCard(accentColor = color)
-            .padding(14.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(color.copy(alpha = 0.08f))
+            .border(1.dp, color.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
+            .padding(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        // iOS: HStack { ZStack { Circle + Image } Spacer() }
-        Row(modifier = Modifier.fillMaxWidth()) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(color.copy(alpha = 0.15f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icon, null, modifier = Modifier.size(18.dp), tint = color)
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                text = value,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                text = label,
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// EARNINGS CARD
+// ═══════════════════════════════════════════════════════════════════
+@Composable
+private fun EarningsCard(earnings: Double, currency: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                8.dp, RoundedCornerShape(16.dp),
+                ambientColor = CoreViaSuccess.copy(alpha = 0.3f)
+            )
+            .clip(RoundedCornerShape(16.dp))
+            .background(
+                Brush.horizontalGradient(
+                    listOf(CoreViaSuccess.copy(alpha = 0.9f), CoreViaSuccess)
+                )
+            )
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Filled.TrendingUp, null,
+                    modifier = Modifier.size(18.dp),
+                    tint = Color.White
+                )
+                Text(
+                    text = "Aylıq Gəlir",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White.copy(alpha = 0.9f)
+                )
+            }
             Box(
                 modifier = Modifier
-                    .size(40.dp)
-                    .background(color.copy(alpha = 0.15f), CircleShape),
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.White.copy(alpha = 0.2f))
+                    .padding(horizontal = 8.dp, vertical = 3.dp)
+            ) {
+                Text(
+                    text = "Bu ay",
+                    fontSize = 11.sp,
+                    color = Color.White.copy(alpha = 0.9f)
+                )
+            }
+        }
+
+        Text(
+            text = "%.2f %s".format(earnings, currency),
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PLANS OVERVIEW
+// ═══════════════════════════════════════════════════════════════════
+@Composable
+private fun PlansOverviewSection(
+    trainingPlans: Int,
+    mealPlans: Int,
+    onTrainingPlansClick: () -> Unit,
+    onMealPlansClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        // Training Plans
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(14.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                .clickable(onClick = onTrainingPlansClick)
+                .padding(14.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(CoreViaPrimary.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector        = icon,
-                    contentDescription = null,
-                    modifier           = Modifier.size(18.dp),
-                    tint               = color
+                    Icons.Filled.FitnessCenter, null,
+                    modifier = Modifier.size(20.dp),
+                    tint = CoreViaPrimary
                 )
             }
+            Text(
+                text = "$trainingPlans",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                text = "Məşq Planı",
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
 
-        // iOS: Text(value).font(.system(size: 24, weight: .black))
-        Text(
-            text       = value,
-            fontSize   = 24.sp,
-            fontWeight = FontWeight.Black,
-            color      = AppTheme.Colors.primaryText,
-            maxLines   = 1
-        )
+        // Meal Plans
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(14.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                .clickable(onClick = onMealPlansClick)
+                .padding(14.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(AccentOrange.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Filled.Restaurant, null,
+                    modifier = Modifier.size(20.dp),
+                    tint = AccentOrange
+                )
+            }
+            Text(
+                text = "$mealPlans",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                text = "Qida Planı",
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
 
-        // iOS: Text(label).font(.system(size: 12))
+// ═══════════════════════════════════════════════════════════════════
+// QUICK ACTIONS
+// ═══════════════════════════════════════════════════════════════════
+@Composable
+private fun TrainerQuickAction(
+    modifier: Modifier = Modifier,
+    title: String,
+    icon: ImageVector,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(CoreViaPrimary.copy(alpha = 0.85f))
+            .clickable { onClick() }
+            .padding(vertical = 12.dp, horizontal = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Icon(
+            icon, null,
+            modifier = Modifier.size(18.dp),
+            tint = Color.White
+        )
         Text(
-            text     = label,
-            fontSize = 12.sp,
-            color    = AppTheme.Colors.secondaryText,
-            maxLines = 2
+            text = title,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color.White,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
 
-// ─── iOS: emptyStudentsSection ───────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+// STUDENTS SECTION
+// ═══════════════════════════════════════════════════════════════════
 @Composable
-private fun TrainerEmptyStudentsSection() {
+private fun StudentsSection(
+    students: List<DashboardStudentSummary>,
+    onStudentClick: (String) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Tələbələrim",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                text = "${students.size} tələbə",
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(end = 8.dp)
+        ) {
+            items(students) { student ->
+                StudentCard(
+                    student = student,
+                    onClick = { onStudentClick(student.id) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun StudentCard(
+    student: DashboardStudentSummary,
+    onClick: () -> Unit
+) {
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .coreViaCard(cornerRadius = 16.dp)
-            .padding(horizontal = 20.dp, vertical = 30.dp),
+            .width(150.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .border(
+                1.dp,
+                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
+                RoundedCornerShape(14.dp)
+            )
+            .clickable(onClick = onClick)
+            .padding(14.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // iOS: Image(systemName: "person.2.slash").font(.system(size: 44))
-        Icon(
-            imageVector        = Icons.Outlined.PersonOff,
-            contentDescription = null,
-            modifier           = Modifier.size(44.dp),
-            tint               = AppTheme.Colors.secondaryText.copy(alpha = 0.5f)
-        )
-
-        Text(
-            text       = "Tələbə yoxdur",
-            fontSize   = 17.sp,
-            fontWeight = FontWeight.SemiBold,
-            color      = AppTheme.Colors.primaryText
-        )
-
-        Text(
-            text      = "Hazırda sizə təyin olunmuş tələbə yoxdur. Tələbələr sizə abunə olduqda burada görünəcək.",
-            fontSize  = 13.sp,
-            color     = AppTheme.Colors.secondaryText,
-            textAlign = TextAlign.Center
-        )
-    }
-}
-
-// ─── iOS: studentProgressSection ─────────────────────────────────────────────
-@Composable
-private fun TrainerStudentProgressSection(students: List<DashboardStudentSummary>) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        CoreViaSectionHeader(
-            title = "Tələbə İnkişafı",
-            trailing = {
-                Text(
-                    text     = "${students.size} tələbə",
-                    fontSize = 13.sp,
-                    color    = AppTheme.Colors.secondaryText
-                )
-            }
-        )
-
-        // iOS: ForEach(students) { DashboardStudentRow }
-        students.forEach { student ->
-            DashboardStudentRow(student = student)
-        }
-    }
-}
-
-// ─── iOS: DashboardStudentRow ────────────────────────────────────────────────
-@Composable
-private fun DashboardStudentRow(student: DashboardStudentSummary) {
-    val avatarColor = AppTheme.Colors.avatarPalette[student.avatarColorIndex]
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .coreViaCard(accentColor = avatarColor)
-            .padding(12.dp),
-        verticalAlignment     = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp)
-    ) {
-        // iOS: ZStack { Circle gradient + Text(initials) } — 46x46
+        // Avatar
         Box(
             modifier = Modifier
-                .size(46.dp)
-                .background(
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            avatarColor.copy(alpha = 0.3f),
-                            avatarColor
-                        )
-                    ),
-                    shape = CircleShape
-                ),
+                .size(50.dp)
+                .clip(CircleShape)
+                .background(student.avatarColor),
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text       = student.initials,
-                fontSize   = 16.sp,
+                text = student.initials,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color      = Color.White
+                color = Color.White
             )
         }
 
-        // iOS: VStack(alignment: .leading, spacing: 4) { name + HStack(weight, goal) }
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+        // Name
+        Text(
+            text = student.name,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onBackground,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center
+        )
+
+        // Stats row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Text(
-                text       = student.name,
-                fontSize   = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-                color      = AppTheme.Colors.primaryText,
-                maxLines   = 1,
-                overflow   = TextOverflow.Ellipsis
-            )
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment     = Alignment.CenterVertically
-            ) {
-                // iOS: weight + kg label
-                student.weight?.let { weight ->
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(3.dp),
-                        verticalAlignment     = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector        = Icons.Outlined.FitnessCenter,
-                            contentDescription = null,
-                            modifier           = Modifier.size(10.dp),
-                            tint               = AppTheme.Colors.secondaryText
-                        )
-                        Text(
-                            text     = "${weight.toInt()} kq",
-                            fontSize = 11.sp,
-                            color    = AppTheme.Colors.secondaryText
-                        )
-                    }
-                }
-
-                // iOS: goal badge
-                student.goal?.let { goal ->
-                    Text(
-                        text       = goal,
-                        fontSize   = 10.sp,
-                        fontWeight = FontWeight.Medium,
-                        color      = Color.White,
-                        modifier   = Modifier
-                            .background(
-                                avatarColor.copy(alpha = 0.7f),
-                                RoundedCornerShape(6.dp)
-                            )
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                    )
-                }
-            }
-        }
-
-        // iOS: VStack(alignment: .trailing) { workoutCount + flame + "Bu həftə" }
-        Column(horizontalAlignment = Alignment.End) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(3.dp),
-                verticalAlignment     = Alignment.CenterVertically
-            ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text       = "${student.thisWeekWorkouts}",
-                    fontSize   = 18.sp,
+                    text = "${student.thisWeekWorkouts}",
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color      = if (student.thisWeekWorkouts > 0) AppTheme.Colors.success
-                                 else AppTheme.Colors.secondaryText
+                    color = CoreViaPrimary
                 )
-                Icon(
-                    imageVector        = Icons.Outlined.LocalFireDepartment,
-                    contentDescription = null,
-                    modifier           = Modifier.size(12.dp),
-                    tint               = if (student.thisWeekWorkouts > 0) AppTheme.Colors.accent
-                                         else AppTheme.Colors.secondaryText.copy(alpha = 0.5f)
+                Text(
+                    text = "Məşq",
+                    fontSize = 9.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            Text(
-                text     = "Bu həftə",
-                fontSize = 10.sp,
-                color    = AppTheme.Colors.secondaryText
-            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "${student.trainingPlansCount}",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = AccentBlue
+                )
+                Text(
+                    text = "Plan",
+                    fontSize = 9.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
 
-// ─── iOS: statsSummarySection ────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+// STATS SUMMARY
+// ═══════════════════════════════════════════════════════════════════
 @Composable
-private fun TrainerStatsSummarySection(summary: DashboardStatsSummary) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        // iOS: HStack(spacing: 6) { chart.bar.fill icon + title }
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment     = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector        = Icons.Outlined.BarChart,
-                contentDescription = null,
-                modifier           = Modifier.size(18.dp),
-                tint               = AppTheme.Colors.accent
-            )
-            Text(
-                text       = "Statistika Xülasəsi",
-                fontSize   = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color      = AppTheme.Colors.primaryText
-            )
-        }
+private fun StatsSummarySection(
+    avgWorkoutsPerWeek: Double,
+    totalWorkouts: Int,
+    avgWeight: Double
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = "Ümumi Statistika",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
 
-        // iOS: VStack(spacing: 10) { 3x SummaryRow } with background
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .coreViaCard()
-                .padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            SummaryRow(
-                icon  = Icons.Outlined.FitnessCenter,
-                label = "Ort. Məşq/Həftə",
-                value = String.format("%.1f", summary.avgStudentWorkoutsPerWeek),
-                color = AppTheme.Colors.accent
+            SummaryStatRow(
+                icon = Icons.Filled.FitnessCenter,
+                label = "Həftəlik ort. məşq",
+                value = "%.1f".format(avgWorkoutsPerWeek),
+                color = CoreViaPrimary
             )
-            SummaryRow(
-                icon  = Icons.Outlined.LocalFireDepartment,
-                label = "Ümumi Məşqlər",
-                value = "${summary.totalWorkoutsAllStudents}",
-                color = AppTheme.Colors.accent
+            SummaryStatRow(
+                icon = Icons.Filled.EmojiEvents,
+                label = "Ümumi məşqlər",
+                value = "$totalWorkouts",
+                color = AccentOrange
             )
-            SummaryRow(
-                icon  = Icons.Outlined.MonitorWeight,
-                label = "Ort. Çəki",
-                value = if (summary.avgStudentWeight > 0) "${String.format("%.1f", summary.avgStudentWeight)} kq" else "—",
-                color = AppTheme.Colors.accent
+            SummaryStatRow(
+                icon = Icons.Filled.MonitorWeight,
+                label = "Ort. çəki",
+                value = "%.1f kq".format(avgWeight),
+                color = AccentBlue
             )
         }
     }
 }
 
-// ─── iOS: SummaryRow ─────────────────────────────────────────────────────────
 @Composable
-private fun SummaryRow(
+private fun SummaryStatRow(
     icon: ImageVector,
     label: String,
     value: String,
     color: Color
 ) {
     Row(
-        modifier              = Modifier.fillMaxWidth(),
-        verticalAlignment     = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        // iOS: Image(systemName: icon).frame(width: 24)
-        Icon(
-            imageVector        = icon,
-            contentDescription = null,
-            modifier           = Modifier.size(16.dp),
-            tint               = color
-        )
-
-        // iOS: Text(label).font(.system(size: 14))
-        Text(
-            text     = label,
-            fontSize = 14.sp,
-            color    = AppTheme.Colors.secondaryText,
-            modifier = Modifier.weight(1f)
-        )
-
-        // iOS: Text(value).font(.system(size: 15, weight: .bold))
-        Text(
-            text       = value,
-            fontSize   = 15.sp,
-            fontWeight = FontWeight.Bold,
-            color      = AppTheme.Colors.primaryText
-        )
-    }
-}
-
-// ─── Student Progress Overview ──────────────────────────────────────────────
-@Composable
-private fun StudentProgressOverviewSection(students: List<DashboardStudentSummary>) {
-    val activeCount = students.count { it.thisWeekWorkouts > 0 }
-    val inactiveCount = students.size - activeCount
-    val activePercentage = if (students.isNotEmpty()) activeCount.toFloat() / students.size.toFloat() else 0f
-
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        CoreViaSectionHeader(
-            title = "Telebe Icmali",
-            subtitle = "Bu hefteki aktivlik"
-        )
-
-        Column(
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .coreViaCard()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(color.copy(alpha = 0.12f)),
+            contentAlignment = Alignment.Center
         ) {
-            // Active vs Inactive row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                // Active students
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .background(AppTheme.Colors.success.copy(alpha = 0.15f), CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.DirectionsRun,
-                            contentDescription = null,
-                            tint = AppTheme.Colors.success,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "$activeCount",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = AppTheme.Colors.success
-                    )
-                    Text(
-                        text = "Aktiv",
-                        fontSize = 11.sp,
-                        color = AppTheme.Colors.secondaryText
-                    )
-                }
-
-                // Inactive students
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .background(AppTheme.Colors.warning.copy(alpha = 0.15f), CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.HourglassEmpty,
-                            contentDescription = null,
-                            tint = AppTheme.Colors.warning,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "$inactiveCount",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = AppTheme.Colors.warning
-                    )
-                    Text(
-                        text = "Passiv",
-                        fontSize = 11.sp,
-                        color = AppTheme.Colors.secondaryText
-                    )
-                }
-
-                // Total workouts
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .background(AppTheme.Colors.accent.copy(alpha = 0.15f), CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.FitnessCenter,
-                            contentDescription = null,
-                            tint = AppTheme.Colors.accent,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "${students.sumOf { it.thisWeekWorkouts }}",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = AppTheme.Colors.accent
-                    )
-                    Text(
-                        text = "Mesq",
-                        fontSize = 11.sp,
-                        color = AppTheme.Colors.secondaryText
-                    )
-                }
-            }
-
-            // Progress bar
-            Column {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Aktivlik faizi",
-                        fontSize = 13.sp,
-                        color = AppTheme.Colors.secondaryText
-                    )
-                    Text(
-                        text = "${(activePercentage * 100).toInt()}%",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = AppTheme.Colors.accent
-                    )
-                }
-                Spacer(modifier = Modifier.height(6.dp))
-                CoreViaGradientProgressBar(
-                    progress = activePercentage,
-                    modifier = Modifier.fillMaxWidth(),
-                    height = 8.dp
-                )
-            }
+            Icon(icon, null, modifier = Modifier.size(16.dp), tint = color)
         }
+        Text(
+            text = label,
+            modifier = Modifier.weight(1f),
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
     }
 }
-
-// ─── Recent Activity Feed ───────────────────────────────────────────────────
-@Composable
-private fun RecentActivitySection(students: List<DashboardStudentSummary>) {
-    // Generate mock activity items from student data
-    val successColor = AppTheme.Colors.success
-    val accentColor = AppTheme.Colors.accent
-    val activities = remember(students, successColor, accentColor) {
-        buildList {
-            students.filter { it.thisWeekWorkouts > 0 }.take(5).forEach { student ->
-                add(
-                    ActivityItem(
-                        name = student.name,
-                        initials = student.initials,
-                        action = "${student.thisWeekWorkouts} mesq tamamladi",
-                        icon = Icons.Outlined.FitnessCenter,
-                        color = successColor
-                    )
-                )
-            }
-            students.filter { it.goal != null }.take(3).forEach { student ->
-                add(
-                    ActivityItem(
-                        name = student.name,
-                        initials = student.initials,
-                        action = "Hedef: ${student.goal}",
-                        icon = Icons.Outlined.Flag,
-                        color = accentColor
-                    )
-                )
-            }
-        }.take(6)
-    }
-
-    if (activities.isNotEmpty()) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            CoreViaSectionHeader(
-                title = "Son Aktivlik",
-                subtitle = "Telebelerinizin son hereketleri"
-            )
-
-            activities.forEach { activity ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .coreViaCard()
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    // Avatar
-                    Box(
-                        modifier = Modifier
-                            .size(36.dp)
-                            .background(
-                                brush = Brush.linearGradient(
-                                    colors = listOf(
-                                        AppTheme.Colors.accent.copy(alpha = 0.4f),
-                                        AppTheme.Colors.accent
-                                    )
-                                ),
-                                shape = CircleShape
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = activity.initials,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    }
-
-                    // Name + action
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = activity.name,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = AppTheme.Colors.primaryText,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            text = activity.action,
-                            fontSize = 12.sp,
-                            color = AppTheme.Colors.secondaryText,
-                            maxLines = 1
-                        )
-                    }
-
-                    // Action icon
-                    Icon(
-                        imageVector = activity.icon,
-                        contentDescription = null,
-                        tint = activity.color,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-            }
-        }
-    }
-}
-
-private data class ActivityItem(
-    val name: String,
-    val initials: String,
-    val action: String,
-    val icon: ImageVector,
-    val color: Color
-)

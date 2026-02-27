@@ -1,795 +1,445 @@
 package life.corevia.app.ui.auth
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.foundation.Image
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import life.corevia.app.R
-import life.corevia.app.ui.theme.AppTheme
+import androidx.hilt.navigation.compose.hiltViewModel
+import life.corevia.app.ui.theme.*
 
-/**
- * iOS LoginView.swift-in Android tam ekvivalenti.
- * 2-addımlı axın:
- *  - Addım 1: Email + Şifrə + User type → POST /api/v1/auth/login → OTP göndərilir
- *  - Addım 2: 6-rəqəmli OTP kodu → POST /api/v1/auth/login-verify → token alınır
- *
- * iOS ilə tam uyğun:
- *  - Dil seçici (🇦🇿 🇷🇺 🇬🇧) — 3 bayraq, sol üstdə
- *  - Blur halo + gym.png ikon (gradient fon, cornerRadius 20)
- *  - "CoreVia" 38sp Black + slogan 11sp accent letterSpacing 2.5
- *  - Tələbə/Məşqçi type toggle (Material icons — person.fill / person.2.fill)
- *  - Input sahələri: label + icon (accent) + TextField + border focus
- *  - Password toggle: eye / eye.slash icon (Material)
- *  - Gradient düymə: icon + label + arrow
- *  - "──── və ya ────" ayırıcı
- *  - OTP: 28sp monospaced TextField, 6 simvol limit
- */
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onNavigateToRegister: () -> Unit,
-    onNavigateToForgotPassword: () -> Unit = {},
-    viewModel: AuthViewModel = viewModel()
+    onNavigateToForgotPassword: () -> Unit,
+    viewModel: LoginViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
     val focusManager = LocalFocusManager.current
+    val uiState by viewModel.uiState.collectAsState()
 
-    // Step 1 state
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
-    var selectedUserType by remember { mutableStateOf("client") } // "client" | "trainer"
-    var currentLanguage by remember { mutableStateOf("az") } // "az" | "ru" | "en"
-
-    // Step 2 state
-    var currentStep by remember { mutableStateOf(1) }
-    var otpCode by remember { mutableStateOf("") }
-
-    // Error from ViewModel
-    val showError = uiState is AuthUiState.Error
-    val errorMessage = if (uiState is AuthUiState.Error) (uiState as AuthUiState.Error).message else ""
-    val isLoading = uiState is AuthUiState.Loading
-
-    // Navigate on success
-    LaunchedEffect(uiState) {
-        if (uiState is AuthUiState.Success) onLoginSuccess()
-        if (uiState is AuthUiState.OtpSent) currentStep = 2
+    // Navigate on successful login
+    LaunchedEffect(uiState.isLoggedIn) {
+        if (uiState.isLoggedIn) {
+            onLoginSuccess()
+        }
     }
+
+    val languages = listOf("🇦🇿", "🇬🇧", "🇷🇺")
+    var selectedLanguage by remember { mutableIntStateOf(0) }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppTheme.Colors.background)
-            .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
-                focusManager.clearFocus()
-            }
+            .background(MaterialTheme.colorScheme.background)
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) { focusManager.clearFocus() }
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 30.dp)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // ─── Dil Seçici (iOS: HStack 4 flags, sol üstdə) ──────────────────────
+            // Dil Seçici
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 28.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(start = 24.dp, end = 24.dp, top = 52.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // iOS: 3 dil — az, ru, en
-                listOf("🇦🇿" to "az", "🇷🇺" to "ru", "🇬🇧" to "en").forEach { (flag, code) ->
-                    val isSelected = currentLanguage == code
-                    val bgColor by animateColorAsState(
-                        if (isSelected) AppTheme.Colors.accent.copy(alpha = 0.15f) else AppTheme.Colors.secondaryBackground,
-                        animationSpec = spring(), label = "langBg"
-                    )
-                    val borderColor by animateColorAsState(
-                        if (isSelected) AppTheme.Colors.accent else AppTheme.Colors.separator,
-                        animationSpec = spring(), label = "langBorder"
-                    )
-                    val borderWidth = if (isSelected) 2.dp else 1.dp
+                languages.forEachIndexed { index, flag ->
                     Box(
                         modifier = Modifier
-                            .size(40.dp)
-                            .background(bgColor, RoundedCornerShape(10.dp))
-                            .border(borderWidth, borderColor, RoundedCornerShape(10.dp))
-                            .clickable { currentLanguage = code },
+                            .size(44.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(
+                                if (selectedLanguage == index) CoreViaPrimary.copy(alpha = 0.08f)
+                                else Color(0xFFF0F0F0)
+                            )
+                            .then(
+                                if (selectedLanguage == index)
+                                    Modifier.border(2.dp, CoreViaPrimary, RoundedCornerShape(12.dp))
+                                else Modifier
+                            )
+                            .clickable { selectedLanguage = index },
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(text = flag, fontSize = 22.sp)
+                        Text(text = flag, fontSize = 24.sp)
                     }
                 }
-                Spacer(modifier = Modifier.weight(1f))
             }
 
-            // ─── Logo Bölməsi (iOS: ZStack blur + corevia_icon) ──────────────────────
-            Box(
-                modifier = Modifier.padding(vertical = 8.dp),
-                contentAlignment = Alignment.Center
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Logo - Red rounded square with fitness icon
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Blur halo circle — iOS: Circle().fill(LinearGradient) .frame(100) .blur(15)
                 Box(
                     modifier = Modifier
-                        .size(100.dp)
-                        .background(
-                            Brush.radialGradient(
-                                colors = listOf(
-                                    AppTheme.Colors.accent.copy(alpha = 0.3f),
-                                    AppTheme.Colors.accent
-                                )
-                            ),
-                            CircleShape
-                        )
-                        .blur(15.dp)
-                )
-                // gym.png — iOS: gradient fon, cornerRadius 20, shadow accent(0.5) radius 15 y-offset 8
-                Box(
-                    modifier = Modifier
-                        .shadow(
-                            elevation = 15.dp,
-                            shape = RoundedCornerShape(20.dp),
-                            spotColor = AppTheme.Colors.accent.copy(alpha = 0.5f),
-                            ambientColor = AppTheme.Colors.accent.copy(alpha = 0.3f)
-                        )
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(
-                            Brush.linearGradient(
-                                colors = listOf(
-                                    AppTheme.Colors.accent,
-                                    AppTheme.Colors.accent.copy(alpha = 0.8f)
-                                )
-                            )
-                        )
-                        .padding(12.dp)
+                        .size(90.dp)
+                        .shadow(12.dp, RoundedCornerShape(22.dp), ambientColor = CoreViaPrimary.copy(alpha = 0.4f))
+                        .clip(RoundedCornerShape(22.dp))
+                        .background(CoreViaPrimary),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.gym),
-                        contentDescription = "CoreVia",
-                        modifier = Modifier.size(75.dp),
-                        contentScale = ContentScale.Fit,
-                        colorFilter = ColorFilter.tint(Color.White)
+                    Icon(
+                        Icons.Filled.FitnessCenter,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(44.dp)
                     )
                 }
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                Text(
+                    text = "CoreVia",
+                    fontSize = 36.sp,
+                    fontWeight = FontWeight.Black,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Text(
+                    text = "GÜCƏ GEDƏN YOL",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = CoreViaPrimary,
+                    letterSpacing = 3.sp
+                )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            // iOS: font(.system(size: 38, weight: .black))
-            Text(
-                text = "CoreVia",
-                fontSize = 38.sp,
-                fontWeight = FontWeight.Black,
-                color = AppTheme.Colors.primaryText
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            // iOS: font(.system(size: 11, weight: .semibold)) + accent + tracking 2.5
-            Text(
-                text = "FİTNES · SAĞLAMLIQ · HƏYAT",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = AppTheme.Colors.accent,
-                letterSpacing = 2.5.sp
-            )
-
-            Spacer(modifier = Modifier.height(28.dp))
-
-            // ─── User Type Selection (iOS: person.fill / person.2.fill icons) ──────
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 28.dp),
-                horizontalAlignment = Alignment.Start
-            ) {
+            // Hesab növü
+            Column(modifier = Modifier.padding(horizontal = 24.dp)) {
                 Text(
                     text = "Hesab növü",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = AppTheme.Colors.secondaryText
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+
                 Spacer(modifier = Modifier.height(12.dp))
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Tələbə — iOS: person.fill icon
-                    LoginUserTypeButton(
-                        label = "Tələbə",
-                        isSelected = selectedUserType == "client",
-                        isClient = true,
-                        modifier = Modifier.weight(1f),
-                        onClick = { selectedUserType = "client" }
+                    UserTypeButton(
+                        icon = Icons.Filled.Person,
+                        text = "Tələbə",
+                        isSelected = uiState.userType == "client",
+                        onClick = { viewModel.updateUserType("client") },
+                        modifier = Modifier.weight(1f)
                     )
-                    // Məşqçi — iOS: person.2.fill icon
-                    LoginUserTypeButton(
-                        label = "Məşqçi",
-                        isSelected = selectedUserType == "trainer",
-                        isClient = false,
-                        modifier = Modifier.weight(1f),
-                        onClick = { selectedUserType = "trainer" }
+                    UserTypeButton(
+                        icon = Icons.Filled.Groups,
+                        text = "Müəllim",
+                        isSelected = uiState.userType == "trainer",
+                        onClick = { viewModel.updateUserType("trainer") },
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            // ─── Step-based Content ───────────────────────────────────────────────
-            if (currentStep == 1) {
-                // Step 1: Email + Şifrə
-                LoginStep1Content(
-                    email = email,
-                    onEmailChange = { email = it; viewModel.clearError() },
-                    password = password,
-                    onPasswordChange = { password = it; viewModel.clearError() },
-                    passwordVisible = passwordVisible,
-                    onPasswordToggle = { passwordVisible = !passwordVisible },
-                    showError = showError,
-                    errorMessage = errorMessage,
-                    isLoading = isLoading,
-                    selectedUserType = selectedUserType,
-                    onLogin = {
-                        focusManager.clearFocus()
-                        viewModel.login(email.trim(), password, selectedUserType)
-                    },
-                    onForgotPassword = onNavigateToForgotPassword,
-                    onNavigateToRegister = {
-                        viewModel.clearError()
-                        onNavigateToRegister()
-                    }
-                )
-            } else {
-                // Step 2: OTP Verification
-                OtpStep2Content(
-                    email = email,
-                    otpCode = otpCode,
-                    onOtpChange = { newVal ->
-                        otpCode = newVal.filter { it.isDigit() }.take(6)
-                    },
-                    showError = showError,
-                    errorMessage = errorMessage,
-                    isLoading = isLoading,
-                    onVerify = {
-                        focusManager.clearFocus()
-                        viewModel.verifyOtp(email.trim(), otpCode)
-                    },
-                    onBack = {
-                        currentStep = 1
-                        otpCode = ""
-                        viewModel.clearError()
-                    }
-                )
+            // Step Content
+            AnimatedContent(
+                targetState = uiState.currentStep,
+                transitionSpec = {
+                    slideInHorizontally { it } + fadeIn() togetherWith slideOutHorizontally { -it } + fadeOut()
+                },
+                label = "step"
+            ) { step ->
+                if (step == 1) {
+                    LoginFormContent(
+                        email = uiState.email,
+                        onEmailChange = { viewModel.updateEmail(it) },
+                        password = uiState.password,
+                        onPasswordChange = { viewModel.updatePassword(it) },
+                        isPasswordVisible = uiState.isPasswordVisible,
+                        onTogglePassword = { viewModel.togglePasswordVisibility() },
+                        isLoading = uiState.isLoading,
+                        errorMessage = uiState.errorMessage,
+                        userType = uiState.userType,
+                        onLoginClick = { viewModel.login() },
+                        onForgotPasswordClick = onNavigateToForgotPassword,
+                        onRegisterClick = onNavigateToRegister
+                    )
+                } else {
+                    OTPContent(
+                        email = uiState.email,
+                        otpCode = uiState.otpCode,
+                        onOtpChange = { viewModel.updateOtpCode(it) },
+                        isLoading = uiState.isLoading,
+                        errorMessage = uiState.errorMessage,
+                        onVerifyClick = { viewModel.verifyOtp() },
+                        onBackClick = { viewModel.goBackToLogin() }
+                    )
+                }
             }
-
-            Spacer(modifier = Modifier.height(30.dp))
         }
     }
 }
 
-// ─── User Type Button (iOS: person.fill / person.2.fill Material icons) ───────
 @Composable
-fun LoginUserTypeButton(
-    label: String,
+private fun UserTypeButton(
+    icon: ImageVector,
+    text: String,
     isSelected: Boolean,
-    isClient: Boolean,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val bgColor by animateColorAsState(
-        if (isSelected) AppTheme.Colors.accent else AppTheme.Colors.secondaryBackground,
-        animationSpec = spring(), label = "userTypeBg"
-    )
-    val textColor by animateColorAsState(
-        if (isSelected) Color.White else AppTheme.Colors.primaryText,
-        animationSpec = spring(), label = "userTypeText"
-    )
-    val borderColor by animateColorAsState(
-        if (isSelected) AppTheme.Colors.accent else AppTheme.Colors.separator,
-        animationSpec = spring(), label = "userTypeBorder"
-    )
-    val borderWidth = if (isSelected) 2.dp else 1.dp
-
     Box(
         modifier = modifier
-            .background(bgColor, RoundedCornerShape(10.dp))
-            .border(borderWidth, borderColor, RoundedCornerShape(10.dp))
-            .clickable(onClick = onClick)
-            .padding(vertical = 12.dp),
+            .height(52.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(if (isSelected) CoreViaPrimary else Color(0xFFF5F5F5))
+            .then(
+                if (!isSelected) Modifier.border(1.5.dp, Color(0xFFE0E0E0), RoundedCornerShape(14.dp))
+                else Modifier
+            )
+            .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // iOS: person.fill (16pt) / person.2.fill (16pt)
             Icon(
-                imageVector = if (isClient) Icons.Outlined.Person else Icons.Outlined.Person,
-                contentDescription = null,
-                tint = textColor,
-                modifier = Modifier.size(16.dp)
+                icon, null,
+                modifier = Modifier.size(20.dp),
+                tint = if (isSelected) Color.White else TextSecondary
             )
             Text(
-                text = label,
+                text = text,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = textColor
+                color = if (isSelected) Color.White else TextPrimary
             )
         }
     }
 }
 
-// ─── Step 1: Email + Şifrə ────────────────────────────────────────────────────
 @Composable
-fun LoginStep1Content(
-    email: String,
-    onEmailChange: (String) -> Unit,
-    password: String,
-    onPasswordChange: (String) -> Unit,
-    passwordVisible: Boolean,
-    onPasswordToggle: () -> Unit,
-    showError: Boolean,
-    errorMessage: String,
-    isLoading: Boolean,
-    selectedUserType: String,
-    onLogin: () -> Unit,
-    onForgotPassword: () -> Unit,
-    onNavigateToRegister: () -> Unit
+private fun LoginFormContent(
+    email: String, onEmailChange: (String) -> Unit,
+    password: String, onPasswordChange: (String) -> Unit,
+    isPasswordVisible: Boolean, onTogglePassword: () -> Unit,
+    isLoading: Boolean, errorMessage: String?,
+    userType: String, onLoginClick: () -> Unit,
+    onForgotPasswordClick: () -> Unit, onRegisterClick: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 28.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        // Email — iOS: VStack(spacing:6) { label + HStack { envelope.fill icon + TextField } }
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("E-poçt", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = AppTheme.Colors.secondaryText)
-            LoginTextField(
-                value = email,
-                onValueChange = onEmailChange,
-                placeholder = "email@example.com",
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Outlined.Email,
-                        contentDescription = null,
-                        tint = AppTheme.Colors.accent,
-                        modifier = Modifier.size(20.dp)
-                    )
-                },
-                keyboardType = KeyboardType.Email,
-                imeAction = ImeAction.Next,
-                hasValue = email.isNotEmpty()
-            )
-        }
-
-        // Şifrə — iOS: VStack(spacing:6) { label + HStack { lock.fill + TextField + eye toggle } }
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("Şifrə", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = AppTheme.Colors.secondaryText)
-            LoginTextField(
-                value = password,
-                onValueChange = onPasswordChange,
-                placeholder = "••••••••",
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Outlined.Lock,
-                        contentDescription = null,
-                        tint = AppTheme.Colors.accent,
-                        modifier = Modifier.size(20.dp)
-                    )
-                },
-                isPassword = true,
-                passwordVisible = passwordVisible,
-                onPasswordToggle = onPasswordToggle,
-                keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Done,
-                onDone = onLogin,
-                hasValue = password.isNotEmpty()
-            )
-        }
-
-        // Şifrəni unutdum — sağa yığılmış (iOS: HStack { Spacer() + NavigationLink })
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            TextButton(
-                onClick = onForgotPassword,
-                contentPadding = PaddingValues(0.dp)
-            ) {
-                Text(
-                    text = "Şifrəni unutdum?",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = AppTheme.Colors.secondaryText
+    Column {
+        Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+            Text("Email", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(
+                value = email, onValueChange = onEmailChange,
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("name@example.com", color = TextHint) },
+                leadingIcon = { Icon(Icons.Filled.Email, null, Modifier.size(20.dp), tint = CoreViaPrimary) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                singleLine = true, shape = RoundedCornerShape(14.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = CoreViaPrimary, unfocusedBorderColor = Color(0xFFE8E8E8),
+                    focusedContainerColor = Color(0xFFF8F8F8), unfocusedContainerColor = Color(0xFFF8F8F8)
                 )
-            }
+            )
+
+            Spacer(Modifier.height(18.dp))
+
+            Text("Şifrə", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(
+                value = password, onValueChange = onPasswordChange,
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Şifrənizi daxil edin", color = TextHint) },
+                leadingIcon = { Icon(Icons.Filled.Lock, null, Modifier.size(20.dp), tint = CoreViaPrimary) },
+                trailingIcon = {
+                    IconButton(onClick = onTogglePassword) {
+                        Icon(
+                            if (isPasswordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                            null, Modifier.size(20.dp), tint = TextSecondary
+                        )
+                    }
+                },
+                visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                singleLine = true, shape = RoundedCornerShape(14.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = CoreViaPrimary, unfocusedBorderColor = Color(0xFFE8E8E8),
+                    focusedContainerColor = Color(0xFFF8F8F8), unfocusedContainerColor = Color(0xFFF8F8F8)
+                )
+            )
         }
 
-        // Error message (iOS: HStack exclamationmark.triangle.fill + error.opacity(0.2) fon)
+        Spacer(Modifier.height(10.dp))
+
+        Row(Modifier.fillMaxWidth().padding(horizontal = 24.dp), horizontalArrangement = Arrangement.End) {
+            Text(
+                "Şifrəni unutdunuz?", fontSize = 13.sp, fontWeight = FontWeight.Medium,
+                color = TextSecondary, modifier = Modifier.clickable { onForgotPasswordClick() }
+            )
+        }
+
+        Spacer(Modifier.height(20.dp))
+
+        // Error message
         AnimatedVisibility(
-            visible = showError,
+            visible = errorMessage != null,
             enter = slideInVertically() + fadeIn(),
-            exit = fadeOut()
+            exit = slideOutVertically() + fadeOut()
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(AppTheme.Colors.error.copy(alpha = 0.2f), RoundedCornerShape(10.dp))
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                Modifier.padding(horizontal = 24.dp).fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(CoreViaError.copy(alpha = 0.1f)).padding(14.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Outlined.Warning,
-                    contentDescription = null,
-                    tint = AppTheme.Colors.error,
-                    modifier = Modifier.size(16.dp)
-                )
-                Text(
-                    text = errorMessage,
-                    fontSize = 13.sp,
-                    color = AppTheme.Colors.primaryText
-                )
+                Icon(Icons.Filled.Warning, null, Modifier.size(18.dp), tint = CoreViaError)
+                Text(errorMessage ?: "", fontSize = 13.sp, color = MaterialTheme.colorScheme.onBackground)
             }
         }
 
-        // Gradient Login Button
-        // iOS: LinearGradient accent → accent.opacity(0.8), shadow accent.opacity(0.4), radius 8, y 4
-        val buttonLabel = if (selectedUserType == "client") "Tələbə kimi daxil ol" else "Məşqçi kimi daxil ol"
-        val buttonEnabled = email.isNotBlank() && password.isNotBlank() && !isLoading
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .shadow(
-                    elevation = if (buttonEnabled) 8.dp else 0.dp,
-                    shape = RoundedCornerShape(12.dp),
-                    spotColor = AppTheme.Colors.accent.copy(alpha = 0.4f),
-                    ambientColor = AppTheme.Colors.accent.copy(alpha = 0.2f)
-                )
-                .clip(RoundedCornerShape(12.dp))
-                .background(
-                    Brush.horizontalGradient(
-                        listOf(AppTheme.Colors.accent, AppTheme.Colors.accent.copy(alpha = 0.8f))
-                    )
-                )
-                .clickable(enabled = buttonEnabled, onClick = onLogin)
-                .padding(vertical = 14.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(22.dp),
-                    color = Color.White,
-                    strokeWidth = 2.dp
-                )
-            } else {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // iOS: person.fill (14pt) / person.2.fill (14pt)
-                    Icon(
-                        imageVector = Icons.Outlined.Person,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Text(
-                        text = buttonLabel,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                    // iOS: arrow.right (14pt, bold)
-                    Text(text = "→", fontSize = 14.sp, color = Color.White, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(20.dp))
+
+        Column(Modifier.padding(horizontal = 24.dp)) {
+            Button(
+                onClick = onLoginClick, enabled = !isLoading,
+                modifier = Modifier.fillMaxWidth().height(54.dp)
+                    .shadow(8.dp, RoundedCornerShape(14.dp), ambientColor = CoreViaPrimary.copy(alpha = 0.4f)),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = CoreViaPrimary)
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                } else {
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            if (userType == "client") Icons.Filled.Person else Icons.Filled.Groups,
+                            null, Modifier.size(20.dp), tint = Color.White
+                        )
+                        Text(
+                            if (userType == "client") "Tələbə olaraq daxil ol" else "Müəllim olaraq daxil ol",
+                            fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White
+                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowForward, null, Modifier.size(20.dp), tint = Color.White)
+                    }
                 }
             }
         }
 
-        // Ayırıcı: ──── və ya ──── (iOS: Rectangle.frame(height:1) + "və ya" + Rectangle)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            HorizontalDivider(modifier = Modifier.weight(1f), color = AppTheme.Colors.separator)
-            Text("və ya", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = AppTheme.Colors.secondaryText)
-            HorizontalDivider(modifier = Modifier.weight(1f), color = AppTheme.Colors.separator)
+        Spacer(Modifier.height(28.dp))
+
+        Row(Modifier.padding(horizontal = 24.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            HorizontalDivider(Modifier.weight(1f), color = Color(0xFFE0E0E0))
+            Text("və ya", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = TextSecondary)
+            HorizontalDivider(Modifier.weight(1f), color = Color(0xFFE0E0E0))
         }
 
-        // Qeydiyyat linki (iOS: "Hesabınız yoxdur?" + "Qeydiyyatdan keç" bold accent)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("Hesabınız yoxdur? ", fontSize = 14.sp, color = AppTheme.Colors.secondaryText)
-            TextButton(
-                onClick = onNavigateToRegister,
-                contentPadding = PaddingValues(0.dp)
-            ) {
-                Text(
-                    text = "Qeydiyyat",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = AppTheme.Colors.accent
-                )
-            }
+        Spacer(Modifier.height(28.dp))
+
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+            Text("Hesabınız yoxdur? ", fontSize = 14.sp, color = TextSecondary)
+            Text("Qeydiyyatdan keçin", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = CoreViaPrimary, modifier = Modifier.clickable { onRegisterClick() })
         }
     }
 }
 
-// ─── Step 2: OTP Verification ─────────────────────────────────────────────────
-// iOS: monospace 28sp TextField + Təsdiq et düyməsi + Geri qayıt
 @Composable
-fun OtpStep2Content(
-    email: String,
-    otpCode: String,
-    onOtpChange: (String) -> Unit,
-    showError: Boolean,
-    errorMessage: String,
-    isLoading: Boolean,
-    onVerify: () -> Unit,
-    onBack: () -> Unit
+private fun OTPContent(
+    email: String, otpCode: String, onOtpChange: (String) -> Unit,
+    isLoading: Boolean, errorMessage: String?,
+    onVerifyClick: () -> Unit, onBackClick: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 28.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp)
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text(
-                text = "OTP Təsdiqi",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = AppTheme.Colors.primaryText
-            )
-            Text(
-                text = "$email ünvanına göndərilən\n6 rəqəmli kodu daxil edin",
-                fontSize = 14.sp,
-                color = AppTheme.Colors.secondaryText,
-                textAlign = TextAlign.Center
-            )
-        }
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Spacer(Modifier.height(40.dp))
+        Text("OTP Təsdiqi", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+        Spacer(Modifier.height(12.dp))
+        Text(
+            "$email ünvanına göndərilən 6 rəqəmli kodu daxil edin",
+            fontSize = 14.sp, color = TextSecondary, textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 30.dp)
+        )
+        Spacer(Modifier.height(24.dp))
 
-        // OTP TextField — iOS: .system(size:28, weight:.bold, design:.monospaced)
         OutlinedTextField(
-            value = otpCode,
-            onValueChange = onOtpChange,
-            placeholder = {
-                Text(
-                    text = "000000",
-                    fontSize = 28.sp,
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    color = AppTheme.Colors.placeholderText,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp),
-            textStyle = androidx.compose.ui.text.TextStyle(
-                fontSize = 28.sp,
-                fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                color = AppTheme.Colors.primaryText
-            ),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.NumberPassword,
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions = KeyboardActions(onDone = { if (otpCode.length == 6) onVerify() }),
-            singleLine = true,
+            value = otpCode, onValueChange = onOtpChange,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 40.dp),
+            placeholder = { Text("000000", color = TextHint) },
+            textStyle = LocalTextStyle.current.copy(fontSize = 28.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, letterSpacing = 8.sp),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            singleLine = true, shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = AppTheme.Colors.accent,
-                unfocusedBorderColor = AppTheme.Colors.separator,
-                focusedContainerColor = AppTheme.Colors.secondaryBackground,
-                unfocusedContainerColor = AppTheme.Colors.secondaryBackground,
-                focusedTextColor = AppTheme.Colors.primaryText,
-                unfocusedTextColor = AppTheme.Colors.primaryText
-            ),
-            shape = RoundedCornerShape(12.dp)
+                focusedBorderColor = CoreViaPrimary, unfocusedBorderColor = Color(0xFFE8E8E8),
+                focusedContainerColor = Color(0xFFF8F8F8), unfocusedContainerColor = Color(0xFFF8F8F8)
+            )
         )
 
-        // Error
-        AnimatedVisibility(visible = showError, enter = fadeIn(), exit = fadeOut()) {
+        Spacer(Modifier.height(16.dp))
+
+        // Error message
+        AnimatedVisibility(
+            visible = errorMessage != null,
+            enter = slideInVertically() + fadeIn(),
+            exit = slideOutVertically() + fadeOut()
+        ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(AppTheme.Colors.error.copy(alpha = 0.2f), RoundedCornerShape(10.dp))
-                    .padding(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                Modifier.padding(horizontal = 24.dp).fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(CoreViaError.copy(alpha = 0.1f)).padding(14.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Outlined.Warning,
-                    contentDescription = null,
-                    tint = AppTheme.Colors.error,
-                    modifier = Modifier.size(16.dp)
-                )
-                Text(text = errorMessage, fontSize = 13.sp, color = AppTheme.Colors.primaryText)
+                Icon(Icons.Filled.Warning, null, Modifier.size(18.dp), tint = CoreViaError)
+                Text(errorMessage ?: "", fontSize = 13.sp, color = MaterialTheme.colorScheme.onBackground)
             }
         }
 
-        // Verify Button — iOS: gradient + cornerRadius 12 + opacity based on code length
-        val verifyEnabled = otpCode.length == 6 && !isLoading
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .shadow(
-                    elevation = if (verifyEnabled) 8.dp else 0.dp,
-                    shape = RoundedCornerShape(12.dp),
-                    spotColor = AppTheme.Colors.accent.copy(alpha = 0.4f),
-                    ambientColor = AppTheme.Colors.accent.copy(alpha = 0.2f)
-                )
-                .clip(RoundedCornerShape(12.dp))
-                .background(
-                    Brush.horizontalGradient(
-                        listOf(
-                            AppTheme.Colors.accent.copy(alpha = if (verifyEnabled) 1f else 0.5f),
-                            AppTheme.Colors.accent.copy(alpha = if (verifyEnabled) 0.8f else 0.4f)
-                        )
-                    )
-                )
-                .clickable(enabled = verifyEnabled, onClick = onVerify)
-                .padding(vertical = 14.dp),
-            contentAlignment = Alignment.Center
+        Spacer(Modifier.height(24.dp))
+
+        Button(
+            onClick = onVerifyClick, enabled = !isLoading && otpCode.length == 6,
+            modifier = Modifier.fillMaxWidth().height(54.dp).padding(horizontal = 24.dp),
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = CoreViaPrimary)
         ) {
             if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.size(22.dp), color = Color.White, strokeWidth = 2.dp)
+                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
             } else {
-                Text(
-                    text = "Təsdiq Et və Daxil Ol",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
+                Text("Təsdiq Et və Daxil Ol", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
             }
         }
 
-        // Geri qayıt (iOS: accent rəngli link)
-        TextButton(onClick = onBack) {
-            Text(
-                text = "Geri qayıt",
-                fontSize = 14.sp,
-                color = AppTheme.Colors.accent
-            )
-        }
-    }
-}
-
-// ─── CoreVia Login TextField ──────────────────────────────────────────────────
-// iOS: HStack { icon + TextField } — accent icon, border changes on value
-// Password toggle: eye.fill / eye.slash.fill (Material icons, not emojis)
-@Composable
-fun LoginTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    leadingIcon: @Composable () -> Unit,
-    keyboardType: KeyboardType = KeyboardType.Text,
-    imeAction: ImeAction = ImeAction.Next,
-    isPassword: Boolean = false,
-    passwordVisible: Boolean = false,
-    onPasswordToggle: (() -> Unit)? = null,
-    onDone: (() -> Unit)? = null,
-    hasValue: Boolean = false
-) {
-    var isFocused by remember { mutableStateOf(false) }
-
-    // iOS: border: empty→separator, hasValue→accent.opacity(0.5), focused→accent.opacity(0.5)
-    val borderColor by animateColorAsState(
-        when {
-            isFocused || hasValue -> AppTheme.Colors.accent.copy(alpha = 0.5f)
-            else -> AppTheme.Colors.separator
-        },
-        label = "textFieldBorder"
-    )
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(12.dp))
-            .border(1.dp, borderColor, RoundedCornerShape(12.dp))
-            .padding(horizontal = 16.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        leadingIcon()
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            placeholder = {
-                Text(
-                    text = placeholder,
-                    color = AppTheme.Colors.placeholderText,
-                    fontSize = 15.sp
-                )
-            },
-            modifier = Modifier
-                .weight(1f)
-                .onFocusChanged { isFocused = it.isFocused },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent,
-                focusedTextColor = AppTheme.Colors.primaryText,
-                unfocusedTextColor = AppTheme.Colors.primaryText,
-                cursorColor = AppTheme.Colors.accent
-            ),
-            visualTransformation = if (isPassword && !passwordVisible)
-                PasswordVisualTransformation() else VisualTransformation.None,
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction),
-            keyboardActions = KeyboardActions(onDone = { onDone?.invoke() }),
-            singleLine = true
-        )
-        // iOS: eye.fill / eye.slash.fill — Material icons (not emojis)
-        if (isPassword && onPasswordToggle != null) {
-            IconButton(
-                onClick = onPasswordToggle,
-                modifier = Modifier.size(32.dp)
-            ) {
-                Icon(
-                    imageVector = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                    contentDescription = if (passwordVisible) "Şifrəni gizlət" else "Şifrəni göstər",
-                    tint = AppTheme.Colors.secondaryText,
-                    modifier = Modifier.size(18.dp)
-                )
-            }
-        }
+        Spacer(Modifier.height(16.dp))
+        Text("Geri qayıt", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = CoreViaPrimary, modifier = Modifier.clickable { onBackClick() })
     }
 }

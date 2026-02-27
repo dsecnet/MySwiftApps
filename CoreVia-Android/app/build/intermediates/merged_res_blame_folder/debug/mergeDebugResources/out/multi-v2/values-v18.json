@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "life.corevia.app-mergeDebugResources-75:/values-v18/values-v18.xml",
+            "map": [
+                {
+                    "source": "/Users/vusaldadashov/.gradle/caches/8.11.1/transforms/9df4b2e1e358b0bb5ab93b6951bd34f9/transformed/appcompat-1.6.1/res/values-v18/values-v18.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "48",
+                        "endOffsets": "99"
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -1,18 +1,15 @@
 package life.corevia.app.ui.premium
 
-import life.corevia.app.ui.theme.AppTheme
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material.icons.automirrored.filled.DirectionsRun
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,270 +23,415 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import life.corevia.app.ui.theme.CoreViaAnimatedBackground
+import androidx.hilt.navigation.compose.hiltViewModel
+import life.corevia.app.ui.theme.*
 
 /**
- * iOS PremiumView.swift — Android 1-ə-1 port
- *
- * 2 state:
- *  - isPremium = true  → activePremiumSection (crown badge + plan info + cancel)
- *  - isPremium = false → premiumOfferSection (sparkle hero + price card + activate)
- * + featuresSection (always shown)
+ * iOS PremiumView.swift equivalent
+ * Premium aktiv/deaktiv vəziyyətinə görə fərqli görünüş
  */
 @Composable
 fun PremiumScreen(
-    viewModel: PremiumViewModel,
-    onBack: () -> Unit
+    viewModel: PremiumViewModel = hiltViewModel(),
+    onBack: () -> Unit = {}
 ) {
-    val status by viewModel.status.collectAsState()
-    val plans by viewModel.plans.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
-    val successMessage by viewModel.successMessage.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
-    val isPremium = status?.isPremium == true
-
-    var showCancelDialog by remember { mutableStateOf(false) }
-
-    // Cancel confirmation dialog
-    if (showCancelDialog) {
-        AlertDialog(
-            onDismissRequest = { showCancelDialog = false },
-            containerColor = AppTheme.Colors.secondaryBackground,
-            title = { Text("Abunəliyi ləğv et?", color = AppTheme.Colors.primaryText) },
-            text = { Text("Premium abunəliyinizi ləğv etmək istədiyinizdən əminsiniz?", color = AppTheme.Colors.secondaryText) },
-            confirmButton = {
-                TextButton(onClick = {
-                    showCancelDialog = false
-                    viewModel.cancel()
-                }) { Text("Ləğv et", color = AppTheme.Colors.error) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showCancelDialog = false }) {
-                    Text("Xeyr", color = AppTheme.Colors.secondaryText)
-                }
-            }
-        )
-    }
-
-    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.accent) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .verticalScroll(rememberScrollState())
+            .padding(bottom = 40.dp)
+    ) {
+        // ── Top Bar ──
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = 100.dp)
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, top = 50.dp, bottom = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // ─── Header ─────────────────────────────────────────────────
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .padding(top = 50.dp, bottom = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "Geri", tint = AppTheme.Colors.accent)
-                }
-            }
-
-            Column(
-                modifier = Modifier.padding(horizontal = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
-            ) {
-                if (isPremium) {
-                    // ═══════════════════════════════════════════════════════
-                    // iOS: activePremiumSection
-                    // ═══════════════════════════════════════════════════════
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        // iOS: Crown badge — 100dp gradient circle + crown 50sp
-                        Box(
-                            modifier = Modifier
-                                .padding(top = 20.dp)
-                                .size(100.dp)
-                                .shadow(20.dp, CircleShape, spotColor = AppTheme.Colors.accentDark.copy(alpha = 0.5f))
-                                .clip(CircleShape)
-                                .background(Brush.linearGradient(listOf(AppTheme.Colors.accentDark, AppTheme.Colors.accent))),
-                            contentAlignment = Alignment.Center
-                        ) { Icon(Icons.Outlined.WorkspacePremium, null, tint = Color.White, modifier = Modifier.size(50.dp)) }
-
-                        // iOS: .system(size: 24, weight: .bold)
-                        Text("Premium Aktiv", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = AppTheme.Colors.primaryText)
-
-                        Text(
-                            "Bütün premium xüsusiyyətlərə girişiniz var",
-                            fontSize = 14.sp, color = AppTheme.Colors.secondaryText,
-                            textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 16.dp)
-                        )
-
-                        // iOS: Plan Info — secondaryBackground, cornerRadius 20
-                        Column(
-                            modifier = Modifier.fillMaxWidth()
-                                .background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(20.dp))
-                                .padding(20.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            InfoRow(Icons.Outlined.CalendarMonth, "Plan", status?.planName ?: "Aylıq")
-                            HorizontalDivider(color = AppTheme.Colors.tertiaryText.copy(alpha = 0.3f))
-                            InfoRow(Icons.Outlined.CreditCard, "Qiymət", "9.99 ₼/ay")
-                        }
-
-                        // iOS: Cancel Button — error, bordered, cornerRadius 20
-                        OutlinedButton(
-                            onClick = { showCancelDialog = true },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(20.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = AppTheme.Colors.error),
-                            border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-                                brush = androidx.compose.ui.graphics.SolidColor(AppTheme.Colors.error), width = 1.5.dp
-                            ),
-                            contentPadding = PaddingValues(vertical = 16.dp)
-                        ) {
-                            Icon(Icons.Outlined.Close, null, Modifier.size(18.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text("Abunəliyi ləğv et", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                        }
-                    }
-                } else {
-                    // ═══════════════════════════════════════════════════════
-                    // iOS: premiumOfferSection
-                    // ═══════════════════════════════════════════════════════
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(20.dp)
-                    ) {
-                        // iOS: Sparkle hero — 120dp circle + sparkles icon 60sp
-                        Box(
-                            modifier = Modifier.padding(top = 20.dp).size(120.dp).clip(CircleShape)
-                                .background(Brush.linearGradient(listOf(
-                                    AppTheme.Colors.accentDark.copy(alpha = 0.2f),
-                                    AppTheme.Colors.accent.copy(alpha = 0.2f)
-                                ))),
-                            contentAlignment = Alignment.Center
-                        ) { Icon(Icons.Outlined.AutoAwesome, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(60.dp)) }
-
-                        // iOS: .system(size: 32, weight: .bold)
-                        Text("Premium", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = AppTheme.Colors.primaryText, textAlign = TextAlign.Center)
-
-                        // iOS: Price Card — secondaryBackground, cornerRadius 20
-                        Column(
-                            modifier = Modifier.fillMaxWidth()
-                                .background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(20.dp))
-                                .padding(vertical = 20.dp, horizontal = 16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            // iOS: 9.99 (52sp bold) + ₼/ay
-                            Row(verticalAlignment = Alignment.Bottom) {
-                                Text("9.99", fontSize = 52.sp, fontWeight = FontWeight.Bold, color = AppTheme.Colors.primaryText)
-                                Spacer(Modifier.width(6.dp))
-                                Column {
-                                    Text("₼", fontSize = 22.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.secondaryText)
-                                    Text("/ay", fontSize = 15.sp, color = AppTheme.Colors.tertiaryText)
-                                }
-                            }
-                            Text("3 günlük pulsuz sınaq müddəti ilə başlayın", fontSize = 13.sp, color = AppTheme.Colors.tertiaryText)
-                        }
-
-                        // iOS: Activate Button (gradient, cornerRadius 20, shadow)
-                        Button(
-                            onClick = { viewModel.activatePremium() },
-                            modifier = Modifier.fillMaxWidth().height(56.dp)
-                                .shadow(12.dp, RoundedCornerShape(20.dp), spotColor = AppTheme.Colors.accentDark.copy(alpha = 0.4f)),
-                            shape = RoundedCornerShape(20.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                            contentPadding = PaddingValues(0.dp),
-                            enabled = !isLoading
-                        ) {
-                            Box(
-                                Modifier.fillMaxSize().background(Brush.horizontalGradient(listOf(AppTheme.Colors.accentDark, AppTheme.Colors.accent))),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                    Icon(Icons.Outlined.WorkspacePremium, null, tint = Color.White, modifier = Modifier.size(18.dp))
-                                    Text("Premium-ı Aktivləşdir", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
-                                }
-                            }
-                        }
-
-                        Text("Ödəniş tezliklə əlavə olunacaq", fontSize = 13.sp, color = AppTheme.Colors.tertiaryText, textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 16.dp))
-                    }
-                }
-
-                // ═══════════════════════════════════════════════════════════
-                // iOS: featuresSection — always shown
-                // ═══════════════════════════════════════════════════════════
-                Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                    Text("Premium Xüsusiyyətlər", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = AppTheme.Colors.primaryText, modifier = Modifier.padding(horizontal = 4.dp))
-
-                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                        FeatureRow(Icons.AutoMirrored.Filled.DirectionsRun, "GPS İzləmə & Aktivliklər", "Real vaxtda GPS izləmə ilə qaçış, gəzinti və velosiped sürmə")
-                        FeatureRow(Icons.AutoMirrored.Filled.Chat, "Müəllimlə Söhbət", "Şəxsi müəlliminizlə birbaşa mesajlaşma")
-                        FeatureRow(Icons.Outlined.CameraAlt, "AI Qida Analizi", "Kamera ilə qidanızı çəkin, kalorini avtomatik hesablayın")
-                        FeatureRow(Icons.Outlined.Person, "Şəxsi Müəllim", "Peşəkar müəllim seçin və fərdi plan alın")
-                        FeatureRow(Icons.Outlined.BarChart, "Ətraflı Statistika", "Həftəlik və aylıq irəliləyiş hesabatları")
-                        FeatureRow(Icons.Outlined.AutoAwesome, "AI Tövsiyələr", "Süni intellekt ilə fərdi məşq və qidalanma tövsiyələri")
-                    }
-                }
-            }
+            Text(
+                text = "PREMIUM",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                text = "Bağla",
+                modifier = Modifier.clickable(onClick = onBack),
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Medium,
+                color = CoreViaPrimary
+            )
         }
 
-        // ─── Loading overlay ────────────────────────────────────────────
-        if (isLoading) {
-            Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(
-                    color = Color.White,
-                    modifier = Modifier.background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(12.dp)).padding(20.dp)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            if (uiState.isPremium) {
+                // ══════════════════════════════════════════════════════════
+                // PREMIUM AKTİV — iOS PremiumView (isPremium == true)
+                // ══════════════════════════════════════════════════════════
+                PremiumActiveHeader()
+                PlanInfoCard(planName = uiState.planName, planPrice = uiState.planPrice)
+                CancelPremiumButton()
+            } else {
+                // ══════════════════════════════════════════════════════════
+                // PREMIUM DEAKTİV — Plan seçimi
+                // ══════════════════════════════════════════════════════════
+                PremiumInactiveHeader()
+                PricingCard(
+                    title = "Aylıq Plan",
+                    price = uiState.monthlyPrice,
+                    isPopular = false,
+                    onClick = {}
+                )
+                PricingCard(
+                    title = "İllik Plan",
+                    price = uiState.yearlyPrice,
+                    isPopular = true,
+                    badge = "25% endirim",
+                    onClick = {}
                 )
             }
-        }
 
-        // ─── Success snackbar ──────────────────────────────────────────
-        successMessage?.let { msg ->
-            Snackbar(modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp), containerColor = AppTheme.Colors.success) { Text(msg, color = Color.White) }
-            LaunchedEffect(msg) { kotlinx.coroutines.delay(2000); viewModel.clearSuccess() }
-        }
+            // ── Premium Xüsusiyyətlər ──
+            Spacer(modifier = Modifier.height(8.dp))
 
-        // ─── Error snackbar ────────────────────────────────────────────
-        errorMessage?.let { error ->
-            Snackbar(
-                modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
-                containerColor = AppTheme.Colors.error,
-                action = { TextButton(onClick = { viewModel.clearError() }) { Text("Bağla", color = Color.White) } }
-            ) { Text(error, color = Color.White) }
-        }
-    }
-    } // CoreViaAnimatedBackground
-}
+            Text(
+                text = "Premium Xüsusiyyətlər",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
 
-// ═══ iOS: InfoRow ══════════════════════════════════════════════════════════
-@Composable
-private fun InfoRow(icon: ImageVector, title: String, value: String) {
-    Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(18.dp))
-        Spacer(Modifier.width(12.dp))
-        Text(title, fontSize = 15.sp, color = AppTheme.Colors.secondaryText)
-        Spacer(Modifier.weight(1f))
-        Text(value, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.primaryText)
+            uiState.features.forEach { feature ->
+                PremiumFeatureCard(feature = feature)
+            }
+        }
     }
 }
 
-// ═══ iOS: FeatureRow — 48dp icon circle + title + desc ═════════════════════
+// ═══════════════════════════════════════════════════════════════════
+// PREMIUM AKTİV HEADER — iOS crown + gradient
+// ═══════════════════════════════════════════════════════════════════
 @Composable
-private fun FeatureRow(icon: ImageVector, title: String, description: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth().background(AppTheme.Colors.secondaryBackground, RoundedCornerShape(20.dp)).padding(horizontal = 16.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)
+private fun PremiumActiveHeader() {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Box(Modifier.size(48.dp).clip(CircleShape).background(AppTheme.Colors.accent.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
-            Icon(icon, null, tint = AppTheme.Colors.accent, modifier = Modifier.size(20.dp))
+        // Crown icon with gradient circle
+        Box(
+            modifier = Modifier
+                .size(100.dp)
+                .shadow(
+                    20.dp, CircleShape,
+                    ambientColor = CoreViaPrimary.copy(alpha = 0.3f),
+                    spotColor = CoreViaPrimary.copy(alpha = 0.3f)
+                )
+                .clip(CircleShape)
+                .background(
+                    Brush.linearGradient(
+                        listOf(PremiumGradientStart, PremiumGradientEnd)
+                    )
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                Icons.Filled.Star,
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = Color(0xFFFFD700) // Gold
+            )
         }
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.Colors.primaryText)
-            Text(description, fontSize = 14.sp, color = AppTheme.Colors.secondaryText)
+
+        Text(
+            text = "Premium Aktiv",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+
+        Text(
+            text = "Bütün premium funksiyalara tam giriş",
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PLAN INFO CARD
+// ═══════════════════════════════════════════════════════════════════
+@Composable
+private fun PlanInfoCard(planName: String, planPrice: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Plan:",
+                fontSize = 15.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = planName,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Qiymət:",
+                fontSize = 15.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = planPrice,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CANCEL PREMIUM BUTTON
+// ═══════════════════════════════════════════════════════════════════
+@Composable
+private fun CancelPremiumButton() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .border(1.dp, CoreViaError, RoundedCornerShape(12.dp))
+            .clickable { /* show cancel alert */ }
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "Premium-i ləğv et",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = CoreViaError
+        )
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PREMIUM INACTIVE HEADER — non-premium state
+// ═══════════════════════════════════════════════════════════════════
+@Composable
+private fun PremiumInactiveHeader() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(
+                Brush.verticalGradient(
+                    listOf(PremiumGradientStart, PremiumGradientEnd)
+                )
+            )
+            .padding(start = 20.dp, end = 20.dp, top = 32.dp, bottom = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(72.dp)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.2f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                Icons.Filled.Star,
+                contentDescription = null,
+                tint = Color(0xFFFFD700),
+                modifier = Modifier.size(40.dp)
+            )
+        }
+
+        Text(
+            text = "CoreVia Premium",
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+
+        Text(
+            text = "Bütün premium özəllikləri açın və\nfitness səyahətinizi sürətləndirin",
+            fontSize = 14.sp,
+            color = Color.White.copy(alpha = 0.8f),
+            textAlign = TextAlign.Center,
+            lineHeight = 20.sp
+        )
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// FEATURE CARD — iOS PremiumView feature rows
+// ═══════════════════════════════════════════════════════════════════
+@Composable
+private fun PremiumFeatureCard(feature: PremiumFeature) {
+    val icon: ImageVector = when (feature.icon) {
+        "route" -> Icons.Filled.Route
+        "chat" -> Icons.Filled.Chat
+        "camera" -> Icons.Filled.CameraAlt
+        "trainer" -> Icons.Filled.People
+        else -> Icons.Filled.Star
+    }
+    val color: Color = when (feature.icon) {
+        "route" -> CoreViaSuccess
+        "chat" -> CoreViaPrimary
+        "camera" -> Color(0xFFFF9800)
+        "trainer" -> AccentBlue
+        else -> CoreViaPrimary
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .padding(14.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(color.copy(alpha = 0.15f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icon, null, tint = color, modifier = Modifier.size(24.dp))
+        }
+
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = feature.title,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                text = feature.description,
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                lineHeight = 18.sp
+            )
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PRICING CARD — for non-premium plan selection
+// ═══════════════════════════════════════════════════════════════════
+@Composable
+private fun PricingCard(
+    title: String,
+    price: String,
+    isPopular: Boolean,
+    badge: String? = null,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                if (isPopular) 8.dp else 4.dp,
+                RoundedCornerShape(16.dp),
+                ambientColor = if (isPopular) CoreViaPrimary.copy(alpha = 0.3f) else Color.Black.copy(alpha = 0.1f)
+            )
+            .clip(RoundedCornerShape(16.dp))
+            .background(
+                if (isPopular)
+                    Brush.horizontalGradient(listOf(CoreViaPrimary, CoreViaPrimary.copy(alpha = 0.85f)))
+                else
+                    Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surface))
+            )
+            .padding(20.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = title,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isPopular) Color.White else MaterialTheme.colorScheme.onSurface
+                    )
+                    if (badge != null) {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFFFFD700).copy(alpha = if (isPopular) 0.3f else 0.2f))
+                                .padding(horizontal = 8.dp, vertical = 3.dp)
+                        ) {
+                            Text(
+                                text = badge,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isPopular) Color(0xFFFFD700) else Color(0xFFFF9800)
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = price,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isPopular) Color.White else CoreViaPrimary
+                )
+            }
+
+            Button(
+                onClick = onClick,
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isPopular) Color.White else CoreViaPrimary
+                )
+            ) {
+                Text(
+                    text = "Seç",
+                    fontWeight = FontWeight.Bold,
+                    color = if (isPopular) CoreViaPrimary else Color.White
+                )
+            }
         }
     }
 }

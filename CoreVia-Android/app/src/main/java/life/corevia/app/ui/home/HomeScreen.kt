@@ -1,468 +1,633 @@
 package life.corevia.app.ui.home
 
-import life.corevia.app.ui.theme.AppTheme
-import life.corevia.app.ui.theme.CoreViaIconBadge
-import life.corevia.app.ui.theme.CoreViaGradientProgressBar
-import life.corevia.app.ui.theme.CoreViaSectionHeader
-import life.corevia.app.ui.theme.CoreViaAnimatedBackground
-import life.corevia.app.ui.theme.coreViaCard
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Feed
-import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import life.corevia.app.ui.workout.WorkoutViewModel
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
+import life.corevia.app.ui.theme.*
 
-/**
- * iOS HomeView.swift — Android 1-ə-1 port
- * Pinterest-inspired visual enhancement applied
- *
- * Bölmələr (iOS ilə eyni sıra):
- *  1. Header: "Salam" + "Gün üçün hazır ol"
- *  2. StatCard x2: məşq dəqiqələri + kalori
- *  3. Daily Goal: GradientProgressBar + tamamlanan/ümumi
- *  4. Today's Workouts: CompactWorkoutCard (max 2, "Hamısı" link)
- *  5. Quick Actions: 2x3 grid
- *  6. Weekly Stats: 3 WeekStatItem
- */
 @Composable
 fun HomeScreen(
-    userName: String = "",
-    onNavigateToWorkout: () -> Unit,
-    onNavigateToFood: () -> Unit,
-    onNavigateToTrainingPlan: () -> Unit,
-    onNavigateToLiveTracking: () -> Unit,
-    onNavigateToProfile: () -> Unit = {},
-    onNavigateToActivities: () -> Unit = {},
-    // iOS HomeView Quick Actions → feature screens
+    viewModel: HomeViewModel = hiltViewModel(),
+    onNavigateToWorkout: () -> Unit = {},
+    onNavigateToFood: () -> Unit = {},
+    onNavigateToRoute: () -> Unit = {},
+    onNavigateToAIAnalysis: () -> Unit = {},
+    onNavigateToNotifications: () -> Unit = {},
     onNavigateToSocial: () -> Unit = {},
     onNavigateToMarketplace: () -> Unit = {},
-    onNavigateToLiveSessions: () -> Unit = {},
+    onNavigateToLiveSession: () -> Unit = {},
     onNavigateToAnalytics: () -> Unit = {},
-    workoutViewModel: WorkoutViewModel = viewModel()
+    onNavigateToSurvey: () -> Unit = {}
 ) {
-    val workouts by workoutViewModel.workouts.collectAsState()
-    val isLoading by workoutViewModel.isLoading.collectAsState()
-    val scrollState = rememberScrollState()
+    val uiState by viewModel.uiState.collectAsState()
 
-    val weeklyMinutes  = workoutViewModel.weeklyMinutes
-    val weeklyCalories = workoutViewModel.weeklyCaloriesBurned
-    val weekCount      = workoutViewModel.weekWorkoutCount
-    val todayWorkouts  = workoutViewModel.todayWorkouts
+    // Reload data every time screen appears
+    val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                viewModel.loadData()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
-    // iOS: todayProgress = completed / total
-    val completedCount = todayWorkouts.count { it.isCompleted }
-    val totalCount     = todayWorkouts.size
-    val todayProgress  = if (totalCount > 0) completedCount.toFloat() / totalCount else 0f
+    HomeScreenContent(
+        uiState = uiState,
+        onNavigateToWorkout = onNavigateToWorkout,
+        onNavigateToFood = onNavigateToFood,
+        onNavigateToSocial = onNavigateToSocial,
+        onNavigateToMarketplace = onNavigateToMarketplace,
+        onNavigateToLiveSession = onNavigateToLiveSession,
+        onNavigateToAnalytics = onNavigateToAnalytics,
+        onSurveyClick = onNavigateToSurvey
+    )
+}
 
-    CoreViaAnimatedBackground(accentColor = AppTheme.Colors.accent) {
+@Composable
+fun HomeScreenContent(
+    uiState: HomeUiState = HomeUiState(),
+    onNavigateToWorkout: () -> Unit = {},
+    onNavigateToFood: () -> Unit = {},
+    onNavigateToSocial: () -> Unit = {},
+    onNavigateToMarketplace: () -> Unit = {},
+    onNavigateToLiveSession: () -> Unit = {},
+    onNavigateToAnalytics: () -> Unit = {},
+    onSurveyClick: () -> Unit = {}
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(scrollState)
-            .padding(horizontal = 20.dp)
+            .background(MaterialTheme.colorScheme.background)
+            .verticalScroll(rememberScrollState())
+            .padding(bottom = 80.dp)
     ) {
-        Spacer(modifier = Modifier.height(56.dp))
-
-        // ── 1. Header ───────────────────────────────────────────────────────────
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text       = if (userName.isNotEmpty()) "Salam, $userName" else "Salam",
-                fontSize   = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color      = AppTheme.Colors.primaryText
-            )
-            Icon(
-                imageVector = Icons.Outlined.WavingHand,
-                contentDescription = null,
-                modifier = Modifier.size(26.dp),
-                tint = AppTheme.Colors.accent
-            )
-        }
-        Text(
-            text     = "Gün üçün hazır ol",
-            fontSize = 16.sp,
-            color    = AppTheme.Colors.secondaryText
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // ── 2. StatCard x2 (iOS: HStack spacing 12) ────────────────────────────
-        Row(
-            modifier            = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            HomeStatCard(
-                modifier = Modifier.weight(1f),
-                icon     = Icons.Outlined.LocalFireDepartment,
-                value    = "$weeklyMinutes dəq",
-                label    = "Məşq"
-            )
-            HomeStatCard(
-                modifier = Modifier.weight(1f),
-                icon     = Icons.Outlined.Bolt,
-                value    = "$weeklyCalories",
-                label    = "Kalori"
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // ── 3. Daily Goal ────────────────────────────────────────────────────────
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .coreViaCard()
-                .padding(16.dp)
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Row(
-                modifier              = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment     = Alignment.CenterVertically
-            ) {
+            // MARK: - Header
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
-                    text       = "Günlük Hədəf",
-                    fontSize   = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color      = AppTheme.Colors.primaryText
-                )
-                Text(
-                    text       = "${(todayProgress * 100).toInt()}%",
-                    fontSize   = 16.sp,
+                    text = "Salam, ${uiState.userName} \uD83D\uDC4B",
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color      = AppTheme.Colors.accent
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = "Hədəflərinizə fokuslanın",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            Spacer(modifier = Modifier.height(10.dp))
 
-            // Gradient progress bar
-            CoreViaGradientProgressBar(
-                progress = todayProgress,
-                height = 8.dp
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-
-            // iOS: "\(completed)/\(total) tamamlandı"
-            Text(
-                text     = "$completedCount/$totalCount tamamlandı",
-                fontSize = 12.sp,
-                color    = AppTheme.Colors.secondaryText
-            )
-        }
-
-        // ── 4. Today's Workouts ─────────────────────────────────────────────────
-        if (todayWorkouts.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            CoreViaSectionHeader(
-                title = "Bu Günün Məşqləri",
-                trailing = {
-                    Text(
-                        text     = "Hamısı",
-                        fontSize = 13.sp,
-                        color    = AppTheme.Colors.accent,
-                        modifier = Modifier.clickable { onNavigateToWorkout() }
-                    )
-                }
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // iOS: ForEach todayWorkouts.prefix(2) { CompactWorkoutCard }
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                todayWorkouts.take(2).forEach { workout ->
-                    HomeCompactWorkoutCard(workout = workout)
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // ── 5. Quick Actions (iOS: LazyVGrid 2 columns) ─────────────────────────
-        CoreViaSectionHeader(
-            title = "Sürətli Əməliyyatlar",
-            subtitle = "Tez keçidlər"
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // iOS HomeView: 6 QuickActionButton — 2 sütunlu grid
-        val quickActions = listOf(
-            Triple(Icons.Outlined.Add,          "Məşq əlavə et",   onNavigateToWorkout),
-            Triple(Icons.Outlined.Restaurant,   "Qida əlavə et",   onNavigateToFood),
-            Triple(Icons.AutoMirrored.Outlined.Feed, "Sosial Axın",     onNavigateToSocial),
-            Triple(Icons.Outlined.ShoppingCart,  "Mağaza",          onNavigateToMarketplace),
-            Triple(Icons.Outlined.Videocam,     "Canlı Sessiyalar", onNavigateToLiveSessions),
-            Triple(Icons.Outlined.BarChart,      "Statistika",       onNavigateToAnalytics)
-        )
-
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            quickActions.chunked(2).forEach { rowItems ->
-                Row(
-                    modifier              = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    rowItems.forEach { (icon, label, action) ->
-                        HomeQuickActionButton(
-                            modifier = Modifier.weight(1f),
-                            icon     = icon,
-                            label    = label,
-                            onClick  = action
-                        )
-                    }
-                    // Əgər tək element varsa, boş yer doldur
-                    if (rowItems.size == 1) {
-                        Spacer(modifier = Modifier.weight(1f))
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // ── 6. Weekly Stats (iOS: HStack WeekStatItem x3) ───────────────────────
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .coreViaCard()
-                .padding(16.dp)
-        ) {
-            Text(
-                text       = "Bu Həftə",
-                fontSize   = 17.sp,
-                fontWeight = FontWeight.Bold,
-                color      = AppTheme.Colors.primaryText
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-
+            // MARK: - Stats (Real Data)
             Row(
-                modifier              = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                WeekStatItem(icon = Icons.Outlined.FitnessCenter, value = "$weekCount",        label = "Məşq")
-                WeekStatItem(icon = Icons.Outlined.CheckCircle,   value = "$completedCount",    label = "Tamamlandı")
-                WeekStatItem(icon = Icons.Outlined.Timer,         value = "$weeklyMinutes",     label = "Dəqiqə")
+                StatCard(
+                    modifier = Modifier.weight(1f),
+                    title = "Məşq",
+                    value = "${uiState.todayTotalMinutes} dəq",
+                    icon = Icons.Filled.LocalFireDepartment,
+                    color = CoreViaPrimary
+                )
+                StatCard(
+                    modifier = Modifier.weight(1f),
+                    title = "Kalori",
+                    value = "${uiState.todayTotalCalories}",
+                    icon = Icons.Filled.Bolt,
+                    color = CoreViaPrimary
+                )
             }
-        }
 
-        Spacer(modifier = Modifier.height(100.dp)) // CustomTabBar üçün yer
-    }
-    } // CoreViaAnimatedBackground
-}
+            // MARK: - Daily Survey Prompt
+            DailySurveyPrompt(onClick = onSurveyClick)
 
-// ─── StatCard — Pinterest-inspired ──────────────────────────────────────────
-@Composable
-fun HomeStatCard(
-    modifier: Modifier = Modifier,
-    icon: ImageVector,
-    value: String,
-    label: String
-) {
-    Column(
-        modifier = modifier
-            .coreViaCard()
-            .padding(16.dp)
-    ) {
-        CoreViaIconBadge(icon = icon, tintColor = AppTheme.Colors.accent, size = 36.dp, iconSize = 18.dp)
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text       = value,
-            fontSize   = 22.sp,
-            fontWeight = FontWeight.Bold,
-            color      = AppTheme.Colors.primaryText
-        )
-        Text(
-            text     = label,
-            fontSize = 12.sp,
-            color    = AppTheme.Colors.secondaryText
-        )
-    }
-}
-
-// ─── QuickActionButton — Pinterest-inspired card style ──────────────────────
-@Composable
-fun HomeQuickActionButton(
-    modifier: Modifier = Modifier,
-    icon: ImageVector,
-    label: String,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .coreViaCard(cornerRadius = 12.dp)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 14.dp),
-        verticalAlignment     = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        CoreViaIconBadge(icon = icon, tintColor = AppTheme.Colors.accent, size = 32.dp, iconSize = 16.dp)
-        Text(
-            text       = label,
-            fontSize   = 13.sp,
-            color      = AppTheme.Colors.primaryText,
-            fontWeight = FontWeight.Medium,
-            maxLines   = 1
-        )
-    }
-}
-
-// ─── CompactWorkoutCard — Pinterest-inspired ────────────────────────────────
-@Composable
-fun HomeCompactWorkoutCard(workout: life.corevia.app.data.models.Workout) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .coreViaCard(cornerRadius = 12.dp)
-            .padding(16.dp),
-        verticalAlignment     = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            CoreViaIconBadge(
-                icon = Icons.Outlined.FitnessCenter,
-                tintColor = AppTheme.Colors.accent,
-                size = 40.dp,
-                iconSize = 20.dp
+            // MARK: - Daily Goal
+            DailyGoalCard(
+                progress = uiState.todayProgress,
+                completedCount = uiState.todayCompletedCount,
+                totalCount = uiState.todayTotalCount
             )
-            Column {
-                Text(
-                    text       = workout.title,
-                    color      = AppTheme.Colors.primaryText,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize   = 15.sp
-                )
-                Text(
-                    text     = "${workout.duration} dəq",
-                    color    = AppTheme.Colors.secondaryText,
-                    fontSize = 12.sp
+
+            // MARK: - Today's Workouts
+            if (uiState.todayWorkouts.isNotEmpty()) {
+                TodayWorkoutsSection(
+                    workouts = uiState.todayWorkouts,
+                    onSeeAll = onNavigateToWorkout
                 )
             }
+
+            // MARK: - Quick Actions
+            Text(
+                text = "Tez Əməliyyatlar",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+
+            QuickActionsGrid(
+                onWorkoutClick = onNavigateToWorkout,
+                onFoodClick = onNavigateToFood,
+                onSocialClick = onNavigateToSocial,
+                onMarketplaceClick = onNavigateToMarketplace,
+                onLiveSessionClick = onNavigateToLiveSession,
+                onAnalyticsClick = onNavigateToAnalytics
+            )
+
+            // MARK: - AI Recommendation
+            AIRecommendationCard(recommendation = uiState.aiRecommendation, isLoading = uiState.isLoadingAI)
+
+            // MARK: - Weekly Stats
+            WeeklyStatsCard(stats = uiState.weekStats)
         }
-        // iOS: workout.isCompleted ? checkmark.circle.fill : circle
-        Icon(
-            imageVector = if (workout.isCompleted) Icons.Outlined.CheckCircle else Icons.Outlined.RadioButtonUnchecked,
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-            tint = if (workout.isCompleted) AppTheme.Colors.success else AppTheme.Colors.tertiaryText
-        )
     }
+
 }
 
-// ─── WeekStatItem — Pinterest-inspired ──────────────────────────────────────
+// MARK: - StatCard
 @Composable
-fun WeekStatItem(
-    icon: ImageVector,
-    value: String,
-    label: String
-) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        CoreViaIconBadge(icon = icon, tintColor = AppTheme.Colors.accent, size = 36.dp, iconSize = 18.dp)
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text       = value,
-            fontSize   = 16.sp,
-            fontWeight = FontWeight.SemiBold,
-            color      = AppTheme.Colors.primaryText
-        )
-        Text(
-            text     = label,
-            fontSize = 11.sp,
-            color    = AppTheme.Colors.secondaryText
-        )
-    }
-}
-
-// ─── Legacy StatCard / QuickActionButton / CompactWorkoutCard ───────────────
-// Köhnə kod uyğunluğu üçün — silinmir
-@Composable
-fun StatCard(
+private fun StatCard(
     modifier: Modifier = Modifier,
+    title: String,
     value: String,
-    label: String,
+    icon: ImageVector,
     color: Color
 ) {
-    Column(
+    Row(
         modifier = modifier
-            .coreViaCard(accentColor = color, cornerRadius = 16.dp)
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .clip(RoundedCornerShape(10.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .padding(horizontal = 10.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = value, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = color)
-        Text(text = label, fontSize = 12.sp, color = AppTheme.Colors.secondaryText)
+        Icon(
+            icon, null,
+            modifier = Modifier.size(16.dp),
+            tint = color
+        )
+        Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+            Text(
+                text = value,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                text = title,
+                fontSize = 10.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 
+// MARK: - Daily Survey Prompt
 @Composable
-fun QuickActionButton(
-    modifier: Modifier = Modifier,
-    emoji: String,
-    label: String,
-    color: Color,
-    onClick: () -> Unit
-) {
-    Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(color.copy(alpha = 0.15f))
+private fun DailySurveyPrompt(onClick: () -> Unit = {}) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(
+                Brush.linearGradient(
+                    listOf(Color(0xFF2196F3).copy(alpha = 0.05f), Color(0xFF2196F3).copy(alpha = 0.1f))
+                )
+            )
+            .border(1.dp, Color(0xFF2196F3).copy(alpha = 0.2f), RoundedCornerShape(12.dp))
             .clickable(onClick = onClick)
             .padding(12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = emoji, fontSize = 24.sp)
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text      = label,
-            fontSize  = 11.sp,
-            color     = color,
-            fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.Center
+        Box(
+            modifier = Modifier
+                .size(42.dp)
+                .clip(CircleShape)
+                .background(Color(0xFF2196F3).copy(alpha = 0.15f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                Icons.Filled.Assignment, null,
+                modifier = Modifier.size(18.dp),
+                tint = Color(0xFF2196F3)
+            )
+        }
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            Text(
+                text = "Günlük sorğunu doldur",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                text = "Vəziyyətini qiymətləndir",
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Icon(
+            Icons.Filled.ChevronRight, null,
+            modifier = Modifier.size(14.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
 
+// MARK: - Daily Goal
 @Composable
-fun CompactWorkoutCard(workout: life.corevia.app.data.models.Workout) {
+private fun DailyGoalCard(progress: Float, completedCount: Int, totalCount: Int) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Günlük Hədəf",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                text = "${(progress * 100).toInt()}%",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = CoreViaPrimary
+            )
+        }
+
+        LinearProgressIndicator(
+            progress = { progress.coerceIn(0f, 1f) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(6.dp)
+                .clip(RoundedCornerShape(3.dp)),
+            color = CoreViaPrimary,
+            trackColor = CoreViaPrimary.copy(alpha = 0.12f),
+        )
+
+        Text(
+            text = "$completedCount/$totalCount Tamamlandı",
+            fontSize = 10.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+// MARK: - Today's Workouts
+@Composable
+private fun TodayWorkoutsSection(workouts: List<TodayWorkout>, onSeeAll: () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Bugünkü Məşqlər",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                text = "Hamısına bax",
+                fontSize = 12.sp,
+                color = CoreViaPrimary,
+                modifier = Modifier.clickable { onSeeAll() }
+            )
+        }
+
+        workouts.take(2).forEach { workout ->
+            CompactWorkoutCard(workout = workout)
+        }
+    }
+}
+
+// MARK: - Compact Workout Card
+@Composable
+private fun CompactWorkoutCard(workout: TodayWorkout) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .coreViaCard(cornerRadius = 12.dp)
-            .padding(16.dp),
-        verticalAlignment     = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .padding(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Column {
-            Text(text = workout.title, color = AppTheme.Colors.primaryText, fontWeight = FontWeight.Medium, fontSize = 15.sp)
-            Text(text = "${workout.duration} dəq", color = AppTheme.Colors.secondaryText, fontSize = 13.sp)
-        }
-        if (workout.isCompleted) {
-            Icon(
-                imageVector = Icons.Outlined.CheckCircle,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = AppTheme.Colors.success
+        Icon(
+            Icons.Filled.FavoriteBorder, null,
+            modifier = Modifier.size(24.dp),
+            tint = CoreViaPrimary
+        )
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            Text(
+                text = workout.title,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                text = "${workout.duration} dəq",
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+        Icon(
+            if (workout.isCompleted) Icons.Filled.CheckCircle else Icons.Filled.RadioButtonUnchecked,
+            null,
+            modifier = Modifier.size(22.dp),
+            tint = if (workout.isCompleted) CoreViaSuccess else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+        )
+    }
+}
+
+// MARK: - Quick Actions Grid (3x2)
+@Composable
+private fun QuickActionsGrid(
+    onWorkoutClick: () -> Unit,
+    onFoodClick: () -> Unit,
+    onSocialClick: () -> Unit,
+    onMarketplaceClick: () -> Unit,
+    onLiveSessionClick: () -> Unit,
+    onAnalyticsClick: () -> Unit
+) {
+    // Row 1
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        CompactQuickAction(Modifier.weight(1f), "Məşq Əlavə Et", Icons.Filled.AddCircle, onWorkoutClick)
+        CompactQuickAction(Modifier.weight(1f), "Qida Əlavə Et", Icons.Filled.Restaurant, onFoodClick)
+        CompactQuickAction(Modifier.weight(1f), "Sosial", Icons.Filled.People, onSocialClick)
+    }
+    // Row 2
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        CompactQuickAction(Modifier.weight(1f), "Mağaza", Icons.Filled.ShoppingCart, onMarketplaceClick)
+        CompactQuickAction(Modifier.weight(1f), "Canlı Sessiyalar", Icons.Filled.Videocam, onLiveSessionClick)
+        CompactQuickAction(Modifier.weight(1f), "Statistika", Icons.Filled.BarChart, onAnalyticsClick)
+    }
+}
+
+@Composable
+private fun CompactQuickAction(
+    modifier: Modifier = Modifier,
+    title: String,
+    icon: ImageVector,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(CoreViaPrimary.copy(alpha = 0.85f))
+            .clickable { onClick() }
+            .padding(vertical = 12.dp, horizontal = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Icon(
+            icon, null,
+            modifier = Modifier.size(18.dp),
+            tint = Color.White
+        )
+        Text(
+            text = title,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color.White,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+// MARK: - AI Recommendation Card (purple themed)
+@Composable
+private fun AIRecommendationCard(recommendation: AIRecommendation, isLoading: Boolean) {
+    val purple = Color(0xFF9C27B0)
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(
+                Brush.linearGradient(
+                    listOf(purple.copy(alpha = 0.05f), purple.copy(alpha = 0.1f))
+                )
+            )
+            .border(1.dp, purple.copy(alpha = 0.2f), RoundedCornerShape(14.dp))
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Filled.Psychology, null,
+                modifier = Modifier.size(18.dp),
+                tint = purple
+            )
+            Text(
+                text = "AI Tövsiyə",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Spacer(Modifier.weight(1f))
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(14.dp),
+                    strokeWidth = 2.dp,
+                    color = purple
+                )
+            } else {
+                Icon(
+                    Icons.Filled.AutoAwesome, null,
+                    modifier = Modifier.size(16.dp),
+                    tint = purple
+                )
+            }
+        }
+
+        Text(
+            text = recommendation.title,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+
+        Text(
+            text = recommendation.description,
+            fontSize = 13.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            lineHeight = 18.sp,
+            maxLines = 3
+        )
+
+        // Category tag
+        val tagColor = when (recommendation.type) {
+            "workout" -> CoreViaPrimary
+            "meal" -> Color(0xFFFF9800)
+            "hydration" -> Color(0xFF2196F3)
+            "sleep" -> purple
+            "rest" -> CoreViaSuccess
+            else -> CoreViaPrimary
+        }
+        val tagIcon = when (recommendation.type) {
+            "workout" -> Icons.Filled.DirectionsRun
+            "meal" -> Icons.Filled.Restaurant
+            "hydration" -> Icons.Filled.WaterDrop
+            "sleep" -> Icons.Filled.DarkMode
+            "rest" -> Icons.Filled.Spa
+            else -> Icons.Filled.EmojiEvents
+        }
+
+        Row(
+            modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .background(tagColor.copy(alpha = 0.1f))
+                .padding(horizontal = 10.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                tagIcon, null,
+                modifier = Modifier.size(12.dp),
+                tint = tagColor
+            )
+            Text(
+                text = recommendation.category,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = tagColor
+            )
+        }
+    }
+}
+
+// MARK: - Weekly Stats
+@Composable
+private fun WeeklyStatsCard(stats: WeekStats) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = "Bu Həftə",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+
+        Row(modifier = Modifier.fillMaxWidth()) {
+            WeekStatItem(
+                modifier = Modifier.weight(1f),
+                icon = Icons.Filled.FitnessCenter,
+                value = "${stats.workoutCount}",
+                label = "Məşq"
+            )
+            WeekStatItem(
+                modifier = Modifier.weight(1f),
+                icon = Icons.Filled.CheckCircle,
+                value = "${stats.completedCount}",
+                label = "Tamamlandı"
+            )
+            WeekStatItem(
+                modifier = Modifier.weight(1f),
+                icon = Icons.Filled.Schedule,
+                value = "${stats.totalMinutes}",
+                label = "Dəqiqə"
+            )
+        }
+    }
+}
+
+@Composable
+private fun WeekStatItem(
+    modifier: Modifier = Modifier,
+    icon: ImageVector,
+    value: String,
+    label: String
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Icon(
+            icon, null,
+            modifier = Modifier.size(16.dp),
+            tint = CoreViaPrimary
+        )
+        Text(
+            text = value,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Text(
+            text = label,
+            fontSize = 10.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun HomeScreenPreview() {
+    CoreViaTheme {
+        HomeScreenContent()
     }
 }

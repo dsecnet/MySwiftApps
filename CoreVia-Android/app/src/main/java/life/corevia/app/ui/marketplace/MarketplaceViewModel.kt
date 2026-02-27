@@ -1,134 +1,63 @@
 package life.corevia.app.ui.marketplace
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import life.corevia.app.data.api.ErrorParser
-import life.corevia.app.data.models.*
+import life.corevia.app.data.model.MarketplaceProduct
+import life.corevia.app.data.model.MarketplaceProductType
 import life.corevia.app.data.repository.MarketplaceRepository
+import life.corevia.app.util.NetworkResult
+import javax.inject.Inject
 
-class MarketplaceViewModel(application: Application) : AndroidViewModel(application) {
+data class MarketplaceUiState(
+    val isLoading: Boolean = false,
+    val products: List<MarketplaceProduct> = emptyList(),
+    val selectedFilter: String = "all",
+    val error: String? = null
+) {
+    val filteredProducts: List<MarketplaceProduct>
+        get() = if (selectedFilter == "all") products
+        else products.filter { it.productType == selectedFilter }
+}
 
-    private val repository = MarketplaceRepository.getInstance(application)
+@HiltViewModel
+class MarketplaceViewModel @Inject constructor(
+    private val marketplaceRepository: MarketplaceRepository
+) : ViewModel() {
 
-    private val _products = MutableStateFlow<List<Product>>(emptyList())
-    val products: StateFlow<List<Product>> = _products.asStateFlow()
+    private val _uiState = MutableStateFlow(MarketplaceUiState())
+    val uiState: StateFlow<MarketplaceUiState> = _uiState.asStateFlow()
 
-    private val _selectedProduct = MutableStateFlow<Product?>(null)
-    val selectedProduct: StateFlow<Product?> = _selectedProduct.asStateFlow()
-
-    private val _orders = MutableStateFlow<List<Order>>(emptyList())
-    val orders: StateFlow<List<Order>> = _orders.asStateFlow()
-
-    private val _reviews = MutableStateFlow<List<ProductReview>>(emptyList())
-    val reviews: StateFlow<List<ProductReview>> = _reviews.asStateFlow()
-
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
-
-    private val _successMessage = MutableStateFlow<String?>(null)
-    val successMessage: StateFlow<String?> = _successMessage.asStateFlow()
-
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
-
-    private val _selectedCategory = MutableStateFlow<String?>(null)
-    val selectedCategory: StateFlow<String?> = _selectedCategory.asStateFlow()
-
-    init { loadProducts() }
+    init {
+        loadProducts()
+    }
 
     fun loadProducts() {
         viewModelScope.launch {
-            _isLoading.value = true
-            repository.getProducts().fold(
-                onSuccess = { _products.value = it },
-                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
-            )
-            _isLoading.value = false
-        }
-    }
-
-    fun selectProduct(product: Product) {
-        _selectedProduct.value = product
-        loadReviews(product.id)
-    }
-    fun clearSelectedProduct() { _selectedProduct.value = null }
-
-    fun updateSearchQuery(query: String) { _searchQuery.value = query }
-    fun selectCategory(category: String?) { _selectedCategory.value = category }
-
-    val filteredProducts: List<Product>
-        get() {
-            var list = _products.value
-            val query = _searchQuery.value
-            val category = _selectedCategory.value
-            if (query.isNotBlank()) {
-                list = list.filter { it.name.contains(query, ignoreCase = true) || (it.description?.contains(query, ignoreCase = true) == true) }
+            _uiState.value = _uiState.value.copy(isLoading = true)
+            when (val result = marketplaceRepository.getProducts()) {
+                is NetworkResult.Success -> {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        products = result.data.products
+                    )
+                }
+                is NetworkResult.Error -> {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = result.message
+                    )
+                }
+                is NetworkResult.Loading -> {}
             }
-            if (category != null) {
-                list = list.filter { it.category == category }
-            }
-            return list
-        }
-
-    fun createOrder(productId: String, quantity: Int = 1) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            repository.createOrder(CreateOrderRequest(productId, quantity)).fold(
-                onSuccess = {
-                    _successMessage.value = "Sifariş yaradıldı!"
-                    loadOrders()
-                },
-                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
-            )
-            _isLoading.value = false
         }
     }
 
-    fun loadOrders() {
-        viewModelScope.launch {
-            repository.getOrders().fold(
-                onSuccess = { _orders.value = it },
-                onFailure = { /* silent */ }
-            )
-        }
+    fun setFilter(filter: String) {
+        _uiState.value = _uiState.value.copy(selectedFilter = filter)
     }
-
-    // ─── Reviews ────────────────────────────────────────────────────────────
-
-    fun loadReviews(productId: String) {
-        viewModelScope.launch {
-            repository.getProductReviews(productId).fold(
-                onSuccess = { _reviews.value = it },
-                onFailure = { _reviews.value = emptyList() }
-            )
-        }
-    }
-
-    fun submitReview(productId: String, rating: Int, comment: String?) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            repository.createProductReview(
-                CreateProductReviewRequest(productId, rating, comment)
-            ).fold(
-                onSuccess = { newReview ->
-                    _reviews.value = listOf(newReview) + _reviews.value
-                    _successMessage.value = "Rəyiniz əlavə edildi!"
-                    loadProducts()
-                },
-                onFailure = { _errorMessage.value = ErrorParser.parseMessage(it as Exception) }
-            )
-            _isLoading.value = false
-        }
-    }
-
-    fun clearError() { _errorMessage.value = null }
-    fun clearSuccess() { _successMessage.value = null }
 }

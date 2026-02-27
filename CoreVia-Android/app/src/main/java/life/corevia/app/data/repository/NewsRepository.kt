@@ -1,61 +1,52 @@
 package life.corevia.app.data.repository
 
-import android.content.Context
-import life.corevia.app.data.api.ApiClient
-import life.corevia.app.data.models.*
+import life.corevia.app.data.model.NewsCategoriesResponse
+import life.corevia.app.data.model.NewsResponse
+import life.corevia.app.data.remote.ApiService
+import life.corevia.app.util.NetworkResult
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class NewsRepository(context: Context) {
+/**
+ * iOS NewsService.swift equivalent
+ * Xəbər məqalələri — backend API ilə
+ */
+@Singleton
+class NewsRepository @Inject constructor(
+    private val apiService: ApiService
+) {
 
-    private val api = ApiClient.getInstance(context).api
+    // ─── Fetch News Articles ─────────────────────────────────────────
 
-    suspend fun getNews(): Result<List<NewsArticle>> {
+    suspend fun fetchNews(
+        category: String? = null,
+        limit: Int = 20,
+        offset: Int = 0
+    ): NetworkResult<NewsResponse> {
         return try {
-            val response = api.getNews()
-            Result.success(response.articles)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getArticle(articleId: String): Result<NewsArticle> {
-        return try {
-            Result.success(api.getNewsArticle(articleId))
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun bookmarkArticle(articleId: String, title: String?): Result<NewsBookmark> {
-        return try {
-            Result.success(api.bookmarkArticle(BookmarkRequest(articleId, title)))
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun removeBookmark(articleId: String): Result<Unit> {
-        return try {
-            api.removeBookmark(articleId)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getBookmarks(): Result<List<NewsBookmark>> {
-        return try {
-            Result.success(api.getBookmarks())
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    companion object {
-        @Volatile private var instance: NewsRepository? = null
-        fun getInstance(context: Context): NewsRepository =
-            instance ?: synchronized(this) {
-                instance ?: NewsRepository(context.applicationContext).also { instance = it }
+            val response = apiService.getNews(category, limit, offset)
+            if (response.isSuccessful) {
+                NetworkResult.Success(response.body() ?: NewsResponse())
+            } else {
+                NetworkResult.Error("Xəbərlər yüklənə bilmədi", response.code())
             }
-        fun clearInstance() { instance = null }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
+    }
+
+    // ─── Fetch News Categories ───────────────────────────────────────
+
+    suspend fun fetchCategories(): NetworkResult<NewsCategoriesResponse> {
+        return try {
+            val response = apiService.getNewsCategories()
+            if (response.isSuccessful) {
+                NetworkResult.Success(response.body() ?: NewsCategoriesResponse())
+            } else {
+                NetworkResult.Error("Kateqoriyalar yüklənə bilmədi", response.code())
+            }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
     }
 }

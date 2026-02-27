@@ -1,0 +1,2 @@
+-keep,allowobfuscation,allowshrinking class life.corevia.app.ui.settings.SettingsViewModel
+-keep,allowobfuscation,allowshrinking class life.corevia.app.ui.settings.SettingsViewModel

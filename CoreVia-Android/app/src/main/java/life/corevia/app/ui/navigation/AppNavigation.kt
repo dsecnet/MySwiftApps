@@ -1,1079 +1,876 @@
 package life.corevia.app.ui.navigation
 
-import life.corevia.app.ui.theme.AppTheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.automirrored.outlined.Chat
-import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import life.corevia.app.data.api.TokenManager
-import life.corevia.app.ui.activities.ActivitiesScreen
-import life.corevia.app.ui.activities.ActivitiesViewModel
-import life.corevia.app.ui.auth.AuthViewModel
 import life.corevia.app.ui.auth.ForgotPasswordScreen
 import life.corevia.app.ui.auth.LoginScreen
-import life.corevia.app.ui.auth.RegisterScreen
-import life.corevia.app.ui.food.FoodScreen
-import life.corevia.app.ui.food.FoodViewModel
-import life.corevia.app.ui.home.HomeScreen
-import life.corevia.app.ui.home.TrainerHomeScreen
-import life.corevia.app.ui.home.TrainerHomeViewModel
-import life.corevia.app.ui.mealplan.AddMealPlanScreen
-import life.corevia.app.ui.mealplan.EditMealPlanScreen
-import life.corevia.app.ui.mealplan.MealPlanScreen
-import life.corevia.app.ui.mealplan.MealPlanViewModel
-import life.corevia.app.ui.profile.ProfileScreen
-import life.corevia.app.ui.profile.ProfileViewModel
-import life.corevia.app.ui.profile.TrainerProfileScreen
-import life.corevia.app.ui.settings.SettingsScreen
-import life.corevia.app.ui.trainer.MyStudentsScreen
-import life.corevia.app.ui.trainer.MyStudentsViewModel
-import life.corevia.app.ui.trainingplan.AddTrainingPlanScreen
-import life.corevia.app.ui.trainingplan.EditTrainingPlanScreen
-import life.corevia.app.ui.trainingplan.TrainingPlanScreen
-import life.corevia.app.ui.trainingplan.TrainingPlanViewModel
-import life.corevia.app.ui.workout.WorkoutScreen
-import life.corevia.app.ui.workout.WorkoutViewModel
-import life.corevia.app.ui.chat.ChatViewModel
 import life.corevia.app.ui.chat.ConversationsScreen
-import life.corevia.app.ui.chat.ChatDetailScreen
-import life.corevia.app.ui.notifications.NotificationsViewModel
-import life.corevia.app.ui.notifications.NotificationsScreen
-import life.corevia.app.ui.analytics.AnalyticsViewModel
-import life.corevia.app.ui.analytics.AnalyticsScreen
-import life.corevia.app.ui.social.SocialViewModel
-import life.corevia.app.ui.social.SocialFeedScreen
-import life.corevia.app.ui.social.UserProfileScreen
-import life.corevia.app.ui.social.AchievementsScreen
-import life.corevia.app.ui.premium.PremiumViewModel
+import life.corevia.app.ui.food.FoodScreen
+import life.corevia.app.ui.home.HomeScreen
 import life.corevia.app.ui.premium.PremiumScreen
-import life.corevia.app.ui.trainers.TrainersViewModel
-import life.corevia.app.ui.trainers.TrainersScreen
-import life.corevia.app.ui.trainers.TrainerDetailScreen
+import life.corevia.app.ui.profile.EditProfileScreen
+import life.corevia.app.ui.profile.ProfileScreen
+import life.corevia.app.ui.route.RouteTrackingScreen
+import life.corevia.app.ui.settings.SettingsScreen
+import life.corevia.app.ui.workout.WorkoutScreen
+import life.corevia.app.ui.route.GPSTrackingScreen
+import life.corevia.app.ui.social.SocialFeedScreen
+import life.corevia.app.ui.survey.DailySurveyScreen
+import life.corevia.app.ui.plans.MealPlanScreen
+import life.corevia.app.ui.plans.AddMealPlanScreen
+import life.corevia.app.ui.aicalorie.AICalorieScreen
+import life.corevia.app.ui.theme.*
+import androidx.compose.ui.graphics.Color
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import life.corevia.app.ui.auth.LoginViewModel
+import life.corevia.app.ui.auth.RegisterScreen
+import life.corevia.app.ui.chat.ChatDetailScreen
+import life.corevia.app.ui.food.AddFoodScreen
+import life.corevia.app.ui.home.TrainerHomeScreen
 import life.corevia.app.ui.onboarding.OnboardingScreen
-import life.corevia.app.ui.onboarding.OnboardingViewModel
-import life.corevia.app.ui.livesession.LiveSessionsViewModel
-import life.corevia.app.ui.livesession.LiveSessionsScreen
-import life.corevia.app.ui.livesession.LiveSessionDetailScreen
-import life.corevia.app.ui.marketplace.MarketplaceViewModel
+import life.corevia.app.ui.plans.AddTrainingPlanScreen
+import life.corevia.app.ui.plans.TrainingPlanScreen
+import life.corevia.app.ui.trainers.TrainerBrowseScreen
+import life.corevia.app.ui.analytics.AnalyticsDashboardScreen
+import life.corevia.app.ui.analytics.OverallStatsScreen
+import life.corevia.app.ui.food.AICalorieHistoryScreen
 import life.corevia.app.ui.marketplace.MarketplaceScreen
-import life.corevia.app.ui.marketplace.ProductDetailScreen
-import life.corevia.app.ui.news.NewsViewModel
-import life.corevia.app.ui.news.NewsScreen
-import life.corevia.app.ui.news.NewsDetailScreen
-import life.corevia.app.ui.tracking.TrackingViewModel
-import life.corevia.app.ui.tracking.LiveTrackingScreen
-import life.corevia.app.ui.content.ContentViewModel
+import life.corevia.app.ui.marketplace.WriteReviewScreen
+import life.corevia.app.ui.social.CommentsScreen
+import life.corevia.app.ui.social.CreatePostScreen
+import life.corevia.app.ui.workout.AddWorkoutScreen
+import life.corevia.app.ui.livesession.LiveSessionListScreen
+import life.corevia.app.ui.livesession.LiveSessionDetailScreen
+import life.corevia.app.ui.livesession.LiveWorkoutScreen
+import life.corevia.app.ui.trainerhub.TrainerHubScreen
+import life.corevia.app.ui.trainerhub.CreateProductScreen
+import life.corevia.app.ui.trainerhub.CreateLiveSessionScreen
 import life.corevia.app.ui.content.TrainerContentScreen
+import life.corevia.app.ui.marketplace.ProductDetailScreen
+import life.corevia.app.ui.auth.TrainerVerificationScreen
+import life.corevia.app.ui.food.AICalorieResultScreen
 
-/**
- * iOS: ContentView + MainTabView + CustomTabBar
- * 1-ə-1 iOS port:
- *
- * CLIENT Tab Bar: Home | Workout | Food | Chat | More(Activities, Profile)
- * TRAINER Tab Bar: Home | Plans | Meal Plans | Chat | More(Content, Profile)
- *
- * Feature-lara HomeView Quick Actions-dan daxil olunur (iOS kimi):
- *   Social Feed, Marketplace, Live Sessions → Home quick action buttons
- *   Statistics/Analytics → Home quick action sheet
- *   GPS Tracking → Workout screen button (premium only)
- *   Settings → Profile → Settings
- *   Notifications → Profile → Settings → Notifications
- */
+sealed class Screen(val route: String) {
+    data object Login : Screen("login")
+    data object Register : Screen("register")
+    data object ForgotPassword : Screen("forgot_password")
+    data object Home : Screen("home")
+    data object Workout : Screen("workout")
+    data object Food : Screen("food")
+    data object Messages : Screen("messages")
+    data object More : Screen("more")
+    data object Activities : Screen("activities")
+    data object GPSTracking : Screen("gps_tracking")
+    data object Social : Screen("social")
+    data object Profile : Screen("profile")
+    data object Premium : Screen("premium")
+    data object Settings : Screen("settings")
+    data object DailySurvey : Screen("daily_survey")
+    data object MealPlans : Screen("meal_plans")
+    data object AddMealPlan : Screen("add_meal_plan")
+    data object AICalorie : Screen("ai_calorie")
+    data object EditProfile : Screen("edit_profile")
+    data object AddWorkout : Screen("add_workout")
+    data object AddFood : Screen("add_food")
+    data object ChatDetail : Screen("chat_detail/{userId}/{userName}") {
+        fun createRoute(userId: String, userName: String) = "chat_detail/$userId/$userName"
+    }
+    data object TrainingPlans : Screen("training_plans")
+    data object AddTrainingPlan : Screen("add_training_plan")
+    data object TrainerBrowse : Screen("trainer_browse")
+    data object Onboarding : Screen("onboarding")
+    data object Analytics : Screen("analytics")
+    data object OverallStats : Screen("overall_stats")
+    data object CreatePost : Screen("create_post")
+    data object Comments : Screen("comments/{postId}") {
+        fun createRoute(postId: String) = "comments/$postId"
+    }
+    data object Marketplace : Screen("marketplace")
+    data object WriteReview : Screen("write_review/{productId}") {
+        fun createRoute(productId: String) = "write_review/$productId"
+    }
+    data object AICalorieHistory : Screen("ai_calorie_history")
 
-// ─── Route sabitləri ──────────────────────────────────────────────────────────
-object Routes {
-    const val LOGIN           = "login"
-    const val REGISTER        = "register"
-    const val HOME            = "home"
-    const val FORGOT_PASSWORD = "forgot_password"
-    const val ONBOARDING      = "onboarding"
+    // ── New Routes ──
+    data object LiveSessions : Screen("live_sessions")
+    data object LiveSessionDetail : Screen("live_session_detail/{sessionId}") {
+        fun createRoute(sessionId: String) = "live_session_detail/$sessionId"
+    }
+    data object LiveWorkout : Screen("live_workout/{sessionId}") {
+        fun createRoute(sessionId: String) = "live_workout/$sessionId"
+    }
+    data object TrainerHub : Screen("trainer_hub")
+    data object CreateProduct : Screen("create_product")
+    data object CreateLiveSession : Screen("create_live_session")
+    data object TrainerContent : Screen("trainer_content")
+    data object ProductDetail : Screen("product_detail/{productId}") {
+        fun createRoute(productId: String) = "product_detail/$productId"
+    }
+    data object TrainerVerification : Screen("trainer_verification")
+    data object AICalorieResult : Screen("ai_calorie_result")
 }
 
-// ─── Tab indeksləri (iOS selectedTab ilə eyni) ────────────────────────────────
-// iOS CustomTabBar: 0-3 = tab bar tabs, 4 = activities/content, 5 = profile
-private const val TAB_HOME     = 0
-private const val TAB_WORKOUT  = 1   // client: WorkoutView | trainer: TrainingPlanView
-private const val TAB_FOOD     = 2   // client: FoodView    | trainer: MealPlanView
-private const val TAB_CHAT     = 3
-private const val TAB_MORE     = 4   // client: ActivitiesView | trainer: TrainerContentView
-private const val TAB_PROFILE  = 5
+data class BottomNavItem(
+    val screen: Screen,
+    val label: String,
+    val selectedIcon: ImageVector,
+    val unselectedIcon: ImageVector
+)
 
-// Sub-screens (iOS: NavigationLink/sheet-dən açılır)
-private const val TAB_SETTINGS         = 6
-private const val TAB_MY_STUDENTS      = 7
-private const val TAB_ADD_TRAINING     = 8
-private const val TAB_ADD_MEAL         = 9
-private const val TAB_CHAT_DETAIL      = 10
-private const val TAB_NOTIFICATIONS    = 11
-private const val TAB_ANALYTICS        = 12
-private const val TAB_SOCIAL           = 13
-private const val TAB_PREMIUM          = 14
-private const val TAB_TRAINERS         = 15
-private const val TAB_TRAINER_DETAIL   = 16
-private const val TAB_LIVE_SESSIONS    = 17
-private const val TAB_LIVE_SESSION_DETAIL = 18
-private const val TAB_MARKETPLACE      = 19
-private const val TAB_PRODUCT_DETAIL   = 20
-private const val TAB_NEWS             = 21
-private const val TAB_NEWS_DETAIL      = 22
-private const val TAB_TRACKING         = 23
-private const val TAB_EDIT_TRAINING    = 24
-private const val TAB_EDIT_MEAL        = 25
-private const val TAB_USER_PROFILE     = 26
-private const val TAB_ACHIEVEMENTS     = 27
+// Client bottom nav
+val clientBottomNavItems = listOf(
+    BottomNavItem(Screen.Home, "Əsas", Icons.Filled.Home, Icons.Outlined.Home),
+    BottomNavItem(Screen.Workout, "Məşq", Icons.Filled.FitnessCenter, Icons.Outlined.FitnessCenter),
+    BottomNavItem(Screen.Food, "Qida", Icons.Filled.Restaurant, Icons.Outlined.Restaurant),
+    BottomNavItem(Screen.Messages, "Mesajlar", Icons.Filled.ChatBubble, Icons.Outlined.ChatBubble),
+    BottomNavItem(Screen.More, "Daha çox", Icons.Filled.MoreHoriz, Icons.Outlined.MoreHoriz)
+)
 
-// ─── Ana composable ───────────────────────────────────────────────────────────
-@Composable
-fun AppNavigation(tokenManager: TokenManager) {
-    val navController = rememberNavController()
-    val startDestination = when {
-        !tokenManager.isLoggedIn -> Routes.LOGIN
-        !tokenManager.hasCompletedOnboarding -> Routes.ONBOARDING
-        else -> Routes.HOME
-    }
+// Trainer bottom nav — iOS: Home, Plans, Meal Plans, Chat, More
+val trainerBottomNavItems = listOf(
+    BottomNavItem(Screen.Home, "Əsas", Icons.Filled.Dashboard, Icons.Outlined.Dashboard),
+    BottomNavItem(Screen.TrainingPlans, "Planlar", Icons.Filled.FitnessCenter, Icons.Outlined.FitnessCenter),
+    BottomNavItem(Screen.MealPlans, "Qida Planı", Icons.Filled.Restaurant, Icons.Outlined.Restaurant),
+    BottomNavItem(Screen.Messages, "Mesajlar", Icons.Filled.ChatBubble, Icons.Outlined.ChatBubble),
+    BottomNavItem(Screen.More, "Daha çox", Icons.Filled.MoreHoriz, Icons.Outlined.MoreHoriz)
+)
 
-    val authViewModel: AuthViewModel                   = viewModel()
-
-    // 401 auto-logout: token expired + refresh fail → login ekranına yönləndir
-    val context = androidx.compose.ui.platform.LocalContext.current
-    LaunchedEffect(Unit) {
-        life.corevia.app.data.api.ApiClient.getInstance(context).onUnauthorized = {
-            authViewModel.logout()
-            navController.navigate(Routes.LOGIN) {
-                popUpTo(0) { inclusive = true }
-            }
-        }
-    }
-    val workoutViewModel: WorkoutViewModel             = viewModel()
-    val foodViewModel: FoodViewModel                   = viewModel()
-    val trainingPlanViewModel: TrainingPlanViewModel   = viewModel()
-    val mealPlanViewModel: MealPlanViewModel           = viewModel()
-    val profileViewModel: ProfileViewModel             = viewModel()
-    val activitiesViewModel: ActivitiesViewModel       = viewModel()
-    val chatViewModel: ChatViewModel                   = viewModel()
-    val notificationsViewModel: NotificationsViewModel = viewModel()
-    val analyticsViewModel: AnalyticsViewModel         = viewModel()
-    val socialViewModel: SocialViewModel               = viewModel()
-    val premiumViewModel: PremiumViewModel             = viewModel()
-    val trainersViewModel: TrainersViewModel           = viewModel()
-    val liveSessionsViewModel: LiveSessionsViewModel   = viewModel()
-    val marketplaceViewModel: MarketplaceViewModel     = viewModel()
-    val newsViewModel: NewsViewModel                   = viewModel()
-    val trackingViewModel: TrackingViewModel           = viewModel()
-    val contentViewModel: ContentViewModel             = viewModel()
-    val onboardingViewModel: OnboardingViewModel       = viewModel()
-
-    NavHost(
-        navController    = navController,
-        startDestination = startDestination,
-        modifier         = Modifier.fillMaxSize()
-    ) {
-        // ── Auth ──────────────────────────────────────────────────────────────
-        composable(Routes.LOGIN) {
-            LoginScreen(
-                onLoginSuccess             = { navController.navigateAfterAuth(tokenManager) },
-                onNavigateToRegister       = { navController.navigate(Routes.REGISTER) },
-                onNavigateToForgotPassword = { navController.navigate(Routes.FORGOT_PASSWORD) },
-                viewModel                  = authViewModel
-            )
-        }
-        composable(Routes.REGISTER) {
-            RegisterScreen(
-                onRegisterSuccess = { navController.navigateAfterAuth(tokenManager) },
-                onNavigateToLogin = {
-                    authViewModel.resetToIdle()
-                    navController.popBackStack()
-                },
-                viewModel         = authViewModel
-            )
-        }
-        composable(Routes.FORGOT_PASSWORD) {
-            ForgotPasswordScreen(onBack = { navController.popBackStack() })
-        }
-
-        // ── Onboarding ──────────────────────────────────────────────────────
-        composable(Routes.ONBOARDING) {
-            OnboardingScreen(
-                viewModel = onboardingViewModel,
-                isTrainer = tokenManager.isTrainer,
-                onComplete = {
-                    navController.navigateToMain()
-                }
-            )
-        }
-
-        // ── Main (iOS: MainTabView) ───────────────────────────────────────────
-        composable(Routes.HOME) {
-            // iOS kimi: userType TokenManager-dan dərhal oxunur (API gözləmədən).
-            // Login zamanı saxlanılır, app açılanda dərhal doğru tip göstərilir.
-            val isTrainer = tokenManager.isTrainer
-
-            // Logout → re-login sonrası ViewModel-ləri yenidən yüklə
-            LaunchedEffect(tokenManager.accessToken) {
-                profileViewModel.loadUser()
-                foodViewModel.loadFoodEntries()
-                workoutViewModel.loadWorkouts()
-                chatViewModel.loadConversations()
-            }
-
-            MainTabView(
-                navController         = navController,
-                workoutViewModel      = workoutViewModel,
-                foodViewModel         = foodViewModel,
-                trainingPlanViewModel = trainingPlanViewModel,
-                mealPlanViewModel     = mealPlanViewModel,
-                profileViewModel      = profileViewModel,
-                activitiesViewModel   = activitiesViewModel,
-                chatViewModel         = chatViewModel,
-                notificationsViewModel = notificationsViewModel,
-                analyticsViewModel    = analyticsViewModel,
-                socialViewModel       = socialViewModel,
-                premiumViewModel      = premiumViewModel,
-                trainersViewModel     = trainersViewModel,
-                liveSessionsViewModel = liveSessionsViewModel,
-                marketplaceViewModel  = marketplaceViewModel,
-                newsViewModel         = newsViewModel,
-                trackingViewModel     = trackingViewModel,
-                contentViewModel      = contentViewModel,
-                isTrainer             = isTrainer,
-                onLogout = {
-                    authViewModel.logout()
-                    navController.navigate(Routes.LOGIN) {
-                        popUpTo(0) { inclusive = true }
-                    }
-                }
-            )
-        }
-    }
-}
-
-// ─── iOS: MainTabView ─────────────────────────────────────────────────────────
-@Composable
-fun MainTabView(
-    navController: NavHostController,
-    workoutViewModel: WorkoutViewModel,
-    foodViewModel: FoodViewModel,
-    trainingPlanViewModel: TrainingPlanViewModel,
-    mealPlanViewModel: MealPlanViewModel,
-    profileViewModel: ProfileViewModel,
-    activitiesViewModel: ActivitiesViewModel,
-    chatViewModel: ChatViewModel,
-    notificationsViewModel: NotificationsViewModel,
-    analyticsViewModel: AnalyticsViewModel,
-    socialViewModel: SocialViewModel,
-    premiumViewModel: PremiumViewModel,
-    trainersViewModel: TrainersViewModel,
-    liveSessionsViewModel: LiveSessionsViewModel,
-    marketplaceViewModel: MarketplaceViewModel,
-    newsViewModel: NewsViewModel,
-    trackingViewModel: TrackingViewModel,
-    contentViewModel: ContentViewModel,
-    isTrainer: Boolean = false,
-    onLogout: () -> Unit = {}
-) {
-    var selectedTab by remember { mutableStateOf(TAB_HOME) }
-
-    val myStudentsViewModel: MyStudentsViewModel = viewModel()
-    val trainerHomeViewModel: TrainerHomeViewModel = viewModel()
-    val students by myStudentsViewModel.students.collectAsState()
-
-    // iOS: Trainer üçün user adı
-    val user by profileViewModel.user.collectAsState()
-
-    var preSelectedStudentId by remember { mutableStateOf<String?>(null) }
-
-    Box(modifier = Modifier.fillMaxSize()) {
-
-        // ── Tab content (iOS switch selectedTab) ──────────────────────────────
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 80.dp)
-        ) {
-            when (selectedTab) {
-                TAB_HOME -> {
-                    if (isTrainer) {
-                        // iOS: TrainerHomeView
-                        TrainerHomeScreen(
-                            userName    = user?.name ?: "",
-                            userInitial = user?.name?.take(1) ?: "",
-                            viewModel   = trainerHomeViewModel
-                        )
-                    } else {
-                        // iOS: HomeView
-                        HomeScreen(
-                            userName                 = user?.name ?: "",
-                            onNavigateToWorkout      = { selectedTab = TAB_WORKOUT },
-                            onNavigateToFood         = { selectedTab = TAB_FOOD },
-                            onNavigateToTrainingPlan = { selectedTab = TAB_WORKOUT },
-                            onNavigateToLiveTracking = { selectedTab = TAB_TRACKING },
-                            onNavigateToProfile      = { selectedTab = TAB_PROFILE },
-                            onNavigateToActivities   = { selectedTab = TAB_MORE },
-                            // iOS HomeView Quick Actions → feature screens
-                            onNavigateToSocial       = { selectedTab = TAB_SOCIAL },
-                            onNavigateToMarketplace  = { selectedTab = TAB_MARKETPLACE },
-                            onNavigateToLiveSessions = { selectedTab = TAB_LIVE_SESSIONS },
-                            onNavigateToAnalytics    = { selectedTab = TAB_ANALYTICS },
-                            workoutViewModel         = workoutViewModel
-                        )
-                    }
-                }
-                TAB_WORKOUT -> {
-                    if (isTrainer) {
-                        TrainingPlanScreen(
-                            isTrainer = true,
-                            onNavigateToAddTrainingPlan = {
-                                preSelectedStudentId = null
-                                selectedTab = TAB_ADD_TRAINING
-                            },
-                            onNavigateToEditTrainingPlan = { plan ->
-                                trainingPlanViewModel.selectPlan(plan)
-                                selectedTab = TAB_EDIT_TRAINING
-                            },
-                            onDeletePlan = { planId -> trainingPlanViewModel.deletePlan(planId) },
-                            viewModel = trainingPlanViewModel
-                        )
-                    } else {
-                        WorkoutScreen(
-                            onNavigateToLiveTracking = { selectedTab = TAB_TRACKING },
-                            viewModel                = workoutViewModel
-                        )
-                    }
-                }
-                TAB_FOOD -> {
-                    if (isTrainer) {
-                        MealPlanScreen(
-                            isTrainer = true,
-                            onNavigateToAddMealPlan = {
-                                preSelectedStudentId = null
-                                selectedTab = TAB_ADD_MEAL
-                            },
-                            onNavigateToEditMealPlan = { plan ->
-                                mealPlanViewModel.selectPlan(plan)
-                                selectedTab = TAB_EDIT_MEAL
-                            },
-                            onDeletePlan = { planId -> mealPlanViewModel.deletePlan(planId) },
-                            viewModel = mealPlanViewModel
-                        )
-                    } else {
-                        FoodScreen(
-                            viewModel = foodViewModel,
-                            isPremium = user?.isPremium == true
-                        )
-                    }
-                }
-                TAB_CHAT -> {
-                    ConversationsScreen(
-                        viewModel = chatViewModel,
-                        onOpenChat = { userId, userName ->
-                            chatViewModel.openChat(userId, userName)
-                            selectedTab = TAB_CHAT_DETAIL
-                        }
-                    )
-                }
-                TAB_CHAT_DETAIL -> {
-                    ChatDetailScreen(
-                        viewModel = chatViewModel,
-                        onBack = {
-                            chatViewModel.closeChat()
-                            chatViewModel.loadConversations()
-                            selectedTab = TAB_CHAT
-                        }
-                    )
-                }
-                TAB_MORE -> {
-                    // iOS: Tab 4 = Activities (client) / Content (trainer)
-                    if (isTrainer) {
-                        TrainerContentScreen(viewModel = contentViewModel)
-                    } else {
-                        ActivitiesScreen(
-                            viewModel = activitiesViewModel,
-                            isPremium = user?.isPremium == true
-                        )
-                    }
-                }
-                TAB_PROFILE -> {
-                    if (isTrainer) {
-                        TrainerProfileScreen(
-                            onNavigateToSettings = { selectedTab = TAB_SETTINGS },
-                            onNavigateToMyStudents = { selectedTab = TAB_MY_STUDENTS },
-                            onLogout = onLogout,
-                            profileViewModel = profileViewModel,
-                            trainerHomeViewModel = trainerHomeViewModel
-                        )
-                    } else {
-                        ProfileScreen(
-                            onNavigateToSettings = { selectedTab = TAB_SETTINGS },
-                            onNavigateToPremium = { selectedTab = TAB_PREMIUM },
-                            onLogout = onLogout,
-                            viewModel = profileViewModel
-                        )
-                    }
-                }
-                TAB_SETTINGS -> {
-                    SettingsScreen(
-                        onBack = { selectedTab = TAB_PROFILE },
-                        onLogout = onLogout
-                    )
-                }
-                TAB_MY_STUDENTS -> {
-                    MyStudentsScreen(
-                        onBack = { selectedTab = TAB_HOME },
-                        onNavigateToAddTrainingPlan = { studentId ->
-                            preSelectedStudentId = studentId
-                            selectedTab = TAB_ADD_TRAINING
-                        },
-                        onNavigateToAddMealPlan = { studentId ->
-                            preSelectedStudentId = studentId
-                            selectedTab = TAB_ADD_MEAL
-                        },
-                        viewModel = myStudentsViewModel
-                    )
-                }
-                TAB_ADD_TRAINING -> {
-                    AddTrainingPlanScreen(
-                        onBack = {
-                            selectedTab = if (isTrainer) TAB_WORKOUT else TAB_HOME
-                            trainingPlanViewModel.loadPlans()
-                        },
-                        onSave = { request ->
-                            trainingPlanViewModel.createPlan(request)
-                            selectedTab = if (isTrainer) TAB_WORKOUT else TAB_HOME
-                        },
-                        students = if (isTrainer) students else emptyList(),
-                        preSelectedStudentId = preSelectedStudentId
-                    )
-                }
-                TAB_ADD_MEAL -> {
-                    AddMealPlanScreen(
-                        onBack = {
-                            selectedTab = if (isTrainer) TAB_FOOD else TAB_HOME
-                            mealPlanViewModel.loadPlans()
-                        },
-                        onSave = { request ->
-                            mealPlanViewModel.createPlan(request)
-                            selectedTab = if (isTrainer) TAB_FOOD else TAB_HOME
-                        },
-                        students = if (isTrainer) students else emptyList(),
-                        preSelectedStudentId = preSelectedStudentId
-                    )
-                }
-                TAB_NOTIFICATIONS -> {
-                    NotificationsScreen(
-                        viewModel = notificationsViewModel,
-                        onBack = { selectedTab = TAB_PROFILE }
-                    )
-                }
-                TAB_ANALYTICS -> {
-                    AnalyticsScreen(
-                        viewModel = analyticsViewModel,
-                        onBack = { selectedTab = TAB_HOME }
-                    )
-                }
-                TAB_SOCIAL -> {
-                    SocialFeedScreen(
-                        viewModel = socialViewModel,
-                        onBack = { selectedTab = TAB_HOME },
-                        onNavigateToUserProfile = { userId ->
-                            socialViewModel.loadUserProfile(userId)
-                            selectedTab = TAB_USER_PROFILE
-                        },
-                        onNavigateToAchievements = {
-                            selectedTab = TAB_ACHIEVEMENTS
-                        }
-                    )
-                }
-                TAB_PREMIUM -> {
-                    PremiumScreen(
-                        viewModel = premiumViewModel,
-                        onBack = { selectedTab = TAB_HOME }
-                    )
-                }
-                TAB_TRAINERS -> {
-                    TrainersScreen(
-                        viewModel = trainersViewModel,
-                        onBack = { selectedTab = TAB_HOME },
-                        onTrainerSelected = { selectedTab = TAB_TRAINER_DETAIL }
-                    )
-                }
-                TAB_TRAINER_DETAIL -> {
-                    TrainerDetailScreen(
-                        viewModel = trainersViewModel,
-                        onBack = {
-                            trainersViewModel.clearSelectedTrainer()
-                            selectedTab = TAB_TRAINERS
-                        }
-                    )
-                }
-                TAB_LIVE_SESSIONS -> {
-                    LiveSessionsScreen(
-                        viewModel = liveSessionsViewModel,
-                        onBack = { selectedTab = TAB_HOME },
-                        onSessionSelected = { selectedTab = TAB_LIVE_SESSION_DETAIL }
-                    )
-                }
-                TAB_LIVE_SESSION_DETAIL -> {
-                    LiveSessionDetailScreen(
-                        viewModel = liveSessionsViewModel,
-                        onBack = {
-                            liveSessionsViewModel.clearSelectedSession()
-                            selectedTab = TAB_LIVE_SESSIONS
-                        }
-                    )
-                }
-                TAB_MARKETPLACE -> {
-                    MarketplaceScreen(
-                        viewModel = marketplaceViewModel,
-                        onBack = { selectedTab = TAB_HOME },
-                        onProductSelected = { selectedTab = TAB_PRODUCT_DETAIL }
-                    )
-                }
-                TAB_PRODUCT_DETAIL -> {
-                    ProductDetailScreen(
-                        viewModel = marketplaceViewModel,
-                        onBack = {
-                            marketplaceViewModel.clearSelectedProduct()
-                            selectedTab = TAB_MARKETPLACE
-                        }
-                    )
-                }
-                TAB_NEWS -> {
-                    NewsScreen(
-                        viewModel = newsViewModel,
-                        onBack = { selectedTab = TAB_HOME },
-                        onArticleSelected = { selectedTab = TAB_NEWS_DETAIL }
-                    )
-                }
-                TAB_NEWS_DETAIL -> {
-                    NewsDetailScreen(
-                        viewModel = newsViewModel,
-                        onBack = {
-                            newsViewModel.clearSelectedArticle()
-                            selectedTab = TAB_NEWS
-                        }
-                    )
-                }
-                TAB_TRACKING -> {
-                    LiveTrackingScreen(
-                        viewModel = trackingViewModel,
-                        onBack = { selectedTab = TAB_HOME }
-                    )
-                }
-                TAB_USER_PROFILE -> {
-                    UserProfileScreen(
-                        viewModel = socialViewModel,
-                        onBack = {
-                            socialViewModel.clearUserProfile()
-                            selectedTab = TAB_SOCIAL
-                        }
-                    )
-                }
-                TAB_ACHIEVEMENTS -> {
-                    AchievementsScreen(
-                        viewModel = socialViewModel,
-                        onBack = { selectedTab = TAB_SOCIAL }
-                    )
-                }
-                TAB_EDIT_TRAINING -> {
-                    val selectedPlan by trainingPlanViewModel.selectedPlan.collectAsState()
-                    selectedPlan?.let { plan ->
-                        EditTrainingPlanScreen(
-                            plan = plan,
-                            onBack = {
-                                trainingPlanViewModel.clearSelectedPlan()
-                                selectedTab = TAB_WORKOUT
-                                trainingPlanViewModel.loadPlans()
-                            },
-                            onSave = { planId, request ->
-                                trainingPlanViewModel.updatePlan(planId, request)
-                                trainingPlanViewModel.clearSelectedPlan()
-                                selectedTab = TAB_WORKOUT
-                            },
-                            students = if (isTrainer) students else emptyList()
-                        )
-                    } ?: run {
-                        selectedTab = TAB_WORKOUT
-                    }
-                }
-                TAB_EDIT_MEAL -> {
-                    val selectedPlan by mealPlanViewModel.selectedPlan.collectAsState()
-                    selectedPlan?.let { plan ->
-                        EditMealPlanScreen(
-                            plan = plan,
-                            onBack = {
-                                mealPlanViewModel.clearSelectedPlan()
-                                selectedTab = TAB_FOOD
-                                mealPlanViewModel.loadPlans()
-                            },
-                            onSave = { planId, request ->
-                                mealPlanViewModel.updatePlan(planId, request)
-                                mealPlanViewModel.clearSelectedPlan()
-                                selectedTab = TAB_FOOD
-                            },
-                            students = if (isTrainer) students else emptyList()
-                        )
-                    } ?: run {
-                        selectedTab = TAB_FOOD
-                    }
-                }
-            }
-        }
-
-        // ── iOS: CustomTabBar ─────────────────────────────────────────────────
-        // Yalnız əsas tab-larda göstər (sub-screen-lərdə gizlə, iOS kimi)
-        if (selectedTab in listOf(TAB_HOME, TAB_WORKOUT, TAB_FOOD, TAB_CHAT, TAB_MORE, TAB_PROFILE)) {
-            CoreViaTabBar(
-                selectedTab = selectedTab,
-                isTrainer   = isTrainer,
-                onTabSelect = { selectedTab = it },
-                modifier    = Modifier.align(Alignment.BottomCenter)
-            )
-        }
-    }
-}
-
-// ─── iOS: CustomTabBar ────────────────────────────────────────────────────────
-// Glassmorphism + animated selected circle + "More" sheet (iOS: cəmi 2 item!)
-@Composable
-fun CoreViaTabBar(
-    selectedTab: Int,
-    isTrainer: Boolean,
-    onTabSelect: (Int) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var showMoreSheet by remember { mutableStateOf(false) }
-
-    // iOS: HStack tab bar with glassmorphism
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 0.dp)
-            .padding(bottom = 8.dp)
-            .shadow(10.dp, RoundedCornerShape(24.dp), ambientColor = Color.Black.copy(alpha = 0.1f))
-            .background(
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        AppTheme.Colors.accent.copy(alpha = 0.05f),
-                        Color.Transparent
-                    )
-                ),
-                shape = RoundedCornerShape(24.dp)
-            )
-            .background(
-                color = AppTheme.Colors.cardBackground.copy(alpha = 0.95f),
-                shape = RoundedCornerShape(24.dp)
-            )
-            .padding(horizontal = 8.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceAround
-    ) {
-        // Tab 0: Home
-        TabBarItem(
-            icon       = Icons.Outlined.Home,
-            label      = "Əsas",
-            isSelected = selectedTab == TAB_HOME,
-            onClick    = { onTabSelect(TAB_HOME) }
-        )
-
-        // Tab 1: Workout / Plans — iOS: figure.strengthtraining.traditional
-        TabBarItem(
-            icon       = Icons.Outlined.FitnessCenter,
-            label      = if (isTrainer) "Planlar" else "Məşq",
-            isSelected = selectedTab == TAB_WORKOUT,
-            onClick    = { onTabSelect(TAB_WORKOUT) }
-        )
-
-        // Tab 2: Food / Meal Plans — iOS: fork.knife
-        TabBarItem(
-            icon       = Icons.Outlined.Restaurant,
-            label      = if (isTrainer) "Qida Plan" else "Qida",
-            isSelected = selectedTab == TAB_FOOD,
-            onClick    = { onTabSelect(TAB_FOOD) }
-        )
-
-        // Tab 3: Chat — iOS: bubble.left.and.bubble.right
-        TabBarItem(
-            icon       = Icons.AutoMirrored.Outlined.Chat,
-            label      = "Mesajlar",
-            isSelected = selectedTab == TAB_CHAT,
-            onClick    = { onTabSelect(TAB_CHAT) }
-        )
-
-        // Tab 4: More (iOS: sheet with only 2 items)
-        TabBarMoreButton(
-            isSelected = selectedTab >= TAB_MORE,
-            onClick    = { showMoreSheet = true }
-        )
-    }
-
-    // iOS: MoreMenuSheet — .sheet(isPresented:) — yalnız 2 item!
-    if (showMoreSheet) {
-        MoreMenuSheet(
-            isTrainer   = isTrainer,
-            onDismiss   = { showMoreSheet = false },
-            onActivities = {
-                showMoreSheet = false
-                onTabSelect(TAB_MORE)
-            },
-            onProfile   = {
-                showMoreSheet = false
-                onTabSelect(TAB_PROFILE)
-            }
-        )
-    }
-}
-
-// ─── iOS: TabBarItem ──────────────────────────────────────────────────────────
-@Composable
-fun TabBarItem(
-    icon: ImageVector,
-    label: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-
-    Column(
-        modifier = Modifier
-            .clickable(
-                interactionSource = interactionSource,
-                indication        = null
-            ) { onClick() }
-            .padding(horizontal = 4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // iOS: ZStack { Circle + Image }
-        Box(
-            modifier = Modifier.size(40.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            if (isSelected) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .shadow(8.dp, CircleShape, spotColor = AppTheme.Colors.accent.copy(alpha = 0.4f))
-                        .background(AppTheme.Colors.accent, CircleShape)
-                )
-            }
-            Icon(
-                imageVector = icon,
-                contentDescription = label,
-                modifier = Modifier.size(if (isSelected) 20.dp else 18.dp),
-                tint = if (isSelected) Color.White else AppTheme.Colors.secondaryText
-            )
-        }
-
-        // iOS: Text label (10pt)
-        Text(
-            text       = label,
-            fontSize   = 10.sp,
-            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-            color      = if (isSelected) AppTheme.Colors.accent else AppTheme.Colors.tertiaryText
-        )
-    }
-}
-
-// ─── iOS: TabBarMoreButton ────────────────────────────────────────────────────
-@Composable
-fun TabBarMoreButton(
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-
-    Column(
-        modifier = Modifier
-            .clickable(
-                interactionSource = interactionSource,
-                indication        = null
-            ) { onClick() }
-            .padding(horizontal = 4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(
-            modifier = Modifier.size(40.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            if (isSelected) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .shadow(8.dp, CircleShape, spotColor = AppTheme.Colors.accent.copy(alpha = 0.4f))
-                        .background(
-                            brush = Brush.linearGradient(
-                                colors = listOf(AppTheme.Colors.accent, AppTheme.Colors.accentDark)
-                            ),
-                            shape = CircleShape
-                        )
-                )
-            }
-            Icon(
-                imageVector        = Icons.Outlined.MoreHoriz,
-                contentDescription = "Daha çox",
-                modifier           = Modifier.size(if (isSelected) 20.dp else 18.dp),
-                tint               = if (isSelected) Color.White else AppTheme.Colors.secondaryText
-            )
-        }
-        Text(
-            text       = "Daha çox",
-            fontSize   = 10.sp,
-            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-            color      = if (isSelected) AppTheme.Colors.accent else AppTheme.Colors.tertiaryText
-        )
-    }
-}
-
-// ─── iOS: MoreMenuSheet ───────────────────────────────────────────────────────
-// iOS kimi: YALNIZ 2 ITEM — Activities/Content + Profile
-// Digər feature-lar HomeView Quick Actions-dan açılır
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MoreMenuSheet(
-    isTrainer: Boolean,
-    onDismiss: () -> Unit,
-    onActivities: () -> Unit,
-    onProfile: () -> Unit
-) {
-    ModalBottomSheet(
-        onDismissRequest    = onDismiss,
-        sheetState          = rememberModalBottomSheetState(),
-        containerColor      = AppTheme.Colors.background,
-        dragHandle          = { BottomSheetDefaults.DragHandle(color = AppTheme.Colors.secondaryText) }
-    ) {
-        Column(
-            modifier            = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // iOS: Header — blur circle + "···" icon
-            Spacer(modifier = Modifier.height(20.dp))
-            Box(contentAlignment = Alignment.Center) {
-                // Blur halo
-                Box(
+fun AppNavigation() {
+    // Check login status to determine start destination
+    val loginViewModel: LoginViewModel = hiltViewModel()
+    val loginState by loginViewModel.uiState.collectAsState()
+    val startDestination = if (loginState.isLoggedIn) Screen.Home.route else Screen.Login.route
+
+    // Determine user type for conditional UI
+    val isTrainer = loginState.userType == "trainer"
+    val bottomNavItems = if (isTrainer) trainerBottomNavItems else clientBottomNavItems
+
+    val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+
+    // "Daha çox" bottom sheet state
+    var showMoreSheet by remember { mutableStateOf(false) }
+    val moreSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    // Bottom bar gizlənəcək ekranlar — yalnız login/auth ekranlarında gizlənir
+    val hideBottomBarRoutes = listOf(Screen.Login.route, Screen.Register.route, Screen.ForgotPassword.route, Screen.Onboarding.route)
+    val showBottomBar = currentDestination?.route !in hideBottomBarRoutes
+
+    Scaffold(
+        bottomBar = {
+            if (showBottomBar) {
+                NavigationBar(
                     modifier = Modifier
-                        .size(80.dp)
-                        .background(
-                            brush = Brush.radialGradient(
-                                colors = listOf(
-                                    AppTheme.Colors.accent.copy(alpha = 0.2f),
-                                    Color.Transparent
+                        .shadow(16.dp, RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                        .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)),
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 0.dp
+                ) {
+                    bottomNavItems.forEach { item ->
+                        val selected = currentDestination?.hierarchy?.any { it.route == item.screen.route } == true
+                        NavigationBarItem(
+                            icon = {
+                                Icon(
+                                    if (selected) item.selectedIcon else item.unselectedIcon,
+                                    contentDescription = item.label,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            label = {
+                                Text(
+                                    item.label,
+                                    fontSize = 11.sp,
+                                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+                                )
+                            },
+                            selected = selected,
+                            onClick = {
+                                if (item.screen == Screen.More) {
+                                    // "Daha çox" — bottom sheet aç
+                                    showMoreSheet = true
+                                } else {
+                                    navController.navigate(item.screen.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = Color.White,
+                                selectedTextColor = CoreViaPrimary,
+                                unselectedIconColor = TextSecondary,
+                                unselectedTextColor = TextSecondary,
+                                indicatorColor = CoreViaPrimary
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    ) { paddingValues ->
+
+        // ── "Daha çox" Bottom Sheet ──────────────────────────────────
+        if (showMoreSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showMoreSheet = false },
+                sheetState = moreSheetState,
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                containerColor = MaterialTheme.colorScheme.surface,
+                dragHandle = {
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 12.dp, bottom = 8.dp)
+                            .width(40.dp)
+                            .height(4.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f))
+                    )
+                }
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                        .padding(bottom = 40.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Header — iOS glassmorphism style
+                    Box(
+                        modifier = Modifier
+                            .size(70.dp)
+                            .clip(CircleShape)
+                            .background(
+                                Brush.linearGradient(
+                                    listOf(
+                                        CoreViaPrimary.copy(alpha = 0.15f),
+                                        CoreViaPrimary.copy(alpha = 0.05f)
+                                    )
                                 )
                             ),
-                            shape = CircleShape
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Filled.MoreHoriz,
+                            contentDescription = null,
+                            modifier = Modifier.size(28.dp),
+                            tint = CoreViaPrimary
                         )
-                        .blur(20.dp)
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = "Daha çox",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // iOS: Trainer → Trainer Hub + Profile
+                    // iOS: Client → Activities + Profile
+                    if (isTrainer) {
+                        // Trainer Hub
+                        MoreSheetItem(
+                            icon = Icons.Filled.GridView,
+                            title = "Trener Hub",
+                            subtitle = "Sessiyalar, məhsullar idarə et",
+                            gradientColors = listOf(CoreViaPrimary, CoreViaPrimary.copy(alpha = 0.7f)),
+                            onClick = {
+                                showMoreSheet = false
+                                navController.navigate(Screen.TrainerHub.route)
+                            }
+                        )
+                    } else {
+                        // Activities
+                        MoreSheetItem(
+                            icon = Icons.Filled.DirectionsRun,
+                            title = "Hərəkətlər",
+                            subtitle = "GPS marşrut izləmə, statistikalar",
+                            gradientColors = listOf(CoreViaPrimary, CoreViaPrimary.copy(alpha = 0.7f)),
+                            onClick = {
+                                showMoreSheet = false
+                                navController.navigate(Screen.Activities.route)
+                            }
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Profile — həm trainer, həm client
+                    MoreSheetItem(
+                        icon = Icons.Filled.Person,
+                        title = "Profil",
+                        subtitle = "Hesab məlumatları, tənzimləmələr",
+                        gradientColors = listOf(CoreViaSuccess, CoreViaSuccess.copy(alpha = 0.7f)),
+                        onClick = {
+                            showMoreSheet = false
+                            navController.navigate(Screen.Profile.route)
+                        }
+                    )
+                }
+            }
+        }
+
+        NavHost(
+            navController = navController,
+            startDestination = startDestination,
+            modifier = Modifier.padding(
+                bottom = if (showBottomBar) paddingValues.calculateBottomPadding() else 0.dp
+            )
+        ) {
+            composable(Screen.Login.route) {
+                LoginScreen(
+                    onLoginSuccess = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Login.route) { inclusive = true }
+                        }
+                    },
+                    onNavigateToRegister = {
+                        navController.navigate(Screen.Register.route)
+                    },
+                    onNavigateToForgotPassword = {
+                        navController.navigate(Screen.ForgotPassword.route)
+                    }
                 )
-                // Inner circle
-                Box(
-                    modifier = Modifier
-                        .size(70.dp)
-                        .background(AppTheme.Colors.secondaryBackground, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector        = Icons.Outlined.MoreHoriz,
-                        contentDescription = null,
-                        modifier           = Modifier.size(28.dp),
-                        tint               = AppTheme.Colors.accent
+            }
+
+            composable(Screen.Register.route) {
+                RegisterScreen(
+                    onBack = { navController.popBackStack() },
+                    onRegisterSuccess = {
+                        // Qeydiyyatdan sonra login ekranina qayit
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(Screen.Register.route) { inclusive = true }
+                        }
+                    }
+                )
+            }
+
+            composable(Screen.ForgotPassword.route) {
+                ForgotPasswordScreen(
+                    onBack = { navController.popBackStack() },
+                    onSendOtp = {}
+                )
+            }
+
+            composable(Screen.Home.route) {
+                if (isTrainer) {
+                    // ── Trainer Dashboard ──
+                    TrainerHomeScreen(
+                        onNavigateToStudentDetail = { /* Student detail ekranı gələcəkdə əlavə ediləcək */ },
+                        onNavigateToTrainingPlans = {
+                            navController.navigate(Screen.Workout.route) {
+                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
+                        onNavigateToMealPlans = {
+                            navController.navigate(Screen.MealPlans.route)
+                        },
+                        onNavigateToMessages = {
+                            navController.navigate(Screen.Messages.route) {
+                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    )
+                } else {
+                    // ── Client Home ──
+                    HomeScreen(
+                        onNavigateToWorkout = {
+                            navController.navigate(Screen.Workout.route) {
+                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
+                        onNavigateToFood = {
+                            navController.navigate(Screen.Food.route) {
+                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
+                        onNavigateToRoute = {},
+                        onNavigateToAIAnalysis = {
+                            navController.navigate(Screen.AICalorie.route)
+                        },
+                        onNavigateToNotifications = {},
+                        onNavigateToSocial = {
+                            navController.navigate(Screen.Social.route)
+                        },
+                        onNavigateToMarketplace = {
+                            navController.navigate(Screen.Marketplace.route)
+                        },
+                        onNavigateToLiveSession = {
+                            navController.navigate(Screen.LiveSessions.route)
+                        },
+                        onNavigateToAnalytics = {
+                            navController.navigate(Screen.Analytics.route)
+                        },
+                        onNavigateToSurvey = {
+                            navController.navigate(Screen.DailySurvey.route)
+                        }
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text       = "Daha çox",
-                fontSize   = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color      = AppTheme.Colors.primaryText
-            )
-            Spacer(modifier = Modifier.height(24.dp))
+            composable(Screen.Workout.route) {
+                // Client only — Workout tracking
+                WorkoutScreen(
+                    onNavigateToGPS = {
+                        navController.navigate(Screen.GPSTracking.route)
+                    },
+                    onNavigateToAddWorkout = {
+                        navController.navigate(Screen.AddWorkout.route)
+                    }
+                )
+            }
 
-            // iOS: Item 1 — Activities (client) / Content (trainer)
-            MoreMenuItem(
-                icon        = if (isTrainer) Icons.AutoMirrored.Outlined.List else Icons.Outlined.PlayArrow,
-                title       = if (isTrainer) "Kontent" else "Aktivliklər",
-                description = if (isTrainer) "Kontent idarə et" else "Müəllim tapşırıqları",
-                gradientColors = listOf(AppTheme.Colors.accent, AppTheme.Colors.accentDark),
-                onClick     = onActivities
-            )
+            // Trainer tab 1 — Training Plans (birbaşa tab kimi)
+            composable(Screen.TrainingPlans.route) {
+                TrainingPlanScreen(
+                    onNavigateToAddPlan = {
+                        navController.navigate(Screen.AddTrainingPlan.route)
+                    },
+                    onBack = { navController.popBackStack() }
+                )
+            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            // Trainer tab 2 — Meal Plans (birbaşa tab kimi)
+            composable(Screen.MealPlans.route) {
+                MealPlanScreen(
+                    onNavigateToAddPlan = {
+                        navController.navigate(Screen.AddMealPlan.route)
+                    },
+                    onBack = { navController.popBackStack() }
+                )
+            }
 
-            // iOS: Item 2 — Profile
-            MoreMenuItem(
-                icon        = Icons.Outlined.Person,
-                title       = "Profil",
-                description = "Hesabınızı idarə edin",
-                gradientColors = listOf(AppTheme.Colors.success, AppTheme.Colors.success.copy(alpha = 0.7f)),
-                onClick     = onProfile
-            )
+            composable(Screen.Activities.route) {
+                RouteTrackingScreen()
+            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            composable(Screen.GPSTracking.route) {
+                GPSTrackingScreen(
+                    onClose = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.Food.route) {
+                FoodScreen(
+                    onNavigateToMealPlans = {
+                        navController.navigate(Screen.MealPlans.route)
+                    },
+                    onNavigateToAICalorie = {
+                        navController.navigate(Screen.AICalorie.route)
+                    },
+                    onNavigateToAddFood = {
+                        navController.navigate(Screen.AddFood.route)
+                    }
+                )
+            }
+
+            composable(Screen.Messages.route) {
+                ConversationsScreen(
+                    onConversationClick = { userId, userName ->
+                        navController.navigate(Screen.ChatDetail.createRoute(userId, userName))
+                    }
+                )
+            }
+
+            composable(Screen.Profile.route) {
+                ProfileScreen(
+                    onNavigateToEditProfile = {
+                        navController.navigate(Screen.EditProfile.route)
+                    },
+                    onNavigateToAnalytics = {
+                        navController.navigate(Screen.Analytics.route)
+                    },
+                    onNavigateToNotifications = {},
+                    onNavigateToPremium = {
+                        navController.navigate(Screen.Premium.route)
+                    },
+                    onNavigateToTeachers = {
+                        navController.navigate(Screen.TrainerBrowse.route)
+                    },
+                    onNavigateToSettings = {
+                        navController.navigate(Screen.Settings.route)
+                    },
+                    onNavigateToAbout = {},
+                    onLogout = {
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                )
+            }
+
+            composable(Screen.Premium.route) {
+                PremiumScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.Settings.route) {
+                SettingsScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.DailySurvey.route) {
+                DailySurveyScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.AddMealPlan.route) {
+                AddMealPlanScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.AICalorie.route) {
+                AICalorieScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.EditProfile.route) {
+                EditProfileScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            // ── New Routes ──────────────────────────────────────────
+
+            composable(Screen.AddWorkout.route) {
+                AddWorkoutScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.AddFood.route) {
+                AddFoodScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = Screen.ChatDetail.route,
+                arguments = listOf(
+                    navArgument("userId") { type = NavType.StringType },
+                    navArgument("userName") { type = NavType.StringType }
+                )
+            ) {
+                ChatDetailScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.AddTrainingPlan.route) {
+                AddTrainingPlanScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.TrainerBrowse.route) {
+                TrainerBrowseScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.Onboarding.route) {
+                OnboardingScreen(
+                    onComplete = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Onboarding.route) { inclusive = true }
+                        }
+                    }
+                )
+            }
+
+            // ── ORTA Priority Routes ─────────────────────────────────
+
+            composable(Screen.Social.route) {
+                SocialFeedScreen(
+                    onNavigateToCreatePost = {
+                        navController.navigate(Screen.CreatePost.route)
+                    },
+                    onNavigateToComments = { postId ->
+                        navController.navigate(Screen.Comments.createRoute(postId))
+                    }
+                )
+            }
+
+            composable(Screen.Analytics.route) {
+                AnalyticsDashboardScreen(
+                    onBack = { navController.popBackStack() },
+                    onNavigateToOverallStats = {
+                        navController.navigate(Screen.OverallStats.route)
+                    }
+                )
+            }
+
+            composable(Screen.OverallStats.route) {
+                OverallStatsScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.CreatePost.route) {
+                CreatePostScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = Screen.Comments.route,
+                arguments = listOf(
+                    navArgument("postId") { type = NavType.StringType }
+                )
+            ) {
+                CommentsScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.Marketplace.route) {
+                MarketplaceScreen(
+                    onBack = { navController.popBackStack() },
+                    onNavigateToProduct = { productId ->
+                        navController.navigate(Screen.ProductDetail.createRoute(productId))
+                    }
+                )
+            }
+
+            composable(Screen.AICalorieHistory.route) {
+                AICalorieHistoryScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = Screen.WriteReview.route,
+                arguments = listOf(
+                    navArgument("productId") { type = NavType.StringType }
+                )
+            ) {
+                WriteReviewScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            // ── Live Sessions ─────────────────────────────────────
+
+            composable(Screen.LiveSessions.route) {
+                LiveSessionListScreen(
+                    onBack = { navController.popBackStack() },
+                    onNavigateToDetail = { sessionId ->
+                        navController.navigate(Screen.LiveSessionDetail.createRoute(sessionId))
+                    }
+                )
+            }
+
+            composable(
+                route = Screen.LiveSessionDetail.route,
+                arguments = listOf(
+                    navArgument("sessionId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val sessionId = backStackEntry.arguments?.getString("sessionId") ?: ""
+                LiveSessionDetailScreen(
+                    sessionId = sessionId,
+                    onBack = { navController.popBackStack() },
+                    onNavigateToLiveWorkout = { id ->
+                        navController.navigate(Screen.LiveWorkout.createRoute(id))
+                    }
+                )
+            }
+
+            composable(
+                route = Screen.LiveWorkout.route,
+                arguments = listOf(
+                    navArgument("sessionId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val sessionId = backStackEntry.arguments?.getString("sessionId") ?: ""
+                LiveWorkoutScreen(
+                    sessionId = sessionId,
+                    onBack = { navController.popBackStack() },
+                    onEndWorkout = { navController.popBackStack() }
+                )
+            }
+
+            // ── Trainer Hub ────────────────────────────────────────
+
+            composable(Screen.TrainerHub.route) {
+                TrainerHubScreen(
+                    onBack = { navController.popBackStack() },
+                    onNavigateToCreateSession = {
+                        navController.navigate(Screen.CreateLiveSession.route)
+                    },
+                    onNavigateToCreateProduct = {
+                        navController.navigate(Screen.CreateProduct.route)
+                    }
+                )
+            }
+
+            composable(Screen.CreateProduct.route) {
+                CreateProductScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.CreateLiveSession.route) {
+                CreateLiveSessionScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            // ── Trainer Content ────────────────────────────────────
+
+            composable(Screen.TrainerContent.route) {
+                TrainerContentScreen(
+                    isTrainerMode = isTrainer,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            // ── Product Detail ─────────────────────────────────────
+
+            composable(
+                route = Screen.ProductDetail.route,
+                arguments = listOf(
+                    navArgument("productId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val productId = backStackEntry.arguments?.getString("productId") ?: ""
+                ProductDetailScreen(
+                    onBack = { navController.popBackStack() },
+                    onNavigateToWriteReview = {
+                        navController.navigate(Screen.WriteReview.createRoute(productId))
+                    }
+                )
+            }
+
+            // ── Trainer Verification ───────────────────────────────
+
+            composable(Screen.TrainerVerification.route) {
+                TrainerVerificationScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            // ── AI Calorie Result ──────────────────────────────────
+
+            composable(Screen.AICalorieResult.route) {
+                AICalorieResultScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
         }
     }
 }
 
-// ─── iOS: MoreMenuItem ────────────────────────────────────────────────────────
+// ── "Daha çox" Sheet Item ────────────────────────────────────────
 @Composable
-fun MoreMenuItem(
+private fun MoreSheetItem(
     icon: ImageVector,
     title: String,
-    description: String,
+    subtitle: String,
     gradientColors: List<Color>,
     onClick: () -> Unit
 ) {
-    var isPressed by remember { mutableStateOf(false) }
-
-    Box(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(AppTheme.Colors.secondaryBackground)
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onPress = {
-                        isPressed = true
-                        tryAwaitRelease()
-                        isPressed = false
-                    },
-                    onTap = { onClick() }
+            .clip(RoundedCornerShape(16.dp))
+            .background(
+                Brush.linearGradient(
+                    gradientColors.map { it.copy(alpha = 0.08f) }
                 )
-            }
+            )
+            .clickable(onClick = onClick)
+            .padding(20.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        // Icon circle with gradient
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(CircleShape)
+                .background(Brush.linearGradient(gradientColors)),
+            contentAlignment = Alignment.Center
         ) {
-            // iOS: glassmorphism icon circle
-            Box(contentAlignment = Alignment.Center) {
-                Box(
-                    modifier = Modifier
-                        .size(60.dp)
-                        .background(
-                            brush = Brush.linearGradient(
-                                colors = listOf(
-                                    gradientColors[0].copy(alpha = 0.2f),
-                                    gradientColors[1].copy(alpha = 0.1f)
-                                )
-                            ),
-                            shape = CircleShape
-                        )
-                )
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .background(AppTheme.Colors.cardBackground, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector        = icon,
-                        contentDescription = null,
-                        modifier           = Modifier.size(24.dp),
-                        tint               = gradientColors[0]
-                    )
-                }
-            }
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text       = title,
-                    fontSize   = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color      = AppTheme.Colors.primaryText
-                )
-                Text(
-                    text     = description,
-                    fontSize = 13.sp,
-                    color    = AppTheme.Colors.secondaryText
-                )
-            }
-
             Icon(
-                imageVector        = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                imageVector = icon,
                 contentDescription = null,
-                tint               = AppTheme.Colors.tertiaryText,
-                modifier           = Modifier.size(16.dp)
+                modifier = Modifier.size(26.dp),
+                tint = Color.White
             )
         }
-    }
-}
 
-// ─── Placeholder ──────────────────────────────────────────────────────────────
-@Composable
-fun PlaceholderScreen(title: String, emoji: String) {
-    Box(
-        modifier         = Modifier
-            .fillMaxSize()
-            .background(AppTheme.Colors.background),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = emoji, fontSize = 64.sp)
-            Spacer(modifier = Modifier.height(16.dp))
+        // Text
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
             Text(
-                text       = title,
-                color      = AppTheme.Colors.primaryText,
-                fontSize   = 20.sp,
-                fontWeight = FontWeight.Bold
+                text = title,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
             )
-            Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text  = "Tezliklə...",
-                color = AppTheme.Colors.secondaryText,
-                fontSize = 14.sp
+                text = subtitle,
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-    }
-}
 
-// ─── Extension ────────────────────────────────────────────────────────────────
-private fun NavHostController.navigateToMain() {
-    navigate(Routes.HOME) {
-        popUpTo(0) { inclusive = true }
-    }
-}
-
-/**
- * Login/Register uğurlu olduqda çağırılır.
- * Əgər istifadəçi onboarding-i tamamlamayıbsa → Onboarding ekranına yönləndirir.
- * Əks halda → HOME-a aparır.
- */
-private fun NavHostController.navigateAfterAuth(tokenManager: TokenManager) {
-    if (!tokenManager.hasCompletedOnboarding) {
-        navigate(Routes.ONBOARDING) {
-            popUpTo(0) { inclusive = true }
-        }
-    } else {
-        navigateToMain()
+        // Arrow
+        Icon(
+            Icons.Filled.ChevronRight,
+            contentDescription = null,
+            modifier = Modifier.size(22.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }

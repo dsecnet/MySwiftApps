@@ -1,61 +1,67 @@
 package life.corevia.app.data.repository
 
-import android.content.Context
-import android.util.Log
-import life.corevia.app.data.api.ApiClient
-import life.corevia.app.data.models.*
+import life.corevia.app.data.model.ChatConversation
+import life.corevia.app.data.model.ChatMessage
+import life.corevia.app.data.model.ChatMessageCreate
+import life.corevia.app.data.model.MessageLimitResponse
+import life.corevia.app.data.remote.ApiService
+import life.corevia.app.util.NetworkResult
+import javax.inject.Inject
+import javax.inject.Singleton
 
-/**
- * iOS ChatManager.swift-in Android Repository ekvivalenti.
- */
-class ChatRepository(context: Context) {
-
-    private val api = ApiClient.getInstance(context).api
-
-    suspend fun getConversations(): Result<List<Conversation>> {
+@Singleton
+class ChatRepository @Inject constructor(
+    private val apiService: ApiService
+) {
+    suspend fun getConversations(): NetworkResult<List<ChatConversation>> {
         return try {
-            val result = api.getConversations()
-            Log.d("ChatRepo", "getConversations OK: ${result.size} conversations")
-            result.forEachIndexed { i, c ->
-                Log.d("ChatRepo", "Conv[$i]: userId=${c.userId}, name=${c.userName}, lastMsg=${c.lastMessage}, time=${c.lastMessageTime}, unread=${c.unreadCount}")
+            val response = apiService.getConversations()
+            if (response.isSuccessful) {
+                NetworkResult.Success(response.body() ?: emptyList())
+            } else {
+                NetworkResult.Error("Söhbətlər yüklənə bilmədi", response.code())
             }
-            Result.success(result)
         } catch (e: Exception) {
-            Log.e("ChatRepo", "getConversations FAIL: ${e.javaClass.simpleName}: ${e.message}", e)
-            Result.failure(e)
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
         }
     }
 
-    suspend fun getChatHistory(userId: String): Result<List<ChatMessage>> {
+    suspend fun getChatHistory(userId: String): NetworkResult<List<ChatMessage>> {
         return try {
-            Result.success(api.getChatHistory(userId))
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun sendMessage(request: SendMessageRequest): Result<ChatMessage> {
-        return try {
-            Result.success(api.sendMessage(request))
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getMessageLimit(): Result<MessageLimitResponse> {
-        return try {
-            Result.success(api.getMessageLimit())
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    companion object {
-        @Volatile private var instance: ChatRepository? = null
-        fun getInstance(context: Context): ChatRepository =
-            instance ?: synchronized(this) {
-                instance ?: ChatRepository(context.applicationContext).also { instance = it }
+            val response = apiService.getChatHistory(userId)
+            if (response.isSuccessful) {
+                NetworkResult.Success(response.body() ?: emptyList())
+            } else {
+                NetworkResult.Error("Mesajlar yüklənə bilmədi", response.code())
             }
-        fun clearInstance() { instance = null }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
+    }
+
+    suspend fun sendMessage(receiverId: String, message: String): NetworkResult<ChatMessage> {
+        return try {
+            val response = apiService.sendMessage(ChatMessageCreate(receiverId, message))
+            if (response.isSuccessful) {
+                NetworkResult.Success(response.body()!!)
+            } else {
+                NetworkResult.Error("Mesaj göndərilə bilmədi", response.code())
+            }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
+    }
+
+    suspend fun getMessageLimit(): NetworkResult<MessageLimitResponse> {
+        return try {
+            val response = apiService.getMessageLimit()
+            if (response.isSuccessful) {
+                NetworkResult.Success(response.body() ?: MessageLimitResponse())
+            } else {
+                NetworkResult.Error("Limit yüklənə bilmədi", response.code())
+            }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
     }
 }

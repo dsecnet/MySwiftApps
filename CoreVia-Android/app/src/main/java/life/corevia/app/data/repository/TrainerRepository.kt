@@ -1,113 +1,99 @@
 package life.corevia.app.data.repository
 
-import android.content.Context
-import android.util.Log
-import life.corevia.app.data.api.ApiClient
-import life.corevia.app.data.models.*
+import life.corevia.app.data.model.TrainerResponse
+import life.corevia.app.data.model.UserResponse
+import life.corevia.app.data.remote.ApiService
+import life.corevia.app.util.NetworkResult
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
- * iOS TrainerManager + ReviewManager-in Android Repository ekvivalenti.
- * Trainer siyahısı, detalları, assign/unassign, reviews.
+ * iOS TrainerManager.swift equivalent
+ * Trainer API inteqrasiyası — fetch, assign, unassign, students
  */
-class TrainerRepository(context: Context) {
+@Singleton
+class TrainerRepository @Inject constructor(
+    private val apiService: ApiService
+) {
 
-    private val api = ApiClient.getInstance(context).api
+    // ─── Bütün Trainerleri Getir ─────────────────────────────────────
 
-    // ─── Trainers ───────────────────────────────────────────────────────────────
-
-    suspend fun getTrainers(): Result<List<UserResponse>> {
+    suspend fun fetchTrainers(): NetworkResult<List<TrainerResponse>> {
         return try {
-            Result.success(api.getTrainers())
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getTrainer(trainerId: String): Result<UserResponse> {
-        return try {
-            Result.success(api.getTrainer(trainerId))
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun assignTrainer(trainerId: String): Result<Unit> {
-        return try {
-            api.assignTrainer(trainerId)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun unassignTrainer(): Result<Unit> {
-        return try {
-            api.unassignTrainer()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    // ─── Reviews ────────────────────────────────────────────────────────────────
-
-    suspend fun getReviews(trainerId: String): Result<List<TrainerReview>> {
-        return try {
-            Result.success(api.getTrainerReviews(trainerId))
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getReviewSummary(trainerId: String): Result<ReviewSummary> {
-        return try {
-            Result.success(api.getReviewSummary(trainerId))
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun createReview(trainerId: String, request: CreateReviewRequest): Result<TrainerReview> {
-        return try {
-            Result.success(api.createReview(trainerId, request))
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun deleteReview(trainerId: String): Result<Unit> {
-        return try {
-            api.deleteReview(trainerId)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    // ─── Trainer Stats ──────────────────────────────────────────────────────────
-
-    suspend fun getTrainerStats(): Result<TrainerStatsResponse> {
-        return try {
-            val response = api.getTrainerStats()
-            Log.d("TrainerRepo", "Stats OK: subscribers=${response.totalSubscribers}, active=${response.activeStudents}, students=${response.students.size}, summary=${response.statsSummary}")
-            if (response.students.isNotEmpty()) {
-                response.students.forEachIndexed { i, s ->
-                    Log.d("TrainerRepo", "Student[$i]: id=${s.id}, name=${s.name}, workouts=${s.thisWeekWorkouts}")
-                }
+            val response = apiService.getTrainers()
+            if (response.isSuccessful) {
+                NetworkResult.Success(response.body() ?: emptyList())
+            } else {
+                NetworkResult.Error("Trenerlər yüklənə bilmədi", response.code())
             }
-            Result.success(response)
         } catch (e: Exception) {
-            Log.e("TrainerRepo", "Stats ERROR: ${e.javaClass.simpleName}: ${e.message}", e)
-            Result.failure(e)
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
         }
     }
 
-    companion object {
-        @Volatile private var instance: TrainerRepository? = null
-        fun getInstance(context: Context): TrainerRepository =
-            instance ?: synchronized(this) {
-                instance ?: TrainerRepository(context.applicationContext).also { instance = it }
+    // ─── Trainer Məlumatı Getir ──────────────────────────────────────
+
+    suspend fun fetchTrainer(trainerId: String): NetworkResult<TrainerResponse> {
+        return try {
+            val response = apiService.getTrainer(trainerId)
+            if (response.isSuccessful) {
+                NetworkResult.Success(response.body()!!)
+            } else {
+                NetworkResult.Error("Trener tapılmadı", response.code())
             }
-        fun clearInstance() { instance = null }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
+    }
+
+    // ─── Trainer-ə Qoşul (Premium lazımdır) ─────────────────────────
+
+    suspend fun assignTrainer(trainerId: String): NetworkResult<UserResponse> {
+        return try {
+            val response = apiService.assignTrainer(trainerId)
+            if (response.isSuccessful) {
+                NetworkResult.Success(response.body()!!)
+            } else {
+                NetworkResult.Error("Trenerə qoşulmaq mümkün olmadı", response.code())
+            }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
+    }
+
+    // ─── Trainer-dən Ayrıl ───────────────────────────────────────────
+
+    suspend fun unassignTrainer(): NetworkResult<UserResponse> {
+        return try {
+            val response = apiService.unassignTrainer()
+            if (response.isSuccessful) {
+                NetworkResult.Success(response.body()!!)
+            } else {
+                NetworkResult.Error("Trenerdən ayrılmaq mümkün olmadı", response.code())
+            }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
+    }
+
+    // ─── Bağlı Trainer Məlumatı Getir ────────────────────────────────
+
+    suspend fun fetchAssignedTrainer(trainerId: String): NetworkResult<TrainerResponse> {
+        return fetchTrainer(trainerId)
+    }
+
+    // ─── Mənim Tələbələrim (Trainer üçün) ────────────────────────────
+
+    suspend fun fetchMyStudents(): NetworkResult<List<UserResponse>> {
+        return try {
+            val response = apiService.getMyStudents()
+            if (response.isSuccessful) {
+                NetworkResult.Success(response.body() ?: emptyList())
+            } else {
+                NetworkResult.Error("Tələbələr yüklənə bilmədi", response.code())
+            }
+        } catch (e: Exception) {
+            NetworkResult.Error(e.message ?: "Şəbəkə xətası")
+        }
     }
 }

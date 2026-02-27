@@ -262,6 +262,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "CoreVia qida sekilleri cekmek ve AI analizi ucun kamera icazesi teleb edir.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "CoreVia marsrutlarinizi izlemek ucun lokasiya icazesi teleb edir.";
+				INFOPLIST_KEY_NSMotionUsageDescription = "CoreVia addim sayimi ve fiziki aktivlik izlemesi ucun hereket sensoru icazesi teleb edir.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "CoreVia qida sekilleri yuklemek ve saxlamaq ucun foto kitabxana icazesi teleb edir.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -293,6 +294,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "CoreVia qida sekilleri cekmek ve AI analizi ucun kamera icazesi teleb edir.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "CoreVia marsrutlarinizi izlemek ucun lokasiya icazesi teleb edir.";
+				INFOPLIST_KEY_NSMotionUsageDescription = "CoreVia addim sayimi ve fiziki aktivlik izlemesi ucun hereket sensoru icazesi teleb edir.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "CoreVia qida sekilleri yuklemek ve saxlamaq ucun foto kitabxana icazesi teleb edir.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
