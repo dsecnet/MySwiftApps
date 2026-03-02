@@ -4,8 +4,9 @@ import AVFoundation
 struct ContentView: View {
     let synthesizer = AVSpeechSynthesizer()
     // svg pdf sekilleri qoyuruq
+    //option command + <-
     var body: some View {
-        VStack {
+        VStack(spacing: 30) {
             HStack{
                 Image("user1")
                     .resizable()
@@ -21,7 +22,7 @@ struct ContentView: View {
             Text("Salam, We are Team")
                 .fontWeight(.black)
                 .font(.largeTitle)
-           
+            
             HStack {
                 Button {
                     let utterance = AVSpeechUtterance(string: "Salam, I am Vusal")
@@ -36,7 +37,7 @@ struct ContentView: View {
                 .foregroundColor(.white)
                 .background(Color.purple)
                 .cornerRadius(6)
-
+                
                 Button {
                     let utterance = AVSpeechUtterance(string: "Salam, I am Vusal")
                     utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
@@ -50,7 +51,11 @@ struct ContentView: View {
                 .foregroundColor(.white)
                 .background(Color.blue)
                 .cornerRadius(6)
+                
+                
             }
+            
+            Spacer()
         }
     }
 }
