@@ -57,19 +57,14 @@ class APIService: NSObject {
     let baseURL = "https://api.corevia.life"  // Real device RELEASE (cloud)
     #endif
 
-    private let session: URLSession
+    private var session: URLSession!
     private let decoder: JSONDecoder
     private let encoder: JSONEncoder
 
     private override init() {
-        super.init()
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 30
-        config.timeoutIntervalForResource = 60
-        session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
-
-        decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .custom { decoder in
+        // decoder və encoder super.init()-dən əvvəl initialize olmalıdır
+        let dec = JSONDecoder()
+        dec.dateDecodingStrategy = .custom { decoder in
             let container = try decoder.singleValueContainer()
             let dateString = try container.decode(String.self)
             // Backend ISO format: "2026-02-01T10:00:00.000000"
@@ -87,9 +82,19 @@ class APIService: NSObject {
             }
             throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: "Date format tanınmadı: \(dateString)"))
         }
+        decoder = dec
 
-        encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .iso8601
+        let enc = JSONEncoder()
+        enc.dateEncodingStrategy = .iso8601
+        encoder = enc
+
+        super.init()
+
+        // session self-i delegate kimi istifadə edir, ona görə super.init()-dən sonra olmalıdır
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 30
+        config.timeoutIntervalForResource = 60
+        session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
     }
 
     // MARK: - Generic Request
@@ -371,8 +376,7 @@ class APIService: NSObject {
 // MARK: - SSL Certificate Pinning
 extension APIService: URLSessionDelegate {
     func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
-        guard let serverTrust = challenge.protectionSpace.serverTrust,
-              let serverCertificate = SecTrustGetCertificateAtIndex(serverTrust, 0) else {
+        guard let serverTrust = challenge.protectionSpace.serverTrust else {
             completionHandler(.cancelAuthenticationChallenge, nil)
             return
         }
@@ -382,6 +386,13 @@ extension APIService: URLSessionDelegate {
         // Only pin for our API domain
         guard host == "api.corevia.life" else {
             completionHandler(.performDefaultHandling, nil)
+            return
+        }
+
+        // Sertifikat zəncirini yoxla (iOS 15+ uyğun)
+        guard let certificates = SecTrustCopyCertificateChain(serverTrust) as? [SecCertificate],
+              !certificates.isEmpty else {
+            completionHandler(.cancelAuthenticationChallenge, nil)
             return
         }
 

@@ -227,10 +227,8 @@ struct LiveWorkoutView: View {
         }
 
         // Update exercise name when session starts
-        webSocket.onSessionStart = { sessionInfo in
-            if let exerciseName = sessionInfo["exerciseName"] as? String {
-                currentExerciseName = exerciseName
-            }
+        webSocket.onSessionStart = { _ in
+            // Session started - exercise name updated via pose detection
         }
 
         // Start pose detection

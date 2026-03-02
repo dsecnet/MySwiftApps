@@ -70,7 +70,7 @@ class WebSocketService: NSObject, ObservableObject {
         // Start receiving messages
         receiveMessage()
 
-        AppLogger.websocket.info("WebSocket connecting to session: \(sessionId)")
+        AppLogger.websocket.info("WebSocket connecting to session: \(self.sessionId)")
     }
 
     func disconnect() {
