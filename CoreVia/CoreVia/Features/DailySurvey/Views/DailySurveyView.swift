@@ -8,6 +8,7 @@
 //
 
 import SwiftUI
+import os.log
 
 struct DailySurveyView: View {
     @StateObject private var viewModel = DailySurveyViewModel()
@@ -406,7 +407,7 @@ class DailySurveyViewModel: ObservableObject {
             }
         } catch {
             // Ilk defe giris — survey yoxdur, normaldir
-            print("Survey status: \(error.localizedDescription)")
+            AppLogger.general.debug("Survey status: \(error.localizedDescription)")
         }
         isLoading = false
     }
@@ -432,6 +433,7 @@ class DailySurveyViewModel: ObservableObject {
                 isCompleted = true
             }
         } catch {
+            AppLogger.general.error("Submit daily survey xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
 

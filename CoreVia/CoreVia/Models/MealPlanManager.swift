@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import os.log
 
 // MARK: - Meal Plan Item (Plan daxilindəki yemək)
 struct MealPlanItem: Identifiable, Codable {
@@ -242,7 +243,7 @@ class MealPlanManager: ObservableObject {
                     }
                 }
             } catch {
-                print("Meal plan create xətası: \(error)")
+                AppLogger.food.error("Meal plan create xetasi: \(error.localizedDescription)")
             }
         }
     }
@@ -265,7 +266,7 @@ class MealPlanManager: ObservableObject {
                         )
                     )
                 } catch {
-                    print("Meal plan update xətası: \(error)")
+                    AppLogger.food.error("Meal plan update xetasi: \(error.localizedDescription)")
                 }
             }
         }
@@ -278,7 +279,7 @@ class MealPlanManager: ObservableObject {
             do {
                 try await api.requestVoid(endpoint: "/api/v1/plans/meal/\(plan.id)")
             } catch {
-                print("Meal plan delete xətası: \(error)")
+                AppLogger.food.error("Meal plan delete xetasi: \(error.localizedDescription)")
             }
         }
     }
@@ -292,7 +293,7 @@ class MealPlanManager: ObservableObject {
                 do {
                     try await api.requestVoid(endpoint: "/api/v1/plans/meal/\(plan.id)")
                 } catch {
-                    print("Meal plan delete xətası: \(error)")
+                    AppLogger.food.error("Meal plan delete xetasi: \(error.localizedDescription)")
                 }
             }
         }
@@ -319,7 +320,7 @@ class MealPlanManager: ObservableObject {
                         self.plans[index].completedAt = nil
                     }
                 }
-                print("Meal plan complete xətası: \(error)")
+                AppLogger.food.error("Meal plan complete xetasi: \(error.localizedDescription)")
             }
         }
     }
@@ -340,7 +341,7 @@ class MealPlanManager: ObservableObject {
 
     func loadPlans() {
         guard KeychainManager.shared.isLoggedIn else {
-            print("⚠️ MealPlanManager: isLoggedIn=false, loadPlans keçildi")
+            AppLogger.food.warning("MealPlanManager: isLoggedIn=false, loadPlans kecildi")
             return
         }
 
@@ -348,7 +349,7 @@ class MealPlanManager: ObservableObject {
         Task {
             do {
                 let fetched: [MealPlan] = try await api.request(endpoint: "/api/v1/plans/meal")
-                print("✅ Meal plans yükləndi: \(fetched.count) plan tapıldı")
+                AppLogger.food.info("Meal plans yuklendi: \(fetched.count) plan tapildi")
                 await MainActor.run {
                     self.plans = fetched
                     self.isLoading = false
@@ -357,8 +358,8 @@ class MealPlanManager: ObservableObject {
                 await MainActor.run {
                     self.isLoading = false
                 }
-                print("❌ Meal plans yükləmə xətası: \(error)")
-                if let de = error as? DecodingError { print("⚠️ Decode detalları: \(de)") }
+                AppLogger.food.error("Meal plans yukleme xetasi: \(error.localizedDescription)")
+                if let de = error as? DecodingError { AppLogger.food.warning("Decode error type: \(String(describing: type(of: de)))") }
             }
         }
     }

@@ -192,6 +192,7 @@ struct MyStudentsView: View {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundColor(AppTheme.Colors.secondaryText)
                 }
+                .accessibilityLabel("Clear search")
             }
         }
         .padding()
@@ -374,6 +375,7 @@ struct StudentDetailView: View {
                             .font(.system(size: 20))
                             .foregroundColor(AppTheme.Colors.secondaryText)
                     }
+                    .accessibilityLabel("Close")
                 }
             }
             .sheet(isPresented: $showAddTrainingPlan) {
@@ -875,6 +877,7 @@ struct StudentTaskCard: View {
                     .font(.system(size: 22))
                     .foregroundColor(isCompleted ? AppTheme.Colors.success : AppTheme.Colors.separator)
             }
+            .accessibilityLabel(isCompleted ? "Mark as incomplete" : "Mark as complete")
 
             Image(systemName: type.icon)
                 .font(.system(size: 16))

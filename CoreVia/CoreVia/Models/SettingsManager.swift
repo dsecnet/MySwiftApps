@@ -4,6 +4,7 @@ import Foundation
 import LocalAuthentication
 import SwiftUI
 import CryptoKit
+import os.log
 
 class SettingsManager: ObservableObject {
     
@@ -40,9 +41,8 @@ class SettingsManager: ObservableObject {
 
     // Computed property: Trainers automatically have premium access
     var hasPremiumAccess: Bool {
-        // Check if user is trainer
-        if let userType = UserDefaults.standard.string(forKey: "userType"),
-           userType == "trainer" {
+        // Check if user is trainer (from Keychain - BUG-C06 fix)
+        if KeychainManager.shared.userType == "trainer" {
             return true
         }
         // Otherwise check premium status
@@ -99,7 +99,7 @@ class SettingsManager: ObservableObject {
         KeychainManager.shared.save(key: "app_pin_hash", value: hashedPin)
         hasAppPassword = true
         saveSettings()
-        print("Shifre teyin edildi")
+        AppLogger.general.debug("Shifre teyin edildi")
     }
 
     func removePassword() {
@@ -110,20 +110,22 @@ class SettingsManager: ObservableObject {
     }
 
     func verifyPassword(_ password: String) -> Bool {
+        // BUG-C09 fix: Auto-migrate legacy plaintext password from UserDefaults at startup
+        migrateLegacyPasswordIfNeeded()
+
         guard let savedHash = KeychainManager.shared.load(key: "app_pin_hash") else {
-            // Fallback: check old UserDefaults storage for migration
-            if let oldPassword = UserDefaults.standard.string(forKey: "app_password") {
-                if password == oldPassword {
-                    // Migrate to Keychain
-                    setPassword(password)
-                    UserDefaults.standard.removeObject(forKey: "app_password")
-                    return true
-                }
-                return false
-            }
             return false
         }
         return hashPin(password) == savedHash
+    }
+
+    /// Legacy plaintext password-u Keychain-ə miqrasiya et və sil (BUG-C09)
+    private func migrateLegacyPasswordIfNeeded() {
+        if let oldPassword = UserDefaults.standard.string(forKey: "app_password") {
+            let hashedPin = hashPin(oldPassword)
+            KeychainManager.shared.save(key: "app_pin_hash", value: hashedPin)
+            UserDefaults.standard.removeObject(forKey: "app_password")
+        }
     }
 
     private func hashPin(_ pin: String) -> String {

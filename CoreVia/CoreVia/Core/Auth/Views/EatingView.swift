@@ -34,6 +34,22 @@ struct FoodView: View {
                     waterTrackingSection
                     macroBreakdownSection
 
+                    if foodManager.todayEntries.isEmpty {
+                        VStack(spacing: 12) {
+                            Image(systemName: "fork.knife")
+                                .font(.system(size: 50))
+                                .foregroundColor(.gray)
+                            Text("Qida məlumatı yoxdur")
+                                .font(.headline)
+                                .foregroundColor(.gray)
+                            Text("Yeni qida əlavə edin")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                    }
+
                     ForEach(MealType.allCases, id: \.self) { mealType in
                         mealSection(for: mealType)
                     }
@@ -232,6 +248,7 @@ struct FoodView: View {
                         .foregroundColor(waterGlasses > 0 ? .blue : AppTheme.Colors.separator)
                 }
                 .disabled(waterGlasses == 0)
+                .accessibilityLabel("Remove water glass")
 
                 Spacer()
 
@@ -251,6 +268,7 @@ struct FoodView: View {
                         .foregroundColor(waterGlasses < waterGoal ? .blue : AppTheme.Colors.separator)
                 }
                 .disabled(waterGlasses >= waterGoal)
+                .accessibilityLabel("Add water glass")
             }
         }
         .padding()
@@ -404,6 +422,7 @@ struct FoodView: View {
                 .cornerRadius(12)
                 .shadow(color: AppTheme.Colors.accent.opacity(0.3), radius: 8)
             }
+            .accessibilityLabel("Add food")
         }
     }
     

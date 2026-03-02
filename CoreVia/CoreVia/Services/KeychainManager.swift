@@ -7,8 +7,36 @@ class KeychainManager {
 
     private let accessTokenKey = "com.corevia.accessToken"
     private let refreshTokenKey = "com.corevia.refreshToken"
+    private let userIdKey = "com.corevia.userId"
+    private let userTypeKey = "com.corevia.userType"
 
     private init() {}
+
+    // MARK: - User ID (Keychain-də saxla)
+
+    var userId: String? {
+        get { load(key: userIdKey) }
+        set {
+            if let value = newValue {
+                save(key: userIdKey, value: value)
+            } else {
+                delete(key: userIdKey)
+            }
+        }
+    }
+
+    // MARK: - User Type (Keychain-də saxla)
+
+    var userType: String? {
+        get { load(key: userTypeKey) }
+        set {
+            if let value = newValue {
+                save(key: userTypeKey, value: value)
+            } else {
+                delete(key: userTypeKey)
+            }
+        }
+    }
 
     // MARK: - Access Token
 
@@ -34,10 +62,12 @@ class KeychainManager {
         }
     }
 
-    /// Hər iki tokeni sil (logout zamanı)
+    /// Bütün session data-nı sil (logout zamanı)
     func clearTokens() {
         accessToken = nil
         refreshToken = nil
+        userId = nil
+        userType = nil
     }
 
     /// İstifadəçi login olubmu yoxla

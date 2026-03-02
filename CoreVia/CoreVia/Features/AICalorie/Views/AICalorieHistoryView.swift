@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import os.log
 
 struct AICalorieHistoryView: View {
     @StateObject private var viewModel = AICalorieHistoryViewModel()
@@ -169,7 +170,7 @@ class AICalorieHistoryViewModel: ObservableObject {
             hasMore = response.hasMore
             currentPage += 1
         } catch {
-            print("AI Calorie history error: \(error.localizedDescription)")
+            AppLogger.food.error("AI Calorie history error: \(error.localizedDescription)")
         }
 
         isLoading = false

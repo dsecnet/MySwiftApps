@@ -1,4 +1,5 @@
 import SwiftUI
+import os.log
 
 struct FitnessNewsView: View {
     @StateObject private var viewModel = NewsViewModel()
@@ -275,7 +276,7 @@ class NewsViewModel: ObservableObject {
                     categories = categoriesResponse.categories
                 } catch {
                     // Categories are optional, don't fail the whole request
-                    print("Failed to load categories: \(error)")
+                    AppLogger.network.debug("Failed to load categories: \(error.localizedDescription)")
                 }
             }
 
@@ -285,7 +286,7 @@ class NewsViewModel: ObservableObject {
             errorMessage = "Server xətası (\(code)). Zəhmət olmasa bir az sonra cəhd edin."
         } catch {
             errorMessage = "İnternet bağlantınızı yoxlayın və yenidən cəhd edin."
-            print("News loading error: \(error)")
+            AppLogger.network.error("News loading error: \(error.localizedDescription)")
         }
 
         isLoading = false

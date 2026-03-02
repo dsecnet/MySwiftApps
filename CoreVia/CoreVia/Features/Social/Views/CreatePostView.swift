@@ -1,5 +1,6 @@
 import SwiftUI
 import PhotosUI
+import os.log
 
 struct CreatePostView: View {
     @Environment(\.dismiss) var dismiss
@@ -208,6 +209,7 @@ class CreatePostViewModel: ObservableObject {
             return true
 
         } catch {
+            AppLogger.network.error("Create post xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
             isLoading = false
             return false

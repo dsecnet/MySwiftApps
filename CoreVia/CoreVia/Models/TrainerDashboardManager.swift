@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import os.log
 
 // MARK: - Models
 
@@ -105,6 +106,7 @@ class TrainerDashboardManager: ObservableObject {
                 self.isLoading = false
             }
         } catch {
+            AppLogger.training.error("Trainer dashboard load xetasi: \(error.localizedDescription)")
             await MainActor.run {
                 self.isLoading = false
                 self.errorMessage = (error as? APIError)?.errorDescription ?? error.localizedDescription

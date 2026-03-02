@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import os.log
 
 // MARK: - Route Create Request
 struct RouteCreateRequest: Encodable {
@@ -145,7 +146,7 @@ class RouteManager: ObservableObject {
                 }
             } catch {
                 await MainActor.run { self.isLoading = false }
-                print("Routes yukleme xetasi: \(error)")
+                AppLogger.location.error("Routes yukleme xetasi: \(error.localizedDescription)")
             }
         }
     }
@@ -163,7 +164,7 @@ class RouteManager: ObservableObject {
                     self.weeklyStats = stats
                 }
             } catch {
-                print("Route stats xetasi: \(error)")
+                AppLogger.location.error("Route stats xetasi: \(error.localizedDescription)")
             }
         }
     }
@@ -182,7 +183,7 @@ class RouteManager: ObservableObject {
                 }
                 loadWeeklyStats()
             } catch {
-                print("Route saxlama xetasi: \(error)")
+                AppLogger.location.error("Route saxlama xetasi: \(error.localizedDescription)")
             }
         }
     }
@@ -195,7 +196,7 @@ class RouteManager: ObservableObject {
             do {
                 try await api.requestVoid(endpoint: "/api/v1/routes/\(route.id)")
             } catch {
-                print("Route silme xetasi: \(error)")
+                AppLogger.location.error("Route silme xetasi: \(error.localizedDescription)")
             }
         }
     }

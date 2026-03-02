@@ -1,4 +1,5 @@
 import SwiftUI
+import os.log
 
 /// Live Sessions List View
 struct LiveSessionListView: View {
@@ -26,7 +27,7 @@ struct LiveSessionListView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     // Only trainers can create sessions
-                    if UserDefaults.standard.string(forKey: "userType") == "trainer" {
+                    if KeychainManager.shared.userType == "trainer" {
                         Button {
                             showCreateSession = true
                         } label: {
@@ -347,6 +348,7 @@ class LiveSessionListViewModel: ObservableObject {
             currentPage += 1
 
         } catch {
+            AppLogger.training.error("Load live sessions xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
 

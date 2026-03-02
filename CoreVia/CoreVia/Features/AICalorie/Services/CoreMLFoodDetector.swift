@@ -10,6 +10,7 @@
 import Vision
 import UIKit
 import CoreML
+import os.log
 
 // MARK: - Detection Result
 
@@ -61,10 +62,10 @@ class CoreMLFoodDetector {
             mlModel = detector.model
             visionModel = try? VNCoreMLModel(for: detector.model)
             modelLoaded = true
-            print("✅ FoodDetector Core ML model yuklendi")
+            AppLogger.ml.info("FoodDetector Core ML model yuklendi")
             return
         } catch {
-            print("⚠️ FoodDetector auto-generated xetasi: \(error.localizedDescription)")
+            AppLogger.ml.warning("FoodDetector auto-generated xetasi: \(error.localizedDescription)")
         }
 
         // 2. Bundle fallback
@@ -73,10 +74,10 @@ class CoreMLFoodDetector {
                 mlModel = try MLModel(contentsOf: url, configuration: config)
                 visionModel = try? VNCoreMLModel(for: mlModel!)
                 modelLoaded = true
-                print("✅ FoodDetector yuklendi (bundle .mlmodelc)")
+                AppLogger.ml.info("FoodDetector yuklendi (bundle .mlmodelc)")
                 return
             } catch {
-                print("⚠️ FoodDetector .mlmodelc xetasi: \(error.localizedDescription)")
+                AppLogger.ml.warning("FoodDetector .mlmodelc xetasi: \(error.localizedDescription)")
             }
         }
 
@@ -87,14 +88,14 @@ class CoreMLFoodDetector {
                 mlModel = try MLModel(contentsOf: compiledUrl, configuration: config)
                 visionModel = try? VNCoreMLModel(for: mlModel!)
                 modelLoaded = true
-                print("✅ FoodDetector yuklendi (runtime compile)")
+                AppLogger.ml.info("FoodDetector yuklendi (runtime compile)")
                 return
             } catch {
-                print("⚠️ FoodDetector runtime compile xetasi: \(error.localizedDescription)")
+                AppLogger.ml.warning("FoodDetector runtime compile xetasi: \(error.localizedDescription)")
             }
         }
 
-        print("⚠️ FoodDetector model tapilmadi — fallback mode isleyecek")
+        AppLogger.ml.warning("FoodDetector model tapilmadi -- fallback mode isleyecek")
         mlModel = nil
         visionModel = nil
         modelLoaded = false
@@ -109,7 +110,7 @@ class CoreMLFoodDetector {
 
         // Model yuklenmedikde → butun sekili bir yemek kimi qaytarirıq
         guard modelLoaded, mlModel != nil else {
-            print("ℹ️ FoodDetector: Model yoxdur, full image fallback istifade olunur")
+            AppLogger.ml.info("FoodDetector: Model yoxdur, full image fallback istifade olunur")
             return [fullImageFallback(cgImage)]
         }
 
@@ -117,26 +118,26 @@ class CoreMLFoodDetector {
         do {
             let visionResult = try await detectWithVision(cgImage: cgImage)
             if !visionResult.isEmpty {
-                print("✅ FoodDetector: Vision ile \(visionResult.count) yemek tapildi")
+                AppLogger.ml.info("FoodDetector: Vision ile \(visionResult.count) yemek tapildi")
                 return visionResult
             }
         } catch {
-            print("⚠️ FoodDetector Vision xetasi: \(error.localizedDescription)")
+            AppLogger.ml.warning("FoodDetector Vision xetasi: \(error.localizedDescription)")
         }
 
         // 2. Raw model prediction + manual NMS
         do {
             let rawResult = try await detectWithRawModel(cgImage: cgImage)
             if !rawResult.isEmpty {
-                print("✅ FoodDetector: Raw model ile \(rawResult.count) yemek tapildi")
+                AppLogger.ml.info("FoodDetector: Raw model ile \(rawResult.count) yemek tapildi")
                 return rawResult
             }
         } catch {
-            print("⚠️ FoodDetector raw model xetasi: \(error.localizedDescription)")
+            AppLogger.ml.warning("FoodDetector raw model xetasi: \(error.localizedDescription)")
         }
 
         // 3. Her sey ugursuz olsa da — full image fallback (HEC VAXT bos array qaytarmiriq!)
-        print("ℹ️ FoodDetector: Hec bir detection tapilmadi, full image fallback")
+        AppLogger.ml.info("FoodDetector: Hec bir detection tapilmadi, full image fallback")
         return [fullImageFallback(cgImage)]
     }
 
@@ -252,7 +253,7 @@ class CoreMLFoodDetector {
         let numBoxes = confidenceArray.shape[0].intValue
         let numClasses = confidenceArray.shape.count > 1 ? confidenceArray.shape[1].intValue : 1
 
-        print("ℹ️ FoodDetector raw: \(numBoxes) boxes, \(numClasses) classes")
+        AppLogger.ml.debug("FoodDetector raw: \(numBoxes) boxes, \(numClasses) classes")
 
         var rawDetections: [(box: CGRect, confidence: Float, classIdx: Int)] = []
 
@@ -293,7 +294,7 @@ class CoreMLFoodDetector {
             rawDetections.append((box: box, confidence: maxConf, classIdx: maxClass))
         }
 
-        print("ℹ️ FoodDetector raw: \(rawDetections.count) detections (threshold >\(confidenceThreshold))")
+        AppLogger.ml.debug("FoodDetector raw: \(rawDetections.count) detections (threshold >\(self.confidenceThreshold))")
 
         // NMS tetbiq et
         let nmsDetections = nonMaxSuppression(rawDetections, iouThreshold: iouThreshold)

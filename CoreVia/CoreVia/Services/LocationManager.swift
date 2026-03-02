@@ -7,10 +7,21 @@
 
 import Foundation
 import CoreLocation
+import os.log
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
 
     static let shared = LocationManager()
+
+    // MARK: - Constants (BUG-L01 fix)
+    private enum Config {
+        static let distanceFilter: CLLocationDistance = 10    // metr - minimum update məsafəsi
+        static let maxLocationAge: TimeInterval = 10          // saniyə - köhnə location-ları at
+        static let maxAccuracy: CLLocationAccuracy = 20       // metr - keyfiyyət limiti
+        static let minSpeed: CLLocationSpeed = 0.3            // m/s - drift filteri
+        static let minDelta: Double = 3                       // metr - minimum məsafə dəyişikliyi
+        static let maxDelta: Double = 100                     // metr - teleportasiya filteri
+    }
 
     private let manager = CLLocationManager()
 
@@ -20,6 +31,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var currentLocation: CLLocation?
     @Published var totalDistanceMeters: Double = 0.0
     @Published var coordinates: [[Double]] = [] // [[lat, lng, alt, timestamp], ...]
+    @Published var locationError: String?  // GPS xətası UI-da göstərmək üçün
 
     // Internal
     private var lastLocation: CLLocation?
@@ -29,7 +41,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.activityType = .fitness
-        manager.distanceFilter = 10 // minimum 10 metr arasinda update (GPS drift azaldir)
+        manager.distanceFilter = Config.distanceFilter
         authorizationStatus = manager.authorizationStatus
     }
 
@@ -86,15 +98,15 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         guard isTracking else { return }
 
         for location in locations {
-            // Kohne/cached location-lari at (10 saniyeden kohne)
-            guard abs(location.timestamp.timeIntervalSinceNow) < 10 else { continue }
+            // Kohne/cached location-lari at
+            guard abs(location.timestamp.timeIntervalSinceNow) < Config.maxLocationAge else { continue }
 
-            // Keyfiyyetsiz oxunuslari sil (20m-den pis deqiqlik)
+            // Keyfiyyetsiz oxunuslari sil
             guard location.horizontalAccuracy >= 0,
-                  location.horizontalAccuracy < 20 else { continue }
+                  location.horizontalAccuracy < Config.maxAccuracy else { continue }
 
-            // GPS drift filteri: minimum 0.3 m/s suret olmalidir
-            guard location.speed >= 0.3 else {
+            // GPS drift filteri
+            guard location.speed >= Config.minSpeed else {
                 // Hereket yoxdursa koordinat ve location yenile amma mesafe elave etme
                 DispatchQueue.main.async {
                     self.currentLocation = location
@@ -106,8 +118,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             // Mesafe hesabla
             if let last = lastLocation {
                 let delta = location.distance(from: last)
-                // Minimum 3m (drift filter) ve maximum 100m (teleportasiya filter)
-                guard delta > 3 && delta < 100 else { continue }
+                guard delta > Config.minDelta && delta < Config.maxDelta else { continue }
                 DispatchQueue.main.async {
                     self.totalDistanceMeters += delta
                 }
@@ -130,6 +141,20 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        print("Location xetasi: \(error.localizedDescription)")
+        let clError = error as? CLError
+        let userMessage: String
+        switch clError?.code {
+        case .denied:
+            userMessage = "GPS icazəsi verilməyib. Ayarlardan aktiv edin."
+        case .locationUnknown:
+            userMessage = "Məkan müəyyən edilə bilmədi. Açıq sahəyə çıxın."
+        case .network:
+            userMessage = "Şəbəkə xətası. İnternet bağlantınızı yoxlayın."
+        default:
+            userMessage = "GPS xətası: \(error.localizedDescription)"
+        }
+        DispatchQueue.main.async {
+            self.locationError = userMessage
+        }
     }
 }

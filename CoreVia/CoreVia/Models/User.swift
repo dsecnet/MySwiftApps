@@ -60,8 +60,9 @@ struct User: Identifiable, Codable {
 }
 
 // MARK: - Mock Data (Test məlumatları)
-// Development zamanı test etmək üçün fake data
+// Development zamanı test etmək üçün fake data - production-da mövcud deyil
 
+#if DEBUG
 extension User {
     static let mockClient = User(
         id: "1",
@@ -74,7 +75,7 @@ extension User {
         height: 180,
         goal: "Arıqlamaq"
     )
-    
+
     static let mockTrainer = User(
         id: "2",
         name: "Leyla Həsənova",
@@ -88,6 +89,7 @@ extension User {
         bio: "Professional fitness coach with 5 years experience"
     )
 }
+#endif
 
 // MARK: - Niyə struct istifadə edirik?
 // Struct-lar value type-dır, dəyişiklik edəndə yeni kopya yaradır

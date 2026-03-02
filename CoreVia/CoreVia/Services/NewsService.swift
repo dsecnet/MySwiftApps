@@ -2,7 +2,7 @@ import Foundation
 
 class NewsService {
     static let shared = NewsService()
-    private let baseURL = "http://localhost:8000"
+    private var baseURL: String { APIService.shared.baseURL }
     private let keychain = KeychainManager.shared
 
     private init() {}
@@ -13,7 +13,9 @@ class NewsService {
             throw NewsAPIError.unauthorized
         }
 
-        var urlComponents = URLComponents(string: "\(baseURL)/news/")!
+        guard var urlComponents = URLComponents(string: "\(baseURL)/news/") else {
+            throw NewsAPIError.invalidURL
+        }
         urlComponents.queryItems = [
             URLQueryItem(name: "limit", value: "\(limit)"),
             URLQueryItem(name: "force_refresh", value: forceRefresh ? "true" : "false")

@@ -578,6 +578,40 @@ class LocalizationManager: ObservableObject {
         // Əlavə səhifə yazıları
         "route_no_map": [.az: "Xəritə məlumatı yoxdur", .en: "No map data available", .ru: "Нет данных карты"],
         "route_details": [.az: "Detallar", .en: "Details", .ru: "Детали"],
+
+        // ============================================================
+        // MARK: - Live Tracking
+        // ============================================================
+        "tracking_live": [.az: "Canlı İzləmə", .en: "Live Tracking", .ru: "Отслеживание"],
+        "tracking_kilometer": [.az: "Kilometr", .en: "Kilometer", .ru: "Километр"],
+        "tracking_calorie": [.az: "Kalori", .en: "Calories", .ru: "Калории"],
+        "tracking_time": [.az: "Vaxt", .en: "Time", .ru: "Время"],
+        "tracking_steps": [.az: "Addım", .en: "Steps", .ru: "Шаги"],
+        "tracking_start": [.az: "Başla", .en: "Start", .ru: "Старт"],
+        "tracking_resume": [.az: "Davam", .en: "Resume", .ru: "Продолжить"],
+        "tracking_pause": [.az: "Pauza", .en: "Pause", .ru: "Пауза"],
+        "tracking_stop": [.az: "Bitir", .en: "Stop", .ru: "Стоп"],
+        "tracking_save_workout": [.az: "Məşqi saxla", .en: "Save Workout", .ru: "Сохранить тренировку"],
+        "tracking_gps_workout": [.az: "GPS Məşq", .en: "GPS Workout", .ru: "GPS Тренировка"],
+        "tracking_distance": [.az: "Məsafə", .en: "Distance", .ru: "Расстояние"],
+        "tracking_speed": [.az: "Sürət", .en: "Speed", .ru: "Скорость"],
+
+        // MARK: - Route Details
+        "route_distance": [.az: "Mesafe", .en: "Distance", .ru: "Расстояние"],
+        "route_duration": [.az: "Muddet", .en: "Duration", .ru: "Длительность"],
+        "route_avg_pace": [.az: "Orta Temp", .en: "Avg Pace", .ru: "Ср. темп"],
+        "route_calorie": [.az: "Kalori", .en: "Calories", .ru: "Калории"],
+        "route_elevation": [.az: "Yukselis", .en: "Elevation", .ru: "Подъем"],
+        "route_avg_speed": [.az: "Orta Suret", .en: "Avg Speed", .ru: "Ср. скорость"],
+        "route_activity": [.az: "Aktivite", .en: "Activity", .ru: "Активность"],
+        "route_start_time": [.az: "Baslama", .en: "Start", .ru: "Начало"],
+        "route_end_time": [.az: "Bitis", .en: "End", .ru: "Конец"],
+        "route_max_speed": [.az: "Max Suret", .en: "Max Speed", .ru: "Макс. скорость"],
+        "route_max_pace": [.az: "Max Temp", .en: "Max Pace", .ru: "Макс. темп"],
+        "route_descent": [.az: "Enis", .en: "Descent", .ru: "Спуск"],
+        "route_walking": [.az: "Yerish", .en: "Walking", .ru: "Ходьба"],
+        "route_running": [.az: "Qacis", .en: "Running", .ru: "Бег"],
+        "route_cycling": [.az: "Velosiped", .en: "Cycling", .ru: "Велосипед"],
         "food_ai_calorie_analysis": [.az: "AI Kalori Analizi", .en: "AI Calorie Analysis", .ru: "AI анализ калорий"],
         "food_unlock_premium": [.az: "Premium ilə açın", .en: "Unlock with Premium", .ru: "Откройте с Премиум"],
         "food_go_premium": [.az: "Premium-a keç", .en: "Go Premium", .ru: "Стать Премиум"],

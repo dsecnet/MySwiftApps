@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import os.log
 
 @MainActor
 class TrainerSessionsViewModel: ObservableObject {
@@ -68,6 +69,7 @@ class TrainerSessionsViewModel: ObservableObject {
             currentPage += 1
 
         } catch {
+            AppLogger.training.error("Load trainer sessions xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
 
@@ -91,6 +93,7 @@ class TrainerSessionsViewModel: ObservableObject {
             )
             sessions.removeAll { $0.id == sessionId }
         } catch {
+            AppLogger.training.error("Delete trainer session xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
     }

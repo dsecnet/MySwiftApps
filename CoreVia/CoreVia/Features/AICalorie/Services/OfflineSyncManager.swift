@@ -11,6 +11,7 @@
 
 import Foundation
 import Network
+import os.log
 
 // MARK: - Pending Analysis Model
 
@@ -109,6 +110,7 @@ class OfflineSyncManager {
                 try await sendToBackend(analysis)
             } catch {
                 // Göndərilə bilmədi — queue-da saxla
+                AppLogger.food.error("Offline sync gondermesi ugursuz: \(error.localizedDescription)")
                 remaining.append(analysis)
             }
         }
@@ -116,9 +118,9 @@ class OfflineSyncManager {
         savePendingQueue(remaining)
 
         if remaining.isEmpty {
-            print("✅ Bütün pending analizlər sync olundu")
+            AppLogger.network.info("Butun pending analizler sync olundu")
         } else {
-            print("⚠️ \(remaining.count) analiz sync olunmadı, növbəti dəfə cəhd ediləcək")
+            AppLogger.network.warning("\(remaining.count) analiz sync olunmadi, novbeti defe cehd edilecek")
         }
     }
 

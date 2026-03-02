@@ -1,6 +1,8 @@
 
 
 import SwiftUI
+import AVFoundation
+import os.log
 
 // FIX B: NEW - Request model for backend food entry
 struct CreateFoodEntryRequest: Encodable {
@@ -41,6 +43,7 @@ struct AddFoodView: View {
     @State private var analysisComplete = false
     @State private var showError = false
     @State private var errorMessage = ""
+    @State private var showCameraPermissionAlert = false
     @State private var analysisConfidence: Double = 0.0
     @State private var analysisPortionSize: String = ""
 
@@ -109,6 +112,16 @@ struct AddFoodView: View {
                 } message: {
                     Text(errorMessage)
                 }
+                .alert("Kamera İcazəsi", isPresented: $showCameraPermissionAlert) {
+                    Button("Ayarlara Keç") {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    }
+                    Button("Ləğv et", role: .cancel) {}
+                } message: {
+                    Text("Kamera istifadəsi üçün icazə lazımdır. Ayarlardan aktiv edin.")
+                }
                 .sheet(isPresented: $showCamera) {
                     CameraPicker(image: $capturedImage)
                 }
@@ -124,7 +137,7 @@ struct AddFoodView: View {
                     titleVisibility: .visible
                 ) {
                     Button(loc.localized("food_source_camera")) {
-                        showCamera = true
+                        checkCameraPermission()
                     }
                     Button(loc.localized("food_source_gallery")) {
                         showGallery = true
@@ -191,7 +204,7 @@ struct AddFoodView: View {
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(AppTheme.Colors.primaryText)
 
-                if !settingsManager.isPremium {
+                if !settingsManager.hasPremiumAccess {
                     HStack(spacing: 4) {
                         Image(systemName: "lock.fill")
                             .font(.system(size: 10))
@@ -212,7 +225,12 @@ struct AddFoodView: View {
                 }
             }
 
-            if settingsManager.isPremium {
+            // NOTE: Premium gating is client-side only. Use hasPremiumAccess which checks
+            // userType from Keychain (trainers get premium automatically).
+            // Backend must also validate premium status on the AI food analysis endpoint
+            // (e.g. /api/v1/food/analyze) to prevent unauthorized access.
+            // TODO: Backend should reject non-premium users on premium-only endpoints.
+            if settingsManager.hasPremiumAccess {
                 premiumCameraContent
             } else {
                 lockedCameraContent
@@ -632,6 +650,24 @@ struct AddFoodView: View {
     }
 
     // MARK: - Actions
+    private func checkCameraPermission() {
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:
+            showCamera = true
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { granted in
+                DispatchQueue.main.async {
+                    if granted { showCamera = true }
+                    else { showCameraPermissionAlert = true }
+                }
+            }
+        case .denied, .restricted:
+            showCameraPermissionAlert = true
+        @unknown default:
+            showCameraPermissionAlert = true
+        }
+    }
+
     private func saveFood() {
         guard isFormValid else { return }
 
@@ -690,9 +726,9 @@ struct AddFoodView: View {
                 method: "POST",
                 body: body
             )
-            print("✅ Food entry saved to backend for student: \(studentId)")
+            AppLogger.food.info("Food entry saved to backend for student")
         } catch {
-            print("❌ Failed to save food entry to backend: \(error.localizedDescription)")
+            AppLogger.food.error("Failed to save food entry to backend: \(error.localizedDescription)")
         }
     }
 
@@ -735,7 +771,7 @@ struct AddFoodView: View {
 
         Task {
             do {
-                print("📸 AI Analysis: On-device CoreML pipeline başlayır...")
+                AppLogger.ml.debug("AI Analysis: On-device CoreML pipeline baslayir...")
 
                 // On-device CoreML pipeline istifadə et (backend-ə göndərmir!)
                 // AICalorieService: CoreML (YOLOv8 + EfficientNet + USDA DB) → backend fallback
@@ -763,7 +799,7 @@ struct AddFoodView: View {
                         self.isAnalyzing = false
                         self.analysisComplete = true
                     }
-                    print("✅ AI Analysis uğurlu: \(self.foodName) - \(self.calories) kcal (confidence: \(Int(result.confidence * 100))%)")
+                    AppLogger.ml.info("AI Analysis ugurlu: \(self.foodName) - \(self.calories) kcal (confidence: \(Int(result.confidence * 100))%)")
                 }
 
             } catch {
@@ -771,7 +807,7 @@ struct AddFoodView: View {
                     self.isAnalyzing = false
                     self.errorMessage = error.localizedDescription
                     self.showError = true
-                    print("❌ AI Analysis Error: \(error)")
+                    AppLogger.ml.error("AI Analysis Error: \(error.localizedDescription)")
                 }
             }
         }

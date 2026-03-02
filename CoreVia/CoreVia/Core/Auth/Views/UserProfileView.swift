@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import os.log
 
 struct ClientProfileView: View {
 
@@ -109,7 +110,7 @@ struct ClientProfileView: View {
                             method: "POST"
                         )
                     } catch {
-                        print("Premium cancel backend xetasi: \(error)")
+                        AppLogger.network.error("Premium cancel backend xetasi: \(error.localizedDescription)")
                     }
                     // Token-leri yenile (is_premium claim yenilenir)
                     await AuthManager.shared.refreshTokenClaims()
@@ -215,6 +216,7 @@ struct ClientProfileView: View {
                     }
                     .shadow(color: AppTheme.Colors.accent.opacity(0.5), radius: 6)
                 }
+                .accessibilityLabel("Change profile photo")
             }
 
             VStack(spacing: 2) {

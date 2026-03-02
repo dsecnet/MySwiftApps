@@ -25,8 +25,12 @@ struct ConversationsView: View {
     }
 
     private var canAccessChat: Bool {
-        // Premium users and trainers can access chat
-        return settingsManager.isPremium || isTrainer
+        // NOTE: Premium gating is client-side only via SettingsManager.hasPremiumAccess
+        // (reads userType from Keychain; trainers get premium automatically).
+        // Backend must also validate premium status on chat API endpoints
+        // (e.g. /api/v1/chat/) to prevent unauthorized access.
+        // TODO: Backend should reject non-premium users on premium-only endpoints.
+        return settingsManager.hasPremiumAccess || isTrainer
     }
 
     var body: some View {

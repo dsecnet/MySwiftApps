@@ -5,6 +5,7 @@
 
 import SwiftUI
 import PhotosUI
+import os.log
 
 // MARK: - Verification Response Model
 struct VerificationResponse: Codable {
@@ -565,6 +566,7 @@ struct TrainerVerificationView: View {
                     showErrorMsg(error.errorDescription ?? "Xeta bas verdi")
                 }
             } catch {
+                AppLogger.auth.error("Trainer verification xetasi: \(error.localizedDescription)")
                 await MainActor.run {
                     isLoading = false
                     showErrorMsg(error.localizedDescription)

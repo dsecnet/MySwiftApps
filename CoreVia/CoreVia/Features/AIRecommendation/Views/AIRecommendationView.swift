@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import os.log
 
 struct AIRecommendationView: View {
     @StateObject private var viewModel = AIRecommendationViewModel()
@@ -259,6 +260,7 @@ class AIRecommendationViewModel: ObservableObject {
             }
             recommendations = response.recommendations
         } catch {
+            AppLogger.ml.error("AI recommendation fetch xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
 

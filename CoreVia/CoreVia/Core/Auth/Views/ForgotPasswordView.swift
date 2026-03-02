@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import os.log
 
 struct ForgotPasswordView: View {
     @Environment(\.dismiss) private var dismiss
@@ -428,9 +429,9 @@ struct ForgotPasswordView: View {
                         currentStep = .enterOTP
                         startOTPTimer()
 
-                        // Mock mode-da kodu göstər
-                        if let code = response.code {
-                            print("🔐 OTP Code (test): \(code)")
+                        // Mock mode-da kodu log et (test only)
+                        if response.code != nil {
+                            AppLogger.auth.debug("OTP code received (test mode)")
                         }
                     } else {
                         errorMessage = response.message

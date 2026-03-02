@@ -7,23 +7,33 @@
 
 import SwiftUI
 import UIKit
+import os.log
 
 class FoodImageManager: ObservableObject {
 
     static let shared = FoodImageManager()
 
+    @Published var lastError: String?
+
     private let api = APIService.shared
-    private var imageCache: [String: UIImage] = [:]
+    private let imageCache = NSCache<NSString, UIImage>()
+
+    private init() {
+        imageCache.countLimit = 50
+        imageCache.totalCostLimit = 50 * 1024 * 1024 // 50MB
+    }
 
     // MARK: - Save (Upload) Image to Backend
     func saveImage(_ image: UIImage, forEntryId entryId: String) {
         guard let resizedImage = resizeImage(image, targetSize: CGSize(width: 500, height: 500)),
               let imageData = resizedImage.jpegData(compressionQuality: 0.7) else {
+            AppLogger.food.error("Image resize failed for entry: \(entryId)")
+            lastError = "Image resize failed for entry: \(entryId)"
             return
         }
 
         // Cache locally
-        imageCache[entryId] = resizedImage
+        imageCache.setObject(resizedImage, forKey: entryId as NSString)
 
         Task {
             do {
@@ -34,19 +44,19 @@ class FoodImageManager: ObservableObject {
                     fileName: "food_\(entryId).jpg"
                 )
             } catch {
-                print("Food image upload xətası: \(error)")
+                AppLogger.food.error("Food image upload xetasi: \(error.localizedDescription)")
             }
         }
     }
 
     // MARK: - Load Image
     func loadImage(forEntryId entryId: String) -> UIImage? {
-        return imageCache[entryId]
+        return imageCache.object(forKey: entryId as NSString)
     }
 
     // MARK: - Load Image from URL
     func loadImage(from urlString: String, forEntryId entryId: String) {
-        if imageCache[entryId] != nil { return }
+        if imageCache.object(forKey: entryId as NSString) != nil { return }
 
         let baseURL = APIService.shared.baseURL
         let fullURL: String
@@ -63,18 +73,18 @@ class FoodImageManager: ObservableObject {
                 let (data, _) = try await URLSession.shared.data(from: url)
                 if let image = UIImage(data: data) {
                     await MainActor.run {
-                        self.imageCache[entryId] = image
+                        self.imageCache.setObject(image, forKey: entryId as NSString)
                     }
                 }
             } catch {
-                print("Image download xətası: \(error)")
+                AppLogger.food.error("Image download xetasi: \(error.localizedDescription)")
             }
         }
     }
 
     // MARK: - Delete Image
     func deleteImage(forEntryId entryId: String) {
-        imageCache.removeValue(forKey: entryId)
+        imageCache.removeObject(forKey: entryId as NSString)
     }
 
     // MARK: - Helper: Resize Image

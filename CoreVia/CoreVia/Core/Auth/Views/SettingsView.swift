@@ -1,6 +1,7 @@
 
 import SwiftUI
 import LocalAuthentication
+import os.log
 
 // MARK: - Notifications Settings View
 struct NotificationsSettingsView: View {
@@ -226,7 +227,7 @@ struct SecuritySettingsView: View {
         settings.authenticateWithBiometrics { success, error in
             if !success {
                 settings.faceIDEnabled = false
-                print("Biometric authentication failed: \(error ?? "Unknown error")")
+                AppLogger.auth.error("Biometric authentication failed: \(error ?? "Unknown error")")
             }
         }
     }

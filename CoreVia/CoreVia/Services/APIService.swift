@@ -1,5 +1,6 @@
 import Foundation
 import UIKit
+import os.log
 
 // MARK: - API Error
 enum APIError: LocalizedError {
@@ -42,7 +43,7 @@ struct ErrorDetail: Codable {
 }
 
 // MARK: - API Service
-class APIService {
+class APIService: NSObject {
     static let shared = APIService()
 
     // Backend URL - development və production üçün ayrı
@@ -60,11 +61,12 @@ class APIService {
     private let decoder: JSONDecoder
     private let encoder: JSONEncoder
 
-    private init() {
+    private override init() {
+        super.init()
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 30
         config.timeoutIntervalForResource = 60
-        session = URLSession(configuration: config)
+        session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
 
         decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .custom { decoder in
@@ -136,9 +138,12 @@ class APIService {
         if httpResponse.statusCode == 401 && requiresAuth {
             let refreshed = await refreshTokenIfNeeded()
             if refreshed {
-                // Yeni token ile tekrar dene
+                // Yeni token ile tekrar dene (BUG-M13: boş token yoxla)
+                guard let newToken = KeychainManager.shared.accessToken, !newToken.isEmpty else {
+                    throw APIError.unauthorized
+                }
                 var retryRequest = request
-                retryRequest.setValue("Bearer \(KeychainManager.shared.accessToken ?? "")", forHTTPHeaderField: "Authorization")
+                retryRequest.setValue("Bearer \(newToken)", forHTTPHeaderField: "Authorization")
                 let (retryData, retryResponse) = try await performRequest(retryRequest)
                 guard let retryHttp = retryResponse as? HTTPURLResponse else {
                     throw APIError.networkError("Invalid response")
@@ -186,8 +191,11 @@ class APIService {
         if httpResponse.statusCode == 401 && requiresAuth {
             let refreshed = await refreshTokenIfNeeded()
             if refreshed {
+                guard let newToken = KeychainManager.shared.accessToken, !newToken.isEmpty else {
+                    throw APIError.unauthorized
+                }
                 var retryRequest = request
-                retryRequest.setValue("Bearer \(KeychainManager.shared.accessToken ?? "")", forHTTPHeaderField: "Authorization")
+                retryRequest.setValue("Bearer \(newToken)", forHTTPHeaderField: "Authorization")
                 let (_, retryResponse) = try await performRequest(retryRequest)
                 guard let retryHttp = retryResponse as? HTTPURLResponse, (200...299).contains(retryHttp.statusCode) else {
                     throw APIError.unauthorized
@@ -225,19 +233,19 @@ class APIService {
         }
 
         var body = Data()
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"\(fieldName)\"; filename=\"\(fileName)\"\r\n".data(using: .utf8)!)
-        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+        body.appendString("--\(boundary)\r\n")
+        body.appendString("Content-Disposition: form-data; name=\"\(fieldName)\"; filename=\"\(fileName)\"\r\n")
+        body.appendString("Content-Type: image/jpeg\r\n\r\n")
         body.append(imageData)
-        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        body.appendString("\r\n--\(boundary)--\r\n")
 
         request.httpBody = body
 
         let (data, response) = try await performRequest(request)
         guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
-            let httpResponse = response as? HTTPURLResponse
+            let failedResponse = response as? HTTPURLResponse
             let detail = try? decoder.decode(ErrorDetail.self, from: data)
-            throw APIError.serverError(httpResponse?.statusCode ?? 500, detail?.detail ?? "Upload uğursuz oldu")
+            throw APIError.serverError(failedResponse?.statusCode ?? 500, detail?.detail ?? "Upload uğursuz oldu")
         }
         return data
     }
@@ -268,17 +276,17 @@ class APIService {
 
         // Form field-leri elave et
         for (key, value) in fields {
-            body.append("--\(boundary)\r\n".data(using: .utf8)!)
-            body.append("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n".data(using: .utf8)!)
-            body.append("\(value)\r\n".data(using: .utf8)!)
+            body.appendString("--\(boundary)\r\n")
+            body.appendString("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n")
+            body.appendString("\(value)\r\n")
         }
 
         // Sekil elave et
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"\(fieldName)\"; filename=\"\(fileName)\"\r\n".data(using: .utf8)!)
-        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+        body.appendString("--\(boundary)\r\n")
+        body.appendString("Content-Disposition: form-data; name=\"\(fieldName)\"; filename=\"\(fileName)\"\r\n")
+        body.appendString("Content-Type: image/jpeg\r\n\r\n")
         body.append(imageData)
-        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        body.appendString("\r\n--\(boundary)--\r\n")
 
         request.httpBody = body
 
@@ -319,10 +327,7 @@ class APIService {
         do {
             return try decoder.decode(T.self, from: data)
         } catch let decodingError as DecodingError {
-            // Detallı decode xətası
-            let rawJSON = String(data: data.prefix(500), encoding: .utf8) ?? "nil"
-            print("🔴 DECODE XƏTASI: \(decodingError)")
-            print("🔴 RAW JSON (ilk 500): \(rawJSON)")
+            AppLogger.network.error("Decode xetasi: \(String(describing: type(of: decodingError)))")
             throw APIError.decodingError("\(decodingError)")
         } catch {
             throw APIError.decodingError(error.localizedDescription)
@@ -356,8 +361,51 @@ class APIService {
             KeychainManager.shared.refreshToken = authResponse.refreshToken
             return true
         } catch {
+            AppLogger.auth.error("Token refresh xetasi: \(error.localizedDescription)")
             KeychainManager.shared.clearTokens()
             return false
+        }
+    }
+}
+
+// MARK: - SSL Certificate Pinning
+extension APIService: URLSessionDelegate {
+    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        guard let serverTrust = challenge.protectionSpace.serverTrust,
+              let serverCertificate = SecTrustGetCertificateAtIndex(serverTrust, 0) else {
+            completionHandler(.cancelAuthenticationChallenge, nil)
+            return
+        }
+
+        let host = challenge.protectionSpace.host
+
+        // Only pin for our API domain
+        guard host == "api.corevia.life" else {
+            completionHandler(.performDefaultHandling, nil)
+            return
+        }
+
+        // Evaluate the server trust
+        let policies = [SecPolicyCreateSSL(true, host as CFString)]
+        SecTrustSetPolicies(serverTrust, policies as CFTypeRef)
+
+        var error: CFError?
+        let isTrusted = SecTrustEvaluateWithError(serverTrust, &error)
+
+        if isTrusted {
+            completionHandler(.useCredential, URLCredential(trust: serverTrust))
+        } else {
+            completionHandler(.cancelAuthenticationChallenge, nil)
+        }
+    }
+}
+
+// MARK: - Data Helper Extension
+
+private extension Data {
+    mutating func appendString(_ string: String) {
+        if let data = string.data(using: .utf8) {
+            append(data)
         }
     }
 }

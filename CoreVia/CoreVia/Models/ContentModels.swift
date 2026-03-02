@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import os.log
 
 // MARK: - Content Response
 struct ContentResponse: Codable, Identifiable {
@@ -66,6 +67,7 @@ class ContentManager: ObservableObject {
             )
             contents = result
         } catch {
+            AppLogger.network.error("Fetch trainer content xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
         isLoading = false
@@ -81,6 +83,7 @@ class ContentManager: ObservableObject {
             )
             myContents = result
         } catch {
+            AppLogger.network.error("Fetch my content xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
         isLoading = false
@@ -107,6 +110,7 @@ class ContentManager: ObservableObject {
             errorMessage = error.errorDescription
             return false
         } catch {
+            AppLogger.network.error("Create content xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
             return false
         }
@@ -122,6 +126,7 @@ class ContentManager: ObservableObject {
             await fetchMyContent()
             return true
         } catch {
+            AppLogger.network.error("Upload content image xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
             return false
         }
@@ -137,6 +142,7 @@ class ContentManager: ObservableObject {
             await fetchMyContent()
             return true
         } catch {
+            AppLogger.network.error("Delete content xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
             return false
         }

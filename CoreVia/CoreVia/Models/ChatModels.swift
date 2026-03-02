@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import os.log
 
 // MARK: - Chat Message Response
 struct ChatMessageResponse: Codable, Identifiable {
@@ -94,6 +95,7 @@ class ChatManager: ObservableObject {
             )
             conversations = result
         } catch {
+            AppLogger.network.error("Conversations fetch xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
         isLoading = false
@@ -108,6 +110,7 @@ class ChatManager: ObservableObject {
             )
             messages = result
         } catch {
+            AppLogger.network.error("Messages fetch xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
         isLoading = false
@@ -130,6 +133,7 @@ class ChatManager: ObservableObject {
             errorMessage = error.errorDescription
             return false
         } catch {
+            AppLogger.network.error("Send message xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
             return false
         }
@@ -142,6 +146,8 @@ class ChatManager: ObservableObject {
                 endpoint: "/api/v1/chat/limit"
             )
             messageLimit = result
-        } catch {}
+        } catch {
+            AppLogger.network.error("Message limit fetch xetasi: \(error.localizedDescription)")
+        }
     }
 }

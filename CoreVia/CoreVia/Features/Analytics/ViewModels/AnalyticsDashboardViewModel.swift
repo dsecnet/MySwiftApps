@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import os.log
 
 @MainActor
 class AnalyticsDashboardViewModel: ObservableObject {
@@ -20,6 +21,7 @@ class AnalyticsDashboardViewModel: ObservableObject {
             dashboard = loadedDashboard
 
         } catch {
+            AppLogger.network.error("Load analytics dashboard xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
 

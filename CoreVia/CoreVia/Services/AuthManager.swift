@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import os.log
 
 // MARK: - Auth Request/Response Models
 
@@ -123,10 +124,12 @@ class AuthManager: ObservableObject {
             isLoading = false
             return true
         } catch let error as APIError {
+            AppLogger.auth.error("Login API xetasi: \(error.errorDescription ?? "Unknown")")
             errorMessage = error.errorDescription
             isLoading = false
             return false
         } catch {
+            AppLogger.auth.error("Login xetasi: \(error.localizedDescription)")
             errorMessage = "Gözlənilməz xəta: \(error.localizedDescription)"
             isLoading = false
             return false
@@ -151,10 +154,12 @@ class AuthManager: ObservableObject {
             // Qeydiyyat uğurlu - indi login et
             return await login(email: email, password: password)
         } catch let error as APIError {
+            AppLogger.auth.error("Register API xetasi: \(error.errorDescription ?? "Unknown")")
             errorMessage = error.errorDescription
             isLoading = false
             return false
         } catch {
+            AppLogger.auth.error("Register xetasi: \(error.localizedDescription)")
             errorMessage = "Gözlənilməz xəta: \(error.localizedDescription)"
             isLoading = false
             return false
@@ -186,12 +191,14 @@ class AuthManager: ObservableObject {
             )
             UserProfileManager.shared.userProfile = profile
 
-            // Save userType to UserDefaults for premium access check
-            UserDefaults.standard.set(user.userType, forKey: "userType")
+            // Save userType and userId to Keychain (BUG-C06/C07 fix)
+            keychain.userType = user.userType
+            keychain.userId = user.id
 
             // Premium statusu yenilə
             SettingsManager.shared.isPremium = user.isPremium
         } catch {
+            AppLogger.auth.error("Fetch current user xetasi: \(error.localizedDescription)")
             // Token keçərsizdirsə logout et
             if case APIError.unauthorized = error {
                 logout()
@@ -214,12 +221,15 @@ class AuthManager: ObservableObject {
             // User melumatlarini yenile (isPremium sync)
             await fetchCurrentUser()
         } catch {
-            print("Token claims refresh ugursuz: \(error)")
+            AppLogger.auth.error("Token claims refresh ugursuz: \(error.localizedDescription)")
         }
     }
 
     // MARK: - JWT Premium Check (optimistik)
 
+    /// Optimistik premium check - UI üçün istifadə olunur.
+    /// Backend həmişə source of truth-dur (fetchCurrentUser isPremium-u backend-dən alır).
+    /// JWT signature verification client-side mümkün deyil (secret key backend-dədir).
     var isPremiumFromToken: Bool {
         guard let token = keychain.accessToken else { return false }
         let segments = token.split(separator: ".")
@@ -250,8 +260,10 @@ class AuthManager: ObservableObject {
             logout()
             return (true, nil)
         } catch let error as APIError {
+            AppLogger.auth.error("Delete account API xetasi: \(error.errorDescription ?? "Unknown")")
             return (false, error.errorDescription)
         } catch {
+            AppLogger.auth.error("Delete account xetasi: \(error.localizedDescription)")
             return (false, error.localizedDescription)
         }
     }
@@ -260,12 +272,9 @@ class AuthManager: ObservableObject {
 
     @MainActor
     func logout() {
-        keychain.clearTokens()
+        keychain.clearTokens() // userId, userType, tokens - hamısı silinir
         isLoggedIn = false
         currentUser = nil
-
-        // Clear userType from UserDefaults
-        UserDefaults.standard.removeObject(forKey: "userType")
 
         // Clear cached data so next login loads fresh
         TrainingPlanManager.shared.clearAllPlans()

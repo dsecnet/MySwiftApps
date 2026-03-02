@@ -3,13 +3,27 @@
 //  CoreVia
 //
 
+// MARK: - TODO: StoreKit 2 Integration
+// Bu view-da StoreKitManager inteqrasiyası edilməlidir:
+// 1. @ObservedObject private var storeKit = StoreKitManager.shared əlavə et
+// 2. premiumOfferSection-da hardcoded qiymət əvəzinə storeKit.products-dan real qiymətləri göstər
+// 3. "Activate" button-u storeKit.purchase() çağırmalıdır
+// 4. storeKit.isLoading state-ini isLoading ilə birləşdir
+// 5. storeKit.errorMessage-i error alert-ində göstər
+// 6. "Restore Purchases" button əlavə et -> storeKit.restorePurchases()
+// 7. activatePremium() funksiyasını StoreKit purchase flow ilə əvəz et
+// Bax: Services/StoreKitManager.swift
+
 import SwiftUI
+import os.log
 
 struct PremiumView: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject private var settingsManager = SettingsManager.shared
     @ObservedObject private var authManager = AuthManager.shared
     @ObservedObject private var loc = LocalizationManager.shared
+    // TODO: StoreKitManager-i əlavə et
+    // @ObservedObject private var storeKit = StoreKitManager.shared
 
     @State private var isLoading = false
     @State private var showCancelAlert = false
@@ -173,6 +187,8 @@ struct PremiumView: View {
                 .multilineTextAlignment(.center)
 
             // Price Card
+            // TODO: StoreKit - hardcoded qiyməti storeKit.products-dan gələn real qiymətlə əvəz et
+            // Misal: product.displayPrice istifadə et
             VStack(spacing: 16) {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text("9.99")
@@ -200,6 +216,8 @@ struct PremiumView: View {
             .cornerRadius(20)
 
             // Activate Button (Development Only)
+            // TODO: StoreKit - Bu DEBUG button-u production-da StoreKit purchase button ilə əvəz et
+            // Misal: Button { Task { try await storeKit.purchase(product) } }
             #if DEBUG
             Button {
                 activatePremium()
@@ -224,6 +242,9 @@ struct PremiumView: View {
                 .shadow(color: AppTheme.Colors.premiumGradientStart.opacity(0.4), radius: 12, x: 0, y: 6)
             }
             #endif
+
+            // TODO: StoreKit - "Restore Purchases" button əlavə et
+            // Button { Task { await storeKit.restorePurchases() } } label: { ... }
 
             Text(loc.localized("premium_coming_soon"))
                 .font(.system(size: 13))
@@ -282,6 +303,8 @@ struct PremiumView: View {
     }
 
     // MARK: - Actions
+    // TODO: StoreKit - activatePremium() funksiyasını StoreKit purchase flow ilə əvəz et
+    // Production-da bu funksiya storeKit.purchase(selectedProduct) çağırmalıdır
     private func activatePremium() {
         isLoading = true
         errorMessage = nil
@@ -311,6 +334,7 @@ struct PremiumView: View {
                     settingsManager.isPremium = response.isPremium
                 }
             } catch {
+                AppLogger.network.error("Activate premium xetasi: \(error.localizedDescription)")
                 await MainActor.run {
                     isLoading = false
                     errorMessage = error.localizedDescription
@@ -340,6 +364,7 @@ struct PremiumView: View {
                     dismiss()
                 }
             } catch {
+                AppLogger.network.error("Cancel premium xetasi: \(error.localizedDescription)")
                 await MainActor.run {
                     isLoading = false
                     errorMessage = error.localizedDescription

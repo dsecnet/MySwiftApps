@@ -3,10 +3,22 @@ import AVFoundation
 
 struct ContentView: View {
     let synthesizer = AVSpeechSynthesizer()
-    // svg pdf sekilleri qoyuruq 
+    // svg pdf sekilleri qoyuruq
     var body: some View {
         VStack {
-            Text("Salam, I am Vusal")
+            HStack{
+                Image("user1")
+                    .resizable()
+                    .scaledToFit()
+                Image("user2")
+                    .resizable()
+                    .scaledToFit()
+                Image("user3")
+                    .resizable()
+                    .scaledToFit()
+            }
+            
+            Text("Salam, We are Team")
                 .fontWeight(.black)
                 .font(.largeTitle)
            

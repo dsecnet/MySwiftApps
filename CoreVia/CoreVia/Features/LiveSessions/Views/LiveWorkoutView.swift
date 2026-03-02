@@ -14,6 +14,10 @@ struct LiveWorkoutView: View {
     @State private var showFeedback = false
     @State private var feedbackMessage = ""
     @State private var formScore: Double = 100
+    @State private var isPaused = false
+    @State private var workoutTimer: Timer? = nil
+    @State private var elapsedSeconds: Int = 0
+    @State private var currentExerciseName: String = "Exercise"
 
     @Environment(\.dismiss) var dismiss
 
@@ -87,6 +91,7 @@ struct LiveWorkoutView: View {
                     .font(.title2)
                     .foregroundColor(.white)
             }
+            .accessibilityLabel("Close workout")
 
             Spacer()
 
@@ -114,7 +119,7 @@ struct LiveWorkoutView: View {
     private var exerciseInfoView: some View {
         VStack(spacing: 8) {
             // Exercise Name
-            Text("Squats")  // TODO: Dynamic from session exercises
+            Text(currentExerciseName)
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
@@ -158,14 +163,15 @@ struct LiveWorkoutView: View {
 
     private var controlsView: some View {
         HStack(spacing: 20) {
-            // Pause Button
+            // Pause / Resume Button
             Button {
-                // TODO: Pause workout
+                togglePause()
             } label: {
-                Image(systemName: "pause.circle.fill")
+                Image(systemName: isPaused ? "play.circle.fill" : "pause.circle.fill")
                     .font(.system(size: 50))
-                    .foregroundColor(.white)
+                    .foregroundColor(isPaused ? .green : .white)
             }
+            .accessibilityLabel(isPaused ? "Resume workout" : "Pause workout")
 
             Spacer()
 
@@ -184,6 +190,7 @@ struct LiveWorkoutView: View {
                 .background(Color("PrimaryColor"))
                 .cornerRadius(25)
             }
+            .accessibilityLabel("Next exercise")
 
             Spacer()
 
@@ -196,6 +203,7 @@ struct LiveWorkoutView: View {
                     .font(.system(size: 50))
                     .foregroundColor(.red)
             }
+            .accessibilityLabel("End workout")
         }
         .padding()
         .background(Color.black.opacity(0.8))
@@ -218,9 +226,25 @@ struct LiveWorkoutView: View {
             }
         }
 
+        // Update exercise name when session starts
+        webSocket.onSessionStart = { sessionInfo in
+            if let exerciseName = sessionInfo["exerciseName"] as? String {
+                currentExerciseName = exerciseName
+            }
+        }
+
         // Start pose detection
         poseDetection.setExercise(.squat)
         poseDetection.startDetection()
+
+        // Start workout timer - only counts active (non-paused) time
+        isPaused = false
+        elapsedSeconds = 0
+        workoutTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            if !isPaused {
+                elapsedSeconds += 1
+            }
+        }
 
         // Monitor form feedback
         _ = poseDetection.$formFeedback.sink { feedback in
@@ -229,7 +253,7 @@ struct LiveWorkoutView: View {
 
                 // Send to backend if correction needed
                 if !feedback.isCorrect {
-                    let userId = UserDefaults.standard.string(forKey: "userId") ?? ""
+                    let userId = KeychainManager.shared.userId ?? ""
                     webSocket.sendFormUpdate(
                         userId: userId,
                         correction: feedback.correctionMessage,
@@ -241,13 +265,27 @@ struct LiveWorkoutView: View {
     }
 
     private func endWorkout() {
+        workoutTimer?.invalidate()
+        workoutTimer = nil
         poseDetection.stopDetection()
         webSocket.disconnect()
+    }
+
+    private func togglePause() {
+        isPaused.toggle()
+        if isPaused {
+            // Pause: stop pose detection so the camera analysis stops
+            poseDetection.stopDetection()
+        } else {
+            // Resume: restart pose detection
+            poseDetection.startDetection()
+        }
     }
 
     private func nextExercise() {
         currentExerciseIndex += 1
         repCount = 0
+        currentExerciseName = "Exercise \(currentExerciseIndex + 1)"
 
         // TODO: Change exercise type based on session exercises
         // poseDetection.setExercise(.pushup)
@@ -395,6 +433,8 @@ struct FormFeedbackView: View {
     }
 }
 
-// #Preview { // iOS 17+ only
-//     LiveWorkoutView(sessionId: "123")
-// }
+#if DEBUG
+#Preview {
+    LiveWorkoutView(sessionId: "123")
+}
+#endif

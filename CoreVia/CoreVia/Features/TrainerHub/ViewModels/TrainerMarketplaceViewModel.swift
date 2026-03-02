@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import os.log
 
 @MainActor
 class TrainerMarketplaceViewModel: ObservableObject {
@@ -58,6 +59,7 @@ class TrainerMarketplaceViewModel: ObservableObject {
             currentPage += 1
 
         } catch {
+            AppLogger.network.error("Load trainer marketplace products xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
 
@@ -81,6 +83,7 @@ class TrainerMarketplaceViewModel: ObservableObject {
             )
             products.removeAll { $0.id == productId }
         } catch {
+            AppLogger.network.error("Delete trainer product xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
     }

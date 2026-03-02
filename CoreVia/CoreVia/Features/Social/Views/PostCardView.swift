@@ -40,13 +40,14 @@ struct PostCardView: View {
                 Spacer()
 
                 // Delete button (if own post)
-                if post.userId == UserDefaults.standard.string(forKey: "userId") {
+                if post.userId == KeychainManager.shared.userId {
                     Button {
                         showDeleteConfirmation = true
                     } label: {
                         Image(systemName: "trash")
                             .foregroundColor(.red)
                     }
+                    .accessibilityLabel("Delete post")
                     .confirmationDialog("Delete Post", isPresented: $showDeleteConfirmation) {
                         Button("Delete", role: .destructive) {
                             onDelete()
@@ -114,6 +115,7 @@ struct PostCardView: View {
                             .foregroundColor(.secondary)
                     }
                 }
+                .accessibilityLabel(post.isLiked ? "Unlike, \(post.likesCount) likes" : "Like, \(post.likesCount) likes")
 
                 // Comment Button
                 NavigationLink {
@@ -128,6 +130,7 @@ struct PostCardView: View {
                             .foregroundColor(.secondary)
                     }
                 }
+                .accessibilityLabel("Comments, \(post.commentsCount)")
             }
         }
         .padding()

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import UIKit
+import os.log
 
 class ProfileImageManager: ObservableObject {
 
@@ -43,7 +44,7 @@ class ProfileImageManager: ObservableObject {
                     fileName: "profile.jpg"
                 )
             } catch {
-                print("Profile image upload xətası: \(error)")
+                AppLogger.network.error("Profile image upload xetasi: \(error.localizedDescription)")
             }
         }
     }
@@ -74,7 +75,7 @@ class ProfileImageManager: ObservableObject {
                     }
                 }
             } catch {
-                print("Profile image download xətası: \(error)")
+                AppLogger.network.error("Profile image download xetasi: \(error.localizedDescription)")
             }
         }
     }

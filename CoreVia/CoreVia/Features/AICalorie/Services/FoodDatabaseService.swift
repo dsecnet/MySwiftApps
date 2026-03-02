@@ -8,6 +8,7 @@
 //
 
 import Foundation
+import os.log
 
 // MARK: - Models
 
@@ -52,7 +53,7 @@ class FoodDatabaseService {
               let data = try? Data(contentsOf: url),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: [String: Any]]
         else {
-            print("⚠️ food_database.json yuklenmedi")
+            AppLogger.food.warning("food_database.json yuklenmedi")
             return
         }
 
@@ -82,7 +83,7 @@ class FoodDatabaseService {
             if spaceKey != lowerName { foods[spaceKey] = entry }
         }
         foodNames = Array(foods.keys)
-        print("✅ FoodDatabase: \(foods.count) qida yuklendi")
+        AppLogger.food.info("FoodDatabase: \(self.foods.count) qida yuklendi")
     }
 
     // MARK: - Lookup

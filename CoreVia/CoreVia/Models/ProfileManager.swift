@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import os.log
 
 // MARK: - Profile Update Request
 private struct ProfileUpdateRequest: Encodable {
@@ -90,7 +91,7 @@ class UserProfileManager: ObservableObject {
                     body: request
                 )
             } catch {
-                print("Profile update xətası: \(error)")
+                AppLogger.network.error("Profile update xetasi: \(error.localizedDescription)")
             }
         }
     }

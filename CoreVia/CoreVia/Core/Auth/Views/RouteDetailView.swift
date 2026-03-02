@@ -121,7 +121,7 @@ struct RouteDetailView: View {
                     icon: "location.fill",
                     value: String(format: "%.2f", route.distanceKm),
                     unit: "km",
-                    label: "Mesafe",
+                    label: loc.localized("route_distance"),
                     color: AppTheme.Colors.accent
                 )
 
@@ -129,7 +129,7 @@ struct RouteDetailView: View {
                     icon: "clock.fill",
                     value: formatDuration(route.durationSeconds),
                     unit: "",
-                    label: "Muddet",
+                    label: loc.localized("route_duration"),
                     color: AppTheme.Colors.accent
                 )
             }
@@ -139,7 +139,7 @@ struct RouteDetailView: View {
                     icon: "speedometer",
                     value: route.avgPace.map { String(format: "%.1f", $0) } ?? "--",
                     unit: "deq/km",
-                    label: "Orta Temp",
+                    label: loc.localized("route_avg_pace"),
                     color: AppTheme.Colors.accent
                 )
 
@@ -147,7 +147,7 @@ struct RouteDetailView: View {
                     icon: "flame.fill",
                     value: route.caloriesBurned.map { "\($0)" } ?? "--",
                     unit: "kkal",
-                    label: "Kalori",
+                    label: loc.localized("route_calorie"),
                     color: AppTheme.Colors.accent
                 )
             }
@@ -157,15 +157,15 @@ struct RouteDetailView: View {
                     icon: "arrow.up.right",
                     value: route.elevationGain.map { String(format: "%.0f", $0) } ?? "--",
                     unit: "m",
-                    label: "Yukselis",
+                    label: loc.localized("route_elevation"),
                     color: AppTheme.Colors.accent
                 )
 
                 RouteStatCard(
                     icon: "hare.fill",
                     value: route.avgSpeedKmh.map { String(format: "%.1f", $0) } ?? "--",
-                    unit: "km/s",
-                    label: "Orta Suret",
+                    unit: "km/h",
+                    label: loc.localized("route_avg_speed"),
                     color: AppTheme.Colors.accent
                 )
             }
@@ -180,28 +180,28 @@ struct RouteDetailView: View {
                 .foregroundColor(AppTheme.Colors.primaryText)
 
             VStack(spacing: 0) {
-                detailRow(label: "Aktivite", value: activityTitle)
+                detailRow(label: loc.localized("route_activity"), value: activityTitle)
                 Divider().padding(.horizontal)
-                detailRow(label: "Baslama", value: formatDate(route.startedAt))
+                detailRow(label: loc.localized("route_start_time"), value: formatDate(route.startedAt))
 
                 if let finished = route.finishedAt {
                     Divider().padding(.horizontal)
-                    detailRow(label: "Bitis", value: formatDate(finished))
+                    detailRow(label: loc.localized("route_end_time"), value: formatDate(finished))
                 }
 
                 if let maxSpeed = route.maxSpeedKmh {
                     Divider().padding(.horizontal)
-                    detailRow(label: "Max Suret", value: String(format: "%.1f km/s", maxSpeed))
+                    detailRow(label: loc.localized("route_max_speed"), value: String(format: "%.1f km/h", maxSpeed))
                 }
 
                 if let maxPace = route.maxPace {
                     Divider().padding(.horizontal)
-                    detailRow(label: "Max Temp", value: String(format: "%.1f deq/km", maxPace))
+                    detailRow(label: loc.localized("route_max_pace"), value: String(format: "%.1f deq/km", maxPace))
                 }
 
                 if let elLoss = route.elevationLoss {
                     Divider().padding(.horizontal)
-                    detailRow(label: "Enis", value: String(format: "%.0f m", elLoss))
+                    detailRow(label: loc.localized("route_descent"), value: String(format: "%.0f m", elLoss))
                 }
             }
             .background(AppTheme.Colors.secondaryBackground)
@@ -227,9 +227,9 @@ struct RouteDetailView: View {
 
     private var activityTitle: String {
         switch route.activityType {
-        case "walking": return "Yerish"
-        case "running": return "Qacis"
-        case "cycling": return "Velosiped"
+        case "walking": return loc.localized("route_walking")
+        case "running": return loc.localized("route_running")
+        case "cycling": return loc.localized("route_cycling")
         default: return route.activityType.capitalized
         }
     }
@@ -302,37 +302,39 @@ struct RouteStatCard: View {
     }
 }
 
-// #Preview { // iOS 17+ only
-//     NavigationStack {
-//         RouteDetailView(route: RouteResponse(
-//             id: "preview-1",
-//             userId: "user-1",
-//             workoutId: nil,
-//             name: nil,
-//             activityType: "running",
-//             startLatitude: 40.4093,
-//             startLongitude: 49.8671,
-//             endLatitude: 40.4120,
-//             endLongitude: 49.8700,
-//             coordinatesJson: nil,
-//             distanceKm: 3.45,
-//             durationSeconds: 1230,
-//             avgPace: 5.9,
-//             maxPace: 4.8,
-//             avgSpeedKmh: 10.1,
-//             maxSpeedKmh: 12.5,
-//             elevationGain: 45,
-//             elevationLoss: 38,
-//             caloriesBurned: 287,
-//             staticMapUrl: nil,
-//             isAssigned: false,
-//             isCompleted: true,
-//             startedAt: Date(),
-//             finishedAt: Date(),
-//             createdAt: Date()
-//         ))
-//     }
-// }
+#if DEBUG
+#Preview {
+    NavigationStack {
+        RouteDetailView(route: RouteResponse(
+            id: "preview-1",
+            userId: "user-1",
+            workoutId: nil,
+            name: nil,
+            activityType: "running",
+            startLatitude: 40.4093,
+            startLongitude: 49.8671,
+            endLatitude: 40.4120,
+            endLongitude: 49.8700,
+            coordinatesJson: nil,
+            distanceKm: 3.45,
+            durationSeconds: 1230,
+            avgPace: 5.9,
+            maxPace: 4.8,
+            avgSpeedKmh: 10.1,
+            maxSpeedKmh: 12.5,
+            elevationGain: 45,
+            elevationLoss: 38,
+            caloriesBurned: 287,
+            staticMapUrl: nil,
+            isAssigned: false,
+            isCompleted: true,
+            startedAt: Date(),
+            finishedAt: Date(),
+            createdAt: Date()
+        ))
+    }
+}
+#endif
 
 // MARK: - iOS 16 Compatible Route Map View
 struct RouteMapView: UIViewRepresentable {
@@ -385,7 +387,7 @@ struct RouteMapView: UIViewRepresentable {
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
             if let polyline = overlay as? MKPolyline {
                 let renderer = MKPolylineRenderer(polyline: polyline)
-                renderer.strokeColor = UIColor.systemRed
+                renderer.strokeColor = UIColor(AppTheme.Colors.accent)
                 renderer.lineWidth = 4
                 return renderer
             }

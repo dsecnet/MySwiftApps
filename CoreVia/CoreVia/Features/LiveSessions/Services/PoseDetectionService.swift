@@ -1,6 +1,7 @@
 import Vision
 import AVFoundation
 import UIKit
+import os.log
 
 /// Pose Detection Service using Apple Vision Framework
 /// Detects body keypoints and calculates joint angles for form correction
@@ -40,7 +41,7 @@ class PoseDetectionService: NSObject, ObservableObject {
 
         guard let camera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front),
               let input = try? AVCaptureDeviceInput(device: camera) else {
-            print("❌ Camera setup failed")
+            AppLogger.general.error("Camera setup failed")
             return nil
         }
 
@@ -109,7 +110,7 @@ class PoseDetectionService: NSObject, ObservableObject {
             }
 
         } catch {
-            print("❌ Pose detection error: \(error)")
+            AppLogger.ml.error("Pose detection error: \(error.localizedDescription)")
         }
     }
 

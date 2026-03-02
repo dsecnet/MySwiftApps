@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import os.log
 
 class TrainerManager: ObservableObject {
     static let shared = TrainerManager()
@@ -36,6 +37,7 @@ class TrainerManager: ObservableObject {
             trainers = result
             isLoading = false
         } catch {
+            AppLogger.training.error("Fetch trainers xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
             isLoading = false
         }
@@ -57,9 +59,11 @@ class TrainerManager: ObservableObject {
             await fetchAssignedTrainer(trainerId: trainerId)
             return true
         } catch let error as APIError {
+            AppLogger.training.error("Assign trainer API xetasi: \(error.errorDescription ?? "Unknown")")
             errorMessage = error.errorDescription
             return false
         } catch {
+            AppLogger.training.error("Assign trainer xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
             return false
         }
@@ -79,6 +83,7 @@ class TrainerManager: ObservableObject {
             await AuthManager.shared.fetchCurrentUser()
             return true
         } catch {
+            AppLogger.training.error("Unassign trainer xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
             return false
         }
@@ -100,6 +105,7 @@ class TrainerManager: ObservableObject {
             )
             assignedTrainer = trainer
         } catch {
+            AppLogger.training.error("Fetch assigned trainer xetasi: \(error.localizedDescription)")
             assignedTrainer = nil
         }
     }
@@ -130,11 +136,11 @@ class TrainerManager: ObservableObject {
         } catch let error as APIError {
             errorMessage = error.errorDescription
             isLoadingStudents = false
-            print("❌ Failed to fetch students: \(error.errorDescription ?? "Unknown")")
+            AppLogger.network.error("Failed to fetch students: \(error.errorDescription ?? "Unknown")")
         } catch {
             errorMessage = error.localizedDescription
             isLoadingStudents = false
-            print("❌ Failed to fetch students: \(error.localizedDescription)")
+            AppLogger.network.error("Failed to fetch students: \(error.localizedDescription)")
         }
     }
 }

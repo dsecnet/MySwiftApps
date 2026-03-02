@@ -10,6 +10,7 @@
 
 import Foundation
 import UIKit
+import os.log
 
 // MARK: - Response Models
 
@@ -144,8 +145,8 @@ class AICalorieService {
             return result
         } catch {
             // Core ML xəta verərsə → backend API-yə fallback
-            print("⚠️ On-device analiz xətası: \(error.localizedDescription)")
-            print("   Backend fallback istifadə olunur...")
+            AppLogger.ml.warning("On-device analiz xetasi: \(error.localizedDescription)")
+            AppLogger.ml.info("Backend fallback istifade olunur...")
             return try await analyzeFoodViaBackend(image: image)
         }
     }

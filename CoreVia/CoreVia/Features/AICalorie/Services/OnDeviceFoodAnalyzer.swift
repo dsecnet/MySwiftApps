@@ -13,6 +13,7 @@
 //
 
 import UIKit
+import os.log
 
 class OnDeviceFoodAnalyzer {
     static let shared = OnDeviceFoodAnalyzer()
@@ -27,11 +28,11 @@ class OnDeviceFoodAnalyzer {
 
     /// Şəkili analiz edir və AICalorieResult qaytarır (eyni struct — UI dəyişiklik lazım deyil!)
     func analyzeFood(image: UIImage) async throws -> AICalorieResult {
-        print("🔍 OnDeviceFoodAnalyzer: Analiz başlayır...")
+        AppLogger.ml.debug("OnDeviceFoodAnalyzer: Analiz baslayir...")
 
         // Step 1: Detect food regions
         let detections = try await detector.detectFoods(in: image)
-        print("🔍 OnDeviceFoodAnalyzer: \(detections.count) detection tapıldı")
+        AppLogger.ml.debug("OnDeviceFoodAnalyzer: \(detections.count) detection tapildi")
 
         // Step 2+3: Classify each detection + DB lookup
         var detectedFoods: [DetectedFood] = []
@@ -45,11 +46,11 @@ class OnDeviceFoodAnalyzer {
             do {
                 // Classify the cropped image
                 let classification = try await classifier.classify(image: detection.croppedImage)
-                print("🔍 Classification: \(classification.displayName) (\(classification.confidence))")
+                AppLogger.ml.debug("Classification: \(classification.displayName) (\(classification.confidence))")
 
                 // Lookup nutrition from local database
                 let nutrition = database.getNutrition(for: classification.displayName)
-                print("🔍 Nutrition: \(nutrition.foodName) - \(nutrition.calories) kcal")
+                AppLogger.ml.debug("Nutrition: \(nutrition.foodName) - \(nutrition.calories) kcal")
 
                 // Confidence = ağırlıqlı ortalama (vurma çox pesimist idi)
                 // Classification-a 50% ağırlıq (ən vacib), Detection 30%, DB match 20%
@@ -79,21 +80,21 @@ class OnDeviceFoodAnalyzer {
                 totalConfidence += combinedConfidence
             } catch {
                 // Classifier xəta versə — bu detection-ı atla, digərlərini davam et
-                print("⚠️ Classification xətası: \(error.localizedDescription)")
+                AppLogger.ml.warning("Classification xetasi: \(error.localizedDescription)")
                 continue
             }
         }
 
         // Heç bir food tapılmadısa — xəta at (backend fallback işə düşəcək)
         guard !detectedFoods.isEmpty else {
-            print("⚠️ OnDeviceFoodAnalyzer: Heç bir yemək classify olunmadı")
+            AppLogger.ml.warning("OnDeviceFoodAnalyzer: Hec bir yemek classify olunmadi")
             throw CoreMLError.predictionFailed("Şəkildə yemək aşkar edilmədi")
         }
 
         // Average confidence, max 0.95 (backend ile eyni)
         let avgConfidence = min(totalConfidence / Double(detectedFoods.count), 0.95)
 
-        print("✅ OnDeviceFoodAnalyzer: \(detectedFoods.count) yemək tapıldı, \(Int(totalCalories)) kcal")
+        AppLogger.ml.info("OnDeviceFoodAnalyzer: \(detectedFoods.count) yemek tapildi, \(Int(totalCalories)) kcal")
 
         return AICalorieResult(
             foods: detectedFoods,

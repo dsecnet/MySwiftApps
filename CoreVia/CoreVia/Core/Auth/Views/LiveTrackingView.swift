@@ -48,7 +48,7 @@ struct LiveTrackingView: View {
 
             // FIX 7: Large stats card section (60% of screen)
             VStack(spacing: 10) {
-                Text("Canlı İzləmə")
+                Text(loc.localized("tracking_live"))
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(AppTheme.Colors.primaryText)
 
@@ -63,7 +63,7 @@ struct LiveTrackingView: View {
                             .font(.system(size: 24, weight: .bold))
                             .foregroundColor(AppTheme.Colors.primaryText)
 
-                        Text("Kilometr")
+                        Text(loc.localized("tracking_kilometer"))
                             .font(.system(size: 12))
                             .foregroundColor(AppTheme.Colors.secondaryText)
                     }
@@ -81,7 +81,7 @@ struct LiveTrackingView: View {
                             .font(.system(size: 24, weight: .bold))
                             .foregroundColor(AppTheme.Colors.primaryText)
 
-                        Text("Kalori")
+                        Text(loc.localized("tracking_calorie"))
                             .font(.system(size: 12))
                             .foregroundColor(AppTheme.Colors.secondaryText)
                     }
@@ -102,7 +102,7 @@ struct LiveTrackingView: View {
                             .font(.system(size: 24, weight: .bold))
                             .foregroundColor(AppTheme.Colors.primaryText)
 
-                        Text("Vaxt")
+                        Text(loc.localized("tracking_time"))
                             .font(.system(size: 12))
                             .foregroundColor(AppTheme.Colors.secondaryText)
                     }
@@ -120,7 +120,7 @@ struct LiveTrackingView: View {
                             .font(.system(size: 24, weight: .bold))
                             .foregroundColor(AppTheme.Colors.primaryText)
 
-                        Text("km/s")
+                        Text("km/h")
                             .font(.system(size: 12))
                             .foregroundColor(AppTheme.Colors.secondaryText)
                     }
@@ -141,7 +141,7 @@ struct LiveTrackingView: View {
                             .font(.system(size: 24, weight: .bold))
                             .foregroundColor(AppTheme.Colors.primaryText)
 
-                        Text("Addım")
+                        Text(loc.localized("tracking_steps"))
                             .font(.system(size: 12))
                             .foregroundColor(AppTheme.Colors.secondaryText)
                     }
@@ -162,7 +162,7 @@ struct LiveTrackingView: View {
                         } label: {
                             HStack {
                                 Image(systemName: "play.fill")
-                                Text("Başla")
+                                Text(loc.localized("tracking_start"))
                                     .bold()
                             }
                             .foregroundColor(.white)
@@ -186,7 +186,7 @@ struct LiveTrackingView: View {
                             VStack(spacing: 4) {
                                 Image(systemName: isPaused ? "play.fill" : "pause.fill")
                                     .font(.system(size: 24))
-                                Text(isPaused ? "Davam" : "Pauza")
+                                Text(isPaused ? loc.localized("tracking_resume") : loc.localized("tracking_pause"))
                                     .font(.system(size: 12, weight: .semibold))
                             }
                             .foregroundColor(.white)
@@ -202,7 +202,7 @@ struct LiveTrackingView: View {
                         } label: {
                             HStack {
                                 Image(systemName: "stop.fill")
-                                Text("Bitir")
+                                Text(loc.localized("tracking_stop"))
                                     .bold()
                             }
                             .foregroundColor(.white)
@@ -241,15 +241,16 @@ struct LiveTrackingView: View {
                     Image(systemName: "xmark")
                         .foregroundColor(AppTheme.Colors.primaryText)
                 }
+                .accessibilityLabel("Close")
             }
         }
-        .alert("Məşqi saxla", isPresented: $showSaveDialog) {
-            Button("Ləğv et", role: .cancel) {
+        .alert(loc.localized("tracking_save_workout"), isPresented: $showSaveDialog) {
+            Button(loc.localized("common_cancel"), role: .cancel) {
                 dismiss()
             }
-            Button("Saxla") {
-                // TODO: Save to backend
+            Button(loc.localized("common_save")) {
                 saveWorkout()
+                saveRouteToBackend()
                 dismiss()
             }
         } message: {
@@ -274,15 +275,47 @@ struct LiveTrackingView: View {
         let newWorkout = Workout(
             id: UUID().uuidString,
             userId: nil,
-            title: "GPS Məşq – \(String(format: "%.2f", locationManager.distance)) km",
+            title: "\(loc.localized("tracking_gps_workout")) – \(String(format: "%.2f", locationManager.distance)) km",
             category: .cardio,
             duration: durationMinutes,
             caloriesBurned: locationManager.calories,
-            notes: "Məsafə: \(String(format: "%.2f", locationManager.distance)) km | Sürət: \(String(format: "%.1f", locationManager.speed)) km/s",
+            notes: "\(loc.localized("tracking_distance")): \(String(format: "%.2f", locationManager.distance)) km | \(loc.localized("tracking_speed")): \(String(format: "%.1f", locationManager.speed)) km/h",
             date: Date(),
             isCompleted: true
         )
         workoutManager.addWorkout(newWorkout)
+    }
+
+    /// Save route data to backend via RouteManager (mirrors ActivitiesView.stopTracking pattern)
+    private func saveRouteToBackend() {
+        guard locationManager.duration > 10 else { return }
+
+        // Build coordinates JSON from route points
+        let coordsArray = locationManager.routePoints.map { [$0.coordinate.latitude, $0.coordinate.longitude] }
+        let coordinatesJson: String? = {
+            guard !coordsArray.isEmpty,
+                  let data = try? JSONSerialization.data(withJSONObject: coordsArray),
+                  let json = String(data: data, encoding: .utf8) else { return nil }
+            return json
+        }()
+
+        let startCoord = locationManager.routePoints.first?.coordinate
+        let endCoord = locationManager.routePoints.last?.coordinate
+
+        let request = RouteCreateRequest(
+            activityType: "walking",
+            startLatitude: startCoord?.latitude ?? locationManager.region.center.latitude,
+            startLongitude: startCoord?.longitude ?? locationManager.region.center.longitude,
+            endLatitude: endCoord?.latitude,
+            endLongitude: endCoord?.longitude,
+            coordinatesJson: coordinatesJson,
+            distanceKm: locationManager.distance,
+            durationSeconds: locationManager.duration,
+            startedAt: Date().addingTimeInterval(-Double(locationManager.duration)),
+            finishedAt: Date()
+        )
+
+        RouteManager.shared.saveRoute(request)
     }
 }
 
@@ -312,7 +345,7 @@ struct StatBox: View {
         }
         .frame(maxWidth: .infinity)
         .padding()
-        .background(Color.white.opacity(0.1))
+        .background(AppTheme.Colors.cardBackground)
         .cornerRadius(12)
     }
 }
@@ -320,9 +353,23 @@ struct StatBox: View {
 // MARK: - Location Manager
 class LiveTrackingManager: NSObject, ObservableObject, CLLocationManagerDelegate {
 
+    // MARK: - Config Defaults
+    private enum Defaults {
+        static let weight: Double = 70.0          // kg - fallback if profile not loaded
+        static let defaultLatitude: Double = 40.4093  // Baku center
+        static let defaultLongitude: Double = 49.8671
+        static let mapSpanDelta: Double = 0.01
+        static let distanceFilter: Double = 10.0  // meters between GPS updates
+        static let maxLocationAge: TimeInterval = 10.0  // seconds
+        static let maxAccuracy: Double = 20.0     // meters
+        static let minSpeed: Double = 0.3         // m/s (~1 km/h)
+        static let minDelta: Double = 0.003       // km (3m drift filter)
+        static let maxDelta: Double = 0.1         // km (100m teleport filter)
+    }
+
     @Published var region = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 40.4093, longitude: 49.8671), // Baku
-        span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+        center: CLLocationCoordinate2D(latitude: Defaults.defaultLatitude, longitude: Defaults.defaultLongitude),
+        span: MKCoordinateSpan(latitudeDelta: Defaults.mapSpanDelta, longitudeDelta: Defaults.mapSpanDelta)
     )
 
     @Published var distance: Double = 0.0 // km
@@ -332,7 +379,7 @@ class LiveTrackingManager: NSObject, ObservableObject, CLLocationManagerDelegate
     @Published var isTracking = false
     @Published var routePoints: [RoutePoint] = []
     @Published var steps: Int = 0
-    @Published var userWeight: Double = 70.0 // default 70kg
+    @Published var userWeight: Double = Defaults.weight
 
     private let manager = CLLocationManager()
     private let pedometer = CMPedometer()
@@ -344,7 +391,7 @@ class LiveTrackingManager: NSObject, ObservableObject, CLLocationManagerDelegate
         super.init()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyBest
-        manager.distanceFilter = 10 // minimum 10 metr arasinda update (GPS drift azaldir)
+        manager.distanceFilter = Defaults.distanceFilter
         manager.activityType = .fitness
         manager.requestWhenInUseAuthorization()
     }
@@ -418,12 +465,12 @@ class LiveTrackingManager: NSObject, ObservableObject, CLLocationManagerDelegate
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last, !isPaused else { return }
 
-        // Kohne/cached location-lari at (10 saniyeden kohne)
-        guard abs(location.timestamp.timeIntervalSinceNow) < 10 else { return }
+        // Kohne/cached location-lari at
+        guard abs(location.timestamp.timeIntervalSinceNow) < Defaults.maxLocationAge else { return }
 
-        // Keyfiyyetsiz GPS oxunuslarini at (20m-den pis deqiqlik)
+        // Keyfiyyetsiz GPS oxunuslarini at
         guard location.horizontalAccuracy >= 0,
-              location.horizontalAccuracy < 20 else { return }
+              location.horizontalAccuracy < Defaults.maxAccuracy else { return }
 
         // Update region
         region.center = location.coordinate
@@ -433,8 +480,8 @@ class LiveTrackingManager: NSObject, ObservableObject, CLLocationManagerDelegate
             speed = location.speed * 3.6 // m/s to km/h
         }
 
-        // GPS drift filteri: istifadeci minimum 0.3 m/s (1 km/h) suretde hereket etmelidir
-        guard location.speed >= 0.3 else {
+        // GPS drift filteri: istifadeci minimum speed suretde hereket etmelidir
+        guard location.speed >= Defaults.minSpeed else {
             lastLocation = location
             return
         }
@@ -442,8 +489,8 @@ class LiveTrackingManager: NSObject, ObservableObject, CLLocationManagerDelegate
         // Calculate distance
         if let last = lastLocation {
             let delta = location.distance(from: last) / 1000.0 // Convert to km
-            // Minimum 3m (drift filter) ve maximum 100m (teleportasiya filter)
-            if delta > 0.003 && delta < 0.1 {
+            // Drift filter ve teleportasiya filter
+            if delta > Defaults.minDelta && delta < Defaults.maxDelta {
                 distance += delta
 
                 // Calculate calories using MET formula
@@ -520,7 +567,7 @@ struct MapViewWithRoute: UIViewRepresentable {
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
             if let polyline = overlay as? MKPolyline {
                 let renderer = MKPolylineRenderer(polyline: polyline)
-                renderer.strokeColor = UIColor.systemBlue.withAlphaComponent(0.7)
+                renderer.strokeColor = UIColor(AppTheme.Colors.accent).withAlphaComponent(0.7)
                 renderer.lineWidth = 5
                 return renderer
             }

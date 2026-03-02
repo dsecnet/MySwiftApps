@@ -1,4 +1,5 @@
 import SwiftUI
+import os.log
 
 struct CommentsView: View {
     let postId: String
@@ -165,7 +166,7 @@ struct CommentRow: View {
             }
 
             // Delete Button (if user's own comment)
-            if comment.userId == UserDefaults.standard.string(forKey: "userId") {
+            if comment.userId == KeychainManager.shared.userId {
                 Button {
                     showDeleteAlert = true
                 } label: {
@@ -212,6 +213,7 @@ class CommentsViewModel: ObservableObject {
             comments = loadedComments
 
         } catch {
+            AppLogger.network.error("Load comments xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
 
@@ -236,6 +238,7 @@ class CommentsViewModel: ObservableObject {
             comments.insert(newComment, at: 0)
 
         } catch {
+            AppLogger.network.error("Add comment xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
     }
@@ -251,6 +254,7 @@ class CommentsViewModel: ObservableObject {
             comments.removeAll { $0.id == comment.id }
 
         } catch {
+            AppLogger.network.error("Delete comment xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
     }

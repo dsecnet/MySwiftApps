@@ -1,5 +1,6 @@
 
 import SwiftUI
+import os.log
 
 struct HomeView: View {
     
@@ -281,7 +282,7 @@ struct HomeView: View {
                 }
             } catch {
                 // Xeta olsa prompt gosterilsin
-                print("Survey status xetasi: \(error.localizedDescription)")
+                AppLogger.general.debug("Survey status xetasi: \(error.localizedDescription)")
             }
         }
     }
@@ -376,7 +377,7 @@ struct HomeView: View {
                 await MainActor.run {
                     self.isLoadingAIRec = false
                     // Backend cavab vermese lokal fallback isleyecek
-                    print("AI Rec backend xetasi: \(error.localizedDescription)")
+                    AppLogger.ml.debug("AI Rec backend xetasi: \(error.localizedDescription)")
                 }
             }
         }

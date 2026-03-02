@@ -1,5 +1,6 @@
 
 import SwiftUI
+import os.log
 
 // FIX B: NEW - Request model for backend workout
 struct CreateWorkoutRequest: Encodable {
@@ -281,9 +282,9 @@ struct AddWorkoutView: View {
                 method: "POST",
                 body: body
             )
-            print("✅ Workout saved to backend for student: \(studentId)")
+            AppLogger.training.info("Workout saved to backend for student")
         } catch {
-            print("❌ Failed to save workout to backend: \(error.localizedDescription)")
+            AppLogger.training.error("Failed to save workout to backend: \(error.localizedDescription)")
         }
     }
 }

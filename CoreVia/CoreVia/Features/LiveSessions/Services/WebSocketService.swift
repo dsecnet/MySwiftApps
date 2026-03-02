@@ -1,4 +1,5 @@
 import Foundation
+import os.log
 
 /// WebSocket Service for real-time communication during live sessions
 class WebSocketService: NSObject, ObservableObject {
@@ -8,9 +9,16 @@ class WebSocketService: NSObject, ObservableObject {
     @Published var isConnected = false
     @Published var receivedMessages: [WSMessage] = []
 
+    // MARK: - Config
+    private enum Config {
+        static let heartbeatInterval: TimeInterval = 30
+        static let reconnectDelay: TimeInterval = 3
+    }
+
     // MARK: - Private Properties
 
     private var webSocketTask: URLSessionWebSocketTask?
+    private var heartbeatTimer: Timer?
     private let sessionId: String
 
     // APIService baseURL-dan WebSocket URL-i yarat
@@ -41,32 +49,37 @@ class WebSocketService: NSObject, ObservableObject {
 
     func connect() {
         guard let token = KeychainManager.shared.accessToken else {
-            print("❌ No auth token")
+            AppLogger.websocket.error("No auth token")
             return
         }
 
-        // WebSocket URL with session ID
-        let urlString = "\(baseURL)/api/v1/live-sessions/ws/\(sessionId)?token=\(token)"
+        // WebSocket URL with session ID (token Authorization header-də göndərilir, URL-də yox)
+        let urlString = "\(baseURL)/api/v1/live-sessions/ws/\(sessionId)"
         guard let url = URL(string: urlString) else {
-            print("❌ Invalid WebSocket URL")
+            AppLogger.websocket.error("Invalid WebSocket URL")
             return
         }
+
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
 
         let urlSession = URLSession(configuration: .default, delegate: self, delegateQueue: OperationQueue())
-        webSocketTask = urlSession.webSocketTask(with: url)
+        webSocketTask = urlSession.webSocketTask(with: request)
         webSocketTask?.resume()
 
         // Start receiving messages
         receiveMessage()
 
-        print("✅ WebSocket connecting to session: \(sessionId)")
+        AppLogger.websocket.info("WebSocket connecting to session: \(sessionId)")
     }
 
     func disconnect() {
+        heartbeatTimer?.invalidate()
+        heartbeatTimer = nil
         webSocketTask?.cancel(with: .goingAway, reason: nil)
         webSocketTask = nil
         isConnected = false
-        print("🔌 WebSocket disconnected")
+        AppLogger.websocket.info("WebSocket disconnected")
     }
 
     // MARK: - Send Messages
@@ -74,14 +87,14 @@ class WebSocketService: NSObject, ObservableObject {
     func sendMessage(_ message: [String: Any]) {
         guard let jsonData = try? JSONSerialization.data(withJSONObject: message),
               let jsonString = String(data: jsonData, encoding: .utf8) else {
-            print("❌ Failed to serialize message")
+            AppLogger.websocket.error("Failed to serialize message")
             return
         }
 
         let message = URLSessionWebSocketTask.Message.string(jsonString)
         webSocketTask?.send(message) { error in
             if let error = error {
-                print("❌ WebSocket send error: \(error)")
+                AppLogger.websocket.error("WebSocket send error: \(error.localizedDescription)")
             }
         }
     }
@@ -138,7 +151,7 @@ class WebSocketService: NSObject, ObservableObject {
                 self.receiveMessage()
 
             case .failure(let error):
-                print("❌ WebSocket receive error: \(error)")
+                AppLogger.websocket.error("WebSocket receive error: \(error.localizedDescription)")
                 self.handleDisconnection()
             }
         }
@@ -148,13 +161,14 @@ class WebSocketService: NSObject, ObservableObject {
         guard let data = text.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let type = json["type"] as? String else {
-            print("❌ Failed to parse message")
+            AppLogger.websocket.error("Failed to parse message")
             return
         }
 
-        print("📩 Received message type: \(type)")
+        AppLogger.websocket.debug("Received message type: \(type)")
 
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
             switch type {
             case "session_start":
                 self.handleSessionStart(json)
@@ -175,7 +189,7 @@ class WebSocketService: NSObject, ObservableObject {
                 self.handleExerciseComplete(json)
 
             default:
-                print("⚠️ Unknown message type: \(type)")
+                AppLogger.websocket.warning("Unknown message type: \(type)")
             }
         }
     }
@@ -194,12 +208,12 @@ class WebSocketService: NSObject, ObservableObject {
         )
 
         onSessionStart?(message)
-        print("🚀 Session started: \(sessionId)")
+        AppLogger.websocket.info("Session started: \(sessionId)")
     }
 
     private func handleSessionEnd() {
         onSessionEnd?()
-        print("🏁 Session ended")
+        AppLogger.websocket.info("Session ended")
     }
 
     private func handleFormCorrection(_ json: [String: Any]) {
@@ -217,24 +231,24 @@ class WebSocketService: NSObject, ObservableObject {
         )
 
         onFormCorrection?(correction)
-        print("⚠️ Form correction for \(userId): \(message)")
+        AppLogger.websocket.warning("Form correction for \(userId): \(message)")
     }
 
     private func handleParticipantJoined(_ json: [String: Any]) {
         guard let userName = json["user_name"] as? String else { return }
 
         onParticipantJoined?(userName)
-        print("👋 Participant joined: \(userName)")
+        AppLogger.websocket.info("Participant joined: \(userName)")
     }
 
     private func handleExerciseStart(_ json: [String: Any]) {
         guard let exerciseName = json["exercise_name"] as? String else { return }
-        print("🏋️ Exercise started: \(exerciseName)")
+        AppLogger.websocket.debug("Exercise started: \(exerciseName)")
     }
 
     private func handleExerciseComplete(_ json: [String: Any]) {
         guard let userId = json["user_id"] as? String else { return }
-        print("✅ User \(userId) completed exercise")
+        AppLogger.websocket.info("User \(userId) completed exercise")
     }
 
     // MARK: - Connection Management
@@ -242,10 +256,10 @@ class WebSocketService: NSObject, ObservableObject {
     private func handleDisconnection() {
         isConnected = false
 
-        // Attempt reconnection after 3 seconds
-        DispatchQueue.global().asyncAfter(deadline: .now() + 3) { [weak self] in
+        // Attempt reconnection
+        DispatchQueue.global().asyncAfter(deadline: .now() + Config.reconnectDelay) { [weak self] in
             guard let self = self else { return }
-            print("🔄 Attempting to reconnect...")
+            AppLogger.websocket.info("Attempting to reconnect...")
             self.connect()
         }
     }
@@ -255,9 +269,9 @@ class WebSocketService: NSObject, ObservableObject {
 
 extension WebSocketService: URLSessionWebSocketDelegate {
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
-        DispatchQueue.main.async {
-            self.isConnected = true
-            print("✅ WebSocket connected")
+        DispatchQueue.main.async { [weak self] in
+            self?.isConnected = true
+            AppLogger.websocket.info("WebSocket connected")
         }
 
         // Start heartbeat to keep connection alive
@@ -265,16 +279,17 @@ extension WebSocketService: URLSessionWebSocketDelegate {
     }
 
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
-        DispatchQueue.main.async {
-            self.isConnected = false
-            print("🔌 WebSocket closed with code: \(closeCode)")
+        DispatchQueue.main.async { [weak self] in
+            self?.isConnected = false
+            AppLogger.websocket.info("WebSocket closed with code: \(closeCode.rawValue)")
         }
     }
 
     // MARK: - Heartbeat
 
     private func startHeartbeat() {
-        Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
+        heartbeatTimer?.invalidate()
+        heartbeatTimer = Timer.scheduledTimer(withTimeInterval: Config.heartbeatInterval, repeats: true) { [weak self] _ in
             guard let self = self, self.isConnected else { return }
             self.sendHeartbeat()
         }

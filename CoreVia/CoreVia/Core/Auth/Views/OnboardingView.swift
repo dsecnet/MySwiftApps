@@ -23,6 +23,13 @@ struct OnboardingView: View {
 
     private let totalSteps = 4 // 0: Goal, 1: Level, 2: Body info, 3: Trainer type
 
+    // M08: Default placeholder values for body info fields
+    private enum BodyDefaults {
+        static let agePlaceholder = "25"
+        static let weightPlaceholder = "70"
+        static let heightPlaceholder = "175"
+    }
+
     var body: some View {
         ZStack {
             AppTheme.Colors.background.ignoresSafeArea()
@@ -217,7 +224,7 @@ struct OnboardingView: View {
             BodyInfoRow(
                 icon: "calendar",
                 label: loc.localized("profile_age"),
-                placeholder: "25",
+                placeholder: BodyDefaults.agePlaceholder,
                 text: $age,
                 unit: loc.localized("onboarding_years"),
                 isFilled: !age.isEmpty
@@ -226,7 +233,7 @@ struct OnboardingView: View {
             BodyInfoRow(
                 icon: "scalemass",
                 label: loc.localized("profile_weight"),
-                placeholder: "70",
+                placeholder: BodyDefaults.weightPlaceholder,
                 text: $weight,
                 unit: "kg",
                 isFilled: !weight.isEmpty
@@ -235,7 +242,7 @@ struct OnboardingView: View {
             BodyInfoRow(
                 icon: "ruler",
                 label: loc.localized("profile_height"),
-                placeholder: "175",
+                placeholder: BodyDefaults.heightPlaceholder,
                 text: $height,
                 unit: "sm",
                 isFilled: !height.isEmpty

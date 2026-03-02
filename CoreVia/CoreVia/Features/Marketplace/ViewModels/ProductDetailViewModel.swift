@@ -1,5 +1,6 @@
 import Foundation
 import StoreKit
+import os.log
 
 @MainActor
 class ProductDetailViewModel: ObservableObject {
@@ -37,6 +38,7 @@ class ProductDetailViewModel: ObservableObject {
             await checkPurchaseStatus()
 
         } catch {
+            AppLogger.network.error("Load product detail xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
 
@@ -55,7 +57,7 @@ class ProductDetailViewModel: ObservableObject {
             reviews = loadedReviews
 
         } catch {
-            print("Failed to load reviews: \(error)")
+            AppLogger.network.error("Failed to load reviews: \(error.localizedDescription)")
         }
     }
 
@@ -75,7 +77,7 @@ class ProductDetailViewModel: ObservableObject {
             hasPurchased = response.purchases.contains { $0.productId == productId }
 
         } catch {
-            print("Failed to check purchase status: \(error)")
+            AppLogger.network.error("Failed to check purchase status: \(error.localizedDescription)")
         }
     }
 
@@ -107,6 +109,7 @@ class ProductDetailViewModel: ObservableObject {
             hasPurchased = true
 
         } catch {
+            AppLogger.network.error("Purchase product xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
 

@@ -92,6 +92,10 @@ struct ActivitiesView: View {
         ZStack {
             AppTheme.Colors.background.ignoresSafeArea()
 
+            // NOTE: Premium gating is client-side only via SettingsManager.hasPremiumAccess
+            // (reads userType from Keychain). Backend must also validate premium status on
+            // all premium API endpoints (e.g. /api/v1/routes/) to prevent unauthorized access.
+            // TODO: Backend should reject non-premium users on premium-only endpoints.
             if settingsManager.hasPremiumAccess {
                 premiumActivitiesContent
             } else {

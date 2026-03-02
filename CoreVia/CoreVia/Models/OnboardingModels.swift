@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import os.log
 
 // MARK: - Onboarding Option
 struct OnboardingOption: Codable, Identifiable {
@@ -115,6 +116,7 @@ class OnboardingManager: ObservableObject {
             )
             options = result
         } catch {
+            AppLogger.network.error("Onboarding options fetch xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
         isLoading = false
@@ -129,6 +131,7 @@ class OnboardingManager: ObservableObject {
             isCompleted = result?.isCompleted ?? false
         } catch {
             // Xəta olsa lokal cache-ə etibar et, false-a sıfırlama
+            AppLogger.network.error("Onboarding status check xetasi: \(error.localizedDescription)")
         }
     }
 
@@ -152,6 +155,7 @@ class OnboardingManager: ObservableObject {
             errorMessage = error.errorDescription
             return false
         } catch {
+            AppLogger.network.error("Onboarding complete xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
             return false
         }

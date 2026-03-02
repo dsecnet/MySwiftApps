@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import os.log
 
 // MARK: - Backend request models
 private struct WorkoutCreateRequest: Encodable {
@@ -80,7 +81,7 @@ class WorkoutManager: ObservableObject {
                     }
                 }
             } catch {
-                print("Workout create xətası: \(error)")
+                AppLogger.training.error("Workout create xetasi: \(error.localizedDescription)")
             }
         }
     }
@@ -105,7 +106,7 @@ class WorkoutManager: ObservableObject {
                         )
                     )
                 } catch {
-                    print("Workout update xətası: \(error)")
+                    AppLogger.training.error("Workout update xetasi: \(error.localizedDescription)")
                 }
             }
         }
@@ -119,7 +120,7 @@ class WorkoutManager: ObservableObject {
             do {
                 try await api.requestVoid(endpoint: "/api/v1/workouts/\(workout.id)")
             } catch {
-                print("Workout delete xətası: \(error)")
+                AppLogger.training.error("Workout delete xetasi: \(error.localizedDescription)")
             }
         }
     }
@@ -136,7 +137,7 @@ class WorkoutManager: ObservableObject {
                         method: "PATCH"
                     )
                 } catch {
-                    print("Workout toggle xətası: \(error)")
+                    AppLogger.training.error("Workout toggle xetasi: \(error.localizedDescription)")
                 }
             }
         }
@@ -199,7 +200,7 @@ class WorkoutManager: ObservableObject {
                 await MainActor.run {
                     self.isLoading = false
                 }
-                print("Workouts yükləmə xətası: \(error)")
+                AppLogger.training.error("Workouts yukleme xetasi: \(error.localizedDescription)")
             }
         }
     }

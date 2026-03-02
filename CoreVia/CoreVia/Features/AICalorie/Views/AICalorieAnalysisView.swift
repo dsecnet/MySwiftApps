@@ -8,6 +8,8 @@
 
 import SwiftUI
 import PhotosUI
+import AVFoundation
+import os.log
 
 struct AICalorieAnalysisView: View {
     @StateObject private var viewModel = AICalorieViewModel()
@@ -107,7 +109,7 @@ struct AICalorieAnalysisView: View {
                     PhotoOptionButton(
                         icon: "camera.fill",
                         title: loc.localized("ai_calorie_camera"),
-                        action: { viewModel.showCamera = true }
+                        action: { viewModel.checkCameraPermission() }
                     )
 
                     // Gallery
@@ -121,6 +123,16 @@ struct AICalorieAnalysisView: View {
         }
         .sheet(isPresented: $viewModel.showCamera) {
             ImagePickerView(image: $viewModel.selectedImage, sourceType: .camera)
+        }
+        .alert("Kamera İcazəsi", isPresented: $viewModel.showCameraPermissionAlert) {
+            Button("Ayarlara Keç") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            Button("Ləğv et", role: .cancel) {}
+        } message: {
+            Text("Kamera istifadəsi üçün icazə lazımdır. Ayarlardan aktiv edin.")
         }
         .photosPicker(isPresented: $viewModel.showPhotoPicker, selection: $viewModel.photosPickerItem, matching: .images)
         .onChange(of: viewModel.photosPickerItem) { newItem in
@@ -398,8 +410,27 @@ class AICalorieViewModel: ObservableObject {
     @Published var isAnalyzing = false
     @Published var errorMessage: String?
     @Published var showCamera = false
+    @Published var showCameraPermissionAlert = false
     @Published var showPhotoPicker = false
     @Published var photosPickerItem: PhotosPickerItem?
+
+    func checkCameraPermission() {
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:
+            showCamera = true
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { granted in
+                DispatchQueue.main.async {
+                    if granted { self.showCamera = true }
+                    else { self.showCameraPermissionAlert = true }
+                }
+            }
+        case .denied, .restricted:
+            showCameraPermissionAlert = true
+        @unknown default:
+            showCameraPermissionAlert = true
+        }
+    }
 
     func analyzeFood() async {
         guard let image = selectedImage else { return }
@@ -409,6 +440,7 @@ class AICalorieViewModel: ObservableObject {
         do {
             result = try await AICalorieService.shared.analyzeFood(image: image)
         } catch {
+            AppLogger.food.error("AI calorie analysis xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
 

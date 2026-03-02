@@ -8,6 +8,7 @@
 
 import Foundation
 import SwiftUI
+import os.log
 
 // MARK: - Meal Type
 enum MealType: String, Codable, CaseIterable {
@@ -197,7 +198,7 @@ class FoodManager: ObservableObject {
                     }
                 }
             } catch {
-                print("Food create xətası: \(error)")
+                AppLogger.food.error("Food create xetasi: \(error.localizedDescription)")
             }
         }
     }
@@ -222,7 +223,7 @@ class FoodManager: ObservableObject {
                         )
                     )
                 } catch {
-                    print("Food update xətası: \(error)")
+                    AppLogger.food.error("Food update xetasi: \(error.localizedDescription)")
                 }
             }
         }
@@ -235,7 +236,7 @@ class FoodManager: ObservableObject {
             do {
                 try await api.requestVoid(endpoint: "/api/v1/food/\(entry.id)")
             } catch {
-                print("Food delete xətası: \(error)")
+                AppLogger.food.error("Food delete xetasi: \(error.localizedDescription)")
             }
         }
     }
@@ -304,7 +305,7 @@ class FoodManager: ObservableObject {
                 await MainActor.run {
                     self.isLoading = false
                 }
-                print("Food yükləmə xətası: \(error)")
+                AppLogger.food.error("Food yukleme xetasi: \(error.localizedDescription)")
             }
         }
     }

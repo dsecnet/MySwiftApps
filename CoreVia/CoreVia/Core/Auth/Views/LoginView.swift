@@ -390,7 +390,9 @@ struct LoginView: View {
         Task {
             do {
                 // Step 1: Send credentials, receive OTP
-                let url = URL(string: "\(APIService.shared.baseURL)/api/v1/auth/login")!
+                guard let url = URL(string: "\(APIService.shared.baseURL)/api/v1/auth/login") else {
+                    throw APIError.invalidURL
+                }
                 var request = URLRequest(url: url)
                 request.httpMethod = "POST"
                 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -406,7 +408,7 @@ struct LoginView: View {
                 let (data, response) = try await URLSession.shared.data(for: request)
 
                 guard let httpResponse = response as? HTTPURLResponse else {
-                    throw NSError(domain: "Invalid response", code: 0)
+                    throw APIError.networkError("Invalid response")
                 }
 
                 if httpResponse.statusCode == 200 {
@@ -535,7 +537,9 @@ struct LoginView: View {
 
         Task {
             do {
-                let url = URL(string: "\(APIService.shared.baseURL)/api/v1/auth/login-verify")!
+                guard let url = URL(string: "\(APIService.shared.baseURL)/api/v1/auth/login-verify") else {
+                    throw APIError.invalidURL
+                }
                 var request = URLRequest(url: url)
                 request.httpMethod = "POST"
                 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -549,7 +553,7 @@ struct LoginView: View {
                 let (data, response) = try await URLSession.shared.data(for: request)
 
                 guard let httpResponse = response as? HTTPURLResponse else {
-                    throw NSError(domain: "Invalid response", code: 0)
+                    throw APIError.networkError("Invalid response")
                 }
 
                 if httpResponse.statusCode == 200 {

@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import os.log
 
 @MainActor
 class SocialFeedViewModel: ObservableObject {
@@ -43,6 +44,7 @@ class SocialFeedViewModel: ObservableObject {
             currentPage += 1
 
         } catch {
+            AppLogger.network.error("Load social feed xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
 
@@ -78,6 +80,7 @@ class SocialFeedViewModel: ObservableObject {
             // Revert on error
             posts[index].isLiked = wasLiked
             posts[index].likesCount += wasLiked ? 1 : -1
+            AppLogger.network.error("Toggle like xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
     }
@@ -95,6 +98,7 @@ class SocialFeedViewModel: ObservableObject {
             posts.removeAll { $0.id == post.id }
 
         } catch {
+            AppLogger.network.error("Delete post xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
     }

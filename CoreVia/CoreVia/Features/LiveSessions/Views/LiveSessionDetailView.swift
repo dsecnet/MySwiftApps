@@ -1,5 +1,6 @@
 import SwiftUI
 import StoreKit
+import os.log
 
 /// Live Session Detail View
 struct LiveSessionDetailView: View {
@@ -56,11 +57,28 @@ struct LiveSessionDetailView: View {
                     .padding()
                 }
             } else if isLoading {
-                ProgressView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                VStack(spacing: 12) {
+                    ProgressView()
+                        .scaleEffect(1.2)
+                    Text("Yüklənir...")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                Text("Session not found")
-                    .foregroundColor(.gray)
+                VStack(spacing: 12) {
+                    Image(systemName: "figure.run")
+                        .font(.system(size: 50))
+                        .foregroundColor(.gray)
+                    Text("Sessiya məlumatı yoxdur")
+                        .font(.headline)
+                        .foregroundColor(.gray)
+                    Text("Sessiya tapılmadı və ya silinib")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding()
             }
         }
         .navigationTitle("Session Details")
@@ -178,7 +196,7 @@ struct LiveSessionDetailView: View {
                         .frame(width: 36, height: 36)
                         .overlay {
                             Circle()
-                                .stroke(Color.white, lineWidth: 2)
+                                .stroke(Color(.systemBackground), lineWidth: 2)
                         }
                 }
 
@@ -296,6 +314,7 @@ struct LiveSessionDetailView: View {
             // Qosulub-qosulmadigini yoxla
             await checkJoinStatus()
         } catch {
+            AppLogger.training.error("Load session xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
 
@@ -310,6 +329,7 @@ struct LiveSessionDetailView: View {
             )
             hasJoined = true
         } catch {
+            AppLogger.training.error("Join session xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
     }
@@ -370,6 +390,7 @@ struct LiveSessionDetailView: View {
                 hasJoined = true
             }
         } catch {
+            AppLogger.training.error("Pay and join session xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
     }
@@ -387,7 +408,8 @@ struct LiveSessionDetailView: View {
                 hasJoined = response.participants.contains { $0.userId == userId }
             }
         } catch {
-            // Ignore — join status yoxlanilmadi
+            // Join status yoxlanilmadi — kritik deyil
+            AppLogger.training.error("Check join status xetasi: \(error.localizedDescription)")
         }
     }
 }

@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import os.log
 
 // MARK: - Plan Type
 enum PlanType: String, Codable, CaseIterable {
@@ -226,7 +227,7 @@ class TrainingPlanManager: ObservableObject {
                     }
                 }
             } catch {
-                print("Training plan create xətası: \(error)")
+                AppLogger.training.error("Training plan create xetasi: \(error.localizedDescription)")
             }
         }
     }
@@ -248,7 +249,7 @@ class TrainingPlanManager: ObservableObject {
                         )
                     )
                 } catch {
-                    print("Training plan update xətası: \(error)")
+                    AppLogger.training.error("Training plan update xetasi: \(error.localizedDescription)")
                 }
             }
         }
@@ -261,7 +262,7 @@ class TrainingPlanManager: ObservableObject {
             do {
                 try await api.requestVoid(endpoint: "/api/v1/plans/training/\(plan.id)")
             } catch {
-                print("Training plan delete xətası: \(error)")
+                AppLogger.training.error("Training plan delete xetasi: \(error.localizedDescription)")
             }
         }
     }
@@ -275,7 +276,7 @@ class TrainingPlanManager: ObservableObject {
                 do {
                     try await api.requestVoid(endpoint: "/api/v1/plans/training/\(plan.id)")
                 } catch {
-                    print("Training plan delete xətası: \(error)")
+                    AppLogger.training.error("Training plan delete xetasi: \(error.localizedDescription)")
                 }
             }
         }
@@ -302,7 +303,7 @@ class TrainingPlanManager: ObservableObject {
                         self.plans[index].completedAt = nil
                     }
                 }
-                print("Training plan complete xətası: \(error)")
+                AppLogger.training.error("Training plan complete xetasi: \(error.localizedDescription)")
             }
         }
     }
@@ -323,7 +324,7 @@ class TrainingPlanManager: ObservableObject {
 
     func loadPlans() {
         guard KeychainManager.shared.isLoggedIn else {
-            print("⚠️ TrainingPlanManager: isLoggedIn=false, loadPlans keçildi")
+            AppLogger.training.warning("TrainingPlanManager: isLoggedIn=false, loadPlans kecildi")
             return
         }
 
@@ -331,7 +332,7 @@ class TrainingPlanManager: ObservableObject {
         Task {
             do {
                 let fetched: [TrainingPlan] = try await api.request(endpoint: "/api/v1/plans/training")
-                print("✅ Training plans yükləndi: \(fetched.count) plan tapıldı")
+                AppLogger.training.info("Training plans yuklendi: \(fetched.count) plan tapildi")
                 await MainActor.run {
                     self.plans = fetched
                     self.isLoading = false
@@ -340,8 +341,8 @@ class TrainingPlanManager: ObservableObject {
                 await MainActor.run {
                     self.isLoading = false
                 }
-                print("❌ Training plans yükləmə xətası: \(error)")
-                if let de = error as? DecodingError { print("⚠️ Decode detalları: \(de)") }
+                AppLogger.training.error("Training plans yukleme xetasi: \(error.localizedDescription)")
+                if let de = error as? DecodingError { AppLogger.training.warning("Decode error type: \(String(describing: type(of: de)))") }
             }
         }
     }

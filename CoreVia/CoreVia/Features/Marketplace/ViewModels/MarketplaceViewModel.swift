@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import os.log
 
 @MainActor
 class MarketplaceViewModel: ObservableObject {
@@ -51,6 +52,7 @@ class MarketplaceViewModel: ObservableObject {
             currentPage += 1
 
         } catch {
+            AppLogger.network.error("Load marketplace products xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
 

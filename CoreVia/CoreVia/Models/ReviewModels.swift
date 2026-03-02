@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import os.log
 
 // MARK: - Review Response
 struct ReviewResponse: Codable, Identifiable {
@@ -67,6 +68,7 @@ class ReviewManager: ObservableObject {
             )
             reviews = result
         } catch {
+            AppLogger.network.error("Fetch reviews xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
         isLoading = false
@@ -80,6 +82,7 @@ class ReviewManager: ObservableObject {
             )
             summary = result
         } catch {
+            AppLogger.network.error("Fetch review summary xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
     }
@@ -101,6 +104,7 @@ class ReviewManager: ObservableObject {
             errorMessage = error.errorDescription
             return false
         } catch {
+            AppLogger.network.error("Submit review xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
             return false
         }
@@ -117,6 +121,7 @@ class ReviewManager: ObservableObject {
             await fetchSummary(trainerId: trainerId)
             return true
         } catch {
+            AppLogger.network.error("Delete review xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
             return false
         }

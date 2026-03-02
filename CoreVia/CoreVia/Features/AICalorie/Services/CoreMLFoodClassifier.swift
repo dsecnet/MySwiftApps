@@ -12,6 +12,7 @@
 
 import UIKit
 import CoreML
+import os.log
 
 // MARK: - Classification Result
 
@@ -93,9 +94,9 @@ class CoreMLFoodClassifier {
 
         do {
             primaryModel = try FoodClassifier(configuration: config)
-            print("✅ Primary: Food-101 ViT model yuklendi (\(classLabels.count) class)")
+            AppLogger.ml.info("Primary: Food-101 ViT model yuklendi (\(self.classLabels.count) class)")
         } catch {
-            print("⚠️ Primary model xetasi: \(error.localizedDescription)")
+            AppLogger.ml.warning("Primary model xetasi: \(error.localizedDescription)")
             primaryModel = nil
         }
     }
@@ -108,12 +109,12 @@ class CoreMLFoodClassifier {
         if let url = Bundle.main.url(forResource: "FoodClassifierBackup", withExtension: "mlmodelc") {
             do {
                 backupModel = try MLModel(contentsOf: url, configuration: config)
-                print("✅ Backup: ImageNet model yuklendi (meyve/terevez)")
+                AppLogger.ml.info("Backup: ImageNet model yuklendi (meyve/terevez)")
             } catch {
-                print("⚠️ Backup model xetasi: \(error.localizedDescription)")
+                AppLogger.ml.warning("Backup model xetasi: \(error.localizedDescription)")
             }
         } else {
-            print("⚠️ FoodClassifierBackup model tapilmadi — yalniz Food-101 istifade olunacaq")
+            AppLogger.ml.warning("FoodClassifierBackup model tapilmadi -- yalniz Food-101 istifade olunacaq")
         }
     }
 
@@ -130,7 +131,7 @@ class CoreMLFoodClassifier {
         if let names = json["display_names"] as? [String: String] { displayNames = names }
         if classLabels.isEmpty { loadDefaultLabels() }
 
-        print("✅ Food labels: \(classLabels.count) class")
+        AppLogger.ml.info("Food labels: \(self.classLabels.count) class")
     }
 
     private func loadDefaultLabels() {
@@ -167,7 +168,7 @@ class CoreMLFoodClassifier {
 
         // Eger Food-101 confidence yuksekdirse → basa catdi
         if let result = primaryResult, result.confidence >= 0.4 {
-            print("✅ Primary (Food-101): \(result.displayName) (\(String(format: "%.2f", result.confidence)))")
+            AppLogger.ml.info("Primary (Food-101): \(result.displayName) (\(String(format: "%.2f", result.confidence)))")
             return result
         }
 
@@ -178,20 +179,20 @@ class CoreMLFoodClassifier {
         if let primary = primaryResult, let backup = backupResult {
             // Backup daha yaxsidirsa (meyve/terevez ola biler)
             if backup.confidence > primary.confidence {
-                print("✅ Backup (ImageNet): \(backup.displayName) (\(String(format: "%.2f", backup.confidence))) > Primary: \(primary.displayName) (\(String(format: "%.2f", primary.confidence)))")
+                AppLogger.ml.info("Backup (ImageNet): \(backup.displayName) (\(String(format: "%.2f", backup.confidence))) > Primary: \(primary.displayName) (\(String(format: "%.2f", primary.confidence)))")
                 return backup
             }
-            print("✅ Primary (Food-101): \(primary.displayName) (\(String(format: "%.2f", primary.confidence))) >= Backup")
+            AppLogger.ml.info("Primary (Food-101): \(primary.displayName) (\(String(format: "%.2f", primary.confidence))) >= Backup")
             return primary
         }
 
         if let primary = primaryResult {
-            print("✅ Primary only: \(primary.displayName) (\(String(format: "%.2f", primary.confidence)))")
+            AppLogger.ml.info("Primary only: \(primary.displayName) (\(String(format: "%.2f", primary.confidence)))")
             return primary
         }
 
         if let backup = backupResult {
-            print("✅ Backup only: \(backup.displayName) (\(String(format: "%.2f", backup.confidence)))")
+            AppLogger.ml.info("Backup only: \(backup.displayName) (\(String(format: "%.2f", backup.confidence)))")
             return backup
         }
 
@@ -210,11 +211,11 @@ class CoreMLFoodClassifier {
             let allProbs = softmax(logits)
             let top5 = topK(allProbs, k: 5)
 
-            print("🔍 Food-101 top5:")
+            AppLogger.ml.debug("Food-101 top5:")
             for (idx, prob) in top5 {
                 let name = idx < classLabels.count ? classLabels[idx] : "?"
                 let display = displayNames[name] ?? name.replacingOccurrences(of: "_", with: " ").capitalized
-                print("   [\(idx)] \(display) = \(String(format: "%.3f", prob))")
+                AppLogger.ml.debug("   [\(idx)] \(display) = \(String(format: "%.3f", prob))")
             }
 
             guard let best = top5.first else { return nil }
@@ -228,7 +229,7 @@ class CoreMLFoodClassifier {
                 confidence: max(best.1, 0.1)
             )
         } catch {
-            print("⚠️ Primary prediction xetasi: \(error.localizedDescription)")
+            AppLogger.ml.warning("Primary prediction xetasi: \(error.localizedDescription)")
             return nil
         }
     }
@@ -274,10 +275,10 @@ class CoreMLFoodClassifier {
             renormalized.sort { $0.prob > $1.prob }
 
             let top3 = Array(renormalized.prefix(3))
-            print("🔍 ImageNet backup top3:")
+            AppLogger.ml.debug("ImageNet backup top3:")
             for item in top3 {
                 let name = imagenetDisplayNames[item.index] ?? "?"
-                print("   [\(item.index)] \(name) = \(String(format: "%.3f", item.prob))")
+                AppLogger.ml.debug("   [\(item.index)] \(name) = \(String(format: "%.3f", item.prob))")
             }
 
             guard let best = renormalized.first else { return nil }
@@ -295,7 +296,7 @@ class CoreMLFoodClassifier {
                 confidence: confidence
             )
         } catch {
-            print("⚠️ Backup prediction xetasi: \(error.localizedDescription)")
+            AppLogger.ml.warning("Backup prediction xetasi: \(error.localizedDescription)")
             return nil
         }
     }

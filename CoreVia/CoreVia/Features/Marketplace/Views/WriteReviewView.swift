@@ -1,4 +1,5 @@
 import SwiftUI
+import os.log
 
 /// Write Review View
 struct WriteReviewView: View {
@@ -133,6 +134,7 @@ class WriteReviewViewModel: ObservableObject {
             return true
 
         } catch {
+            AppLogger.network.error("Write review xetasi: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
             isSubmitting = false
             return false
