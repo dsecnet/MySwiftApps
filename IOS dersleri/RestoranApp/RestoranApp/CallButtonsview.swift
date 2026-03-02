@@ -13,7 +13,7 @@ struct CallButtonsview: View {
     //option command + <-
     var body: some View {
         
-        HStack {
+        VStack {
             Button {
                
             } label: {
