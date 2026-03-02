@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -298,7 +299,7 @@ private fun PremiumInactiveHeader() {
 private fun PremiumFeatureCard(feature: PremiumFeature) {
     val icon: ImageVector = when (feature.icon) {
         "route" -> Icons.Filled.Route
-        "chat" -> Icons.Filled.Chat
+        "chat" -> Icons.AutoMirrored.Filled.Chat
         "camera" -> Icons.Filled.CameraAlt
         "trainer" -> Icons.Filled.People
         else -> Icons.Filled.Star

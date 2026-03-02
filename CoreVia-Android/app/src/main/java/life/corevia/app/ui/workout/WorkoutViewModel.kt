@@ -19,6 +19,7 @@ import java.util.Date
 import java.util.Locale
 import life.corevia.app.ui.theme.*
 import life.corevia.app.util.NetworkResult
+import life.corevia.app.util.toUserFriendlyError
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -85,13 +86,13 @@ class WorkoutViewModel @Inject constructor(
 
     fun loadWorkouts() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             when (val result = workoutRepository.getWorkouts()) {
                 is NetworkResult.Success -> {
                     _uiState.value = _uiState.value.copy(workouts = result.data, isLoading = false)
                 }
                 is NetworkResult.Error -> {
-                    _uiState.value = _uiState.value.copy(isLoading = false, error = result.message)
+                    _uiState.value = _uiState.value.copy(isLoading = false, error = result.message.toUserFriendlyError())
                 }
                 is NetworkResult.Loading -> {}
             }

@@ -12,6 +12,7 @@ import life.corevia.app.data.model.AICalorieResult
 import life.corevia.app.data.model.DetectedFood
 import life.corevia.app.data.repository.AICalorieRepository
 import life.corevia.app.util.NetworkResult
+import life.corevia.app.util.toUserFriendlyError
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 
@@ -47,25 +48,32 @@ class AICalorieViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isAnalyzing = true, errorMessage = null)
 
-            // Compress bitmap to JPEG bytes
-            val stream = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream)
-            val imageBytes = stream.toByteArray()
+            try {
+                // Compress bitmap to JPEG bytes
+                val stream = ByteArrayOutputStream()
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream)
+                val imageBytes = stream.toByteArray()
 
-            when (val result = aiCalorieRepository.analyzeFood(imageBytes)) {
-                is NetworkResult.Success -> {
-                    _uiState.value = _uiState.value.copy(
-                        result = result.data,
-                        isAnalyzing = false
-                    )
+                when (val result = aiCalorieRepository.analyzeFood(imageBytes)) {
+                    is NetworkResult.Success -> {
+                        _uiState.value = _uiState.value.copy(
+                            result = result.data,
+                            isAnalyzing = false
+                        )
+                    }
+                    is NetworkResult.Error -> {
+                        _uiState.value = _uiState.value.copy(
+                            isAnalyzing = false,
+                            errorMessage = result.message.toUserFriendlyError()
+                        )
+                    }
+                    is NetworkResult.Loading -> {}
                 }
-                is NetworkResult.Error -> {
-                    _uiState.value = _uiState.value.copy(
-                        isAnalyzing = false,
-                        errorMessage = result.message
-                    )
-                }
-                is NetworkResult.Loading -> {}
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isAnalyzing = false,
+                    errorMessage = "Şəkil analiz edilə bilmədi. Yenidən cəhd edin."
+                )
             }
         }
     }

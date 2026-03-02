@@ -65,6 +65,27 @@ fun SettingsScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Biometric toggle
+            if (viewModel.canUseBiometric()) {
+                SettingsToggleItem(
+                    icon = Icons.Filled.Fingerprint,
+                    title = "Biometrik giriş",
+                    subtitle = uiState.biometricType,
+                    isChecked = uiState.biometricEnabled,
+                    onCheckedChange = { viewModel.toggleBiometric(it) },
+                    iconColor = CoreViaSuccess
+                )
+            } else {
+                SettingsClickItem(
+                    icon = Icons.Filled.Fingerprint,
+                    title = "Biometrik giriş",
+                    subtitle = "Mövcud deyil",
+                    iconColor = TextSecondary,
+                    onClick = {}
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+
             SettingsToggleItem(
                 icon = Icons.Filled.DarkMode,
                 title = "Qaranlıq rejim",

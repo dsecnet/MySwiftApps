@@ -57,7 +57,7 @@
         android:theme="@style/Theme.CoreVia" >
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="YOUR_REAL_MAPS_API_KEY_HERE" />
+            android:value="AIzaSyAXly-F_NNDM7NW1U6ZSeIBeotFvLa4NvU" />
 
         <activity
             android:name="life.corevia.app.MainActivity"

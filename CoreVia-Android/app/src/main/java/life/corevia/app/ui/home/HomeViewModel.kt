@@ -12,6 +12,7 @@ import life.corevia.app.data.model.Workout
 import life.corevia.app.data.repository.AuthRepository
 import life.corevia.app.data.repository.WorkoutRepository
 import life.corevia.app.util.NetworkResult
+import life.corevia.app.util.toUserFriendlyError
 import javax.inject.Inject
 
 data class TodayWorkout(
@@ -58,7 +59,8 @@ data class HomeUiState(
     val isLoadingAI: Boolean = false,
     // Weekly Stats
     val weekStats: WeekStats = WeekStats(),
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val error: String? = null
 )
 
 @HiltViewModel
@@ -80,7 +82,7 @@ class HomeViewModel @Inject constructor(
 
     fun loadData() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             loadWorkouts()
             loadUserProfile()
         }
@@ -169,7 +171,10 @@ class HomeViewModel @Inject constructor(
                 )
             }
             is NetworkResult.Error -> {
-                _uiState.value = _uiState.value.copy(isLoading = false)
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = result.message.toUserFriendlyError()
+                )
             }
             is NetworkResult.Loading -> {}
         }

@@ -21,14 +21,19 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import life.corevia.app.ui.theme.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
@@ -57,16 +62,29 @@ fun HomeScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    HomeScreenContent(
-        uiState = uiState,
-        onNavigateToWorkout = onNavigateToWorkout,
-        onNavigateToFood = onNavigateToFood,
-        onNavigateToSocial = onNavigateToSocial,
-        onNavigateToMarketplace = onNavigateToMarketplace,
-        onNavigateToLiveSession = onNavigateToLiveSession,
-        onNavigateToAnalytics = onNavigateToAnalytics,
-        onSurveyClick = onNavigateToSurvey
-    )
+    PullToRefreshBox(
+        isRefreshing = uiState.isLoading,
+        onRefresh = { viewModel.loadData() }
+    ) {
+        if (uiState.error != null && uiState.todayWorkouts.isEmpty()) {
+            // Show error state when there's no cached data
+            ErrorStateContent(
+                errorMessage = uiState.error ?: "",
+                onRetry = { viewModel.loadData() }
+            )
+        } else {
+            HomeScreenContent(
+                uiState = uiState,
+                onNavigateToWorkout = onNavigateToWorkout,
+                onNavigateToFood = onNavigateToFood,
+                onNavigateToSocial = onNavigateToSocial,
+                onNavigateToMarketplace = onNavigateToMarketplace,
+                onNavigateToLiveSession = onNavigateToLiveSession,
+                onNavigateToAnalytics = onNavigateToAnalytics,
+                onSurveyClick = onNavigateToSurvey
+            )
+        }
+    }
 }
 
 @Composable
@@ -143,6 +161,41 @@ fun HomeScreenContent(
                     workouts = uiState.todayWorkouts,
                     onSeeAll = onNavigateToWorkout
                 )
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        text = "Bugünkü Məşqlər",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            Icons.Filled.FitnessCenter, null,
+                            modifier = Modifier.size(32.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        )
+                        Text(
+                            text = "Bugün üçün məşq tapılmadı",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "Yeni məşq əlavə edərək başlayın",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    }
+                }
             }
 
             // MARK: - Quick Actions
@@ -377,7 +430,7 @@ private fun CompactWorkoutCard(workout: TodayWorkout) {
         }
         Icon(
             if (workout.isCompleted) Icons.Filled.CheckCircle else Icons.Filled.RadioButtonUnchecked,
-            null,
+            contentDescription = if (workout.isCompleted) "Tamamlanıb" else "Tamamlanmayıb",
             modifier = Modifier.size(22.dp),
             tint = if (workout.isCompleted) CoreViaSuccess else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
         )
@@ -426,12 +479,13 @@ private fun CompactQuickAction(
             .clip(RoundedCornerShape(10.dp))
             .background(CoreViaPrimary.copy(alpha = 0.85f))
             .clickable { onClick() }
+            .semantics { contentDescription = title }
             .padding(vertical = 12.dp, horizontal = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Icon(
-            icon, null,
+            icon, contentDescription = null,
             modifier = Modifier.size(18.dp),
             tint = Color.White
         )
@@ -621,6 +675,47 @@ private fun WeekStatItem(
             fontSize = 10.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+    }
+}
+
+// MARK: - Error State
+@Composable
+private fun ErrorStateContent(
+    errorMessage: String,
+    onRetry: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(40.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            Icons.Filled.WifiOff,
+            contentDescription = "Bağlantı xətası",
+            modifier = Modifier.size(64.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = errorMessage,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onBackground,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        Button(
+            onClick = onRetry,
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = CoreViaPrimary)
+        ) {
+            Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Yenidən cəhd et", fontWeight = FontWeight.SemiBold)
+        }
     }
 }
 

@@ -46,6 +46,13 @@ fun GPSTrackingScreen(
     var permissionRequested by remember { mutableStateOf(false) }
     var showFinishDialog by remember { mutableStateOf(false) }
 
+    // Activity Recognition permission (step counter - Android 10+)
+    val activityPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { _ ->
+        // Step counter will work if granted, gracefully degrade if not
+    }
+
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -53,6 +60,10 @@ fun GPSTrackingScreen(
         hasLocationPermission = fineGranted
         if (fineGranted) {
             viewModel.requestCurrentLocation()
+            // Request ACTIVITY_RECOGNITION for step counter (Android 10+)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                activityPermissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
+            }
         } else {
             showLocationDenied = true
         }

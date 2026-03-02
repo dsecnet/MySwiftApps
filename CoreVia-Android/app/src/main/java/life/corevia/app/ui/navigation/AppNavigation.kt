@@ -390,7 +390,9 @@ fun AppNavigation() {
                 if (isTrainer) {
                     // ── Trainer Dashboard ──
                     TrainerHomeScreen(
-                        onNavigateToStudentDetail = { /* Student detail ekranı gələcəkdə əlavə ediləcək */ },
+                        onNavigateToStudentDetail = { studentId ->
+                            navController.navigate(Screen.ChatDetail.createRoute(studentId, studentId))
+                        },
                         onNavigateToTrainingPlans = {
                             navController.navigate(Screen.Workout.route) {
                                 popUpTo(navController.graph.findStartDestination().id) { saveState = true }

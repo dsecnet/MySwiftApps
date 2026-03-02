@@ -47,6 +47,7 @@ import life.corevia.app.data.repository.LiveSessionRepository;
 import life.corevia.app.data.repository.MarketplaceRepository;
 import life.corevia.app.data.repository.MealPlanRepository;
 import life.corevia.app.data.repository.OnboardingRepository;
+import life.corevia.app.data.repository.PremiumRepository;
 import life.corevia.app.data.repository.RouteRepository;
 import life.corevia.app.data.repository.SocialRepository;
 import life.corevia.app.data.repository.SurveyRepository;
@@ -808,7 +809,7 @@ public final class DaggerCoreViaApp_HiltComponents_SingletonC {
           return (T) new OnboardingViewModel(singletonCImpl.provideOnboardingRepositoryProvider.get());
 
           case 22: // life.corevia.app.ui.premium.PremiumViewModel 
-          return (T) new PremiumViewModel(singletonCImpl.tokenManagerProvider.get());
+          return (T) new PremiumViewModel(singletonCImpl.tokenManagerProvider.get(), singletonCImpl.premiumRepositoryProvider.get());
 
           case 23: // life.corevia.app.ui.marketplace.ProductDetailViewModel 
           return (T) new ProductDetailViewModel(viewModelCImpl.savedStateHandle, singletonCImpl.marketplaceRepositoryProvider.get());
@@ -820,7 +821,7 @@ public final class DaggerCoreViaApp_HiltComponents_SingletonC {
           return (T) new RegisterViewModel(singletonCImpl.provideAuthRepositoryProvider.get());
 
           case 26: // life.corevia.app.ui.route.RouteViewModel 
-          return (T) new RouteViewModel(singletonCImpl.provideRouteRepositoryProvider.get(), singletonCImpl.provideWorkoutRepositoryProvider.get(), ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
+          return (T) new RouteViewModel(singletonCImpl.provideRouteRepositoryProvider.get(), singletonCImpl.provideWorkoutRepositoryProvider.get(), singletonCImpl.provideAuthRepositoryProvider.get(), ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
 
           case 27: // life.corevia.app.ui.settings.SettingsViewModel 
           return (T) new SettingsViewModel(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule), singletonCImpl.tokenManagerProvider.get(), singletonCImpl.provideSharedPreferencesProvider.get());
@@ -971,6 +972,8 @@ public final class DaggerCoreViaApp_HiltComponents_SingletonC {
 
     private Provider<OnboardingRepository> provideOnboardingRepositoryProvider;
 
+    private Provider<PremiumRepository> premiumRepositoryProvider;
+
     private Provider<TrainerDashboardRepository> provideTrainerDashboardRepositoryProvider;
 
     private Provider<RouteRepository> provideRouteRepositoryProvider;
@@ -982,6 +985,7 @@ public final class DaggerCoreViaApp_HiltComponents_SingletonC {
     private SingletonCImpl(ApplicationContextModule applicationContextModuleParam) {
       this.applicationContextModule = applicationContextModuleParam;
       initialize(applicationContextModuleParam);
+      initialize2(applicationContextModuleParam);
 
     }
 
@@ -1008,10 +1012,15 @@ public final class DaggerCoreViaApp_HiltComponents_SingletonC {
       this.provideMealPlanRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<MealPlanRepository>(singletonCImpl, 18));
       this.provideSharedPreferencesProvider = DoubleCheck.provider(new SwitchingProvider<SharedPreferences>(singletonCImpl, 20));
       this.provideOnboardingRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<OnboardingRepository>(singletonCImpl, 19));
-      this.provideTrainerDashboardRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<TrainerDashboardRepository>(singletonCImpl, 21));
-      this.provideRouteRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<RouteRepository>(singletonCImpl, 22));
-      this.provideTrainerRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<TrainerRepository>(singletonCImpl, 23));
-      this.provideTrainingPlanRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<TrainingPlanRepository>(singletonCImpl, 24));
+      this.premiumRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<PremiumRepository>(singletonCImpl, 21));
+      this.provideTrainerDashboardRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<TrainerDashboardRepository>(singletonCImpl, 22));
+      this.provideRouteRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<RouteRepository>(singletonCImpl, 23));
+      this.provideTrainerRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<TrainerRepository>(singletonCImpl, 24));
+    }
+
+    @SuppressWarnings("unchecked")
+    private void initialize2(final ApplicationContextModule applicationContextModuleParam) {
+      this.provideTrainingPlanRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<TrainingPlanRepository>(singletonCImpl, 25));
     }
 
     @Override
@@ -1110,16 +1119,19 @@ public final class DaggerCoreViaApp_HiltComponents_SingletonC {
           case 20: // android.content.SharedPreferences 
           return (T) AppModule_ProvideSharedPreferencesFactory.provideSharedPreferences(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
 
-          case 21: // life.corevia.app.data.repository.TrainerDashboardRepository 
+          case 21: // life.corevia.app.data.repository.PremiumRepository 
+          return (T) new PremiumRepository(singletonCImpl.provideApiServiceProvider.get());
+
+          case 22: // life.corevia.app.data.repository.TrainerDashboardRepository 
           return (T) RepositoryModule_ProvideTrainerDashboardRepositoryFactory.provideTrainerDashboardRepository(singletonCImpl.provideApiServiceProvider.get());
 
-          case 22: // life.corevia.app.data.repository.RouteRepository 
+          case 23: // life.corevia.app.data.repository.RouteRepository 
           return (T) RepositoryModule_ProvideRouteRepositoryFactory.provideRouteRepository(singletonCImpl.provideApiServiceProvider.get());
 
-          case 23: // life.corevia.app.data.repository.TrainerRepository 
+          case 24: // life.corevia.app.data.repository.TrainerRepository 
           return (T) RepositoryModule_ProvideTrainerRepositoryFactory.provideTrainerRepository(singletonCImpl.provideApiServiceProvider.get());
 
-          case 24: // life.corevia.app.data.repository.TrainingPlanRepository 
+          case 25: // life.corevia.app.data.repository.TrainingPlanRepository 
           return (T) RepositoryModule_ProvideTrainingPlanRepositoryFactory.provideTrainingPlanRepository(singletonCImpl.provideApiServiceProvider.get());
 
           default: throw new AssertionError(id);

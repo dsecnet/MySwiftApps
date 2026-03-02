@@ -106,7 +106,7 @@
 58        <meta-data
 59            android:name="com.google.android.geo.API_KEY"
 59-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:32:13-58
-60            android:value="YOUR_REAL_MAPS_API_KEY_HERE" />
+60            android:value="AIzaSyAXly-F_NNDM7NW1U6ZSeIBeotFvLa4NvU" />
 60-->/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/src/main/AndroidManifest.xml:33:13-44
 61
 62        <activity

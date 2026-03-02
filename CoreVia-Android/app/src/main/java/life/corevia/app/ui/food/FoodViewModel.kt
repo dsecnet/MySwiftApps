@@ -13,6 +13,7 @@ import life.corevia.app.data.model.FoodEntry
 import life.corevia.app.data.model.MealType
 import life.corevia.app.data.repository.FoodRepository
 import life.corevia.app.util.NetworkResult
+import life.corevia.app.util.toUserFriendlyError
 import javax.inject.Inject
 
 data class FoodUiState(
@@ -53,7 +54,7 @@ class FoodViewModel @Inject constructor(
 
     fun loadData() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             launch { loadDailyStats() }
             launch { loadEntries() }
         }
@@ -70,7 +71,7 @@ class FoodViewModel @Inject constructor(
                 )
             }
             is NetworkResult.Error -> {
-                _uiState.value = _uiState.value.copy(isLoading = false, error = result.message)
+                _uiState.value = _uiState.value.copy(isLoading = false, error = result.message.toUserFriendlyError())
             }
             is NetworkResult.Loading -> {}
         }

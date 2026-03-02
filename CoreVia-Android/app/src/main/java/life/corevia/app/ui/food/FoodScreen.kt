@@ -34,6 +34,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import life.corevia.app.data.model.FoodEntry
 import life.corevia.app.data.model.MealType
 import life.corevia.app.ui.theme.*
@@ -41,6 +43,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Size
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FoodScreen(
     onNavigateToMealPlans: () -> Unit = {},
@@ -49,20 +52,73 @@ fun FoodScreen(
     viewModel: FoodViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    FoodScreenContent(
-        uiState = uiState,
-        onAddWater = viewModel::addWater,
-        onRemoveWater = viewModel::removeWater,
-        onAddClick = viewModel::toggleAddSheet,
-        onEditGoal = viewModel::toggleEditGoal,
-        onDeleteEntry = viewModel::deleteEntry,
-        onAddFood = viewModel::addFood,
-        onUpdateGoal = viewModel::updateCalorieGoal,
-        onDismissAdd = viewModel::toggleAddSheet,
-        onDismissGoal = viewModel::toggleEditGoal,
-        onNavigateToMealPlans = onNavigateToMealPlans,
-        onNavigateToAICalorie = onNavigateToAICalorie
-    )
+    PullToRefreshBox(
+        isRefreshing = uiState.isLoading,
+        onRefresh = { viewModel.loadData() }
+    ) {
+        if (uiState.error != null && uiState.entries.isEmpty() && !uiState.isLoading) {
+            // Error state when no cached data
+            FoodErrorState(
+                errorMessage = uiState.error ?: "",
+                onRetry = { viewModel.loadData() }
+            )
+        } else {
+            FoodScreenContent(
+                uiState = uiState,
+                onAddWater = viewModel::addWater,
+                onRemoveWater = viewModel::removeWater,
+                onAddClick = viewModel::toggleAddSheet,
+                onEditGoal = viewModel::toggleEditGoal,
+                onDeleteEntry = viewModel::deleteEntry,
+                onAddFood = viewModel::addFood,
+                onUpdateGoal = viewModel::updateCalorieGoal,
+                onDismissAdd = viewModel::toggleAddSheet,
+                onDismissGoal = viewModel::toggleEditGoal,
+                onNavigateToMealPlans = onNavigateToMealPlans,
+                onNavigateToAICalorie = onNavigateToAICalorie
+            )
+        }
+    }
+}
+
+@Composable
+private fun FoodErrorState(
+    errorMessage: String,
+    onRetry: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(40.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            Icons.Filled.WifiOff,
+            contentDescription = "Bağlantı xətası",
+            modifier = Modifier.size(64.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = errorMessage,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onBackground,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        Button(
+            onClick = onRetry,
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = CoreViaPrimary)
+        ) {
+            Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Yenidən cəhd et", fontWeight = FontWeight.SemiBold)
+        }
+    }
 }
 
 @Composable

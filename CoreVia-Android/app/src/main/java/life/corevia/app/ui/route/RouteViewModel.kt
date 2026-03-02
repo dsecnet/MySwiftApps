@@ -198,21 +198,33 @@ class RouteViewModel @Inject constructor(
     }
 
     private fun registerStepSensor() {
-        if (sensorManager == null) {
-            sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
-        }
-        stepSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-        stepSensor?.let { sensor ->
-            sensorManager?.registerListener(
-                sensorListener,
-                sensor,
-                SensorManager.SENSOR_DELAY_UI
-            )
+        try {
+            if (sensorManager == null) {
+                sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
+            }
+            stepSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+            if (stepSensor == null) {
+                Timber.w("Step counter sensor mövcud deyil bu cihazda")
+                return
+            }
+            stepSensor?.let { sensor ->
+                sensorManager?.registerListener(
+                    sensorListener,
+                    sensor,
+                    SensorManager.SENSOR_DELAY_UI
+                )
+            }
+        } catch (e: Exception) {
+            Timber.e("Step sensor qeydiyyat xətası: ${e.message}")
         }
     }
 
     private fun unregisterStepSensor() {
-        sensorManager?.unregisterListener(sensorListener)
+        try {
+            sensorManager?.unregisterListener(sensorListener)
+        } catch (e: Exception) {
+            Timber.e("Step sensor ləğv xətası: ${e.message}")
+        }
     }
 
     fun loadData() {

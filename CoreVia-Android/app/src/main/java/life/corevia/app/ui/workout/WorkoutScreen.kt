@@ -24,9 +24,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import life.corevia.app.data.model.Workout
 import life.corevia.app.ui.theme.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutScreen(
     viewModel: WorkoutViewModel = hiltViewModel(),
@@ -47,6 +50,10 @@ fun WorkoutScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
+    PullToRefreshBox(
+        isRefreshing = uiState.isLoading,
+        onRefresh = { viewModel.loadWorkouts() }
+    ) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -114,8 +121,42 @@ fun WorkoutScreen(
                     )
                 }
 
+                // Error state
+                if (!uiState.isLoading && uiState.error != null && uiState.workouts.isEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 40.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            Icons.Filled.WifiOff,
+                            contentDescription = "Bağlantı xətası",
+                            modifier = Modifier.size(48.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        )
+                        Text(
+                            text = uiState.error ?: "",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            textAlign = TextAlign.Center
+                        )
+                        Button(
+                            onClick = { viewModel.loadWorkouts() },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = CoreViaPrimary)
+                        ) {
+                            Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Yenidən cəhd et", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        }
+                    }
+                }
+
                 // Empty state
-                if (!uiState.isLoading && uiState.workouts.isEmpty()) {
+                if (!uiState.isLoading && uiState.error == null && uiState.workouts.isEmpty()) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -175,7 +216,7 @@ fun WorkoutScreen(
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = CoreViaSuccess)
             ) {
-                Icon(Icons.Filled.MyLocation, null, modifier = Modifier.size(18.dp))
+                Icon(Icons.Filled.MyLocation, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("GPS ilə Qaçış/Gəzinti", fontSize = 15.sp, fontWeight = FontWeight.Bold)
             }
@@ -195,6 +236,7 @@ fun WorkoutScreen(
             }
         }
     }
+    } // PullToRefreshBox
 
     // Add Workout Sheet
     if (uiState.showAddWorkout) {
@@ -361,7 +403,7 @@ private fun WorkoutCard(workout: Workout, onToggle: () -> Unit, onDelete: () -> 
         // Toggle check
         Icon(
             if (workout.isCompleted) Icons.Filled.CheckCircle else Icons.Filled.RadioButtonUnchecked,
-            null,
+            contentDescription = if (workout.isCompleted) "Tamamlanıb - geri al" else "Tamamla",
             modifier = Modifier
                 .size(24.dp)
                 .clickable(onClick = onToggle),

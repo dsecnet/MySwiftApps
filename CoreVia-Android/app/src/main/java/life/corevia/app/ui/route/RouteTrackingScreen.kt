@@ -51,13 +51,29 @@ fun RouteTrackingScreen(
     var showLocationDenied by remember { mutableStateOf(false) }
     var pendingActivityType by remember { mutableStateOf<ActivityType?>(null) }
 
+    // Activity Recognition permission (step counter - Android 10+)
+    val activityPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { _ ->
+        // Start tracking after activity permission result (granted or not)
+        pendingActivityType?.let { type ->
+            viewModel.startTracking(type)
+            pendingActivityType = null
+        }
+    }
+
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         val fineGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
         if (fineGranted && pendingActivityType != null) {
-            viewModel.startTracking(pendingActivityType!!)
-            pendingActivityType = null
+            // Request ACTIVITY_RECOGNITION for step counter (Android 10+)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                activityPermissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
+            } else {
+                viewModel.startTracking(pendingActivityType!!)
+                pendingActivityType = null
+            }
         } else if (!fineGranted) {
             showLocationDenied = true
         }

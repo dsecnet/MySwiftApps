@@ -570,6 +570,12 @@ public final class DaggerCoreViaApp_HiltComponents_SingletonC {
 
     @Override
     public void injectMainActivity(MainActivity arg0) {
+      injectMainActivity2(arg0);
+    }
+
+    private MainActivity injectMainActivity2(MainActivity instance) {
+      MainActivity_MembersInjector.injectSharedPreferences(instance, singletonCImpl.provideSharedPreferencesProvider.get());
+      return instance;
     }
   }
 
@@ -930,6 +936,8 @@ public final class DaggerCoreViaApp_HiltComponents_SingletonC {
 
     private final SingletonCImpl singletonCImpl = this;
 
+    private Provider<SharedPreferences> provideSharedPreferencesProvider;
+
     private Provider<TokenManager> tokenManagerProvider;
 
     private Provider<OkHttpClient> provideOkHttpClientProvider;
@@ -968,8 +976,6 @@ public final class DaggerCoreViaApp_HiltComponents_SingletonC {
 
     private Provider<MealPlanRepository> provideMealPlanRepositoryProvider;
 
-    private Provider<SharedPreferences> provideSharedPreferencesProvider;
-
     private Provider<OnboardingRepository> provideOnboardingRepositoryProvider;
 
     private Provider<PremiumRepository> premiumRepositoryProvider;
@@ -991,27 +997,27 @@ public final class DaggerCoreViaApp_HiltComponents_SingletonC {
 
     @SuppressWarnings("unchecked")
     private void initialize(final ApplicationContextModule applicationContextModuleParam) {
-      this.tokenManagerProvider = DoubleCheck.provider(new SwitchingProvider<TokenManager>(singletonCImpl, 4));
-      this.provideOkHttpClientProvider = DoubleCheck.provider(new SwitchingProvider<OkHttpClient>(singletonCImpl, 3));
-      this.provideJsonProvider = DoubleCheck.provider(new SwitchingProvider<Json>(singletonCImpl, 5));
-      this.provideRetrofitProvider = DoubleCheck.provider(new SwitchingProvider<Retrofit>(singletonCImpl, 2));
-      this.provideApiServiceProvider = DoubleCheck.provider(new SwitchingProvider<ApiService>(singletonCImpl, 1));
-      this.foodDatabaseServiceProvider = DoubleCheck.provider(new SwitchingProvider<FoodDatabaseService>(singletonCImpl, 7));
-      this.onDeviceFoodAnalyzerProvider = DoubleCheck.provider(new SwitchingProvider<OnDeviceFoodAnalyzer>(singletonCImpl, 6));
-      this.provideAICalorieRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<AICalorieRepository>(singletonCImpl, 0));
-      this.provideFoodRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<FoodRepository>(singletonCImpl, 8));
-      this.provideWorkoutRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<WorkoutRepository>(singletonCImpl, 9));
-      this.analyticsRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<AnalyticsRepository>(singletonCImpl, 10));
-      this.provideChatRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<ChatRepository>(singletonCImpl, 11));
-      this.socialRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<SocialRepository>(singletonCImpl, 12));
-      this.provideContentRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<ContentRepository>(singletonCImpl, 13));
-      this.marketplaceRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<MarketplaceRepository>(singletonCImpl, 14));
-      this.liveSessionRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<LiveSessionRepository>(singletonCImpl, 15));
-      this.provideSurveyRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<SurveyRepository>(singletonCImpl, 16));
-      this.provideAuthRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<AuthRepository>(singletonCImpl, 17));
-      this.provideMealPlanRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<MealPlanRepository>(singletonCImpl, 18));
-      this.provideSharedPreferencesProvider = DoubleCheck.provider(new SwitchingProvider<SharedPreferences>(singletonCImpl, 20));
-      this.provideOnboardingRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<OnboardingRepository>(singletonCImpl, 19));
+      this.provideSharedPreferencesProvider = DoubleCheck.provider(new SwitchingProvider<SharedPreferences>(singletonCImpl, 0));
+      this.tokenManagerProvider = DoubleCheck.provider(new SwitchingProvider<TokenManager>(singletonCImpl, 5));
+      this.provideOkHttpClientProvider = DoubleCheck.provider(new SwitchingProvider<OkHttpClient>(singletonCImpl, 4));
+      this.provideJsonProvider = DoubleCheck.provider(new SwitchingProvider<Json>(singletonCImpl, 6));
+      this.provideRetrofitProvider = DoubleCheck.provider(new SwitchingProvider<Retrofit>(singletonCImpl, 3));
+      this.provideApiServiceProvider = DoubleCheck.provider(new SwitchingProvider<ApiService>(singletonCImpl, 2));
+      this.foodDatabaseServiceProvider = DoubleCheck.provider(new SwitchingProvider<FoodDatabaseService>(singletonCImpl, 8));
+      this.onDeviceFoodAnalyzerProvider = DoubleCheck.provider(new SwitchingProvider<OnDeviceFoodAnalyzer>(singletonCImpl, 7));
+      this.provideAICalorieRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<AICalorieRepository>(singletonCImpl, 1));
+      this.provideFoodRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<FoodRepository>(singletonCImpl, 9));
+      this.provideWorkoutRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<WorkoutRepository>(singletonCImpl, 10));
+      this.analyticsRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<AnalyticsRepository>(singletonCImpl, 11));
+      this.provideChatRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<ChatRepository>(singletonCImpl, 12));
+      this.socialRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<SocialRepository>(singletonCImpl, 13));
+      this.provideContentRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<ContentRepository>(singletonCImpl, 14));
+      this.marketplaceRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<MarketplaceRepository>(singletonCImpl, 15));
+      this.liveSessionRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<LiveSessionRepository>(singletonCImpl, 16));
+      this.provideSurveyRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<SurveyRepository>(singletonCImpl, 17));
+      this.provideAuthRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<AuthRepository>(singletonCImpl, 18));
+      this.provideMealPlanRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<MealPlanRepository>(singletonCImpl, 19));
+      this.provideOnboardingRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<OnboardingRepository>(singletonCImpl, 20));
       this.premiumRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<PremiumRepository>(singletonCImpl, 21));
       this.provideTrainerDashboardRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<TrainerDashboardRepository>(singletonCImpl, 22));
       this.provideRouteRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<RouteRepository>(singletonCImpl, 23));
@@ -1039,7 +1045,7 @@ public final class DaggerCoreViaApp_HiltComponents_SingletonC {
     }
 
     @Override
-    public void injectCoreViaApp(CoreViaApp arg0) {
+    public void injectCoreViaApp(CoreViaApp coreViaApp) {
     }
 
     private static final class SwitchingProvider<T> implements Provider<T> {
@@ -1056,68 +1062,68 @@ public final class DaggerCoreViaApp_HiltComponents_SingletonC {
       @Override
       public T get() {
         switch (id) {
-          case 0: // life.corevia.app.data.repository.AICalorieRepository 
+          case 0: // android.content.SharedPreferences 
+          return (T) AppModule_ProvideSharedPreferencesFactory.provideSharedPreferences(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
+
+          case 1: // life.corevia.app.data.repository.AICalorieRepository 
           return (T) RepositoryModule_ProvideAICalorieRepositoryFactory.provideAICalorieRepository(singletonCImpl.provideApiServiceProvider.get(), singletonCImpl.provideOkHttpClientProvider.get(), singletonCImpl.provideJsonProvider.get(), singletonCImpl.onDeviceFoodAnalyzerProvider.get());
 
-          case 1: // life.corevia.app.data.remote.ApiService 
+          case 2: // life.corevia.app.data.remote.ApiService 
           return (T) NetworkModule_ProvideApiServiceFactory.provideApiService(singletonCImpl.provideRetrofitProvider.get());
 
-          case 2: // retrofit2.Retrofit 
+          case 3: // retrofit2.Retrofit 
           return (T) NetworkModule_ProvideRetrofitFactory.provideRetrofit(singletonCImpl.provideOkHttpClientProvider.get(), singletonCImpl.provideJsonProvider.get());
 
-          case 3: // okhttp3.OkHttpClient 
+          case 4: // okhttp3.OkHttpClient 
           return (T) NetworkModule_ProvideOkHttpClientFactory.provideOkHttpClient(singletonCImpl.tokenManagerProvider.get());
 
-          case 4: // life.corevia.app.data.local.TokenManager 
+          case 5: // life.corevia.app.data.local.TokenManager 
           return (T) new TokenManager(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
 
-          case 5: // kotlinx.serialization.json.Json 
+          case 6: // kotlinx.serialization.json.Json 
           return (T) NetworkModule_ProvideJsonFactory.provideJson();
 
-          case 6: // life.corevia.app.data.local.OnDeviceFoodAnalyzer 
+          case 7: // life.corevia.app.data.local.OnDeviceFoodAnalyzer 
           return (T) new OnDeviceFoodAnalyzer(singletonCImpl.foodDatabaseServiceProvider.get());
 
-          case 7: // life.corevia.app.data.local.FoodDatabaseService 
+          case 8: // life.corevia.app.data.local.FoodDatabaseService 
           return (T) new FoodDatabaseService(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
 
-          case 8: // life.corevia.app.data.repository.FoodRepository 
+          case 9: // life.corevia.app.data.repository.FoodRepository 
           return (T) RepositoryModule_ProvideFoodRepositoryFactory.provideFoodRepository(singletonCImpl.provideApiServiceProvider.get());
 
-          case 9: // life.corevia.app.data.repository.WorkoutRepository 
+          case 10: // life.corevia.app.data.repository.WorkoutRepository 
           return (T) RepositoryModule_ProvideWorkoutRepositoryFactory.provideWorkoutRepository(singletonCImpl.provideApiServiceProvider.get());
 
-          case 10: // life.corevia.app.data.repository.AnalyticsRepository 
+          case 11: // life.corevia.app.data.repository.AnalyticsRepository 
           return (T) new AnalyticsRepository(singletonCImpl.provideApiServiceProvider.get());
 
-          case 11: // life.corevia.app.data.repository.ChatRepository 
+          case 12: // life.corevia.app.data.repository.ChatRepository 
           return (T) RepositoryModule_ProvideChatRepositoryFactory.provideChatRepository(singletonCImpl.provideApiServiceProvider.get());
 
-          case 12: // life.corevia.app.data.repository.SocialRepository 
+          case 13: // life.corevia.app.data.repository.SocialRepository 
           return (T) new SocialRepository(singletonCImpl.provideApiServiceProvider.get());
 
-          case 13: // life.corevia.app.data.repository.ContentRepository 
+          case 14: // life.corevia.app.data.repository.ContentRepository 
           return (T) RepositoryModule_ProvideContentRepositoryFactory.provideContentRepository(singletonCImpl.provideApiServiceProvider.get(), singletonCImpl.provideOkHttpClientProvider.get());
 
-          case 14: // life.corevia.app.data.repository.MarketplaceRepository 
+          case 15: // life.corevia.app.data.repository.MarketplaceRepository 
           return (T) new MarketplaceRepository(singletonCImpl.provideApiServiceProvider.get());
 
-          case 15: // life.corevia.app.data.repository.LiveSessionRepository 
+          case 16: // life.corevia.app.data.repository.LiveSessionRepository 
           return (T) new LiveSessionRepository(singletonCImpl.provideApiServiceProvider.get());
 
-          case 16: // life.corevia.app.data.repository.SurveyRepository 
+          case 17: // life.corevia.app.data.repository.SurveyRepository 
           return (T) RepositoryModule_ProvideSurveyRepositoryFactory.provideSurveyRepository(singletonCImpl.provideApiServiceProvider.get());
 
-          case 17: // life.corevia.app.data.repository.AuthRepository 
+          case 18: // life.corevia.app.data.repository.AuthRepository 
           return (T) RepositoryModule_ProvideAuthRepositoryFactory.provideAuthRepository(singletonCImpl.provideApiServiceProvider.get(), singletonCImpl.tokenManagerProvider.get());
 
-          case 18: // life.corevia.app.data.repository.MealPlanRepository 
+          case 19: // life.corevia.app.data.repository.MealPlanRepository 
           return (T) RepositoryModule_ProvideMealPlanRepositoryFactory.provideMealPlanRepository(singletonCImpl.provideApiServiceProvider.get());
 
-          case 19: // life.corevia.app.data.repository.OnboardingRepository 
+          case 20: // life.corevia.app.data.repository.OnboardingRepository 
           return (T) RepositoryModule_ProvideOnboardingRepositoryFactory.provideOnboardingRepository(singletonCImpl.provideApiServiceProvider.get(), singletonCImpl.provideSharedPreferencesProvider.get());
-
-          case 20: // android.content.SharedPreferences 
-          return (T) AppModule_ProvideSharedPreferencesFactory.provideSharedPreferences(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
 
           case 21: // life.corevia.app.data.repository.PremiumRepository 
           return (T) new PremiumRepository(singletonCImpl.provideApiServiceProvider.get());

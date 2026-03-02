@@ -10,10 +10,12 @@ import kotlinx.coroutines.launch
 import life.corevia.app.data.model.SocialPost
 import life.corevia.app.data.repository.SocialRepository
 import life.corevia.app.util.NetworkResult
+import life.corevia.app.util.toUserFriendlyError
 import javax.inject.Inject
 
 data class SocialFeedUiState(
     val isLoading: Boolean = false,
+    val isLoadingMore: Boolean = false,
     val posts: List<SocialPost> = emptyList(),
     val error: String? = null,
     val hasMore: Boolean = false,
@@ -47,8 +49,30 @@ class SocialFeedViewModel @Inject constructor(
                 is NetworkResult.Error -> {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        error = result.message
+                        error = result.message.toUserFriendlyError()
                     )
+                }
+                is NetworkResult.Loading -> {}
+            }
+        }
+    }
+
+    fun loadMore() {
+        if (_uiState.value.isLoading || !_uiState.value.hasMore) return
+        val nextPage = _uiState.value.currentPage + 1
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoadingMore = true)
+            when (val result = socialRepository.getFeed(page = nextPage)) {
+                is NetworkResult.Success -> {
+                    _uiState.value = _uiState.value.copy(
+                        isLoadingMore = false,
+                        posts = _uiState.value.posts + result.data.posts,
+                        hasMore = result.data.hasMore,
+                        currentPage = nextPage
+                    )
+                }
+                is NetworkResult.Error -> {
+                    _uiState.value = _uiState.value.copy(isLoadingMore = false)
                 }
                 is NetworkResult.Loading -> {}
             }

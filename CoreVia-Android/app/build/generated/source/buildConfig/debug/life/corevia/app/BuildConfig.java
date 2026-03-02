@@ -12,5 +12,5 @@ public final class BuildConfig {
   // Field from default config.
   public static final String BASE_URL = "https://api.corevia.life";
   // Field from default config.
-  public static final String MAPS_API_KEY = "YOUR_REAL_MAPS_API_KEY_HERE";
+  public static final String MAPS_API_KEY = "AIzaSyAXly-F_NNDM7NW1U6ZSeIBeotFvLa4NvU";
 }

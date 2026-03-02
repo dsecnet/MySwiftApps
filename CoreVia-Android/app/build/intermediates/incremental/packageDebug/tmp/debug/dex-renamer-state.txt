@@ -1,4 +1,4 @@
-#Fri Feb 27 10:08:26 AZT 2026
+#Mon Mar 02 11:33:57 AZT 2026
 base.0=/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/build/intermediates/dex/debug/mergeExtDexDebug/classes.dex
 base.1=/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/build/intermediates/dex/debug/mergeProjectDexDebug/0/classes.dex
 base.10=/Users/vusaldadashov/Desktop/ConsoleApp/CoreVia-Android/app/build/intermediates/dex/debug/mergeProjectDexDebug/3/classes.dex

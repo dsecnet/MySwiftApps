@@ -76,6 +76,41 @@ fun SocialFeedScreen(
                     }
                 }
 
+                uiState.error != null && uiState.posts.isEmpty() -> {
+                    // Error state
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(40.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            Icons.Filled.WifiOff,
+                            contentDescription = "Bağlantı xətası",
+                            modifier = Modifier.size(70.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = uiState.error ?: "",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Button(
+                            onClick = { viewModel.loadFeed() },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = CoreViaPrimary)
+                        ) {
+                            Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Yenidən cəhd et", fontWeight = FontWeight.SemiBold)
+                        }
+                    }
+                }
+
                 !uiState.isLoading && uiState.posts.isEmpty() -> {
                     // Empty state
                     Column(
@@ -121,6 +156,30 @@ fun SocialFeedScreen(
                                 onComment = { onNavigateToComments?.invoke(post.id) },
                                 onDelete = { viewModel.deletePost(post.id) }
                             )
+                        }
+
+                        // Load more button
+                        if (uiState.hasMore) {
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (uiState.isLoadingMore) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        color = CoreViaPrimary,
+                                        strokeWidth = 2.dp
+                                    )
+                                } else {
+                                    TextButton(onClick = { viewModel.loadMore() }) {
+                                        Text(
+                                            "Daha çox yüklə",
+                                            color = CoreViaPrimary,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    }
+                                }
+                            }
                         }
 
                         Spacer(modifier = Modifier.height(80.dp))
@@ -237,7 +296,7 @@ private fun PostCard(
             ) {
                 Icon(
                     if (post.isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                    contentDescription = null,
+                    contentDescription = if (post.isLiked) "Bəyənməni geri al" else "Bəyən",
                     modifier = Modifier.size(20.dp),
                     tint = if (post.isLiked) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -256,7 +315,7 @@ private fun PostCard(
             ) {
                 Icon(
                     Icons.Outlined.ChatBubbleOutline,
-                    contentDescription = null,
+                    contentDescription = "Şərh yaz",
                     modifier = Modifier.size(20.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )

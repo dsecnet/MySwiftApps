@@ -97,6 +97,41 @@ fun MarketplaceScreen(
                     }
                 }
 
+                uiState.error != null && uiState.products.isEmpty() -> {
+                    // Error state
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(40.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            Icons.Filled.WifiOff,
+                            contentDescription = "Bağlantı xətası",
+                            modifier = Modifier.size(70.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = uiState.error ?: "",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Button(
+                            onClick = { viewModel.loadProducts() },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = CoreViaPrimary)
+                        ) {
+                            Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Yenidən cəhd et", fontWeight = FontWeight.SemiBold)
+                        }
+                    }
+                }
+
                 !uiState.isLoading && uiState.filteredProducts.isEmpty() -> {
                     // iOS empty state
                     Column(
@@ -141,6 +176,31 @@ fun MarketplaceScreen(
                                 onClick = { onNavigateToProduct?.invoke(product.id) }
                             )
                         }
+
+                        // Load more button
+                        if (uiState.hasMore && uiState.selectedFilter == "all") {
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (uiState.isLoadingMore) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        color = CoreViaPrimary,
+                                        strokeWidth = 2.dp
+                                    )
+                                } else {
+                                    TextButton(onClick = { viewModel.loadMore() }) {
+                                        Text(
+                                            "Daha çox yüklə",
+                                            color = CoreViaPrimary,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
                         Spacer(modifier = Modifier.height(20.dp))
                     }
                 }
@@ -298,7 +358,8 @@ private fun ProductCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        Icons.Filled.Star, null,
+                        Icons.Filled.Star,
+                        contentDescription = "Reytinq",
                         modifier = Modifier.size(14.dp),
                         tint = Color(0xFFFFCC00) // yellow like iOS
                     )
