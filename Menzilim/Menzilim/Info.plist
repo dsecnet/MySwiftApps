@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>M&#601;nzilim</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>M&#601;nzilim sizin yerinizi yax&#305;nl&#305;qdak&#305; elanlar&#305; g&#246;st&#601;rm&#601;k v&#601; x&#601;rit&#601;d&#601; axtarma imkan&#305; verm&#601;k &#252;&#231;&#252;n istifad&#601; edir.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Elan &#252;&#231;&#252;n &#351;&#601;kill&#601;r se&#231;m&#601;k v&#601; profil &#351;&#601;klini y&#252;kl&#601;m&#601;k &#252;&#231;&#252;n foto kitabxanaya giri&#351; laz&#305;md&#305;r.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Elan &#252;&#231;&#252;n &#351;&#601;kil &#231;&#601;km&#601;k v&#601; profil foto&#287;raf&#305; yaratmaq &#252;&#231;&#252;n kameraya giri&#351; laz&#305;md&#305;r.</string>
+	<key>UIUserInterfaceStyle</key>
+	<string>Dark</string>
+	<key>UILaunchScreen</key>
+	<dict/>
+	<key>UISupportedInterfaceOrientations~iphone</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
+</dict>
+</plist>
