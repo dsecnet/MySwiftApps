@@ -2,16 +2,17 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Über Uns | GARABAG-Bau</title>
-<link rel="icon" type="image/webp" href="logo.webp">
+<title>Über Uns | Grid Works</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect fill='%230B0B0B' width='32' height='32' rx='4'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='16' font-weight='bold' font-family='sans-serif'>GW</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0B0B0B;--card:#111;--accent:#2563eb;--accent2:#3b82f6;--white:#fff;--gray:#9a9a9a;--muted:#4a4a4a;--border:rgba(255,255,255,.08);--radius:16px;--font:'Inter',system-ui,sans-serif}
 html{scroll-behavior:smooth;overflow-x:hidden}body{font-family:var(--font);background:var(--bg);color:var(--white);overflow-x:hidden;-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}img{max-width:100%;display:block}button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit}
 
 /* NAVBAR */
-.nav{position:fixed;top:0;left:0;width:100%;height:64px;background:rgba(11,11,11,.92);backdrop-filter:blur(12px);z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border)}.nav-logo{display:flex;align-items:center;gap:10px}.nav-logo img{width:42px;height:42px;object-fit:contain;border-radius:8px;filter:brightness(0) invert(1)}.nav-logo-text{font-weight:800;font-size:13px;letter-spacing:1.5px;line-height:1.2;text-transform:uppercase}.nav-logo-text span{display:block}
+.nav{position:fixed;top:0;left:0;width:100%;height:64px;background:rgba(11,11,11,.92);backdrop-filter:blur(12px);z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border)}.nav-logo{display:flex;align-items:center;gap:10px}.nav-logo-img{width:60px;height:60px;object-fit:contain;border-radius:8px}.nav-logo-text{font-family:'Russo One',sans-serif;font-weight:400;font-size:15px;letter-spacing:2px;line-height:1.2;text-transform:uppercase}.nav-logo-text span{display:block}
 .hamburger{width:28px;height:20px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;z-index:200}.hamburger span{width:100%;height:2px;background:var(--white);transition:.3s}.hamburger.open span:nth-child(1){transform:rotate(45deg) translate(6px,6px)}.hamburger.open span:nth-child(2){opacity:0}.hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(6px,-6px)}
 
 /* DARK MOBILE MENU */
@@ -104,7 +105,7 @@ html{scroll-behavior:smooth;overflow-x:hidden}body{font-family:var(--font);backg
 /* CTA */
 .cta{max-width:800px;margin:0 auto 80px;padding:0 24px}
 .cta-inner{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:48px 32px;text-align:center;position:relative;overflow:hidden}
-.cta-inner::before{content:'GARABAG';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:100px;font-weight:900;color:rgba(255,255,255,.02);pointer-events:none;white-space:nowrap}
+.cta-inner::before{content:'GRIDWORKS';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:100px;font-weight:900;color:rgba(255,255,255,.02);pointer-events:none;white-space:nowrap}
 .cta-inner h2{font-size:clamp(22px,3.5vw,32px);font-weight:900;margin-bottom:10px;position:relative}
 .cta-inner p{color:var(--gray);font-size:14px;margin-bottom:24px;position:relative}
 .btn-accent{display:inline-block;background:var(--accent);color:#fff;padding:16px 36px;border-radius:50px;font-weight:700;font-size:14px;letter-spacing:1px;transition:.3s;position:relative}
@@ -121,15 +122,16 @@ html{scroll-behavior:smooth;overflow-x:hidden}body{font-family:var(--font);backg
 .stagger{transition-delay:calc(var(--i,0) * .12s)}
 </style></head><body>
 
-<nav class="nav"><a href="index.html" class="nav-logo"><img src="logo.webp" alt="Logo"><div class="nav-logo-text"><span>GARABAG</span><span>BAU</span></div></a><div class="hamburger" id="hamBtn" onclick="toggleMenu()"><span></span><span></span><span></span></div></nav>
+<nav class="nav"><a href="index.html" class="nav-logo"><img src="logo.jpg" alt="Grid Works" class="nav-logo-img">
+    <div class="nav-logo-text"><span>GRID</span><span>WORKS</span></div></a><div class="hamburger" id="hamBtn" onclick="toggleMenu()"><span></span><span></span><span></span></div></nav>
 
-<div class="mobile-menu" id="mm"><div class="mm-header"><div style="display:flex;align-items:center;gap:10px"><img src="logo.webp" alt="" style="width:36px;height:36px;object-fit:contain;border-radius:6px"><div class="nav-logo-text"><span>GARABAG</span><span>BAU</span></div></div><button class="mm-close" onclick="toggleMenu()">&times;</button></div><div class="mm-body"><a href="index.html">Home</a><a href="leistungen.html">Leistungen</a><a href="galerie.html">Galerie</a><a href="uber-uns.html">Über Uns</a><a href="kontakt.html">Kontakt</a></div><a href="kontakt.html" class="mm-cta">Angebot anfragen</a><div class="mm-footer"><p>+49 172 600 9105<br>info@garabag-bau.de</p></div></div>
+<div class="mobile-menu" id="mm"><div class="mm-header"><div style="display:flex;align-items:center;gap:10px"><img src="logo.jpg" alt="Logo" class="nav-logo-img" style="width:40px;height:40px"><div class="nav-logo-text"><span>GRID</span><span>WORKS</span></div></div><button class="mm-close" onclick="toggleMenu()">&times;</button></div><div class="mm-body"><a href="index.html">Home</a><a href="leistungen.html">Leistungen</a><a href="galerie.html">Galerie</a><a href="uber-uns.html">Über Uns</a><a href="kontakt.html">Kontakt</a></div><a href="kontakt.html" class="mm-cta">Angebot anfragen</a><div class="mm-footer"><p>+49 172 600 9105<br>info@garabag-bau.de</p></div></div>
 
 <!-- HERO WITH FLOATING WORDS -->
 <section class="hero">
   <div class="hero-bg"><img src="../images/hero_2.webp" alt=""></div>
   <div class="hero-ov"></div>
-  <div class="hero-ghost">GARABAG</div>
+  <div class="hero-ghost">GRIDWORKS</div>
   <span class="fw fw-1">QUALITÄT</span>
   <span class="fw fw-2">ERFAHRUNG</span>
   <span class="fw fw-3">TEAM</span>
@@ -148,9 +150,9 @@ html{scroll-behavior:smooth;overflow-x:hidden}body{font-family:var(--font);backg
   <div class="about-text reveal">
     <p class="s-label">Unser Unternehmen</p>
     <h2 class="s-title">WER WIR SIND</h2>
-    <p><strong>GARABAG-Bau</strong> steht für professionelle Rohbau- und Hochbauleistungen in Münster und dem Münsterland. Unter der Leitung von <strong>Vugar Azizov</strong> arbeitet unser eingespieltes Team aus 7 Fachkräften an anspruchsvollen Bauprojekten.</p>
-    <p>Von der ersten Beratung bis zur termingerechten Übergabe setzen wir auf <strong>Qualität, Transparenz und Zuverlässigkeit</strong>. Jedes Projekt wird mit höchster Sorgfalt und Präzision ausgeführt.</p>
-    <p>Ob Neubau, Sanierung oder Abbruch — wir bieten Ihnen ein umfassendes Leistungsspektrum aus einer Hand.</p>
+    <p>Unser Unternehmen steht für höchste Fachkompetenz und Verlässlichkeit im Bauwesen. Die Führung erfolgt durch Diplom-Ingenieure mit langjähriger Erfahrung in der Planung und Realisierung anspruchsvoller Bauprojekte.</p>
+    <p>Gemeinsam mit einem qualifizierten Team realisieren wir Wohn- und Gewerbeobjekte jeder Größenordnung – präzise, wirtschaftlich und termingerecht.</p>
+    <p>Qualität, Struktur und technische Exzellenz bilden die Grundlage unseres Handelns.</p>
   </div>
   <div class="about-img reveal">
     <img src="../images/project_7.webp" alt="Team">
@@ -173,7 +175,7 @@ html{scroll-behavior:smooth;overflow-x:hidden}body{font-family:var(--font);backg
     <h2 class="s-title">MEILENSTEINE</h2>
   </div>
   <div class="tl-track" id="tlTrack">
-    <div class="tl-card"><div class="tl-card-ghost">START</div><div class="tl-year">2015</div><h3>GRÜNDUNG</h3><p>Gründung von GARABAG-Bau in Münster. Start mit Rohbau- und Betonarbeiten für Einfamilienhäuser.</p><div class="tl-card-bar"></div></div>
+    <div class="tl-card"><div class="tl-card-ghost">START</div><div class="tl-year">2015</div><h3>GRÜNDUNG</h3><p>Gründung von Grid Works in Münster. Start mit Rohbau- und Betonarbeiten für Einfamilienhäuser.</p><div class="tl-card-bar"></div></div>
     <div class="tl-card"><div class="tl-card-ghost">WACHSTUM</div><div class="tl-year">2018</div><h3>EXPANSION</h3><p>Erweiterung des Teams auf 5 Fachkräfte. Aufnahme von Altbausanierung und Abbrucharbeiten ins Leistungsspektrum.</p><div class="tl-card-bar"></div></div>
     <div class="tl-card"><div class="tl-card-ghost">STÄRKE</div><div class="tl-year">2021</div><h3>50 PROJEKTE</h3><p>Meilenstein von über 50 erfolgreich abgeschlossenen Projekten im Münsterland.</p><div class="tl-card-bar"></div></div>
     <div class="tl-card"><div class="tl-card-ghost">HEUTE</div><div class="tl-year">2025</div><h3>HEUTE</h3><p>7 Fachkräfte, umfassendes Leistungsspektrum und 100% Kundenzufriedenheit. Ihr Partner für anspruchsvolle Bauprojekte.</p><div class="tl-card-bar"></div></div>
@@ -206,7 +208,7 @@ html{scroll-behavior:smooth;overflow-x:hidden}body{font-family:var(--font);backg
     <h2 class="s-title">UNSER TEAM</h2>
   </div>
   <div class="team-card">
-    <div class="team-img"><img src="logo.webp" alt="Vugar Azizov"></div>
+    <div class="team-img"><img src="logo.png" alt="Vugar Azizov"></div>
     <div class="team-info">
       <h3>Vugar Azizov</h3>
       <div class="role">Geschäftsführer / Inhaber</div>
@@ -220,7 +222,7 @@ html{scroll-behavior:smooth;overflow-x:hidden}body{font-family:var(--font);backg
 <div class="cta reveal"><div class="cta-inner"><h2>Lernen Sie uns kennen</h2><p>Vereinbaren Sie einen kostenlosen Beratungstermin.</p><a href="kontakt.html" class="btn-accent">Kontakt aufnehmen</a></div></div>
 
 <!-- FOOTER -->
-<footer class="footer"><div class="footer-top"><img src="logo.webp" alt="Logo"><div class="footer-brand"><strong>GARABAG-BAU</strong><span>Rohbau &amp; Hochbau in Münster</span></div></div><div class="footer-grid"><div><h4>Navigation</h4><a href="index.html">Home</a><a href="leistungen.html">Leistungen</a><a href="galerie.html">Galerie</a><a href="uber-uns.html">Über Uns</a><a href="kontakt.html">Kontakt</a></div><div><h4 class="at">Leistungen</h4><a href="leistungen.html">Rohbau</a><a href="leistungen.html">Betonbau</a><a href="leistungen.html">Mauerbau</a><a href="leistungen.html">Altbausanierung</a></div><div><h4>Kontakt</h4><p><a href="tel:+491726009105">+49 172 600 9105</a></p><p><a href="mailto:info@garabag-bau.de">info@garabag-bau.de</a></p><p>Eichendorffstr. 3, 48167 Münster</p></div><div><h4>Rechtliches</h4><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></div></div><div class="footer-bottom"><span>&copy; 2025 GARABAG-Bau</span><span><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></span></div></footer>
+<footer class="footer"><div class="footer-top"><img src="logo.jpg" alt="Grid Works" class="nav-logo-img" style="width:48px;height:48px"><div class="footer-brand"><strong>GRID WORKS</strong><span>Rohbau &amp; Hochbau in Münster</span></div></div><div class="footer-grid"><div><h4>Navigation</h4><a href="index.html">Home</a><a href="leistungen.html">Leistungen</a><a href="galerie.html">Galerie</a><a href="uber-uns.html">Über Uns</a><a href="kontakt.html">Kontakt</a></div><div><h4 class="at">Leistungen</h4><a href="leistungen.html">Rohbau</a><a href="leistungen.html">Betonbau</a><a href="leistungen.html">Mauerbau</a><a href="leistungen.html">Altbausanierung</a></div><div><h4>Kontakt</h4><p><a href="tel:+491726009105">+49 172 600 9105</a></p><p><a href="mailto:info@garabag-bau.de">info@garabag-bau.de</a></p><p>Eichendorffstr. 3, 48167 Münster</p></div><div><h4>Rechtliches</h4><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></div></div><div class="footer-bottom"><span>&copy; 2025 Grid Works</span><span><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></span></div></footer>
 
 <script>
 // Mobile menu

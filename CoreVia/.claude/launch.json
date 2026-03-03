@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "qarabaghbau",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8081", "--directory", "/Users/vusaldadashov/Desktop/ConsoleApp/qarabaghbau/variant-1"],
+      "port": 8081
+    },
+    {
+      "name": "variant-4",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8082", "--directory", "/Users/vusaldadashov/Desktop/ConsoleApp/qarabaghbau/variant-4"],
+      "port": 8082
+    }
+  ]
+}

@@ -2,9 +2,10 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Leistungen | GARABAG-Bau</title>
-<link rel="icon" type="image/webp" href="logo.webp">
+<title>Leistungen | Grid Works</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect fill='%230B0B0B' width='32' height='32' rx='4'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='16' font-weight='bold' font-family='sans-serif'>GW</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0B0B0B;--card:#111;--accent:#e93728;--accent2:#fb2c36;--white:#fff;--gray:#9a9a9a;--muted:#4a4a4a;--border:rgba(255,255,255,.08);--radius:16px;--font:'Inter',system-ui,sans-serif}
@@ -14,7 +15,7 @@ a{color:inherit;text-decoration:none}img{max-width:100%;display:block}button{cur
 
 /* NAVBAR */
 .nav{position:fixed;top:0;left:0;width:100%;height:64px;background:rgba(11,11,11,.92);backdrop-filter:blur(12px);z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border)}
-.nav-logo{display:flex;align-items:center;gap:10px}.nav-logo img{width:42px;height:42px;object-fit:contain;border-radius:8px;filter:brightness(0) invert(1)}.nav-logo-text{font-weight:800;font-size:13px;letter-spacing:1.5px;line-height:1.2;text-transform:uppercase}.nav-logo-text span{display:block}
+.nav-logo{display:flex;align-items:center;gap:10px}.nav-logo-img{width:60px;height:60px;object-fit:contain;border-radius:8px}.nav-logo-text{font-family:'Russo One',sans-serif;font-weight:400;font-size:15px;letter-spacing:2px;line-height:1.2;text-transform:uppercase}.nav-logo-text span{display:block}
 .hamburger{width:28px;height:20px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;z-index:200}.hamburger span{width:100%;height:2px;background:var(--white);transition:.3s}.hamburger.open span:nth-child(1){transform:rotate(45deg) translate(6px,6px)}.hamburger.open span:nth-child(2){opacity:0}.hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(6px,-6px)}
 
 /* DARK MOBILE MENU */
@@ -111,7 +112,7 @@ a{color:inherit;text-decoration:none}img{max-width:100%;display:block}button{cur
 /* CTA */
 .cta{max-width:800px;margin:0 auto 80px;padding:0 24px}
 .cta-inner{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:48px 32px;text-align:center;position:relative;overflow:hidden}
-.cta-inner::before{content:'GARABAG';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:100px;font-weight:900;color:rgba(255,255,255,.02);pointer-events:none;white-space:nowrap}
+.cta-inner::before{content:'GRIDWORKS';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:100px;font-weight:900;color:rgba(255,255,255,.02);pointer-events:none;white-space:nowrap}
 .cta-inner h2{font-size:clamp(22px,3.5vw,32px);font-weight:900;margin-bottom:10px;position:relative}
 .cta-inner p{color:var(--gray);font-size:14px;margin-bottom:24px;position:relative}
 .btn-accent{display:inline-block;background:var(--accent);color:#fff;padding:16px 36px;border-radius:50px;font-weight:700;font-size:14px;letter-spacing:1px;transition:.3s;position:relative}
@@ -130,23 +131,24 @@ a{color:inherit;text-decoration:none}img{max-width:100%;display:block}button{cur
 .stagger{transition-delay:calc(var(--i,0) * .12s)}
 </style></head><body>
 
-<nav class="nav"><a href="index.html" class="nav-logo"><img src="logo.webp" alt="Logo"><div class="nav-logo-text"><span>GARABAG</span><span>BAU</span></div></a><div class="hamburger" id="hamBtn" onclick="toggleMenu()"><span></span><span></span><span></span></div></nav>
+<nav class="nav"><a href="index.html" class="nav-logo"><img src="logo.jpg" alt="Grid Works" class="nav-logo-img">
+    <div class="nav-logo-text"><span>GRID</span><span>WORKS</span></div></a><div class="hamburger" id="hamBtn" onclick="toggleMenu()"><span></span><span></span><span></span></div></nav>
 
-<div class="mobile-menu" id="mm"><div class="mm-header"><div style="display:flex;align-items:center;gap:10px"><img src="logo.webp" alt="" style="width:36px;height:36px;object-fit:contain;border-radius:6px"><div class="nav-logo-text"><span>GARABAG</span><span>BAU</span></div></div><button class="mm-close" onclick="toggleMenu()">&times;</button></div><div class="mm-body"><a href="index.html">Home</a><a href="leistungen.html">Leistungen</a><a href="galerie.html">Galerie</a><a href="uber-uns.html">Über Uns</a><a href="kontakt.html">Kontakt</a></div><a href="kontakt.html" class="mm-cta">Angebot anfragen</a><div class="mm-footer"><p>+49 172 600 9105<br>info@garabag-bau.de</p></div></div>
+<div class="mobile-menu" id="mm"><div class="mm-header"><div style="display:flex;align-items:center;gap:10px"><img src="logo.jpg" alt="Logo" class="nav-logo-img" style="width:40px;height:40px"><div class="nav-logo-text"><span>GRID</span><span>WORKS</span></div></div><button class="mm-close" onclick="toggleMenu()">&times;</button></div><div class="mm-body"><a href="index.html">Home</a><a href="leistungen.html">Leistungen</a><a href="galerie.html">Galerie</a><a href="uber-uns.html">Über Uns</a><a href="kontakt.html">Kontakt</a></div><a href="kontakt.html" class="mm-cta">Angebot anfragen</a><div class="mm-footer"><p>+49 172 600 9105<br>info@garabag-bau.de</p></div></div>
 
 <!-- HERO WITH FLOATING WORDS -->
 <section class="hero">
   <div class="hero-bg"><img src="../images/hero_1.webp" alt=""></div>
   <div class="hero-ov"></div>
   <div class="hero-ghost">LEISTUNGEN</div>
-  <span class="fw fw-1">ROHBAU</span>
-  <span class="fw fw-2">BETON</span>
-  <span class="fw fw-3">MAUER</span>
-  <span class="fw fw-4">SCHALUNG</span>
-  <span class="fw fw-5">SANIERUNG</span>
-  <span class="fw fw-6">ABBRUCH</span>
+  <span class="fw fw-1">HOCHBAU</span>
+  <span class="fw fw-2">ROHBAU</span>
+  <span class="fw fw-3">INGENIEUR</span>
+  <span class="fw fw-4">SANIERUNG</span>
+  <span class="fw fw-5">BAULEITUNG</span>
+  <span class="fw fw-6">SCHLÜSSELFERTIG</span>
   <div class="hero-content">
-    <p class="s-label">GARABAG-BAU</p>
+    <p class="s-label">GRID WORKS</p>
     <h1>UNSERE LEISTUNGEN</h1>
     <p>Vom Fundament bis zum Dachstuhl — professionelle Rohbau- und Hochbauleistungen aus einer Hand</p>
   </div>
@@ -191,12 +193,12 @@ a{color:inherit;text-decoration:none}img{max-width:100%;display:block}button{cur
   </div>
   <div class="svc-track-wrap">
     <div class="svc-track" id="svcTrack">
-      <div class="svc"><div class="svc-ghost">ROHBAU</div><div class="svc-num">01</div><h3>ROHBAU</h3><p>Professionelle Rohbauleistungen vom Fundament bis zum Dachstuhl. Solide Basis und präzise Ausführung.</p><div class="svc-bar"></div><ul><li>Erdarbeiten und Fundamente</li><li>Kellergeschoss und Bodenplatten</li><li>Geschossdecken und Treppen</li><li>Dachstuhlvorbereitung</li></ul><a href="kontakt.html" class="svc-link">Kontakt aufnehmen →</a></div>
-      <div class="svc"><div class="svc-ghost">BETON</div><div class="svc-num">02</div><h3>BETONBAU</h3><p>Betonage, Bodenplatten, Fundamente, Decken und Stützmauern. Moderne Technik für höchste Qualität.</p><div class="svc-bar"></div><ul><li>Betonage und Gießarbeiten</li><li>Bodenplatten und Fundamente</li><li>Geschossdecken aus Beton</li><li>Stützmauern und Sichtbeton</li></ul><a href="kontakt.html" class="svc-link">Kontakt aufnehmen →</a></div>
-      <div class="svc"><div class="svc-ghost">MAUER</div><div class="svc-num">03</div><h3>MAUERBAU</h3><p>Mauerwerk aus Kalksandstein, Porenbeton und Ziegel. Fachgerecht und belastbar.</p><div class="svc-bar"></div><ul><li>Kalksandstein-Mauerwerk</li><li>Porenbeton-Mauerwerk</li><li>Tragende und nichttragende Wände</li><li>Schallschutz-Mauerwerk</li></ul><a href="kontakt.html" class="svc-link">Kontakt aufnehmen →</a></div>
-      <div class="svc"><div class="svc-ghost">SANIERUNG</div><div class="svc-num">04</div><h3>ALTBAUSANIERUNG</h3><p>Fachgerechte Sanierung und Modernisierung von Altbauten mit höchster Präzision.</p><div class="svc-bar"></div><ul><li>Betonsanierung und Instandsetzung</li><li>Erneuerung tragender Bauteile</li><li>Fassadensanierung</li><li>Energetische Modernisierung</li></ul><a href="kontakt.html" class="svc-link">Kontakt aufnehmen →</a></div>
-      <div class="svc"><div class="svc-ghost">ABBRUCH</div><div class="svc-num">05</div><h3>ANBAU &amp; ABBRUCH</h3><p>Professionelle Anbau- und Abbrucharbeiten. Effizient, sicher und termingerecht.</p><div class="svc-bar"></div><ul><li>Anbauten und Erweiterungen</li><li>Komplett- und Teilabbruch</li><li>Entkernung</li><li>Fachgerechte Entsorgung</li></ul><a href="kontakt.html" class="svc-link">Kontakt aufnehmen →</a></div>
-      <div class="svc"><div class="svc-ghost">SCHALUNG</div><div class="svc-num">06</div><h3>SCHALUNG &amp; BEWEHRUNG</h3><p>Schalungsarbeiten und Eisenbewehrung für anspruchsvolle Betonkonstruktionen.</p><div class="svc-bar"></div><ul><li>Rahmen- und Trägerschalung</li><li>Sonderschalung für Sichtbeton</li><li>Eisenbewehrung und Armierung</li><li>Deckenschalung</li></ul><a href="kontakt.html" class="svc-link">Kontakt aufnehmen →</a></div>
+      <div class="svc"><div class="svc-ghost">INGENIEUR</div><div class="svc-num">01</div><h3>BAUINGENIEUR-BETREUUNG</h3><p>Eine fundierte Beratung ist die Basis jedes erfolgreichen Bauprojekts. Unsere Bauingenieur-Betreuung umfasst die technische und wirtschaftliche Begleitung Ihres Bauvorhabens – von der ersten Idee bis zur finalen Abnahme.</p><div class="svc-bar"></div><ul><li>Individuelle Beratung zu Ihrer Vision</li><li>Qualitätskontrollen &amp; Terminüberwachung</li><li>Kostenkontrolle &amp; Vertragsprüfung</li><li>Mängelfeststellung &amp; Gewerkekoordination</li></ul><a href="kontakt.html" class="svc-link">Kontakt aufnehmen →</a></div>
+      <div class="svc"><div class="svc-ghost">HOCHBAU</div><div class="svc-num">02</div><h3>HOCHBAU</h3><p>Unser Leistungsspektrum im Hochbau umfasst sämtliche Arbeiten vom Fundament bis zur Decke – unabhängig davon, ob es sich um einen Neubau, Anbau oder Umbau handelt.</p><div class="svc-bar"></div><ul><li>Fundamente &amp; Bodenplatten inkl. Bewehrung</li><li>Einschalen &amp; Betonieren von Wänden und Decken</li><li>Ortbetonbauweise &amp; Fertigteile</li><li>Erfahrene Bauingenieure &amp; Fachkräfte</li></ul><a href="kontakt.html" class="svc-link">Kontakt aufnehmen →</a></div>
+      <div class="svc"><div class="svc-ghost">SCHLÜSSEL</div><div class="svc-num">03</div><h3>SCHLÜSSELFERTIGES BAUEN</h3><p>Komplette Errichtung Ihres Bauwerks als Generalunternehmer – von der Planung bis zur schlüsselfertigen Übergabe.</p><div class="svc-bar"></div><ul><li>Erdarbeiten, Keller oder Bodenplatte</li><li>Rohbau &amp; Dacharbeiten</li><li>Fenster, Türen &amp; Installationen</li><li>Ein fester Ansprechpartner</li></ul><a href="kontakt.html" class="svc-link">Kontakt aufnehmen →</a></div>
+      <div class="svc"><div class="svc-ghost">ROHBAU</div><div class="svc-num">04</div><h3>ROHBAUARBEITEN</h3><p>Der Rohbau bildet das Fundament für Stabilität und Langlebigkeit. Wir garantieren eine präzise und normgerechte Ausführung aller tragenden Bauteile.</p><div class="svc-bar"></div><ul><li>Mauerwerksarbeiten</li><li>Stahlbetonarbeiten</li><li>Schalungs- &amp; Bewehrungsarbeiten</li><li>Decken- &amp; Treppenbau</li></ul><a href="kontakt.html" class="svc-link">Kontakt aufnehmen →</a></div>
+      <div class="svc"><div class="svc-ghost">SANIERUNG</div><div class="svc-num">05</div><h3>SANIERUNG &amp; MODERNISIERUNG</h3><p>Bestandsgebäude benötigen Fachwissen und Erfahrung. Wir übernehmen Sanierungen und Modernisierungen im privaten und gewerblichen Bereich.</p><div class="svc-bar"></div><ul><li>Energetische Sanierung</li><li>Statische Verstärkungen</li><li>Umbauten &amp; Erweiterungen</li><li>Nachhaltige Wertsteigerung</li></ul><a href="kontakt.html" class="svc-link">Kontakt aufnehmen →</a></div>
+      <div class="svc"><div class="svc-ghost">PROJEKT</div><div class="svc-num">06</div><h3>PROJEKTSTEUERUNG &amp; BAULEITUNG</h3><p>Eine professionelle Bauleitung ist entscheidend für Qualität, Zeit und Budget. Wir übernehmen die vollständige Koordination aller Gewerke auf Ihrer Baustelle.</p><div class="svc-bar"></div><ul><li>Vollständige Gewerkekoordination</li><li>Qualitätssicherung</li><li>Termin- &amp; Budgetkontrolle</li><li>Professionelle Bauleitung</li></ul><a href="kontakt.html" class="svc-link">Kontakt aufnehmen →</a></div>
     </div>
   </div>
   <div class="scroll-bar">
@@ -220,7 +222,7 @@ a{color:inherit;text-decoration:none}img{max-width:100%;display:block}button{cur
 <div class="cta reveal"><div class="cta-inner"><h2>Bereit für Ihr Bauprojekt?</h2><p>Kontaktieren Sie uns für eine kostenlose Erstberatung.</p><a href="kontakt.html" class="btn-accent">Jetzt Angebot anfragen</a></div></div>
 
 <!-- FOOTER -->
-<footer class="footer"><div class="footer-top"><img src="logo.webp" alt="Logo"><div class="footer-brand"><strong>GARABAG-BAU</strong><span>Rohbau &amp; Hochbau in Münster</span></div></div><div class="footer-grid"><div><h4>Navigation</h4><a href="index.html">Home</a><a href="leistungen.html">Leistungen</a><a href="galerie.html">Galerie</a><a href="uber-uns.html">Über Uns</a><a href="kontakt.html">Kontakt</a></div><div><h4 class="at">Leistungen</h4><a href="leistungen.html">Rohbau</a><a href="leistungen.html">Betonbau</a><a href="leistungen.html">Mauerbau</a><a href="leistungen.html">Altbausanierung</a><a href="leistungen.html">Anbau &amp; Abbruch</a></div><div><h4>Kontakt</h4><p><a href="tel:+491726009105">+49 172 600 9105</a></p><p><a href="mailto:info@garabag-bau.de">info@garabag-bau.de</a></p><p>Eichendorffstr. 3, 48167 Münster</p></div><div><h4>Rechtliches</h4><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></div></div><div class="footer-bottom"><span>&copy; 2025 GARABAG-Bau</span><span><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></span></div></footer>
+<footer class="footer"><div class="footer-top"><img src="logo.jpg" alt="Grid Works" class="nav-logo-img" style="width:48px;height:48px"><div class="footer-brand"><strong>GRID WORKS</strong><span>Rohbau &amp; Hochbau in Münster</span></div></div><div class="footer-grid"><div><h4>Navigation</h4><a href="index.html">Home</a><a href="leistungen.html">Leistungen</a><a href="galerie.html">Galerie</a><a href="uber-uns.html">Über Uns</a><a href="kontakt.html">Kontakt</a></div><div><h4 class="at">Leistungen</h4><a href="leistungen.html">Rohbau</a><a href="leistungen.html">Betonbau</a><a href="leistungen.html">Mauerbau</a><a href="leistungen.html">Altbausanierung</a><a href="leistungen.html">Anbau &amp; Abbruch</a></div><div><h4>Kontakt</h4><p><a href="tel:+491726009105">+49 172 600 9105</a></p><p><a href="mailto:info@garabag-bau.de">info@garabag-bau.de</a></p><p>Eichendorffstr. 3, 48167 Münster</p></div><div><h4>Rechtliches</h4><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></div></div><div class="footer-bottom"><span>&copy; 2025 Grid Works</span><span><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></span></div></footer>
 
 <script>
 // Mobile menu
@@ -228,12 +230,12 @@ function toggleMenu(){document.getElementById('mm').classList.toggle('open');doc
 
 // WORD-IMAGE SHOWCASE
 const scData=[
-  {word:'ROHBAU',title:'ROHBAU & BETONBAU',desc:'Professionelle Rohbauleistungen vom Fundament bis zum Dachstuhl. Solide Basis und präzise Ausführung.'},
-  {word:'SANIERUNG',title:'ALTBAUSANIERUNG',desc:'Fachgerechte Sanierung und Modernisierung von Altbauten. Höchste Präzision und Sorgfalt.'},
-  {word:'ABBRUCH',title:'ANBAU & ABBRUCH',desc:'Professionelle Anbau- und Abbrucharbeiten. Effizient, sicher und termingerecht.'},
-  {word:'SCHALUNG',title:'SCHALUNG & BEWEHRUNG',desc:'Präzise Schalungsarbeiten und Eisenbewehrung für anspruchsvolle Betonkonstruktionen.'},
-  {word:'MAUERBAU',title:'MAUERWERK',desc:'Hochwertiges Mauerwerk aus Kalksandstein, Porenbeton und Ziegel. Fachgerecht und belastbar.'},
-  {word:'BETONBAU',title:'BETONARBEITEN',desc:'Betonage, Bodenplatten, Fundamente und Decken. Moderne Technik für höchste Qualität.'}
+  {word:'INGENIEUR',title:'BAUINGENIEUR-BETREUUNG',desc:'Technische und wirtschaftliche Begleitung Ihres Bauvorhabens – von der ersten Idee bis zur finalen Abnahme.'},
+  {word:'HOCHBAU',title:'HOCHBAU',desc:'Sämtliche Arbeiten vom Fundament bis zur Decke – Neubau, Anbau oder Umbau.'},
+  {word:'SCHLÜSSEL',title:'SCHLÜSSELFERTIGES BAUEN',desc:'Komplette Errichtung als Generalunternehmer – von der Planung bis zur schlüsselfertigen Übergabe.'},
+  {word:'ROHBAU',title:'ROHBAUARBEITEN',desc:'Präzise und normgerechte Ausführung aller tragenden Bauteile für Stabilität und Langlebigkeit.'},
+  {word:'SANIERUNG',title:'SANIERUNG & MODERNISIERUNG',desc:'Energetische Sanierung, statische Verstärkungen, Umbauten und Erweiterungen.'},
+  {word:'PROJEKT',title:'PROJEKTSTEUERUNG & BAULEITUNG',desc:'Vollständige Koordination aller Gewerke – Qualität, Zeit und Budget im Griff.'}
 ];
 let scIdx=0,scTimer=null,scBarAF=null,scStart=0;
 const scImgs=document.querySelectorAll('.sc-bg img'),scWord=document.getElementById('scWord'),scNum=document.getElementById('scNum'),scTitle=document.getElementById('scTitle'),scDesc=document.getElementById('scDesc'),scDots=document.querySelectorAll('.sc-dot'),scBar=document.getElementById('scBar');
