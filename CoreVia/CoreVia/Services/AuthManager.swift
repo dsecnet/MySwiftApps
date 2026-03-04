@@ -7,18 +7,15 @@ import os.log
 struct LoginRequest: Encodable {
     let email: String
     let password: String
+    let user_type: String
 }
 
 struct RegisterRequest: Encodable {
     let name: String
     let email: String
     let password: String
-    let userType: String
-
-    enum CodingKeys: String, CodingKey {
-        case name, email, password
-        case userType = "user_type"
-    }
+    let user_type: String
+    let otp_code: String
 }
 
 struct UserResponse: Codable {
@@ -68,6 +65,12 @@ struct DeleteAccountBody: Encodable {
     let password: String
 }
 
+// MARK: - OTP Response
+struct OTPResponse: Decodable {
+    let success: Bool
+    let message: String
+}
+
 // MARK: - Auth Manager
 
 class AuthManager: ObservableObject {
@@ -78,7 +81,6 @@ class AuthManager: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
 
-    // JWT Tokens (for direct API calls)
     var accessToken: String? {
         get { keychain.accessToken }
         set { keychain.accessToken = newValue }
@@ -93,25 +95,59 @@ class AuthManager: ObservableObject {
     private let keychain = KeychainManager.shared
 
     private init() {
-        // App açılanda token varsa login olub yoxla
         isLoggedIn = keychain.isLoggedIn
         if isLoggedIn {
             Task { await fetchCurrentUser() }
         }
     }
 
-    // MARK: - Login
-
+    // MARK: - Login Step 1: Email + Password → OTP gonder
+    // Backend /login OTPResponse qaytarir (2FA aktiv).
+    // LoginView bu metodu cagirip OTP screeni gostermeli.
     @MainActor
-    func login(email: String, password: String) async -> Bool {
+    func requestLoginOTP(email: String, password: String, userType: String) async -> Bool {
         isLoading = true
         errorMessage = nil
 
         do {
-            let response: AuthResponse = try await api.request(
+            let _: OTPResponse = try await api.request(
                 endpoint: "/api/v1/auth/login",
                 method: "POST",
-                body: LoginRequest(email: email, password: password),
+                body: LoginRequest(email: email, password: password, user_type: userType),
+                requiresAuth: false
+            )
+            isLoading = false
+            return true
+        } catch let error as APIError {
+            // SECURITY: Log only error type, never log email/password
+            AppLogger.auth.error("Login step1 failed: \(error.errorDescription ?? "unknown")")
+            errorMessage = error.errorDescription
+            isLoading = false
+            return false
+        } catch {
+            AppLogger.auth.error("Login step1 unexpected error")
+            errorMessage = "Gozlenilmez xeta"
+            isLoading = false
+            return false
+        }
+    }
+
+    // MARK: - Login Step 2: OTP verify → JWT token al
+    @MainActor
+    func verifyLoginOTP(email: String, otpCode: String) async -> Bool {
+        isLoading = true
+        errorMessage = nil
+
+        struct VerifyBody: Encodable {
+            let email: String
+            let otp_code: String
+        }
+
+        do {
+            let response: AuthResponse = try await api.request(
+                endpoint: "/api/v1/auth/login-verify",
+                method: "POST",
+                body: VerifyBody(email: email, otp_code: otpCode),
                 requiresAuth: false
             )
 
@@ -124,22 +160,24 @@ class AuthManager: ObservableObject {
             isLoading = false
             return true
         } catch let error as APIError {
-            AppLogger.auth.error("Login API xetasi: \(error.errorDescription ?? "Unknown")")
+            AppLogger.auth.error("Login step2 OTP verify failed")
             errorMessage = error.errorDescription
             isLoading = false
             return false
         } catch {
-            AppLogger.auth.error("Login xetasi: \(error.localizedDescription)")
-            errorMessage = "Gözlənilməz xəta: \(error.localizedDescription)"
+            AppLogger.auth.error("Login step2 unexpected error")
+            errorMessage = "Gozlenilmez xeta"
             isLoading = false
             return false
         }
     }
 
-    // MARK: - Register
-
+    // MARK: - Register (OTP verify ile)
+    // otpCode: client ucun teleb olunur.
+    // Trainer ucun backend OTP olmadan qebul edir (backend-de duzeldilecek).
+    // Qeydiyyatdan sonra auto-login EDILMIR — 2FA teleb olundugu ucun.
     @MainActor
-    func register(name: String, email: String, password: String, userType: String) async -> Bool {
+    func register(name: String, email: String, password: String, userType: String, otpCode: String = "") async -> Bool {
         isLoading = true
         errorMessage = nil
 
@@ -147,34 +185,33 @@ class AuthManager: ObservableObject {
             let _: UserResponse = try await api.request(
                 endpoint: "/api/v1/auth/register",
                 method: "POST",
-                body: RegisterRequest(name: name, email: email, password: password, userType: userType),
+                body: RegisterRequest(name: name, email: email, password: password,
+                                     user_type: userType, otp_code: otpCode),
                 requiresAuth: false
             )
-
-            // Qeydiyyat uğurlu - indi login et
-            return await login(email: email, password: password)
+            // Qeydiyyat ugurlu. Auto-login yoxdur — 2FA ucun user ozü login olmali.
+            isLoading = false
+            return true
         } catch let error as APIError {
-            AppLogger.auth.error("Register API xetasi: \(error.errorDescription ?? "Unknown")")
+            AppLogger.auth.error("Register failed")
             errorMessage = error.errorDescription
             isLoading = false
             return false
         } catch {
-            AppLogger.auth.error("Register xetasi: \(error.localizedDescription)")
-            errorMessage = "Gözlənilməz xəta: \(error.localizedDescription)"
+            AppLogger.auth.error("Register unexpected error")
+            errorMessage = "Gozlenilmez xeta"
             isLoading = false
             return false
         }
     }
 
     // MARK: - Fetch Current User
-
     @MainActor
     func fetchCurrentUser() async {
         do {
             let user: UserResponse = try await api.request(endpoint: "/api/v1/auth/me")
             currentUser = user
 
-            // ProfileManager-i yenilə
             let profileType: UserProfileType = user.userType == "trainer" ? .trainer : .client
             let profile = UserProfile(
                 name: user.name,
@@ -191,23 +228,20 @@ class AuthManager: ObservableObject {
             )
             UserProfileManager.shared.userProfile = profile
 
-            // Save userType and userId to Keychain (BUG-C06/C07 fix)
             keychain.userType = user.userType
             keychain.userId = user.id
 
-            // Premium statusu yenilə
             SettingsManager.shared.isPremium = user.isPremium
         } catch {
-            AppLogger.auth.error("Fetch current user xetasi: \(error.localizedDescription)")
-            // Token keçərsizdirsə logout et
+            // SECURITY: Log only error type, never log user details
+            AppLogger.auth.error("fetchCurrentUser failed")
             if case APIError.unauthorized = error {
                 logout()
             }
         }
     }
 
-    // MARK: - Refresh Token Claims (premium deyisdikden sonra)
-
+    // MARK: - Refresh Token Claims
     @MainActor
     func refreshTokenClaims() async {
         do {
@@ -217,37 +251,36 @@ class AuthManager: ObservableObject {
             )
             keychain.accessToken = response.accessToken
             keychain.refreshToken = response.refreshToken
-
-            // User melumatlarini yenile (isPremium sync)
             await fetchCurrentUser()
         } catch {
-            AppLogger.auth.error("Token claims refresh ugursuz: \(error.localizedDescription)")
+            AppLogger.auth.error("Token claims refresh failed")
         }
     }
 
-    // MARK: - JWT Premium Check (optimistik)
+    // MARK: - Premium Status (Guvenilib)
+    // Hemise bu deyeri istifade et. Backend-den gelir, manipulyasiya mumkun deyil.
+    var isPremium: Bool {
+        currentUser?.isPremium ?? false
+    }
 
-    /// Optimistik premium check - UI üçün istifadə olunur.
-    /// Backend həmişə source of truth-dur (fetchCurrentUser isPremium-u backend-dən alır).
-    /// JWT signature verification client-side mümkün deyil (secret key backend-dədir).
+    // MARK: - JWT Premium Hint (ETIBARSIZ - yalniz UI skeleton ucun)
+    // XEBERDARLIK: JWT imzasi client-side yoxlanila bilmez.
+    // Istifadeci payload-i deyisdire biler. He bir vaxt premium kilidin acmaq ucun
+    // bu deyere guvenmе — hemise isPremium istifade et.
+    @available(*, deprecated, message: "Premium qerarlar ucun isPremium istifade et")
     var isPremiumFromToken: Bool {
         guard let token = keychain.accessToken else { return false }
         let segments = token.split(separator: ".")
         guard segments.count == 3 else { return false }
-
         var base64 = String(segments[1])
         while base64.count % 4 != 0 { base64.append("=") }
-
         guard let data = Data(base64Encoded: base64),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let isPremium = json["is_premium"] as? Bool else {
-            return false
-        }
-        return isPremium
+              let val = json["is_premium"] as? Bool else { return false }
+        return val
     }
 
     // MARK: - Delete Account
-
     @MainActor
     func deleteAccount(password: String) async -> (success: Bool, error: String?) {
         do {
@@ -256,31 +289,25 @@ class AuthManager: ObservableObject {
                 method: "DELETE",
                 body: DeleteAccountBody(password: password)
             )
-            // Uğurla silindikdən sonra logout et
             logout()
             return (true, nil)
         } catch let error as APIError {
-            AppLogger.auth.error("Delete account API xetasi: \(error.errorDescription ?? "Unknown")")
+            AppLogger.auth.error("Delete account failed")
             return (false, error.errorDescription)
         } catch {
-            AppLogger.auth.error("Delete account xetasi: \(error.localizedDescription)")
+            AppLogger.auth.error("Delete account unexpected error")
             return (false, error.localizedDescription)
         }
     }
 
     // MARK: - Logout
-
     @MainActor
     func logout() {
-        keychain.clearTokens() // userId, userType, tokens - hamısı silinir
+        keychain.clearTokens()
         isLoggedIn = false
         currentUser = nil
-
-        // Clear cached data so next login loads fresh
         TrainingPlanManager.shared.clearAllPlans()
         MealPlanManager.shared.clearAllPlans()
-
-        // Onboarding cache-i təmizlə (yeni user fərqli onboarding statusuna malik ola bilər)
         OnboardingManager.shared.resetOnLogout()
     }
 }

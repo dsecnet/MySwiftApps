@@ -18,20 +18,20 @@ router = APIRouter(prefix="/api/v1/admin", tags=["Admin"])
 TEMPLATE_DIR = Path(__file__).parent.parent / "templates"
 
 
-@router.get("/panel", response_class=HTMLResponse, include_in_schema=False)
-async def admin_panel():
-    """Admin web panel - HTML serve."""
-    html_path = TEMPLATE_DIR / "admin.html"
-    if not html_path.exists():
-        return HTMLResponse("<h1>Admin template not found</h1>", status_code=404)
-    return HTMLResponse(html_path.read_text(encoding="utf-8"))
-
-
 def require_admin(current_user: User = Depends(get_current_user)) -> User:
     """Yalniz is_admin=True olan istifadeci daxil ola biler."""
     if not current_user.is_admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin icazesi lazimdir")
     return current_user
+
+
+@router.get("/panel", response_class=HTMLResponse, include_in_schema=False)
+async def admin_panel(admin: User = Depends(require_admin)):
+    """Admin web panel - HTML serve. B-06 fix: require_admin dependency elave edildi."""
+    html_path = TEMPLATE_DIR / "admin.html"
+    if not html_path.exists():
+        return HTMLResponse("<h1>Admin template not found</h1>", status_code=404)
+    return HTMLResponse(html_path.read_text(encoding="utf-8"))
 
 
 @router.get("/pending-trainers", response_model=list[TrainerListResponse])

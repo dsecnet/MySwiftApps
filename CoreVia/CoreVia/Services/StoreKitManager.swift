@@ -2,8 +2,7 @@ import Foundation
 import StoreKit
 import os.log
 
-/// StoreKit 2 Manager - Premium subscription idarəetməsi
-/// TODO: Apple Pay implementasiyası üçün bu faylı tamamla
+/// StoreKit 2 Manager - Premium subscription idareetmesi
 @MainActor
 class StoreKitManager: ObservableObject {
     static let shared = StoreKitManager()
@@ -11,7 +10,7 @@ class StoreKitManager: ObservableObject {
     // MARK: - Product IDs
     enum ProductID: String, CaseIterable {
         case monthlyPremium = "life.corevia.premium.monthly"
-        case yearlyPremium = "life.corevia.premium.yearly"
+        case yearlyPremium  = "life.corevia.premium.yearly"
     }
 
     // MARK: - Published Properties
@@ -28,7 +27,10 @@ class StoreKitManager: ObservableObject {
 
     private init() {
         updateListenerTask = listenForTransactions()
-        Task { await loadProducts() }
+        Task {
+            await loadProducts()
+            await updatePurchasedProducts()
+        }
     }
 
     deinit {
@@ -44,12 +46,12 @@ class StoreKitManager: ObservableObject {
             isLoading = false
         } catch {
             AppLogger.network.error("StoreKit products yukleme xetasi: \(error.localizedDescription)")
-            errorMessage = "Məhsullar yüklənə bilmədi: \(error.localizedDescription)"
+            errorMessage = "Mehsullar yuklene bilmedi"
             isLoading = false
         }
     }
 
-    // MARK: - Purchase
+    // MARK: - Purchase (iOS-02 fix: backend receipt verify edilir)
     func purchase(_ product: Product) async throws -> Transaction? {
         let result = try await product.purchase()
 
@@ -57,12 +59,19 @@ class StoreKitManager: ObservableObject {
         case .success(let verification):
             let transaction = try checkVerified(verification)
 
-            // TODO: Backend-ə receipt göndər - /api/v1/premium/verify-apple
-            // await sendReceiptToBackend(transaction)
-
-            await transaction.finish()
-            await updatePurchasedProducts()
-            return transaction
+            // Backend-e receipt gonder ve verify et
+            let verified = await sendReceiptToBackend(transaction)
+            if verified {
+                await transaction.finish()
+                await updatePurchasedProducts()
+                // Token claims-i yenile (isPremium JWT-de guncellenir)
+                await AuthManager.shared.refreshTokenClaims()
+                return transaction
+            } else {
+                // Backend verify etmedi - alisi tamamlama
+                AppLogger.network.error("Backend receipt verification failed for transaction \(transaction.id)")
+                throw StoreError.backendVerificationFailed
+            }
 
         case .userCancelled:
             return nil
@@ -82,7 +91,7 @@ class StoreKitManager: ObservableObject {
             await updatePurchasedProducts()
         } catch {
             AppLogger.network.error("Restore purchases xetasi: \(error.localizedDescription)")
-            errorMessage = "Alışlar bərpa edilə bilmədi"
+            errorMessage = "Alislar bərpa edilə bilmedi"
         }
     }
 
@@ -96,7 +105,7 @@ class StoreKitManager: ObservableObject {
         }
     }
 
-    // MARK: - Update Purchased Products
+    // MARK: - Update Purchased Products (iOS-side entitlement check)
     private func updatePurchasedProducts() async {
         var purchased: Set<String> = []
         for await result in Transaction.currentEntitlements {
@@ -105,8 +114,6 @@ class StoreKitManager: ObservableObject {
             }
         }
         purchasedProductIDs = purchased
-
-        // Sync premium status with SettingsManager
         SettingsManager.shared.isPremium = isPremium
     }
 
@@ -115,40 +122,73 @@ class StoreKitManager: ObservableObject {
         return Task.detached {
             for await result in Transaction.updates {
                 if case .verified(let transaction) = result {
-                    await transaction.finish()
-                    await self.updatePurchasedProducts()
+                    // Backend-e gonder, sonra finish et
+                    let verified = await self.sendReceiptToBackend(transaction)
+                    if verified {
+                        await transaction.finish()
+                        await self.updatePurchasedProducts()
+                        await AuthManager.shared.refreshTokenClaims()
+                    } else {
+                        AppLogger.network.error("Background transaction backend verify failed: \(transaction.id)")
+                    }
                 }
             }
         }
     }
 
-    // MARK: - TODO: Backend Receipt Verification
-    /// Apple receipt-i backend-ə göndər və premium statusu yenilə
-    /// Endpoint: POST /api/v1/premium/verify-apple
-    /// Body: { "transaction_id": "...", "original_transaction_id": "...", "product_id": "..." }
-    /*
-    private func sendReceiptToBackend(_ transaction: Transaction) async {
-        let body: [String: Any] = [
-            "transaction_id": String(transaction.id),
-            "original_transaction_id": String(transaction.originalID),
-            "product_id": transaction.productID
-        ]
-        // Call APIService to verify
-        // let result: PremiumResponse = try await APIService.shared.request(...)
-        // Update premium status based on backend response
+    // MARK: - Backend Receipt Verification (iOS-02 fix)
+    // Apple StoreKit 2 transaction melumatlarini backend-e gonderib verify edirik.
+    // Backend /api/v1/premium/verify-apple endpoint-i bu melumatlarla Apple-a
+    // sorgu edir ve premium statusu DB-de yenileyir.
+    @discardableResult
+    private func sendReceiptToBackend(_ transaction: Transaction) async -> Bool {
+        struct ReceiptBody: Encodable {
+            let transaction_id: String
+            let original_transaction_id: String
+            let product_id: String
+            let purchase_date: String
+        }
+
+        struct VerifyResponse: Decodable {
+            let success: Bool
+            let is_premium: Bool
+            let message: String?
+        }
+
+        let formatter = ISO8601DateFormatter()
+        let body = ReceiptBody(
+            transaction_id: String(transaction.id),
+            original_transaction_id: String(transaction.originalID),
+            product_id: transaction.productID,
+            purchase_date: formatter.string(from: transaction.purchaseDate)
+        )
+
+        do {
+            let response: VerifyResponse = try await APIService.shared.request(
+                endpoint: "/api/v1/premium/verify-apple",
+                method: "POST",
+                body: body,
+                requiresAuth: true
+            )
+            return response.success && response.is_premium
+        } catch {
+            AppLogger.network.error("sendReceiptToBackend failed: \(error.localizedDescription)")
+            return false
+        }
     }
-    */
 }
 
 // MARK: - Store Errors
 enum StoreError: LocalizedError {
     case failedVerification
     case purchaseFailed
+    case backendVerificationFailed
 
     var errorDescription: String? {
         switch self {
-        case .failedVerification: return "Alış doğrulama uğursuz oldu"
-        case .purchaseFailed: return "Alış uğursuz oldu"
+        case .failedVerification:         return "Alis dogulama ugursuz oldu"
+        case .purchaseFailed:             return "Alis ugursuz oldu"
+        case .backendVerificationFailed:  return "Server terefdinden alis tesdiqlenilmedi"
         }
     }
 }

@@ -13,6 +13,13 @@ ENV/
 .env.local
 .env.production
 
+# Firebase credentials (CRITICAL: never commit)
+firebase-credentials.json
+firebase-adminsdk*.json
+*-firebase-adminsdk-*.json
+service-account*.json
+google-credentials*.json
+
 # Database
 *.db
 *.sqlite3

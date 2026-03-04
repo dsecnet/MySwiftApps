@@ -1,5 +1,6 @@
 import Foundation
 import UIKit
+import CryptoKit
 import os.log
 
 // MARK: - API Error
@@ -14,12 +15,12 @@ enum APIError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .invalidURL: return "Yanlış URL"
-        case .noData: return "Məlumat yoxdur"
-        case .decodingError(let msg): return "Parse xətası: \(msg)"
-        case .serverError(let code, let msg): return "Server xətası (\(code)): \(msg)"
-        case .networkError(let msg): return "Şəbəkə xətası: \(msg)"
-        case .unauthorized: return "Sessiya bitib. Yenidən giriş edin."
+        case .invalidURL: return "Yanlis URL"
+        case .noData: return "Melumat yoxdur"
+        case .decodingError(let msg): return "Parse xetasi: \(msg)"
+        case .serverError(let code, let msg): return "Server xetasi (\(code)): \(msg)"
+        case .networkError(let msg): return "Sebeke xetasi: \(msg)"
+        case .unauthorized: return "Sessiya bitib. Yeniden giris edin."
         case .forbidden(let msg): return msg
         }
     }
@@ -46,28 +47,36 @@ struct ErrorDetail: Codable {
 class APIService: NSObject {
     static let shared = APIService()
 
-    // Backend URL - development və production üçün ayrı
-    // Simulator və Mac-də local backend
-    // Telefona build edəndə cloud backend
     #if targetEnvironment(simulator)
-    let baseURL = "http://localhost:8000"  // Simulator (local)
+    let baseURL = "http://localhost:8000"
     #elseif DEBUG
-    let baseURL = "https://api.corevia.life"  // Real device DEBUG (cloud server)
+    let baseURL = "https://api.corevia.life"
     #else
-    let baseURL = "https://api.corevia.life"  // Real device RELEASE (cloud)
+    let baseURL = "https://api.corevia.life"
     #endif
 
     private var session: URLSession!
     private let decoder: JSONDecoder
     private let encoder: JSONEncoder
 
+    // MARK: - SSL Public Key Pinning
+    // SHA-256 hash of api.corevia.life server's public key.
+    // Yenilemek ucun: openssl s_client -connect api.corevia.life:443 | \
+    //   openssl x509 -pubkey -noout | openssl pkey -pubin -outform der | \
+    //   openssl dgst -sha256 -binary | base64
+    // Birden cox hash saxlamaq sertifikat yenilemesinde kesinti olmamasi ucun tovsiye olunur.
+    private let pinnedPublicKeyHashes: Set<String> = [
+        // Cari sertifikat (2025)
+        "REPLACE_WITH_REAL_SHA256_HASH_OF_API_COREVIA_LIFE_PUBKEY=",
+        // Backup sertifikat (rotasiya ucun)
+        "REPLACE_WITH_BACKUP_SHA256_HASH="
+    ]
+
     private override init() {
-        // decoder və encoder super.init()-dən əvvəl initialize olmalıdır
         let dec = JSONDecoder()
         dec.dateDecodingStrategy = .custom { decoder in
             let container = try decoder.singleValueContainer()
             let dateString = try container.decode(String.self)
-            // Backend ISO format: "2026-02-01T10:00:00.000000"
             let formats = [
                 "yyyy-MM-dd'T'HH:mm:ss.SSSSSS",
                 "yyyy-MM-dd'T'HH:mm:ss.SSS",
@@ -80,7 +89,8 @@ class APIService: NSObject {
                 f.timeZone = TimeZone(identifier: "UTC")
                 if let date = f.date(from: dateString) { return date }
             }
-            throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: "Date format tanınmadı: \(dateString)"))
+            throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath,
+                debugDescription: "Date format taninmadi: \(dateString)"))
         }
         decoder = dec
 
@@ -90,7 +100,6 @@ class APIService: NSObject {
 
         super.init()
 
-        // session self-i delegate kimi istifadə edir, ona görə super.init()-dən sonra olmalıdır
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 30
         config.timeoutIntervalForResource = 60
@@ -98,7 +107,6 @@ class APIService: NSObject {
     }
 
     // MARK: - Generic Request
-
     func request<T: Decodable>(
         endpoint: String,
         method: String = "GET",
@@ -107,11 +115,9 @@ class APIService: NSObject {
         requiresAuth: Bool = true
     ) async throws -> T {
         var urlComponents = URLComponents(string: "\(baseURL)\(endpoint)")
-
         if let queryItems = queryItems {
             urlComponents?.queryItems = queryItems
         }
-
         guard let url = urlComponents?.url else {
             throw APIError.invalidURL
         }
@@ -120,7 +126,6 @@ class APIService: NSObject {
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        // Auth header
         if requiresAuth {
             guard let token = KeychainManager.shared.accessToken else {
                 throw APIError.unauthorized
@@ -128,22 +133,18 @@ class APIService: NSObject {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 
-        // Body
         if let body = body {
             request.httpBody = try encoder.encode(body)
         }
 
         let (data, response) = try await performRequest(request)
-
         guard let httpResponse = response as? HTTPURLResponse else {
             throw APIError.networkError("Invalid response")
         }
 
-        // 401 - token expired, refresh et
         if httpResponse.statusCode == 401 && requiresAuth {
             let refreshed = await refreshTokenIfNeeded()
             if refreshed {
-                // Yeni token ile tekrar dene (BUG-M13: boş token yoxla)
                 guard let newToken = KeychainManager.shared.accessToken, !newToken.isEmpty else {
                     throw APIError.unauthorized
                 }
@@ -202,7 +203,8 @@ class APIService: NSObject {
                 var retryRequest = request
                 retryRequest.setValue("Bearer \(newToken)", forHTTPHeaderField: "Authorization")
                 let (_, retryResponse) = try await performRequest(retryRequest)
-                guard let retryHttp = retryResponse as? HTTPURLResponse, (200...299).contains(retryHttp.statusCode) else {
+                guard let retryHttp = retryResponse as? HTTPURLResponse,
+                      (200...299).contains(retryHttp.statusCode) else {
                     throw APIError.unauthorized
                 }
                 return
@@ -212,12 +214,11 @@ class APIService: NSObject {
 
         guard (200...299).contains(httpResponse.statusCode) else {
             let detail = try? decoder.decode(ErrorDetail.self, from: data)
-            throw APIError.serverError(httpResponse.statusCode, detail?.detail ?? "Xəta baş verdi")
+            throw APIError.serverError(httpResponse.statusCode, detail?.detail ?? "Xeta bas verdi")
         }
     }
 
     // MARK: - Multipart Upload (Image)
-
     func uploadImage(
         endpoint: String,
         imageData: Data,
@@ -247,16 +248,17 @@ class APIService: NSObject {
         request.httpBody = body
 
         let (data, response) = try await performRequest(request)
-        guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200...299).contains(httpResponse.statusCode) else {
             let failedResponse = response as? HTTPURLResponse
             let detail = try? decoder.decode(ErrorDetail.self, from: data)
-            throw APIError.serverError(failedResponse?.statusCode ?? 500, detail?.detail ?? "Upload uğursuz oldu")
+            throw APIError.serverError(failedResponse?.statusCode ?? 500,
+                                       detail?.detail ?? "Upload ugursuz oldu")
         }
         return data
     }
 
     // MARK: - Multipart Upload (Image + Form Fields)
-
     func uploadImageWithFields(
         endpoint: String,
         imageData: Data,
@@ -278,15 +280,11 @@ class APIService: NSObject {
         }
 
         var body = Data()
-
-        // Form field-leri elave et
         for (key, value) in fields {
             body.appendString("--\(boundary)\r\n")
             body.appendString("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n")
             body.appendString("\(value)\r\n")
         }
-
-        // Sekil elave et
         body.appendString("--\(boundary)\r\n")
         body.appendString("Content-Disposition: form-data; name=\"\(fieldName)\"; filename=\"\(fileName)\"\r\n")
         body.appendString("Content-Type: image/jpeg\r\n\r\n")
@@ -305,13 +303,13 @@ class APIService: NSObject {
             if httpResponse.statusCode == 429 {
                 throw APIError.serverError(429, detail?.detail ?? "Coxlu sorgu. Bir az gozleyin.")
             }
-            throw APIError.serverError(httpResponse.statusCode, detail?.detail ?? "Upload ugursuz oldu")
+            throw APIError.serverError(httpResponse.statusCode,
+                                       detail?.detail ?? "Upload ugursuz oldu")
         }
         return data
     }
 
     // MARK: - Private Helpers
-
     private func performRequest(_ request: URLRequest) async throws -> (Data, URLResponse) {
         do {
             return try await session.data(for: request)
@@ -324,9 +322,9 @@ class APIService: NSObject {
         guard (200...299).contains(statusCode) else {
             let detail = try? decoder.decode(ErrorDetail.self, from: data)
             if statusCode == 403 {
-                throw APIError.forbidden(detail?.detail ?? "İcazə yoxdur")
+                throw APIError.forbidden(detail?.detail ?? "Icaze yoxdur")
             }
-            throw APIError.serverError(statusCode, detail?.detail ?? "Xəta baş verdi")
+            throw APIError.serverError(statusCode, detail?.detail ?? "Xeta bas verdi")
         }
 
         do {
@@ -340,23 +338,21 @@ class APIService: NSObject {
     }
 
     // MARK: - Token Refresh
-
     private func refreshTokenIfNeeded() async -> Bool {
         guard let refreshToken = KeychainManager.shared.refreshToken else { return false }
-
         guard let url = URL(string: "\(baseURL)/api/v1/auth/refresh") else { return false }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        // Backend JSON body gözləyir: {"refresh_token": "..."}
         let body = ["refresh_token": refreshToken]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
         do {
             let (data, response) = try await session.data(for: request)
-            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            guard let httpResponse = response as? HTTPURLResponse,
+                  httpResponse.statusCode == 200 else {
                 KeychainManager.shared.clearTokens()
                 return false
             }
@@ -366,16 +362,20 @@ class APIService: NSObject {
             KeychainManager.shared.refreshToken = authResponse.refreshToken
             return true
         } catch {
-            AppLogger.auth.error("Token refresh xetasi: \(error.localizedDescription)")
+            AppLogger.auth.error("Token refresh failed")
             KeychainManager.shared.clearTokens()
             return false
         }
     }
 }
 
-// MARK: - SSL Certificate Pinning
+// MARK: - SSL Public Key Pinning (iOS-03 fix)
 extension APIService: URLSessionDelegate {
-    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+    func urlSession(
+        _ session: URLSession,
+        didReceive challenge: URLAuthenticationChallenge,
+        completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
+    ) {
         guard let serverTrust = challenge.protectionSpace.serverTrust else {
             completionHandler(.cancelAuthenticationChallenge, nil)
             return
@@ -383,36 +383,50 @@ extension APIService: URLSessionDelegate {
 
         let host = challenge.protectionSpace.host
 
-        // Only pin for our API domain
+        // Yalniz oz API domenimizi pin edirik
         guard host == "api.corevia.life" else {
             completionHandler(.performDefaultHandling, nil)
             return
         }
 
-        // Sertifikat zəncirini yoxla (iOS 15+ uyğun)
-        guard let certificates = SecTrustCopyCertificateChain(serverTrust) as? [SecCertificate],
-              !certificates.isEmpty else {
+        // Standart SSL zencirini yoxla
+        let policies = [SecPolicyCreateSSL(true, host as CFString)]
+        SecTrustSetPolicies(serverTrust, policies as CFTypeRef)
+
+        var cfError: CFError?
+        let isTrusted = SecTrustEvaluateWithError(serverTrust, &cfError)
+        guard isTrusted else {
+            AppLogger.network.error("SSL trust evaluation failed for \(host)")
             completionHandler(.cancelAuthenticationChallenge, nil)
             return
         }
 
-        // Evaluate the server trust
-        let policies = [SecPolicyCreateSSL(true, host as CFString)]
-        SecTrustSetPolicies(serverTrust, policies as CFTypeRef)
+        // Public key pinning: server-in public key-inin SHA-256 hash-ini yoxla
+        guard let certificates = SecTrustCopyCertificateChain(serverTrust) as? [SecCertificate],
+              let leafCert = certificates.first,
+              let publicKey = SecCertificateCopyKey(leafCert),
+              let publicKeyData = SecKeyCopyExternalRepresentation(publicKey, nil) as Data? else {
+            AppLogger.network.error("Could not extract public key from server certificate")
+            completionHandler(.cancelAuthenticationChallenge, nil)
+            return
+        }
 
-        var error: CFError?
-        let isTrusted = SecTrustEvaluateWithError(serverTrust, &error)
+        // SHA-256 hash hesabla
+        let keyHash = SHA256.hash(data: publicKeyData)
+        let hashBase64 = Data(keyHash).base64EncodedString()
 
-        if isTrusted {
+        if pinnedPublicKeyHashes.contains(hashBase64) {
+            // Hash uygun gelir - baglanti icaze verilir
             completionHandler(.useCredential, URLCredential(trust: serverTrust))
         } else {
+            // Hash uygun gelmedi - potensial MITM hucumu
+            AppLogger.network.error("SSL pinning failed: public key hash mismatch for \(host)")
             completionHandler(.cancelAuthenticationChallenge, nil)
         }
     }
 }
 
 // MARK: - Data Helper Extension
-
 private extension Data {
     mutating func appendString(_ string: String) {
         if let data = string.data(using: .utf8) {

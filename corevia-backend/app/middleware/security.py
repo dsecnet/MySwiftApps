@@ -260,3 +260,61 @@ class BruteForceProtection:
 
 # Global brute force protection instance
 brute_force_protection = BruteForceProtection(max_attempts=5, lockout_minutes=15)
+
+
+# ============================================================
+# B-09: Per-Endpoint Rate Limiter
+# Global middleware-den fərqli olaraq, həssas endpoint-lər
+# üçün daha ciddi limit tətbiq edir.
+# ============================================================
+
+class EndpointRateLimiter:
+    """
+    Endpoint-specific rate limiter.
+    Kullanım: Depends(EndpointRateLimiter(max_calls=5, window_seconds=300))
+    """
+
+    def __init__(self, max_calls: int, window_seconds: int, identifier: str = ""):
+        self.max_calls = max_calls
+        self.window_seconds = window_seconds
+        self.identifier = identifier
+        self._store: dict[str, list[float]] = defaultdict(list)
+
+    def _get_key(self, request: Request) -> str:
+        # IP + opsional endpoint identifier
+        forwarded = request.headers.get("X-Forwarded-For")
+        ip = forwarded.split(",")[0].strip() if forwarded else (
+            request.client.host if request.client else "unknown"
+        )
+        return f"{ip}:{self.identifier or request.url.path}"
+
+    async def __call__(self, request: Request):
+        key = self._get_key(request)
+        now = time.time()
+        cutoff = now - self.window_seconds
+
+        self._store[key] = [t for t in self._store[key] if t > cutoff]
+
+        if len(self._store[key]) >= self.max_calls:
+            logger.warning(
+                f"Per-endpoint rate limit exceeded: {self.identifier or request.url.path} "
+                f"from {key.split(':')[0]}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"Həddindən artıq cəhd. "
+                       f"{self.window_seconds // 60} dəqiqə sonra yenidən cəhd edin.",
+            )
+
+        self._store[key].append(now)
+
+
+# Hazır limiterlər — auth router-lərə Depends() ilə əlavə et
+# 5 dəq ərzində maks 5 login cəhdi
+login_rate_limiter = EndpointRateLimiter(max_calls=5, window_seconds=300, identifier="login")
+
+# 5 dəq ərzində maks 3 OTP sorğusu
+otp_rate_limiter = EndpointRateLimiter(max_calls=3, window_seconds=300, identifier="otp")
+
+# 15 dəq ərzində maks 3 şifrə sıfırlama sorğusu
+password_reset_rate_limiter = EndpointRateLimiter(max_calls=3, window_seconds=900, identifier="pwd_reset")

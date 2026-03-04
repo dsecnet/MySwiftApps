@@ -15,7 +15,16 @@ ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 MAX_IMAGE_DIMENSION = 1024  # px
 
 
-def _validate_image(file: UploadFile) -> None:
+# B-05 fix: magic bytes — hər format üçün faylın əvvəlindəki baytlar
+IMAGE_MAGIC_BYTES: dict[str, list[bytes]] = {
+    ".jpg":  [b"\xff\xd8\xff"],
+    ".jpeg": [b"\xff\xd8\xff"],
+    ".png":  [b"\x89PNG"],
+    ".webp": [b"RIFF"],  # RIFF....WEBP
+}
+
+
+def _validate_image(file: UploadFile, content: bytes | None = None) -> None:
     # Extension yoxla
     ext = Path(file.filename).suffix.lower() if file.filename else ""
     if ext not in ALLOWED_EXTENSIONS:
@@ -24,12 +33,21 @@ def _validate_image(file: UploadFile) -> None:
             detail=f"Icaze verilen formatlar: {', '.join(ALLOWED_EXTENSIONS)}",
         )
 
-    # Content type yoxla
+    # Content-Type yoxla
     if file.content_type and not file.content_type.startswith("image/"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Yalniz sekil fayllari yuklene biler",
         )
+
+    # B-05 fix: magic bytes yoxla (client-side header/extension saxtalaşdırmasına qərşi)
+    if content and len(content) >= 4:
+        valid_magic = IMAGE_MAGIC_BYTES.get(ext, [])
+        if valid_magic and not any(content.startswith(m) for m in valid_magic):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Faylın məzmənu göstərilən format ilə uyğun deyil",
+            )
 
 
 def _resize_image(image_data: bytes, max_dim: int = MAX_IMAGE_DIMENSION) -> bytes:
@@ -57,10 +75,11 @@ def _resize_image(image_data: bytes, max_dim: int = MAX_IMAGE_DIMENSION) -> byte
 
 async def save_upload(file: UploadFile, subfolder: str) -> str:
     """Sekili local-da saxla. Qaytarir: relative path (URL ucun)"""
-    _validate_image(file)
-
-    # Fayli oxu
+    # B-05 fix: content oxunub magic bytes yoxlamasina gonderilir
     content = await file.read()
+    _validate_image(file, content)
+
+    # Fayli artiq oxunub, yeniden oxumaga ehtiyac yoxdur
     if len(content) > MAX_FILE_SIZE:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

@@ -2,33 +2,30 @@
 //  PremiumView.swift
 //  CoreVia
 //
-
-// MARK: - TODO: StoreKit 2 Integration
-// Bu view-da StoreKitManager inteqrasiyası edilməlidir:
-// 1. @ObservedObject private var storeKit = StoreKitManager.shared əlavə et
-// 2. premiumOfferSection-da hardcoded qiymət əvəzinə storeKit.products-dan real qiymətləri göstər
-// 3. "Activate" button-u storeKit.purchase() çağırmalıdır
-// 4. storeKit.isLoading state-ini isLoading ilə birləşdir
-// 5. storeKit.errorMessage-i error alert-ində göstər
-// 6. "Restore Purchases" button əlavə et -> storeKit.restorePurchases()
-// 7. activatePremium() funksiyasını StoreKit purchase flow ilə əvəz et
-// Bax: Services/StoreKitManager.swift
+//  iOS-02 fix: StoreKit 2 tam inteqrasiya edildi - receipt backend-e gonderilir
+//  iOS-05 fix: Debug premium bypass butonu silinib, StoreKit flow ile evez edildi
 
 import SwiftUI
+import StoreKit
 import os.log
 
 struct PremiumView: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject private var settingsManager = SettingsManager.shared
     @ObservedObject private var authManager = AuthManager.shared
+    @ObservedObject private var storeKit = StoreKitManager.shared
     @ObservedObject private var loc = LocalizationManager.shared
-    // TODO: StoreKitManager-i əlavə et
-    // @ObservedObject private var storeKit = StoreKitManager.shared
 
     @State private var isLoading = false
     @State private var showCancelAlert = false
     @State private var errorMessage: String?
     @State private var showError = false
+    @State private var selectedProduct: Product?
+
+    // isPremium: hemise backend-den gelen currentUser.isPremium istifade olunur (iOS-04 fix)
+    private var isPremium: Bool {
+        authManager.isPremium
+    }
 
     var body: some View {
         NavigationStack {
@@ -37,18 +34,17 @@ struct PremiumView: View {
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 24) {
-                        if settingsManager.isPremium {
+                        if isPremium {
                             activePremiumSection
                         } else {
                             premiumOfferSection
                         }
-
                         featuresSection
                     }
                     .padding()
                 }
 
-                if isLoading {
+                if isLoading || storeKit.isLoading {
                     PremiumLoadingOverlay()
                 }
             }
@@ -56,22 +52,18 @@ struct PremiumView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(loc.localized("common_close")) {
-                        dismiss()
-                    }
-                    .foregroundColor(AppTheme.Colors.accent)
+                    Button(loc.localized("common_close")) { dismiss() }
+                        .foregroundColor(AppTheme.Colors.accent)
                 }
             }
             .alert(loc.localized("common_error"), isPresented: $showError) {
                 Button(loc.localized("common_ok"), role: .cancel) {}
             } message: {
-                Text(errorMessage ?? loc.localized("common_unknown_error"))
+                Text(errorMessage ?? storeKit.errorMessage ?? loc.localized("common_unknown_error"))
             }
             .alert(loc.localized("premium_cancel_title"), isPresented: $showCancelAlert) {
                 Button(loc.localized("common_cancel"), role: .cancel) {}
-                Button(loc.localized("premium_cancel_yes"), role: .destructive) {
-                    cancelPremium()
-                }
+                Button(loc.localized("premium_cancel_yes"), role: .destructive) { cancelPremium() }
             } message: {
                 Text(loc.localized("premium_cancel_message"))
             }
@@ -81,19 +73,13 @@ struct PremiumView: View {
     // MARK: - Active Premium Section
     private var activePremiumSection: some View {
         VStack(spacing: 16) {
-            // Premium Badge
             ZStack {
                 Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [AppTheme.Colors.premiumGradientStart, AppTheme.Colors.premiumGradientEnd],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                    .fill(LinearGradient(
+                        colors: [AppTheme.Colors.premiumGradientStart, AppTheme.Colors.premiumGradientEnd],
+                        startPoint: .topLeading, endPoint: .bottomTrailing))
                     .frame(width: 100, height: 100)
                     .shadow(color: AppTheme.Colors.premiumGradientStart.opacity(0.5), radius: 20)
-
                 Image(systemName: "crown.fill")
                     .font(.system(size: 50))
                     .foregroundColor(.white)
@@ -110,147 +96,129 @@ struct PremiumView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
 
-            // Plan Info
             VStack(spacing: 16) {
-                InfoRow(
-                    icon: "calendar",
-                    title: loc.localized("premium_plan"),
-                    value: loc.localized("premium_monthly")
-                )
-
-                Divider()
-                    .background(AppTheme.Colors.tertiaryText.opacity(0.3))
-
-                InfoRow(
-                    icon: "creditcard",
-                    title: loc.localized("premium_price"),
-                    value: "9.99 ₼/\(loc.localized("premium_month"))"
-                )
+                InfoRow(icon: "calendar",
+                        title: loc.localized("premium_plan"),
+                        value: loc.localized("premium_monthly"))
+                Divider().background(AppTheme.Colors.tertiaryText.opacity(0.3))
+                InfoRow(icon: "creditcard",
+                        title: loc.localized("premium_price"),
+                        value: "9.99 AZN/\(loc.localized("premium_month"))")
             }
             .padding(20)
             .background(AppTheme.Colors.secondaryBackground)
             .cornerRadius(20)
 
-            // Cancel Button
-            Button {
-                showCancelAlert = true
-            } label: {
+            Button { showCancelAlert = true } label: {
                 HStack(spacing: 8) {
-                    Image(systemName: "xmark.circle")
-                        .font(.system(size: 18))
-                    Text(loc.localized("premium_cancel_button"))
-                        .font(.system(size: 16, weight: .semibold))
+                    Image(systemName: "xmark.circle").font(.system(size: 18))
+                    Text(loc.localized("premium_cancel_button")).font(.system(size: 16, weight: .semibold))
                 }
                 .foregroundColor(AppTheme.Colors.error)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
                 .background(AppTheme.Colors.error.opacity(0.1))
                 .cornerRadius(20)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(AppTheme.Colors.error, lineWidth: 1.5)
-                )
+                .overlay(RoundedRectangle(cornerRadius: 20).stroke(AppTheme.Colors.error, lineWidth: 1.5))
             }
         }
     }
 
-    // MARK: - Premium Offer Section
+    // MARK: - Premium Offer Section (StoreKit 2 ile - iOS-02, iOS-05 fix)
     private var premiumOfferSection: some View {
         VStack(spacing: 20) {
-            // Hero Icon
             ZStack {
                 Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [AppTheme.Colors.premiumGradientStart.opacity(0.2), AppTheme.Colors.premiumGradientEnd.opacity(0.2)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                    .fill(LinearGradient(
+                        colors: [AppTheme.Colors.premiumGradientStart.opacity(0.2),
+                                 AppTheme.Colors.premiumGradientEnd.opacity(0.2)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing))
                     .frame(width: 120, height: 120)
-
                 Image(systemName: "sparkles")
                     .font(.system(size: 60))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [AppTheme.Colors.premiumGradientStart, AppTheme.Colors.premiumGradientEnd],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                    .foregroundStyle(LinearGradient(
+                        colors: [AppTheme.Colors.premiumGradientStart, AppTheme.Colors.premiumGradientEnd],
+                        startPoint: .topLeading, endPoint: .bottomTrailing))
             }
             .padding(.top, 20)
 
             Text("Premium")
                 .font(.system(size: 32, weight: .bold))
                 .foregroundColor(AppTheme.Colors.primaryText)
-                .multilineTextAlignment(.center)
 
-            // Price Card
-            // TODO: StoreKit - hardcoded qiyməti storeKit.products-dan gələn real qiymətlə əvəz et
-            // Misal: product.displayPrice istifadə et
-            VStack(spacing: 16) {
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text("9.99")
-                        .font(.system(size: 52, weight: .bold))
-                        .foregroundColor(AppTheme.Colors.primaryText)
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("₼")
-                            .font(.system(size: 22, weight: .semibold))
-                            .foregroundColor(AppTheme.Colors.secondaryText)
-                        Text("/\(loc.localized("premium_month"))")
-                            .font(.system(size: 15))
-                            .foregroundColor(AppTheme.Colors.tertiaryText)
+            // StoreKit-den gelen real qiymetler
+            if storeKit.isLoading {
+                ProgressView().padding()
+            } else if storeKit.products.isEmpty {
+                Text(loc.localized("premium_coming_soon"))
+                    .font(.system(size: 14))
+                    .foregroundColor(AppTheme.Colors.tertiaryText)
+                    .multilineTextAlignment(.center)
+            } else {
+                // Mehsul siyahisi
+                VStack(spacing: 12) {
+                    ForEach(storeKit.products, id: \.id) { product in
+                        productCard(product)
                     }
                 }
 
-                Text(loc.localized("premium_trial_info"))
-                    .font(.system(size: 13))
-                    .foregroundColor(AppTheme.Colors.tertiaryText)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 20)
-            .padding(.horizontal, 16)
-            .background(AppTheme.Colors.secondaryBackground)
-            .cornerRadius(20)
-
-            // Activate Button (Development Only)
-            // TODO: StoreKit - Bu DEBUG button-u production-da StoreKit purchase button ilə əvəz et
-            // Misal: Button { Task { try await storeKit.purchase(product) } }
-            #if DEBUG
-            Button {
-                activatePremium()
-            } label: {
-                HStack(spacing: 10) {
-                    Image(systemName: "crown.fill")
-                        .font(.system(size: 18))
-                    Text(loc.localized("premium_activate"))
-                        .font(.system(size: 17, weight: .semibold))
-                }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 18)
-                .background(
-                    LinearGradient(
+                // Satin al duymmesi
+                Button {
+                    guard let product = selectedProduct ?? storeKit.products.first else { return }
+                    purchaseProduct(product)
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "crown.fill").font(.system(size: 18))
+                        Text(loc.localized("premium_activate")).font(.system(size: 17, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 18)
+                    .background(LinearGradient(
                         colors: [AppTheme.Colors.premiumGradientStart, AppTheme.Colors.premiumGradientEnd],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .cornerRadius(20)
-                .shadow(color: AppTheme.Colors.premiumGradientStart.opacity(0.4), radius: 12, x: 0, y: 6)
+                        startPoint: .leading, endPoint: .trailing))
+                    .cornerRadius(20)
+                    .shadow(color: AppTheme.Colors.premiumGradientStart.opacity(0.4), radius: 12, x: 0, y: 6)
+                }
+
+                // Restore Purchases
+                Button {
+                    Task { await storeKit.restorePurchases() }
+                } label: {
+                    Text(loc.localized("premium_restore") == "premium_restore" ? "Alisları bərpa et" : loc.localized("premium_restore"))
+                        .font(.system(size: 14))
+                        .foregroundColor(AppTheme.Colors.accent)
+                }
             }
-            #endif
+        }
+    }
 
-            // TODO: StoreKit - "Restore Purchases" button əlavə et
-            // Button { Task { await storeKit.restorePurchases() } } label: { ... }
+    private func productCard(_ product: Product) -> some View {
+        let isSelected = selectedProduct?.id == product.id || (selectedProduct == nil && storeKit.products.first?.id == product.id)
 
-            Text(loc.localized("premium_coming_soon"))
-                .font(.system(size: 13))
-                .foregroundColor(AppTheme.Colors.tertiaryText)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
+        return Button {
+            selectedProduct = product
+        } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(product.displayName)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(AppTheme.Colors.primaryText)
+                    Text(product.description)
+                        .font(.system(size: 12))
+                        .foregroundColor(AppTheme.Colors.secondaryText)
+                }
+                Spacer()
+                Text(product.displayPrice)
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(isSelected ? AppTheme.Colors.premiumGradientStart : AppTheme.Colors.primaryText)
+            }
+            .padding(16)
+            .background(AppTheme.Colors.secondaryBackground)
+            .cornerRadius(16)
+            .overlay(RoundedRectangle(cornerRadius: 16)
+                .stroke(isSelected ? AppTheme.Colors.premiumGradientStart : AppTheme.Colors.separator,
+                        lineWidth: isSelected ? 2 : 1))
         }
     }
 
@@ -263,80 +231,52 @@ struct PremiumView: View {
                 .padding(.horizontal, 4)
 
             VStack(spacing: 14) {
-                FeatureRow(
-                    icon: "figure.run",
-                    title: loc.localized("premium_feature_activities"),
-                    description: loc.localized("premium_feature_activities_desc")
-                )
-
-                FeatureRow(
-                    icon: "message.fill",
-                    title: loc.localized("premium_feature_chat"),
-                    description: loc.localized("premium_feature_chat_desc")
-                )
-
-                FeatureRow(
-                    icon: "camera.fill",
-                    title: loc.localized("premium_feature_food"),
-                    description: loc.localized("premium_feature_food_desc")
-                )
-
-                FeatureRow(
-                    icon: "person.fill",
-                    title: loc.localized("premium_feature_trainer"),
-                    description: loc.localized("premium_feature_trainer_desc")
-                )
-
-                FeatureRow(
-                    icon: "chart.bar.fill",
-                    title: loc.localized("premium_feature_stats"),
-                    description: loc.localized("premium_feature_stats_desc")
-                )
-
-                FeatureRow(
-                    icon: "sparkles",
-                    title: loc.localized("premium_feature_ai"),
-                    description: loc.localized("premium_feature_ai_desc")
-                )
+                FeatureRow(icon: "figure.run",
+                           title: loc.localized("premium_feature_activities"),
+                           description: loc.localized("premium_feature_activities_desc"))
+                FeatureRow(icon: "message.fill",
+                           title: loc.localized("premium_feature_chat"),
+                           description: loc.localized("premium_feature_chat_desc"))
+                FeatureRow(icon: "camera.fill",
+                           title: loc.localized("premium_feature_food"),
+                           description: loc.localized("premium_feature_food_desc"))
+                FeatureRow(icon: "person.fill",
+                           title: loc.localized("premium_feature_trainer"),
+                           description: loc.localized("premium_feature_trainer_desc"))
+                FeatureRow(icon: "chart.bar.fill",
+                           title: loc.localized("premium_feature_stats"),
+                           description: loc.localized("premium_feature_stats_desc"))
+                FeatureRow(icon: "sparkles",
+                           title: loc.localized("premium_feature_ai"),
+                           description: loc.localized("premium_feature_ai_desc"))
             }
         }
     }
 
-    // MARK: - Actions
-    // TODO: StoreKit - activatePremium() funksiyasını StoreKit purchase flow ilə əvəz et
-    // Production-da bu funksiya storeKit.purchase(selectedProduct) çağırmalıdır
-    private func activatePremium() {
+    // MARK: - Purchase Action (iOS-02 fix: StoreKit 2 + backend verify)
+    private func purchaseProduct(_ product: Product) {
         isLoading = true
-        errorMessage = nil
-
         Task {
             do {
-                struct ActivateResponse: Codable {
-                    let message: String
-                    let isPremium: Bool
-
-                    enum CodingKeys: String, CodingKey {
-                        case message
-                        case isPremium = "is_premium"
+                let transaction = try await storeKit.purchase(product)
+                await MainActor.run {
+                    isLoading = false
+                    if transaction != nil {
+                        // fetchCurrentUser isPremium-u backend-den alir (iOS-04 fix)
+                        Task { await authManager.fetchCurrentUser() }
                     }
                 }
-
-                let response: ActivateResponse = try await APIService.shared.request(
-                    endpoint: "/api/v1/premium/activate",
-                    method: "POST"
-                )
-
-                // Refresh user data to get updated premium status
-                await authManager.fetchCurrentUser()
-
+            } catch StoreError.backendVerificationFailed {
                 await MainActor.run {
                     isLoading = false
-                    settingsManager.isPremium = response.isPremium
+                    errorMessage = "Server terefdinden alis tesdiqlenilmedi. Destek ile elaqe saxlayin."
+                    showError = true
                 }
             } catch {
-                AppLogger.network.error("Activate premium xetasi: \(error.localizedDescription)")
                 await MainActor.run {
                     isLoading = false
+                    // User cancel - error gosterme
+                    if (error as? StoreKit.Product.PurchaseError) != nil { return }
                     errorMessage = error.localizedDescription
                     showError = true
                 }
@@ -346,25 +286,15 @@ struct PremiumView: View {
 
     private func cancelPremium() {
         isLoading = true
-        errorMessage = nil
-
         Task {
             do {
-                try await APIService.shared.requestVoid(
-                    endpoint: "/api/v1/premium/cancel",
-                    method: "POST"
-                )
-
-                // Refresh user data
+                try await APIService.shared.requestVoid(endpoint: "/api/v1/premium/cancel", method: "POST")
                 await authManager.fetchCurrentUser()
-
                 await MainActor.run {
                     isLoading = false
-                    settingsManager.isPremium = false
                     dismiss()
                 }
             } catch {
-                AppLogger.network.error("Cancel premium xetasi: \(error.localizedDescription)")
                 await MainActor.run {
                     isLoading = false
                     errorMessage = error.localizedDescription
@@ -383,23 +313,13 @@ struct InfoRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 18))
-                .foregroundColor(AppTheme.Colors.accent)
-                .frame(width: 28)
-
-            Text(title)
-                .font(.system(size: 15))
-                .foregroundColor(AppTheme.Colors.secondaryText)
-
+            Image(systemName: icon).font(.system(size: 18))
+                .foregroundColor(AppTheme.Colors.accent).frame(width: 28)
+            Text(title).font(.system(size: 15)).foregroundColor(AppTheme.Colors.secondaryText)
             Spacer()
-
-            Text(value)
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundColor(AppTheme.Colors.primaryText)
+            Text(value).font(.system(size: 15, weight: .semibold)).foregroundColor(AppTheme.Colors.primaryText)
         }
-        .padding(.horizontal, 4)
-        .padding(.vertical, 2)
+        .padding(.horizontal, 4).padding(.vertical, 2)
     }
 }
 
@@ -412,32 +332,18 @@ struct FeatureRow: View {
     var body: some View {
         HStack(alignment: .center, spacing: 16) {
             ZStack {
-                Circle()
-                    .fill(AppTheme.Colors.accent.opacity(0.15))
-                    .frame(width: 48, height: 48)
-
-                Image(systemName: icon)
-                    .font(.system(size: 20))
-                    .foregroundColor(AppTheme.Colors.accent)
+                Circle().fill(AppTheme.Colors.accent.opacity(0.15)).frame(width: 48, height: 48)
+                Image(systemName: icon).font(.system(size: 20)).foregroundColor(AppTheme.Colors.accent)
             }
-
             VStack(alignment: .leading, spacing: 6) {
-                Text(title)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(AppTheme.Colors.primaryText)
-
-                Text(description)
-                    .font(.system(size: 14))
-                    .foregroundColor(AppTheme.Colors.secondaryText)
+                Text(title).font(.system(size: 16, weight: .semibold)).foregroundColor(AppTheme.Colors.primaryText)
+                Text(description).font(.system(size: 14)).foregroundColor(AppTheme.Colors.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)
             }
-
             Spacer()
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
-        .background(AppTheme.Colors.secondaryBackground)
-        .cornerRadius(20)
+        .padding(.horizontal, 16).padding(.vertical, 14)
+        .background(AppTheme.Colors.secondaryBackground).cornerRadius(20)
     }
 }
 
@@ -445,19 +351,9 @@ struct FeatureRow: View {
 private struct PremiumLoadingOverlay: View {
     var body: some View {
         ZStack {
-            Color.black.opacity(0.3)
-                .ignoresSafeArea()
-
-            ProgressView()
-                .tint(.white)
-                .controlSize(.large)
-                .padding(20)
-                .background(AppTheme.Colors.secondaryBackground)
-                .cornerRadius(12)
+            Color.black.opacity(0.3).ignoresSafeArea()
+            ProgressView().tint(.white).controlSize(.large)
+                .padding(20).background(AppTheme.Colors.secondaryBackground).cornerRadius(12)
         }
     }
 }
-
-// #Preview { // iOS 17+ only
-//     PremiumView()
-// }

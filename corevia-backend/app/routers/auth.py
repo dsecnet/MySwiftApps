@@ -23,6 +23,7 @@ from app.services.ai_service import analyze_trainer_photo
 from app.services.file_service import save_upload
 from app.services.email_service import email_service
 from app.config import get_settings
+from app.middleware.security import login_rate_limiter, otp_rate_limiter, password_reset_rate_limiter
 
 settings = get_settings()
 router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
@@ -31,7 +32,8 @@ router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
 @router.post("/register-request", response_model=OTPResponse)
 async def register_request_otp(
     request: RegisterRequestOTP,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    _otp: None = Depends(otp_rate_limiter),
 ):
     """
     Step 1: Qeydiyyat üçün OTP göndərir
@@ -76,24 +78,25 @@ async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)):
     4. User yaradılır
     """
 
-    # Skip OTP verification for trainers (direct registration)
-    if user_data.user_type == UserType.trainer and not user_data.otp_code:
-        # Trainer direct registration without OTP
-        pass
-    else:
-        # Verify OTP for clients (and trainers with OTP if provided)
-        otp_result = await email_service.verify_otp(
-            email=user_data.email,
-            code=user_data.otp_code,
-            purpose='registration',
-            db=db
+    # B-03 fix: trainer üçün də OTP məcburidir — bypass yoxdur
+    if not user_data.otp_code or not user_data.otp_code.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="OTP kodu tələb olunur. Əvvəlcə /register-request endpoint-indən OTP alın."
         )
 
-        if not otp_result['success']:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=otp_result['message']
-            )
+    otp_result = await email_service.verify_otp(
+        email=user_data.email,
+        code=user_data.otp_code,
+        purpose='registration',
+        db=db
+    )
+
+    if not otp_result['success']:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=otp_result['message']
+        )
 
     # Check if user exists (double check)
     result = await db.execute(select(User).where(User.email == user_data.email))
@@ -123,7 +126,11 @@ async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/login", response_model=OTPResponse)
-async def login(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
+async def login(
+    user_data: UserLogin,
+    db: AsyncSession = Depends(get_db),
+    _rl: None = Depends(login_rate_limiter),
+):
     """
     Step 1: Login with email + password, send OTP
 
@@ -392,7 +399,8 @@ async def verify_trainer(
 @router.post("/forgot-password", response_model=OTPResponse)
 async def forgot_password(
     request: ForgotPasswordRequest,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    _rl: None = Depends(password_reset_rate_limiter),
 ):
     """
     Şifrəni unutmuş user üçün email-ə OTP göndərir
@@ -403,33 +411,23 @@ async def forgot_password(
     3. OTP 10 dəqiqə etibarlıdır
     """
 
-    # Check if user exists with this email
-    result = await db.execute(
-        select(User).where(User.email == request.email)
-    )
+    # B-04 fix: user mövcud olub-olmadığından asılı olmayaraq eyni cavab qaytar
+    # Bu, email enumeration hücumunu önləyir
+    result = await db.execute(select(User).where(User.email == request.email))
     user = result.scalar_one_or_none()
 
-    if not user:
-        # Security: Don't reveal if user exists
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Bu email ilə istifadəçi tapılmadı"
+    if user and user.is_active:
+        await email_service.send_otp(
+            email=request.email,
+            purpose='forgot_password',
+            db=db
         )
 
-    # Send OTP to Email
-    result = await email_service.send_otp(
-        email=request.email,
-        purpose='forgot_password',
-        db=db
+    # Hər zaman eyni cavab — user mövcudluğunu açıqlam
+    return OTPResponse(
+        success=True,
+        message="Əgər bu email qeydiyyatlıdırsa, OTP göndərilib. 10 dəqiqə etibarlidır."
     )
-
-    if not result['success']:
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=result['message']
-        )
-
-    return OTPResponse(**result)
 
 
 @router.post("/verify-otp", response_model=dict)
