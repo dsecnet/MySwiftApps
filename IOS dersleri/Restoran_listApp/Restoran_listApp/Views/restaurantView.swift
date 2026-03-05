@@ -4,69 +4,102 @@
 //
 //  Created by Vusal Dadashov on 05.03.26.
 //
-//  NOTE: Bu view hazırda heç yerdə istifadə olunmur.
-//  BasicTextImageRow eyni funksiyanı yerinə yetirir.
-//
+
 
 import SwiftUI
 
 struct RestaurantView: View {
 
-    @State private var showOptions = false
-    @State private var showError = false
-
     @Binding var restaurant: Restaurant
 
+    @State private var showShareSheet = false
+    @State private var showReserveAlert = false
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        HStack(alignment: .top, spacing: 14) {
+            // Şəkil
             Image(restaurant.image)
                 .resizable()
-                .frame(height: 250)
-                .cornerRadius(20)
+                .scaledToFill()
+                .frame(width: 100, height: 100)
+                .cornerRadius(16)
+                .clipped()
 
-            HStack(alignment: .top, spacing: 0) {
-                VStack(alignment: .leading) {
-                    Text(restaurant.title)
-                        .font(.system(.title2, design: .rounded))
+            // Məlumat
+            VStack(alignment: .leading, spacing: 4) {
+                Text(restaurant.title)
+                    .font(.system(.headline, design: .rounded))
+                    .lineLimit(1)
 
+                HStack(spacing: 4) {
+                    Text(restaurant.type.icon)
+                        .font(.system(size: 12))
                     Text(restaurant.type.rawValue)
-                        .font(.system(.body, design: .rounded))
-
-                    Text(restaurant.location)
                         .font(.system(.subheadline, design: .rounded))
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                 }
-                .padding(.horizontal)
-                .padding(.bottom)
 
-                if restaurant.isFavorite {
-                    Spacer()
-                    Image(systemName: "heart.fill")
-                        .foregroundColor(.yellow)
-                        .padding(.trailing, 16)
+                Text(restaurant.location)
+                    .font(.system(.caption, design: .rounded))
+                    .foregroundColor(.gray)
+
+                // Rating
+                HStack(spacing: 2) {
+                    ForEach(1...5, id: \.self) { star in
+                        Image(systemName: Double(star) <= restaurant.rating ? "star.fill" : "star")
+                            .font(.system(size: 10))
+                            .foregroundColor(.orange)
+                    }
+                    Text(String(format: "%.1f", restaurant.rating))
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.secondary)
                 }
             }
+
+            Spacer()
+
+            if restaurant.isFavorite {
+                Image(systemName: "heart.fill")
+                    .foregroundColor(.red)
+                    .font(.system(size: 16))
+            }
         }
+        .padding(.vertical, 4)
         .contextMenu {
             Button {
-                showError.toggle()
+                showReserveAlert.toggle()
             } label: {
-                Label("Reserve", systemImage: "phone")
+                Label("Masa rezerv et", systemImage: "phone")
             }
 
             Button {
                 restaurant.isFavorite.toggle()
             } label: {
                 Label(
-                    restaurant.isFavorite ? "Remove favorite" : "Mark as favorite",
+                    restaurant.isFavorite ? "Favoritdən çıxar" : "Favorit et",
                     systemImage: restaurant.isFavorite ? "heart.slash" : "heart"
                 )
             }
+
+            Button {
+                showShareSheet.toggle()
+            } label: {
+                Label("Paylaş", systemImage: "square.and.arrow.up")
+            }
         }
-        .alert("Alert", isPresented: $showError) {
+        .alert("Tezliklə", isPresented: $showReserveAlert) {
             Button("OK") {}
         } message: {
-            Text("Sorry")
+            Text("Bu funksiya tezliklə əlavə olunacaq.")
+        }
+        .sheet(isPresented: $showShareSheet) {
+            let text = "\(restaurant.title) - \(restaurant.location) ⭐️ \(restaurant.rating)"
+
+            if let image = UIImage(named: restaurant.image) {
+                ActivityView(activityItems: [text, image])
+            } else {
+                ActivityView(activityItems: [text])
+            }
         }
     }
 }
