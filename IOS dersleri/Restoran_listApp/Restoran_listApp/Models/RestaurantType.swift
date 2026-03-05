@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-// MARK: - Restaurant Model
+
 struct Restaurant: Identifiable {
     let id = UUID()
     let title: String
