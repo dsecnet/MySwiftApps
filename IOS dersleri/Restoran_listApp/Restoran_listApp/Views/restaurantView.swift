@@ -17,7 +17,7 @@ struct RestaurantView: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
-            // Şəkil
+           
             Image(restaurant.image)
                 .resizable()
                 .scaledToFill()
