@@ -15,7 +15,7 @@ struct RestaurantDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                // MARK: - Hero Image
+                
                 ZStack(alignment: .bottom) {
                     Image(restaurant.image)
                         .resizable()
@@ -24,14 +24,14 @@ struct RestaurantDetailView: View {
                         .frame(height: 400)
                         .clipped()
 
-                    // Gradient overlay
+                   
                     LinearGradient(
                         colors: [.clear, .black.opacity(0.7)],
                         startPoint: .center,
                         endPoint: .bottom
                     )
 
-                    // Title + Type
+                  
                     VStack(alignment: .leading, spacing: 6) {
                         HStack {
                             Text(restaurant.type.icon)
@@ -48,7 +48,7 @@ struct RestaurantDetailView: View {
                             .font(.system(.title, design: .rounded))
                             .fontWeight(.bold)
 
-                        // Rating
+                        
                         HStack(spacing: 3) {
                             ForEach(1...5, id: \.self) { star in
                                 Image(systemName: Double(star) <= restaurant.rating ? "star.fill" : "star")
@@ -65,7 +65,7 @@ struct RestaurantDetailView: View {
                     .padding(.bottom, 8)
                 }
 
-                // Favorite badge
+             
                 if restaurant.isFavorite {
                     HStack {
                         Image(systemName: "heart.fill")

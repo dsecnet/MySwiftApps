@@ -25,7 +25,7 @@ struct RestaurantView: View {
                 .cornerRadius(16)
                 .clipped()
 
-            // Məlumat
+           
             VStack(alignment: .leading, spacing: 4) {
                 Text(restaurant.title)
                     .font(.system(.headline, design: .rounded))
@@ -43,7 +43,6 @@ struct RestaurantView: View {
                     .font(.system(.caption, design: .rounded))
                     .foregroundColor(.gray)
 
-                // Rating
                 HStack(spacing: 2) {
                     ForEach(1...5, id: \.self) { star in
                         Image(systemName: Double(star) <= restaurant.rating ? "star.fill" : "star")
