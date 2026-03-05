@@ -66,9 +66,10 @@ struct DeleteAccountBody: Encodable {
 }
 
 // MARK: - OTP Response
-struct OTPResponse: Decodable {
+struct OTPResponse: Codable {
     let success: Bool
     let message: String
+    let code: String?
 }
 
 // MARK: - Auth Manager
@@ -306,6 +307,8 @@ class AuthManager: ObservableObject {
         keychain.clearTokens()
         isLoggedIn = false
         currentUser = nil
+        UserProfileManager.shared.userProfile = UserProfileManager.defaultClientProfile
+        SettingsManager.shared.isPremium = false
         TrainingPlanManager.shared.clearAllPlans()
         MealPlanManager.shared.clearAllPlans()
         OnboardingManager.shared.resetOnLogout()

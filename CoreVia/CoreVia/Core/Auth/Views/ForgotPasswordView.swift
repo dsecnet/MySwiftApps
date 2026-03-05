@@ -505,8 +505,4 @@ struct ForgotPasswordView: View {
 }
 
 // MARK: - Response Model
-struct OTPResponse: Codable {
-    let success: Bool
-    let message: String
-    let code: String?
-}
+// OTPResponse artiq AuthManager.swift-de teyinlanib

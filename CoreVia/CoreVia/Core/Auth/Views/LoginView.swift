@@ -388,44 +388,23 @@ struct LoginView: View {
         showError = false
 
         Task {
-            do {
-                // Step 1: Send credentials, receive OTP
-                guard let url = URL(string: "\(APIService.shared.baseURL)/api/v1/auth/login") else {
-                    throw APIError.invalidURL
-                }
-                var request = URLRequest(url: url)
-                request.httpMethod = "POST"
-                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            let userType = selectedUserType == .trainer ? "trainer" : "client"
+            let trimmedEmail = email.trimmingCharacters(in: .whitespaces).lowercased()
 
-                let userType = selectedUserType == .trainer ? "trainer" : "client"
-                let body: [String: String] = [
-                    "email": email.trimmingCharacters(in: .whitespaces).lowercased(),
-                    "password": password,
-                    "user_type": userType
-                ]
-                request.httpBody = try JSONEncoder().encode(body)
+            let success = await AuthManager.shared.requestLoginOTP(
+                email: trimmedEmail,
+                password: password,
+                userType: userType
+            )
 
-                let (data, response) = try await URLSession.shared.data(for: request)
-
-                guard let httpResponse = response as? HTTPURLResponse else {
-                    throw APIError.networkError("Invalid response")
-                }
-
-                if httpResponse.statusCode == 200 {
-                    await MainActor.run {
-                        isLoading = false
-                        withAnimation {
-                            currentStep = 2 // Go to OTP step
-                        }
+            await MainActor.run {
+                isLoading = false
+                if success {
+                    withAnimation {
+                        currentStep = 2 // Go to OTP step
                     }
                 } else {
-                    let errorResponse = try? JSONDecoder().decode([String: String].self, from: data)
-                    throw NSError(domain: errorResponse?["detail"] ?? "Email və ya şifrə səhvdir", code: httpResponse.statusCode)
-                }
-            } catch {
-                await MainActor.run {
-                    isLoading = false
-                    showErrorMessage(error.localizedDescription)
+                    showErrorMessage(AuthManager.shared.errorMessage ?? "Email və ya şifrə səhvdir")
                 }
             }
         }
@@ -536,56 +515,20 @@ struct LoginView: View {
         showError = false
 
         Task {
-            do {
-                guard let url = URL(string: "\(APIService.shared.baseURL)/api/v1/auth/login-verify") else {
-                    throw APIError.invalidURL
-                }
-                var request = URLRequest(url: url)
-                request.httpMethod = "POST"
-                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            // Yeni login öncəsi köhnə istifadəçi datalarını təmizlə
+            KeychainManager.shared.clearTokens()
 
-                let body: [String: String] = [
-                    "email": email.trimmingCharacters(in: .whitespaces).lowercased(),
-                    "otp_code": otpCode
-                ]
-                request.httpBody = try JSONEncoder().encode(body)
+            let trimmedEmail = email.trimmingCharacters(in: .whitespaces).lowercased()
+            let success = await AuthManager.shared.verifyLoginOTP(email: trimmedEmail, otpCode: otpCode)
 
-                let (data, response) = try await URLSession.shared.data(for: request)
-
-                guard let httpResponse = response as? HTTPURLResponse else {
-                    throw APIError.networkError("Invalid response")
-                }
-
-                if httpResponse.statusCode == 200 {
-                    // Parse token response
-                    struct TokenResponse: Codable {
-                        let access_token: String
-                        let refresh_token: String
-                    }
-
-                    let tokenResponse = try JSONDecoder().decode(TokenResponse.self, from: data)
-
-                    // Save tokens
-                    AuthManager.shared.accessToken = tokenResponse.access_token
-                    AuthManager.shared.refreshToken = tokenResponse.refresh_token
-
-                    // Fetch user data to populate UserDefaults (fixes trainer showing as client bug)
-                    await AuthManager.shared.fetchCurrentUser()
-
-                    await MainActor.run {
-                        isLoading = false
-                        withAnimation {
-                            isLoggedIn = true
-                        }
+            await MainActor.run {
+                isLoading = false
+                if success {
+                    withAnimation {
+                        isLoggedIn = true
                     }
                 } else {
-                    let errorResponse = try? JSONDecoder().decode([String: String].self, from: data)
-                    throw NSError(domain: errorResponse?["detail"] ?? "OTP səhvdir", code: httpResponse.statusCode)
-                }
-            } catch {
-                await MainActor.run {
-                    isLoading = false
-                    showErrorMessage(error.localizedDescription)
+                    showErrorMessage(AuthManager.shared.errorMessage ?? "OTP səhvdir")
                 }
             }
         }

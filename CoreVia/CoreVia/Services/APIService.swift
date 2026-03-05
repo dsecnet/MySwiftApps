@@ -401,7 +401,13 @@ extension APIService: URLSessionDelegate {
             return
         }
 
-        // Public key pinning: server-in public key-inin SHA-256 hash-ini yoxla
+        #if DEBUG
+        // DEBUG mode: SSL trust yoxlanilir amma public key pinning atlanir.
+        // RELEASE build-de pinning aktiv olacaq.
+        AppLogger.network.info("DEBUG mode: SSL pinning skipped, trust-only for \(host)")
+        completionHandler(.useCredential, URLCredential(trust: serverTrust))
+        #else
+        // RELEASE: Public key pinning - server-in public key-inin SHA-256 hash-ini yoxla
         guard let certificates = SecTrustCopyCertificateChain(serverTrust) as? [SecCertificate],
               let leafCert = certificates.first,
               let publicKey = SecCertificateCopyKey(leafCert),
@@ -411,18 +417,18 @@ extension APIService: URLSessionDelegate {
             return
         }
 
-        // SHA-256 hash hesabla
         let keyHash = SHA256.hash(data: publicKeyData)
         let hashBase64 = Data(keyHash).base64EncodedString()
 
         if pinnedPublicKeyHashes.contains(hashBase64) {
-            // Hash uygun gelir - baglanti icaze verilir
             completionHandler(.useCredential, URLCredential(trust: serverTrust))
         } else {
-            // Hash uygun gelmedi - potensial MITM hucumu
-            AppLogger.network.error("SSL pinning failed: public key hash mismatch for \(host)")
+            // Hash uygun gelmedi - potensial MITM hucumu.
+            // REAL hash-i almaq ucun bu log-a bax:
+            AppLogger.network.error("SSL pinning FAILED for \(host). Server hash: \(hashBase64)")
             completionHandler(.cancelAuthenticationChallenge, nil)
         }
+        #endif
     }
 }
 

@@ -21,16 +21,15 @@ struct TrainerHomeView: View {
                     statsCardsSection
 
                     if let stats = dashboardManager.stats {
-                        if stats.students.isEmpty {
-                            emptyStudentsSection
-                        } else {
-                            studentProgressSection(stats.students)
+                        if !stats.students.isEmpty {
                             statsSummarySection(stats.statsSummary)
+                        } else {
+                            emptyStudentsSection
                         }
                     }
 
-                    // Quick Actions for Trainer
-                    trainerQuickActionsSection
+                    // AI Tövsiyələr butonu
+                    aiRecommendationButton
                 }
                 .padding()
                 .padding(.bottom, 70) // tab bar üçün yer
@@ -163,27 +162,6 @@ struct TrainerHomeView: View {
         .cornerRadius(16)
     }
 
-    // MARK: - Student Progress
-    private func studentProgressSection(_ students: [DashboardStudentSummary]) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text(loc.localized("dashboard_student_progress"))
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(AppTheme.Colors.primaryText)
-
-                Spacer()
-
-                Text("\(students.count) \(loc.localized("trainer_students").lowercased())")
-                    .font(.system(size: 13))
-                    .foregroundColor(AppTheme.Colors.secondaryText)
-            }
-
-            ForEach(students) { student in
-                DashboardStudentRow(student: student)
-            }
-        }
-    }
-
     // MARK: - Stats Summary
     private func statsSummarySection(_ summary: DashboardStatsSummary) -> some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -223,57 +201,58 @@ struct TrainerHomeView: View {
         }
     }
 
-    // MARK: - Quick Actions (hidden old version)
-    private var quickActionsSection: some View {
-        EmptyView()
-    }
+    // MARK: - AI Tövsiyələr Butonu
+    private var aiRecommendationButton: some View {
+        NavigationLink(destination: SmartRecommendationView()) {
+            HStack(spacing: 14) {
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.purple.opacity(0.3), Color.purple],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 48, height: 48)
 
-    // MARK: - Trainer Quick Actions (kompakt)
-    private var trainerQuickActionsSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(loc.localized("trainer_quick_actions"))
-                .font(.system(size: 16, weight: .bold))
-                .foregroundColor(AppTheme.Colors.primaryText)
-
-            LazyVGrid(columns: [
-                GridItem(.flexible(), spacing: 8),
-                GridItem(.flexible(), spacing: 8),
-                GridItem(.flexible(), spacing: 8),
-                GridItem(.flexible(), spacing: 8)
-            ], spacing: 8) {
-                NavigationLink(destination: MyStudentsView()) {
-                    CompactDashboardAction(
-                        title: loc.localized("trainer_my_students"),
-                        icon: "person.2.fill",
-                        color: AppTheme.Colors.accent
-                    )
+                    Image(systemName: "brain.head.profile")
+                        .font(.system(size: 22))
+                        .foregroundColor(.white)
                 }
 
-                NavigationLink(destination: TrainingPlanView()) {
-                    CompactDashboardAction(
-                        title: loc.localized("trainer_new_training"),
-                        icon: "figure.strengthtraining.traditional",
-                        color: AppTheme.Colors.accent
-                    )
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(loc.localized("ai_recommendation_title"))
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundColor(AppTheme.Colors.primaryText)
+
+                    Text(loc.localized("ai_rec_trainer_desc"))
+                        .font(.system(size: 13))
+                        .foregroundColor(AppTheme.Colors.secondaryText)
+                        .lineLimit(2)
                 }
 
-                NavigationLink(destination: MealPlanView()) {
-                    CompactDashboardAction(
-                        title: loc.localized("trainer_new_meal"),
-                        icon: "fork.knife",
-                        color: AppTheme.Colors.accent
-                    )
-                }
+                Spacer()
 
-                NavigationLink(destination: SocialFeedView()) {
-                    CompactDashboardAction(
-                        title: loc.localized("social_title"),
-                        icon: "person.3.fill",
-                        color: AppTheme.Colors.accent
-                    )
-                }
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(AppTheme.Colors.tertiaryText)
             }
+            .padding(16)
+            .background(
+                LinearGradient(
+                    colors: [Color.purple.opacity(0.05), Color.purple.opacity(0.12)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .cornerRadius(16)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.purple.opacity(0.2), lineWidth: 1)
+            )
         }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 

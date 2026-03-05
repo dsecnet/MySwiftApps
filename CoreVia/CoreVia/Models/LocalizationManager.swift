@@ -1105,5 +1105,20 @@ class LocalizationManager: ObservableObject {
         // MARK: - AI Recommendation (priority badge)
         "ai_rec_important": [.az: "Vacib", .en: "Important", .ru: "Важно"],
 
+        // MARK: - Smart AI Recommendation View
+        "ai_rec_loading": [.az: "Yüklənir...", .en: "Loading...", .ru: "Загрузка..."],
+        "ai_rec_tap_to_see": [.az: "Fərdi tövsiyələr üçün toxun", .en: "Tap for personalized tips", .ru: "Нажмите для персональных советов"],
+        "ai_rec_weekly_compare": [.az: "Bu Həftə vs Keçən Həftə", .en: "This Week vs Last Week", .ru: "Эта неделя vs прошлая"],
+        "ai_rec_now_for_you": [.az: "İndi Sənin Üçün", .en: "Now For You", .ru: "Сейчас для вас"],
+        "ai_rec_all_tips": [.az: "Bütün Tövsiyələr", .en: "All Recommendations", .ru: "Все рекомендации"],
+        "ai_rec_warnings": [.az: "Xəbərdarlıqlar", .en: "Warnings", .ru: "Предупреждения"],
+        "ai_rec_error_title": [.az: "Tövsiyələr yüklənmədi", .en: "Could not load recommendations", .ru: "Не удалось загрузить"],
+        "ai_rec_retry": [.az: "Yenidən cəhd et", .en: "Retry", .ru: "Повторить"],
+        "ai_rec_score_great": [.az: "Əla gedirsən! 🔥", .en: "Excellent! 🔥", .ru: "Отлично! 🔥"],
+        "ai_rec_score_good": [.az: "Yaxşı irəliləyirsən!", .en: "Good progress!", .ru: "Хороший прогресс!"],
+        "ai_rec_score_average": [.az: "Orta səviyyə — daha yaxşı edə bilərsən", .en: "Average — you can do better", .ru: "Средний уровень — можете лучше"],
+        "ai_rec_score_improve": [.az: "İnkişaf lazımdır", .en: "Improvement needed", .ru: "Нужны улучшения"],
+        "ai_rec_trainer_desc": [.az: "Fərdi və tələbə analizləri", .en: "Personal & student analysis", .ru: "Персональный и анализ учеников"],
+
     ]
 }

@@ -148,18 +148,18 @@ enum JailbreakDetection {
         return false
     }
 
-    // MARK: - 6. fork() cagirmaq imkanini yoxla (jailbroken cihazlarda mumkundur)
+    // MARK: - 6. posix_spawn() ile proses yaratma imkanini yoxla (jailbroken cihazlarda mumkundur)
     private static func checkForkAbility() -> Bool {
-        let pid = fork()
-        if pid >= 0 {
-            if pid > 0 {
-                // Parent prosesde - fork ugurlu oldu, jailbreak var
-                waitpid(pid, nil, 0)
-            }
-            AppLogger.general.warning("Jailbreak: fork() succeeded - device is jailbroken")
+        var pid: pid_t = 0
+        let argv: [UnsafeMutablePointer<CChar>?] = [nil]
+        let status = posix_spawn(&pid, "", nil, nil, argv, nil)
+        if status == 0 {
+            // posix_spawn ugurlu oldu - sandbox pozulub, jailbreak var
+            waitpid(pid, nil, 0)
+            AppLogger.general.warning("Jailbreak: posix_spawn() succeeded - device is jailbroken")
             return true
         }
-        // fork() EPERM ile ugursuz oldu - normal sandboxed cihaz
+        // posix_spawn ugursuz oldu - normal sandboxed cihaz
         return false
     }
 

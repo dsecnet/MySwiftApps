@@ -13,7 +13,6 @@ struct TrainerProfileView: View {
     @ObservedObject private var loc = LocalizationManager.shared
     @StateObject private var imageManager = ProfileImageManager.shared
     @StateObject private var profileManager = UserProfileManager.shared
-    @StateObject private var settingsManager = SettingsManager.shared
     @StateObject private var trainingPlanManager = TrainingPlanManager.shared
     @StateObject private var mealPlanManager = MealPlanManager.shared
     @StateObject private var dashboard = TrainerDashboardManager.shared
@@ -21,24 +20,15 @@ struct TrainerProfileView: View {
     @State private var showImagePicker = false
     @State private var showEditProfile = false
     @State private var showLogoutAlert = false
-    @State private var showNotifications = false
-    @State private var showSecurity = false
-    @State private var showAbout = false
     @State private var showAllStudents = false
-
-    // Delete Account
-    @State private var showDeleteAccountAlert = false
-    @State private var showDeletePasswordSheet = false
-    @State private var deletePassword: String = ""
-    @State private var deleteError: String? = nil
-    @State private var isDeleting: Bool = false
+    @State private var showSettings = false
 
     var body: some View {
         ZStack {
             AppTheme.Colors.background.ignoresSafeArea()
 
             ScrollView(showsIndicators: false) {
-                VStack(spacing: 24) {
+                VStack(spacing: 16) {
                     profileHeader
                     profileCompletionSection
                     statsSection
@@ -78,14 +68,8 @@ struct TrainerProfileView: View {
         .sheet(isPresented: $showEditProfile) {
             EditTrainerProfileView()
         }
-        .sheet(isPresented: $showNotifications) {
-            NotificationsSettingsView()
-        }
-        .sheet(isPresented: $showSecurity) {
-            SecuritySettingsView()
-        }
-        .sheet(isPresented: $showAbout) {
-            AboutView()
+        .sheet(isPresented: $showSettings) {
+            TrainerSettingsView()
         }
         .alert(loc.localized("profile_logout"), isPresented: $showLogoutAlert) {
             Button(loc.localized("common_cancel"), role: .cancel) { }
@@ -96,35 +80,6 @@ struct TrainerProfileView: View {
             }
         } message: {
             Text(loc.localized("profile_logout_confirm"))
-        }
-        // Delete Account
-        .alert(loc.localized("delete_account_title"), isPresented: $showDeleteAccountAlert) {
-            Button(loc.localized("common_cancel"), role: .cancel) { }
-            Button(loc.localized("common_delete"), role: .destructive) {
-                showDeletePasswordSheet = true
-            }
-        } message: {
-            Text(loc.localized("delete_account_warning"))
-        }
-        .sheet(isPresented: $showDeletePasswordSheet) {
-            DeleteAccountSheet(
-                password: $deletePassword,
-                error: $deleteError,
-                isDeleting: $isDeleting
-            ) {
-                Task {
-                    isDeleting = true
-                    deleteError = nil
-                    let result = await AuthManager.shared.deleteAccount(password: deletePassword)
-                    isDeleting = false
-                    if result.success {
-                        showDeletePasswordSheet = false
-                        deletePassword = ""
-                    } else {
-                        deleteError = result.error ?? loc.localized("delete_account_error")
-                    }
-                }
-            }
         }
     }
 
@@ -265,29 +220,29 @@ struct TrainerProfileView: View {
         }
     }
 
-    // MARK: - Stats Section
+    // MARK: - Stats Section (Compact)
     private var statsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(loc.localized("profile_statistics"))
-                .font(.system(size: 16, weight: .semibold))
+                .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
-            HStack(spacing: 12) {
-                TrainerStatCard(
+            HStack(spacing: 8) {
+                CompactStatCard(
                     icon: "person.2.fill",
                     value: "\(dashboard.stats?.totalSubscribers ?? profileManager.userProfile.students ?? 0)",
                     label: loc.localized("profile_subscribers"),
                     color: AppTheme.Colors.accent
                 )
 
-                TrainerStatCard(
+                CompactStatCard(
                     icon: "person.fill.checkmark",
                     value: "\(dashboard.stats?.activeStudents ?? 0)",
                     label: loc.localized("profile_active_students"),
                     color: AppTheme.Colors.success
                 )
 
-                TrainerStatCard(
+                CompactStatCard(
                     icon: "calendar",
                     value: "\(profileManager.userProfile.experience ?? 0) \(loc.localized("common_year"))",
                     label: loc.localized("profile_experience"),
@@ -296,22 +251,22 @@ struct TrainerProfileView: View {
             }
 
             if let summary = dashboard.stats?.statsSummary {
-                HStack(spacing: 12) {
-                    TrainerStatCard(
+                HStack(spacing: 8) {
+                    CompactStatCard(
                         icon: "flame.fill",
                         value: String(format: "%.1f", summary.avgStudentWorkoutsPerWeek),
                         label: loc.localized("profile_avg_workouts_week"),
                         color: AppTheme.Colors.accent
                     )
 
-                    TrainerStatCard(
+                    CompactStatCard(
                         icon: "figure.strengthtraining.traditional",
                         value: "\(summary.totalWorkoutsAllStudents)",
                         label: loc.localized("profile_total_workouts"),
                         color: AppTheme.Colors.accent
                     )
 
-                    TrainerStatCard(
+                    CompactStatCard(
                         icon: "star.fill",
                         value: String(format: "%.1f", profileManager.userProfile.rating ?? 0.0),
                         label: loc.localized("profile_rating"),
@@ -322,145 +277,86 @@ struct TrainerProfileView: View {
         }
     }
 
-    // MARK: - My Plans Section (Plan Satisi)
+    // MARK: - My Plans Section (Compact)
     private var myPlansSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(loc.localized("teacher_my_plans"))
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(AppTheme.Colors.primaryText)
 
                 Spacer()
 
                 Text("\(trainingPlanManager.totalPlans + mealPlanManager.totalPlans) plan")
-                    .font(.system(size: 14))
+                    .font(.system(size: 13))
                     .foregroundColor(AppTheme.Colors.secondaryText)
             }
 
-            HStack(spacing: 12) {
+            HStack(spacing: 8) {
                 // Training Plans
-                VStack(spacing: 10) {
+                HStack(spacing: 10) {
                     ZStack {
                         Circle()
                             .fill(AppTheme.Colors.accent.opacity(0.15))
-                            .frame(width: 50, height: 50)
+                            .frame(width: 36, height: 36)
                         Image(systemName: "figure.strengthtraining.traditional")
-                            .font(.system(size: 22))
+                            .font(.system(size: 16))
                             .foregroundColor(AppTheme.Colors.accent)
                     }
 
-                    Text("\(trainingPlanManager.totalPlans)")
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundColor(AppTheme.Colors.primaryText)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("\(trainingPlanManager.totalPlans)")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundColor(AppTheme.Colors.primaryText)
 
-                    Text(loc.localized("teacher_workout_plan"))
-                        .font(.system(size: 12))
-                        .foregroundColor(AppTheme.Colors.secondaryText)
+                        Text(loc.localized("teacher_workout_plan"))
+                            .font(.system(size: 11))
+                            .foregroundColor(AppTheme.Colors.secondaryText)
+                    }
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(10)
                 .background(AppTheme.Colors.secondaryBackground)
-                .cornerRadius(14)
+                .cornerRadius(12)
 
                 // Meal Plans
-                VStack(spacing: 10) {
+                HStack(spacing: 10) {
                     ZStack {
                         Circle()
                             .fill(AppTheme.Colors.accent.opacity(0.15))
-                            .frame(width: 50, height: 50)
+                            .frame(width: 36, height: 36)
                         Image(systemName: "fork.knife")
-                            .font(.system(size: 22))
+                            .font(.system(size: 16))
                             .foregroundColor(AppTheme.Colors.accent)
                     }
 
-                    Text("\(mealPlanManager.totalPlans)")
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundColor(AppTheme.Colors.primaryText)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("\(mealPlanManager.totalPlans)")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundColor(AppTheme.Colors.primaryText)
 
-                    Text(loc.localized("teacher_meal_plan"))
-                        .font(.system(size: 12))
-                        .foregroundColor(AppTheme.Colors.secondaryText)
+                        Text(loc.localized("teacher_meal_plan"))
+                            .font(.system(size: 11))
+                            .foregroundColor(AppTheme.Colors.secondaryText)
+                    }
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(10)
                 .background(AppTheme.Colors.secondaryBackground)
-                .cornerRadius(14)
+                .cornerRadius(12)
             }
         }
     }
 
     // MARK: - Students Section
     private var studentsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text(loc.localized("profile_active_students"))
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(AppTheme.Colors.primaryText)
-
-                Spacer()
-
-                Text("\(dashboard.stats?.activeStudents ?? 0) \(loc.localized("common_person"))")
-                    .font(.system(size: 14))
-                    .foregroundColor(AppTheme.Colors.secondaryText)
-            }
-
-            VStack(spacing: 12) {
-                if dashboard.isLoading {
-                    HStack {
-                        Spacer()
-                        ProgressView()
-                            .padding()
-                        Spacer()
-                    }
-                    .background(AppTheme.Colors.secondaryBackground)
-                    .cornerRadius(12)
-                } else if dashboard.stats?.students.isEmpty ?? true {
-                    HStack(spacing: 12) {
-                        Image(systemName: "person.2.slash")
-                            .font(.system(size: 24))
-                            .foregroundColor(AppTheme.Colors.tertiaryText)
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(loc.localized("profile_no_students_yet"))
-                                .font(.system(size: 15, weight: .semibold))
-                                .foregroundColor(AppTheme.Colors.secondaryText)
-                            Text(loc.localized("profile_no_students_desc"))
-                                .font(.system(size: 13))
-                                .foregroundColor(AppTheme.Colors.tertiaryText)
-                        }
-                        Spacer()
-                    }
-                    .padding()
-                    .background(AppTheme.Colors.secondaryBackground)
-                    .cornerRadius(12)
-                } else {
-                    ForEach(Array((dashboard.stats?.students ?? []).prefix(3))) { student in
-                        StudentRow(
-                            name: student.name,
-                            goal: student.goal,
-                            thisWeekWorkouts: student.thisWeekWorkouts,
-                            avatar: student.initials,
-                            avatarColor: student.avatarColor
-                        )
-                    }
-                }
-
-                Button {
-                    showAllStudents = true
-                } label: {
-                    HStack {
-                        Image(systemName: "person.3.fill")
-                        Text(loc.localized("profile_all_students"))
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .font(.caption)
-                    }
-                    .foregroundColor(AppTheme.Colors.accent)
-                    .padding()
-                    .background(AppTheme.Colors.secondaryBackground)
-                    .cornerRadius(12)
-                }
-            }
+        SettingsRow(
+            icon: "person.3.fill",
+            title: loc.localized("profile_all_students"),
+            badge: "\(dashboard.stats?.totalSubscribers ?? profileManager.userProfile.students ?? 0)",
+            badgeColor: AppTheme.Colors.accent
+        ) {
+            showAllStudents = true
         }
     }
 
@@ -603,61 +499,65 @@ struct TrainerProfileView: View {
         }
     }
 
-    // MARK: - Earnings Section
+    // MARK: - Earnings Section (Compact)
     private var earningsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(loc.localized("profile_earnings"))
-                .font(.system(size: 16, weight: .semibold))
+                .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
-            HStack(spacing: 12) {
+            HStack(spacing: 8) {
                 // Monthly Earnings Card
-                VStack(spacing: 10) {
+                HStack(spacing: 10) {
                     ZStack {
                         Circle()
                             .fill(AppTheme.Colors.success.opacity(0.15))
-                            .frame(width: 50, height: 50)
+                            .frame(width: 36, height: 36)
                         Image(systemName: "banknote.fill")
-                            .font(.system(size: 22))
+                            .font(.system(size: 16))
                             .foregroundColor(AppTheme.Colors.success)
                     }
 
-                    Text(String(format: "%.0f %@", dashboard.stats?.monthlyEarnings ?? 0, dashboard.stats?.currency ?? "₼"))
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(AppTheme.Colors.primaryText)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(String(format: "%.0f %@", dashboard.stats?.monthlyEarnings ?? 0, dashboard.stats?.currency ?? "₼"))
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundColor(AppTheme.Colors.primaryText)
 
-                    Text(loc.localized("profile_monthly_earnings"))
-                        .font(.system(size: 12))
-                        .foregroundColor(AppTheme.Colors.secondaryText)
+                        Text(loc.localized("profile_monthly_earnings"))
+                            .font(.system(size: 11))
+                            .foregroundColor(AppTheme.Colors.secondaryText)
+                    }
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(10)
                 .background(AppTheme.Colors.secondaryBackground)
-                .cornerRadius(14)
+                .cornerRadius(12)
 
                 // Subscribers Card
-                VStack(spacing: 10) {
+                HStack(spacing: 10) {
                     ZStack {
                         Circle()
                             .fill(AppTheme.Colors.accent.opacity(0.15))
-                            .frame(width: 50, height: 50)
+                            .frame(width: 36, height: 36)
                         Image(systemName: "person.crop.circle.badge.checkmark")
-                            .font(.system(size: 22))
+                            .font(.system(size: 16))
                             .foregroundColor(AppTheme.Colors.accent)
                     }
 
-                    Text("\(dashboard.stats?.totalSubscribers ?? 0)")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(AppTheme.Colors.primaryText)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("\(dashboard.stats?.totalSubscribers ?? 0)")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundColor(AppTheme.Colors.primaryText)
 
-                    Text(loc.localized("profile_subscribers"))
-                        .font(.system(size: 12))
-                        .foregroundColor(AppTheme.Colors.secondaryText)
+                        Text(loc.localized("profile_subscribers"))
+                            .font(.system(size: 11))
+                            .foregroundColor(AppTheme.Colors.secondaryText)
+                    }
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(10)
                 .background(AppTheme.Colors.secondaryBackground)
-                .cornerRadius(14)
+                .cornerRadius(12)
             }
         }
     }
@@ -707,49 +607,13 @@ struct TrainerProfileView: View {
         return displayFormatter.string(from: date)
     }
 
-    // MARK: - Settings Section
+    // MARK: - Settings Section (Tek buton)
     private var settingsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(loc.localized("profile_settings"))
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(AppTheme.Colors.primaryText)
-
-            VStack(spacing: 12) {
-                SettingsRow(
-                    icon: "bell.fill",
-                    title: loc.localized("settings_notifications"),
-                    badge: settingsManager.notificationsEnabled ? loc.localized("common_active") : nil,
-                    badgeColor: AppTheme.Colors.success
-                ) {
-                    showNotifications = true
-                }
-
-                SettingsRow(
-                    icon: "lock.fill",
-                    title: loc.localized("settings_security"),
-                    badge: settingsManager.faceIDEnabled || settingsManager.hasAppPassword ? "ON" : nil,
-                    badgeColor: AppTheme.Colors.accent
-                ) {
-                    showSecurity = true
-                }
-
-                SettingsRow(
-                    icon: "info.circle.fill",
-                    title: loc.localized("settings_about")
-                ) {
-                    showAbout = true
-                }
-
-                // Delete Account
-                SettingsRow(
-                    icon: "trash.fill",
-                    title: loc.localized("delete_account_title"),
-                    iconColor: AppTheme.Colors.error,
-                    titleColor: AppTheme.Colors.error
-                ) {
-                    showDeleteAccountAlert = true
-                }
-            }
+        SettingsRow(
+            icon: "gearshape.fill",
+            title: loc.localized("profile_settings")
+        ) {
+            showSettings = true
         }
     }
 
@@ -775,22 +639,6 @@ struct TrainerProfileView: View {
         }
     }
 
-    // MARK: - Delete Account Button
-    private var deleteAccountButton: some View {
-        Button {
-            showDeleteAccountAlert = true
-        } label: {
-            HStack(spacing: 8) {
-                Image(systemName: "trash.fill")
-                    .font(.system(size: 14))
-                Text(loc.localized("delete_account_title"))
-                    .font(.system(size: 14, weight: .medium))
-            }
-            .foregroundColor(AppTheme.Colors.error.opacity(0.7))
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-        }
-    }
 }
 
 // MARK: - Components

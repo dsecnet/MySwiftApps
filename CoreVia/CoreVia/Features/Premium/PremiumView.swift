@@ -61,6 +61,11 @@ struct PremiumView: View {
             } message: {
                 Text(errorMessage ?? storeKit.errorMessage ?? loc.localized("common_unknown_error"))
             }
+            .onAppear {
+                if storeKit.products.isEmpty {
+                    Task { await storeKit.loadProducts() }
+                }
+            }
             .alert(loc.localized("premium_cancel_title"), isPresented: $showCancelAlert) {
                 Button(loc.localized("common_cancel"), role: .cancel) {}
                 Button(loc.localized("premium_cancel_yes"), role: .destructive) { cancelPremium() }
@@ -103,7 +108,7 @@ struct PremiumView: View {
                 Divider().background(AppTheme.Colors.tertiaryText.opacity(0.3))
                 InfoRow(icon: "creditcard",
                         title: loc.localized("premium_price"),
-                        value: "9.99 AZN/\(loc.localized("premium_month"))")
+                        value: "\(storeKit.products.first?.displayPrice ?? "---")/\(loc.localized("premium_month"))")
             }
             .padding(20)
             .background(AppTheme.Colors.secondaryBackground)

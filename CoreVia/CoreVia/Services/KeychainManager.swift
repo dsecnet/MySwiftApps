@@ -79,14 +79,25 @@ class KeychainManager {
 
     func save(key: String, value: String) {
         let data = Data(value.utf8)
-        let query: [String: Any] = [
+
+        // Əvvəlcə köhnə dəyəri sil (yalnız key əsasında — kSecValueData daxil etmə!)
+        let deleteQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: key,
+        ]
+        SecItemDelete(deleteQuery as CFDictionary)
+
+        // Yeni dəyəri əlavə et
+        let addQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
             kSecValueData as String: data,
             kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
         ]
-        SecItemDelete(query as CFDictionary)
-        SecItemAdd(query as CFDictionary, nil)
+        let status = SecItemAdd(addQuery as CFDictionary, nil)
+        if status != errSecSuccess {
+            AppLogger.general.error("Keychain save failed for key: \(key), status: \(status)")
+        }
     }
 
     func load(key: String) -> String? {

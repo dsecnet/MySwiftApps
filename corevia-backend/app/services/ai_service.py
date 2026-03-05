@@ -78,7 +78,12 @@ async def analyze_food_image(image_data: bytes) -> dict:
         return {"error": "AI analizi ugursuz oldu. Yeniden cehd edin."}
 
 
-async def get_user_recommendations(user_data: dict) -> dict:
+async def get_user_recommendations(
+    user_data: dict,
+    prev_week_data: dict = None,
+    students_data: list = None,
+    language: str = "az",
+) -> dict:
     """Local ML ile tovsiyeler generasiya et"""
     try:
         from app.ml.recommendation_engine import RecommendationEngine
@@ -89,8 +94,18 @@ async def get_user_recommendations(user_data: dict) -> dict:
         result = engine.generate_recommendations(
             user_data=user_data,
             survey_data=survey_data,
-            language="az",
+            prev_week_data=prev_week_data,
+            language=language,
         )
+
+        # Trainer ucun telebe tovsiyyeleri
+        if students_data:
+            trainer_recs = engine.generate_trainer_recommendations(
+                students_data=students_data,
+                language=language,
+            )
+            result["recommendations"].extend(trainer_recs)
+
         return result
 
     except Exception as e:

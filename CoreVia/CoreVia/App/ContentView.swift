@@ -4,9 +4,20 @@ struct ContentView: View {
 
     @StateObject private var authManager = AuthManager.shared
     @StateObject private var onboardingManager = OnboardingManager.shared
+    @StateObject private var settingsManager = SettingsManager.shared
     @State private var showRegister: Bool = false
     @StateObject private var workoutManager = WorkoutManager.shared
     @State private var hasSeenPermissions: Bool = UserDefaults.standard.bool(forKey: "hasSeenPermissions")
+    @Environment(\.scenePhase) private var scenePhase
+
+    // Face ID / Biometric Lock
+    @State private var isUnlocked = false
+    @State private var isAuthenticating = false
+
+    /// Face ID / Touch ID aktiv və istifadəçi login olub?
+    private var needsBiometricUnlock: Bool {
+        return authManager.isLoggedIn && settingsManager.faceIDEnabled && !isUnlocked
+    }
 
     /// İlk açılışda permission screen lazımdır?
     private var needsPermissions: Bool {
@@ -29,7 +40,13 @@ struct ContentView: View {
             if needsPermissions {
                 PermissionsView(isGranted: $hasSeenPermissions)
             } else if authManager.isLoggedIn {
-                if needsTrainerVerification {
+                if needsBiometricUnlock {
+                    // Kilid ekranı — Face ID / Touch ID ilə açılmalıdır
+                    BiometricLockView(
+                        isAuthenticating: $isAuthenticating,
+                        onAuthenticate: { authenticateBiometric() }
+                    )
+                } else if needsTrainerVerification {
                     TrainerVerificationView()
                 } else if needsOnboarding {
                     OnboardingView()
@@ -55,13 +72,114 @@ struct ContentView: View {
             if authManager.isLoggedIn {
                 Task { await onboardingManager.checkStatus() }
             }
+            // Face ID aktiv deyilsə, birbaşa unlock et
+            if !settingsManager.faceIDEnabled {
+                isUnlocked = true
+            } else if authManager.isLoggedIn {
+                authenticateBiometric()
+            }
         }
         .onChange(of: authManager.isLoggedIn) { loggedIn in
             if loggedIn {
                 Task { await onboardingManager.checkStatus() }
+                // Yeni login olduqda unlock et (login özü autentifikasiyadır)
+                isUnlocked = true
             } else {
                 // Logout olduqda onboarding cache-i təmizlə
                 onboardingManager.resetOnLogout()
+                // Logout olduqda kilidi sıfırla
+                isUnlocked = false
+            }
+        }
+        .onChange(of: scenePhase) { phase in
+            // App background-a gedib qayıdanda yenidən Face ID tələb et
+            if phase == .background && settingsManager.faceIDEnabled {
+                isUnlocked = false
+            }
+            if phase == .active && settingsManager.faceIDEnabled && authManager.isLoggedIn && !isUnlocked {
+                authenticateBiometric()
+            }
+        }
+    }
+
+    // MARK: - Biometric Authentication
+    private func authenticateBiometric() {
+        guard !isAuthenticating else { return }
+        isAuthenticating = true
+        settingsManager.authenticateWithBiometrics { success, error in
+            isAuthenticating = false
+            if success {
+                isUnlocked = true
+            }
+        }
+    }
+}
+
+// MARK: - Biometric Lock Screen
+struct BiometricLockView: View {
+    @Binding var isAuthenticating: Bool
+    let onAuthenticate: () -> Void
+    @ObservedObject private var loc = LocalizationManager.shared
+
+    var body: some View {
+        ZStack {
+            AppTheme.Colors.background.ignoresSafeArea()
+
+            VStack(spacing: 32) {
+                Spacer()
+
+                // App icon
+                ZStack {
+                    Circle()
+                        .fill(AppTheme.Colors.accent.opacity(0.15))
+                        .frame(width: 120, height: 120)
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 50))
+                        .foregroundColor(AppTheme.Colors.accent)
+                }
+
+                VStack(spacing: 8) {
+                    Text("CoreVia")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(AppTheme.Colors.primaryText)
+
+                    Text(loc.localized("biometric_unlock_desc") == "biometric_unlock_desc"
+                         ? "Davam etmək üçün şəxsiyyətinizi təsdiqləyin"
+                         : loc.localized("biometric_unlock_desc"))
+                        .font(.system(size: 15))
+                        .foregroundColor(AppTheme.Colors.secondaryText)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+                }
+
+                Spacer()
+
+                // Unlock button
+                Button {
+                    onAuthenticate()
+                } label: {
+                    HStack(spacing: 12) {
+                        if isAuthenticating {
+                            ProgressView()
+                                .tint(.white)
+                        } else {
+                            Image(systemName: "faceid")
+                                .font(.system(size: 22))
+                            Text(loc.localized("biometric_unlock") == "biometric_unlock"
+                                 ? "Kilidi aç"
+                                 : loc.localized("biometric_unlock"))
+                                .font(.system(size: 17, weight: .semibold))
+                        }
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 18)
+                    .background(AppTheme.Colors.accent)
+                    .cornerRadius(16)
+                }
+                .disabled(isAuthenticating)
+                .padding(.horizontal, 24)
+                .padding(.bottom, 60)
             }
         }
     }

@@ -21,20 +21,10 @@ struct ClientProfileView: View {
     @State private var showImagePicker = false
     @State private var showEditProfile = false
     @State private var showLogoutAlert = false
-    @State private var showNotifications = false
-    @State private var showSecurity = false
-    @State private var showPremium = false
-    @State private var showAbout = false
     @State private var showAddWorkout = false
     @State private var showAddFood = false
     @State private var showCancelPremiumAlert = false
-
-    // Delete Account
-    @State private var showDeleteAccountAlert = false
-    @State private var showDeletePasswordSheet = false
-    @State private var deletePassword: String = ""
-    @State private var deleteError: String? = nil
-    @State private var isDeleting: Bool = false
+    @State private var showSettings = false
 
     var body: some View {
         ZStack {
@@ -71,17 +61,8 @@ struct ClientProfileView: View {
         .sheet(isPresented: $showEditProfile) {
             EditClientProfileView()
         }
-        .sheet(isPresented: $showNotifications) {
-            NotificationsSettingsView()
-        }
-        .sheet(isPresented: $showSecurity) {
-            SecuritySettingsView()
-        }
-        .sheet(isPresented: $showPremium) {
-            PremiumView()
-        }
-        .sheet(isPresented: $showAbout) {
-            AboutView()
+        .sheet(isPresented: $showSettings) {
+            ClientSettingsView()
         }
         .sheet(isPresented: $showAddWorkout) {
             AddWorkoutView()
@@ -123,35 +104,6 @@ struct ClientProfileView: View {
             }
         } message: {
             Text(loc.localized("premium_cancel_message"))
-        }
-        // Delete Account
-        .alert(loc.localized("delete_account_title"), isPresented: $showDeleteAccountAlert) {
-            Button(loc.localized("common_cancel"), role: .cancel) { }
-            Button(loc.localized("common_delete"), role: .destructive) {
-                showDeletePasswordSheet = true
-            }
-        } message: {
-            Text(loc.localized("delete_account_warning"))
-        }
-        .sheet(isPresented: $showDeletePasswordSheet) {
-            DeleteAccountSheet(
-                password: $deletePassword,
-                error: $deleteError,
-                isDeleting: $isDeleting
-            ) {
-                Task {
-                    isDeleting = true
-                    deleteError = nil
-                    let result = await AuthManager.shared.deleteAccount(password: deletePassword)
-                    isDeleting = false
-                    if result.success {
-                        showDeletePasswordSheet = false
-                        deletePassword = ""
-                    } else {
-                        deleteError = result.error ?? loc.localized("delete_account_error")
-                    }
-                }
-            }
         }
     }
 
@@ -321,7 +273,7 @@ struct ClientProfileView: View {
     // MARK: - Premium Banner
     private var premiumBanner: some View {
         Button {
-            showPremium = true
+            showSettings = true
         } label: {
             HStack(spacing: 14) {
                 ZStack {
@@ -363,47 +315,42 @@ struct ClientProfileView: View {
         }
     }
 
-    // MARK: - Today Highlights (horizontal scroll)
+    // MARK: - Today Highlights (Compact)
     private var todayHighlightsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(loc.localized("profile_today_highlights"))
-                .font(.system(size: 16, weight: .semibold))
+                .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    TodayHighlightCard(
-                        icon: "figure.strengthtraining.traditional",
-                        value: "\(workoutManager.todayWorkouts.count)",
-                        label: loc.localized("profile_workouts"),
-                        color: AppTheme.Colors.accent
-                    )
-                    TodayHighlightCard(
-                        icon: "flame.fill",
-                        value: "\(foodManager.todayTotalCalories)",
-                        label: loc.localized("profile_calorie"),
-                        color: AppTheme.Colors.accent
-                    )
-                    TodayHighlightCard(
-                        icon: "fork.knife",
-                        value: "\(foodManager.todayEntries.count)",
-                        label: loc.localized("profile_meals"),
-                        color: AppTheme.Colors.success
-                    )
-                }
+            HStack(spacing: 8) {
+                ClientStatCard(
+                    icon: "figure.strengthtraining.traditional",
+                    value: "\(workoutManager.todayWorkouts.count)",
+                    label: loc.localized("profile_workouts")
+                )
+                ClientStatCard(
+                    icon: "flame.fill",
+                    value: "\(foodManager.todayTotalCalories)",
+                    label: loc.localized("profile_calorie")
+                )
+                ClientStatCard(
+                    icon: "fork.knife",
+                    value: "\(foodManager.todayEntries.count)",
+                    label: loc.localized("profile_meals")
+                )
             }
         }
     }
 
-    // MARK: - Weekly Progress (Circular Rings)
+    // MARK: - Weekly Progress (Compact Rings)
     private var weeklyProgressSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(loc.localized("profile_weekly_progress"))
-                .font(.system(size: 16, weight: .semibold))
+                .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
-            HStack(spacing: 14) {
-                CircularProgressCard(
+            HStack(spacing: 8) {
+                CompactCircularCard(
                     value: Double(workoutManager.weekWorkouts.count),
                     total: 5.0,
                     label: loc.localized("profile_workouts"),
@@ -411,7 +358,7 @@ struct ClientProfileView: View {
                     icon: "figure.strengthtraining.traditional"
                 )
 
-                CircularProgressCard(
+                CompactCircularCard(
                     value: Double(foodManager.todayTotalCalories),
                     total: Double(foodManager.dailyCalorieGoal),
                     label: loc.localized("profile_calorie"),
@@ -673,58 +620,13 @@ struct ClientProfileView: View {
         return displayFormatter.string(from: date)
     }
 
-    // MARK: - Settings Section
+    // MARK: - Settings Section (Tek buton)
     private var settingsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(loc.localized("profile_settings"))
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(AppTheme.Colors.primaryText)
-
-            VStack(spacing: 8) {
-                SettingsRow(
-                    icon: "bell.fill",
-                    title: loc.localized("settings_notifications"),
-                    badge: settingsManager.notificationsEnabled ? loc.localized("common_active") : nil,
-                    badgeColor: AppTheme.Colors.success
-                ) {
-                    showNotifications = true
-                }
-
-                SettingsRow(
-                    icon: "lock.fill",
-                    title: loc.localized("settings_security"),
-                    badge: settingsManager.faceIDEnabled || settingsManager.hasAppPassword ? "🔒" : nil,
-                    badgeColor: AppTheme.Colors.accent
-                ) {
-                    showSecurity = true
-                }
-
-                SettingsRow(
-                    icon: "sparkles",
-                    title: loc.localized("settings_premium"),
-                    badge: settingsManager.isPremium ? loc.localized("premium_active_badge") : nil,
-                    badgeColor: settingsManager.isPremium ? AppTheme.Colors.success : AppTheme.Colors.accentDark
-                ) {
-                    showPremium = true
-                }
-
-                SettingsRow(
-                    icon: "info.circle.fill",
-                    title: loc.localized("settings_about")
-                ) {
-                    showAbout = true
-                }
-
-                // Delete Account
-                SettingsRow(
-                    icon: "trash.fill",
-                    title: loc.localized("delete_account_title"),
-                    iconColor: AppTheme.Colors.error,
-                    titleColor: AppTheme.Colors.error
-                ) {
-                    showDeleteAccountAlert = true
-                }
-            }
+        SettingsRow(
+            icon: "gearshape.fill",
+            title: loc.localized("profile_settings")
+        ) {
+            showSettings = true
         }
     }
 
@@ -750,22 +652,6 @@ struct ClientProfileView: View {
         }
     }
 
-    // MARK: - Delete Account Button
-    private var deleteAccountButton: some View {
-        Button {
-            showDeleteAccountAlert = true
-        } label: {
-            HStack(spacing: 8) {
-                Image(systemName: "trash.fill")
-                    .font(.system(size: 14))
-                Text(loc.localized("delete_account_title"))
-                    .font(.system(size: 14, weight: .medium))
-            }
-            .foregroundColor(AppTheme.Colors.error.opacity(0.7))
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-        }
-    }
 }
 
 // MARK: - Today Highlight Card

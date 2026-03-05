@@ -207,7 +207,10 @@ struct HomeView: View {
                     }
                     
                     // MARK: - AI Tövsiyə Kartı
-                    aiRecommendationCard
+                    NavigationLink(destination: SmartRecommendationView()) {
+                        aiRecommendationCard
+                    }
+                    .buttonStyle(PlainButtonStyle())
 
                     // MARK: - Weekly Stats
                     VStack(alignment: .leading, spacing: 8) {
@@ -305,8 +308,9 @@ struct HomeView: View {
                     ProgressView()
                         .scaleEffect(0.7)
                 } else {
-                    Image(systemName: "sparkles")
-                        .foregroundColor(.purple)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(AppTheme.Colors.tertiaryText)
                 }
             }
 
@@ -383,7 +387,7 @@ struct HomeView: View {
         }
     }
 
-    /// Backend ML varsa onu, yoxsa lokal fallback
+    /// Backend ML tovsiyesi
     private func currentRecommendation() -> HomeAIRec {
         if let rec = backendRecommendation {
             return HomeAIRec(
@@ -394,7 +398,14 @@ struct HomeView: View {
                 category: typeToCategory(rec.type)
             )
         }
-        return generateLocalFallback()
+        // Backend hele yuklenmeyib — placeholder
+        return HomeAIRec(
+            title: loc.localized("ai_rec_loading"),
+            description: loc.localized("ai_rec_tap_to_see"),
+            icon: "sparkles",
+            color: .purple,
+            category: "AI"
+        )
     }
 
     private func typeToIcon(_ type: String) -> String {
@@ -430,47 +441,6 @@ struct HomeView: View {
         }
     }
 
-    /// Lokal fallback — backend cavab vermese (movcut meantiq qorunur)
-    private func generateLocalFallback() -> HomeAIRec {
-        let todayWorkouts = workoutManager.todayWorkouts.count
-        let _ = workoutManager.todayWorkouts.filter { $0.isCompleted }.count
-        let progress = workoutManager.todayProgress
-        let foodCalories = FoodManager.shared.todayTotalCalories
-
-        if todayWorkouts == 0 {
-            return HomeAIRec(
-                title: loc.localized("ai_rec_no_workout_title"),
-                description: loc.localized("ai_rec_no_workout_desc"),
-                icon: "figure.walk",
-                color: AppTheme.Colors.accent,
-                category: loc.localized("task_type_workout")
-            )
-        } else if progress >= 1.0 {
-            return HomeAIRec(
-                title: loc.localized("ai_rec_goal_done_title"),
-                description: loc.localized("ai_rec_goal_done_desc"),
-                icon: "trophy.fill",
-                color: AppTheme.Colors.success,
-                category: loc.localized("ai_rec_motivation")
-            )
-        } else if foodCalories < 500 {
-            return HomeAIRec(
-                title: loc.localized("ai_rec_eat_more_title"),
-                description: loc.localized("ai_rec_eat_more_desc"),
-                icon: "fork.knife",
-                color: .orange,
-                category: loc.localized("task_type_nutrition")
-            )
-        } else {
-            return HomeAIRec(
-                title: loc.localized("ai_rec_keep_going_title"),
-                description: loc.localized("ai_rec_keep_going_desc"),
-                icon: "flame.fill",
-                color: AppTheme.Colors.accent,
-                category: loc.localized("ai_rec_motivation")
-            )
-        }
-    }
 }
 
 // MARK: - Components
