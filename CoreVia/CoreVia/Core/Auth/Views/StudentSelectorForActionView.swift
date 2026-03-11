@@ -39,11 +39,11 @@ struct StudentSelectorForActionView: View {
                 }
                 .padding()
             }
-            .navigationTitle(actionType == .food ? "Tələbə Seçin (Qida)" : "Tələbə Seçin (Hərəkət)")
+            .navigationTitle(actionType == .food ? loc.localized("student_select_food") : loc.localized("student_select_workout"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Ləğv et") {
+                    Button(loc.localized("common_cancel")) {
                         dismiss()
                     }
                 }
@@ -120,11 +120,11 @@ struct StudentSelectorForActionView: View {
                 .font(.system(size: 48))
                 .foregroundColor(AppTheme.Colors.secondaryText)
 
-            Text("Hələ tələbəniz yoxdur")
+            Text(loc.localized("student_no_students"))
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
-            Text("Tələbələr sizə üzv olduqda burada görünəcək")
+            Text(loc.localized("student_no_students_desc"))
                 .font(.system(size: 14))
                 .foregroundColor(AppTheme.Colors.secondaryText)
                 .multilineTextAlignment(.center)

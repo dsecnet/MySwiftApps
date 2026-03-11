@@ -10,9 +10,8 @@ from app.database import Base
 
 
 class UserRole(str, enum.Enum):
-    USER = "user"
-    AGENT = "agent"
     OWNER = "owner"
+    AGENT = "agent"
     ADMIN = "admin"
 
 
@@ -22,17 +21,15 @@ class User(Base):
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
-    phone: Mapped[str] = mapped_column(
-        String(20), unique=True, nullable=False, index=True
+    email: Mapped[str] = mapped_column(
+        String(255), unique=True, nullable=False, index=True
     )
-    email: Mapped[str | None] = mapped_column(
-        String(255), unique=True, nullable=True
-    )
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
     avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     role: Mapped[UserRole] = mapped_column(
         SAEnum(UserRole, name="user_role", create_constraint=True),
-        default=UserRole.USER,
+        default=UserRole.OWNER,
         nullable=False,
     )
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -64,4 +61,4 @@ class User(Base):
     )
 
     def __repr__(self) -> str:
-        return f"<User {self.full_name} ({self.phone})>"
+        return f"<User {self.full_name} ({self.email})>"

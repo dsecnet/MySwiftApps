@@ -49,7 +49,7 @@ class LocalizationManager: ObservableObject {
            let lang = AppLanguage(rawValue: saved) {
             self.currentLanguage = lang
         } else {
-            self.currentLanguage = .az
+            self.currentLanguage = .en
         }
     }
 
@@ -1119,6 +1119,319 @@ class LocalizationManager: ObservableObject {
         "ai_rec_score_average": [.az: "Orta səviyyə — daha yaxşı edə bilərsən", .en: "Average — you can do better", .ru: "Средний уровень — можете лучше"],
         "ai_rec_score_improve": [.az: "İnkişaf lazımdır", .en: "Improvement needed", .ru: "Нужны улучшения"],
         "ai_rec_trainer_desc": [.az: "Fərdi və tələbə analizləri", .en: "Personal & student analysis", .ru: "Персональный и анализ учеников"],
+
+        // ============================================================
+        // MARK: - Exercise Library
+        // ============================================================
+        "exercise_library_title": [.az: "Məşq Kitabxanası", .en: "Exercise Library", .ru: "Библиотека упражнений"],
+        "exercise_library_desc": [.az: "870+ məşq təlimatı ilə", .en: "870+ exercise guides", .ru: "870+ руководств"],
+        "exercise_search": [.az: "Məşq axtar...", .en: "Search exercises...", .ru: "Поиск упражнений..."],
+        "exercise_no_results": [.az: "Nəticə tapılmadı", .en: "No results found", .ru: "Ничего не найдено"],
+        "exercise_loading": [.az: "Yüklənir...", .en: "Loading...", .ru: "Загрузка..."],
+        "exercise_loading_error": [.az: "Yükləmə xətası", .en: "Loading error", .ru: "Ошибка загрузки"],
+        "exercise_retry": [.az: "Yenidən cəhd et", .en: "Try again", .ru: "Попробовать снова"],
+        "exercise_found_count": [.az: "məşq tapıldı", .en: "exercises found", .ru: "упражнений найдено"],
+        "exercise_start_position": [.az: "Başlanğıc", .en: "Start", .ru: "Начало"],
+        "exercise_end_position": [.az: "Son pozisiya", .en: "End position", .ru: "Конечная позиция"],
+        "exercise_target_muscle": [.az: "Hədəf əzələ", .en: "Target muscle", .ru: "Целевая мышца"],
+        "exercise_equipment": [.az: "Avadanlıq", .en: "Equipment", .ru: "Оборудование"],
+        "exercise_category": [.az: "Kateqoriya", .en: "Category", .ru: "Категория"],
+        "exercise_level": [.az: "Səviyyə", .en: "Level", .ru: "Уровень"],
+        "exercise_force_type": [.az: "Hərəkət növü", .en: "Movement type", .ru: "Тип движения"],
+        "exercise_instructions": [.az: "Təlimatlar", .en: "Instructions", .ru: "Инструкции"],
+        "exercise_secondary_muscles": [.az: "İkinci əzələlər", .en: "Secondary muscles", .ru: "Вторичные мышцы"],
+        "exercise_about": [.az: "Haqqında", .en: "About", .ru: "Описание"],
+        "exercise_favorite": [.az: "Favorit", .en: "Favorite", .ru: "Избранное"],
+
+        // MARK: - Muscle Groups
+        "muscle_chest": [.az: "Sinə", .en: "Chest", .ru: "Грудь"],
+        "muscle_abdominals": [.az: "Qarın", .en: "Abdominals", .ru: "Пресс"],
+        "muscle_shoulders": [.az: "Çiyin", .en: "Shoulders", .ru: "Плечи"],
+        "muscle_biceps": [.az: "Biseps", .en: "Biceps", .ru: "Бицепс"],
+        "muscle_triceps": [.az: "Triseps", .en: "Triceps", .ru: "Трицепс"],
+        "muscle_lats": [.az: "Kürək", .en: "Lats", .ru: "Широчайшие"],
+        "muscle_middle_back": [.az: "Orta Bel", .en: "Middle Back", .ru: "Средняя спина"],
+        "muscle_lower_back": [.az: "Alt Bel", .en: "Lower Back", .ru: "Поясница"],
+        "muscle_quadriceps": [.az: "Ön Ayaq", .en: "Quadriceps", .ru: "Квадрицепс"],
+        "muscle_hamstrings": [.az: "Arxa Ayaq", .en: "Hamstrings", .ru: "Бицепс бедра"],
+        "muscle_glutes": [.az: "Kalça", .en: "Glutes", .ru: "Ягодицы"],
+        "muscle_calves": [.az: "Baldır", .en: "Calves", .ru: "Икры"],
+        "muscle_forearms": [.az: "Bilək", .en: "Forearms", .ru: "Предплечья"],
+        "muscle_traps": [.az: "Trapez", .en: "Traps", .ru: "Трапеция"],
+        "muscle_neck": [.az: "Boyun", .en: "Neck", .ru: "Шея"],
+        "muscle_abductors": [.az: "Abduktor", .en: "Abductors", .ru: "Отводящие"],
+        "muscle_adductors": [.az: "Adduktor", .en: "Adductors", .ru: "Приводящие"],
+
+        // MARK: - Equipment
+        "equip_barbell": [.az: "Ştanq", .en: "Barbell", .ru: "Штанга"],
+        "equip_dumbbell": [.az: "Gantel", .en: "Dumbbell", .ru: "Гантели"],
+        "equip_cable": [.az: "Kabel", .en: "Cable", .ru: "Тросовый"],
+        "equip_machine": [.az: "Maşın", .en: "Machine", .ru: "Тренажёр"],
+        "equip_body_only": [.az: "Bədən çəkisi", .en: "Body only", .ru: "Своё тело"],
+        "equip_bands": [.az: "Rezin lent", .en: "Bands", .ru: "Резинки"],
+        "equip_kettlebells": [.az: "Girya", .en: "Kettlebells", .ru: "Гири"],
+        "equip_medicine_ball": [.az: "Tibb topu", .en: "Medicine ball", .ru: "Медбол"],
+        "equip_exercise_ball": [.az: "Fitbol", .en: "Exercise ball", .ru: "Фитбол"],
+        "equip_foam_roll": [.az: "Foam roller", .en: "Foam roll", .ru: "Ролл"],
+        "equip_ez_bar": [.az: "EZ Bar", .en: "E-Z Curl bar", .ru: "EZ-гриф"],
+        "equip_other": [.az: "Digər", .en: "Other", .ru: "Другое"],
+
+        // MARK: - Exercise Levels
+        "level_beginner": [.az: "Başlanğıc", .en: "Beginner", .ru: "Начинающий"],
+        "level_intermediate": [.az: "Orta", .en: "Intermediate", .ru: "Средний"],
+        "level_expert": [.az: "Peşəkar", .en: "Expert", .ru: "Продвинутый"],
+
+        // MARK: - Exercise Categories
+        "cat_strength": [.az: "Güc", .en: "Strength", .ru: "Сила"],
+        "cat_stretching": [.az: "Gərmə", .en: "Stretching", .ru: "Растяжка"],
+        "cat_plyometrics": [.az: "Pliometrika", .en: "Plyometrics", .ru: "Плиометрика"],
+        "cat_cardio": [.az: "Kardio", .en: "Cardio", .ru: "Кардио"],
+        "cat_powerlifting": [.az: "Pauerliftinq", .en: "Powerlifting", .ru: "Пауэрлифтинг"],
+        "cat_olympic": [.az: "Olimpik Ağırlıq", .en: "Olympic Weightlifting", .ru: "Тяжёлая атлетика"],
+        "cat_crossfit": [.az: "CrossFit", .en: "CrossFit", .ru: "CrossFit"],
+        "cat_strongman": [.az: "Strongman", .en: "Strongman", .ru: "Стронгмен"],
+
+        // MARK: - Exercise Force Types
+        "force_push": [.az: "İtələmə", .en: "Push", .ru: "Толчок"],
+        "force_pull": [.az: "Çəkmə", .en: "Pull", .ru: "Тяга"],
+        "force_static": [.az: "Statik", .en: "Static", .ru: "Статика"],
+
+        // MARK: - Biometric
+        "biometric_unlock": [.az: "Kilidi aç", .en: "Unlock", .ru: "Разблокировать"],
+        "biometric_unlock_desc": [.az: "Davam etmək üçün şəxsiyyətinizi təsdiqləyin", .en: "Verify your identity to continue", .ru: "Подтвердите личность для продолжения"],
+
+        // MARK: - Premium (missing)
+        "premium_restore": [.az: "Alışları bərpa et", .en: "Restore purchases", .ru: "Восстановить покупки"],
+
+        // MARK: - Forgot Password
+        "forgot_title": [.az: "Şifrəni Bərpa Et", .en: "Reset Password", .ru: "Сброс пароля"],
+        "forgot_success": [.az: "Şifrəniz uğurla yeniləndi", .en: "Password successfully updated", .ru: "Пароль успешно обновлён"],
+        "forgot_send_otp": [.az: "Email-ə OTP Göndər", .en: "Send OTP to Email", .ru: "Отправить OTP на Email"],
+        "forgot_verify_code": [.az: "Təsdiq Kodu", .en: "Verification Code", .ru: "Код подтверждения"],
+        "forgot_resend_timer": [.az: "Yenidən göndər:", .en: "Resend in:", .ru: "Повторить через:"],
+        "forgot_resend": [.az: "Kodu yenidən göndər", .en: "Resend code", .ru: "Отправить код снова"],
+        "forgot_verify": [.az: "Təsdiq Et", .en: "Verify", .ru: "Подтвердить"],
+        "forgot_new_password": [.az: "Yeni Şifrə", .en: "New Password", .ru: "Новый пароль"],
+        "forgot_confirm_password": [.az: "Şifrəni Təsdiq Et", .en: "Confirm Password", .ru: "Подтвердите пароль"],
+        "forgot_update_password": [.az: "Şifrəni Yenilə", .en: "Update Password", .ru: "Обновить пароль"],
+
+        // MARK: - OTP
+        "otp_title": [.az: "OTP Təsdiqi", .en: "OTP Verification", .ru: "Подтверждение OTP"],
+        "otp_instruction": [.az: "ünvanına göndərilən 6 rəqəmli kodu daxil edin", .en: "Enter the 6-digit code sent to", .ru: "Введите 6-значный код, отправленный на"],
+        "otp_verify_login": [.az: "Təsdiq Et və Daxil Ol", .en: "Verify & Login", .ru: "Подтвердить и войти"],
+        "otp_verify_register": [.az: "Təsdiq Et və Qeydiyyatdan Keç", .en: "Verify & Register", .ru: "Подтвердить и зарегистрироваться"],
+        "otp_resend": [.az: "OTP-ni yenidən göndər", .en: "Resend OTP", .ru: "Отправить OTP снова"],
+        "otp_go_back": [.az: "Geri qayıt", .en: "Go back", .ru: "Назад"],
+
+        // MARK: - Trainer Fields
+        "trainer_specialization": [.az: "İxtisas", .en: "Specialization", .ru: "Специализация"],
+        "trainer_experience": [.az: "Təcrübə", .en: "Experience", .ru: "Опыт"],
+        "trainer_experience_years": [.az: "il", .en: "years", .ru: "лет"],
+        "trainer_about": [.az: "Haqqınızda", .en: "About you", .ru: "О вас"],
+        "trainer_about_placeholder": [.az: "Özünüz haqqında qısa məlumat yazın...", .en: "Write a short bio about yourself...", .ru: "Напишите немного о себе..."],
+        "trainer_fitness_photo": [.az: "Fitness Şəkiliniz", .en: "Your Fitness Photo", .ru: "Ваше фитнес-фото"],
+
+        // MARK: - Camera Permission
+        "camera_permission_title": [.az: "Kamera İcazəsi", .en: "Camera Permission", .ru: "Доступ к камере"],
+        "camera_permission_desc": [.az: "Kamera istifadəsi üçün icazə lazımdır. Ayarlardan aktiv edin.", .en: "Camera permission is required. Enable it in Settings.", .ru: "Требуется разрешение камеры. Включите в настройках."],
+        "camera_go_settings": [.az: "Ayarlara Keç", .en: "Go to Settings", .ru: "Перейти в настройки"],
+
+        // MARK: - Common extras
+        "common_reserve_table": [.az: "Masa rezerv et", .en: "Reserve a table", .ru: "Забронировать стол"],
+        "common_not_available": [.az: "Bu funksiya tezliklə əlavə olunacaq.", .en: "This feature will be available soon.", .ru: "Эта функция скоро будет доступна."],
+        "common_coming_soon": [.az: "Tezliklə", .en: "Coming soon", .ru: "Скоро"],
+        "common_share": [.az: "Paylaş", .en: "Share", .ru: "Поделиться"],
+        "common_add_favorite": [.az: "Favorit et", .en: "Mark as favorite", .ru: "Добавить в избранное"],
+        "common_remove_favorite": [.az: "Favoritdən çıxar", .en: "Remove from favorites", .ru: "Удалить из избранного"],
+
+        // MARK: - Food / Eating extras
+        "food_no_data": [.az: "Qida məlumatı yoxdur", .en: "No food data", .ru: "Нет данных о еде"],
+        "food_add_new": [.az: "Yeni qida əlavə edin", .en: "Add new food", .ru: "Добавить еду"],
+        "food_ai_analyzing": [.az: "AI qidanı analiz edir...", .en: "AI is analyzing food...", .ru: "AI анализирует еду..."],
+        "food_accuracy": [.az: "Dəqiqlik:", .en: "Accuracy:", .ru: "Точность:"],
+        "food_add_for_student": [.az: "Tələbəyə Qida Əlavə Et", .en: "Add Food for Student", .ru: "Добавить еду для ученика"],
+
+        // MARK: - Fitness News
+        "news_title": [.az: "Fitness Xəbərləri", .en: "Fitness News", .ru: "Фитнес-новости"],
+        "news_loading": [.az: "Xəbərlər yüklənir...", .en: "Loading news...", .ru: "Загрузка новостей..."],
+        "news_error": [.az: "Xəta baş verdi", .en: "An error occurred", .ru: "Произошла ошибка"],
+        "news_retry": [.az: "Yenidən Cəhd Et", .en: "Try Again", .ru: "Попробовать снова"],
+        "news_not_found": [.az: "Xəbər tapılmadı", .en: "No news found", .ru: "Новости не найдены"],
+        "news_no_category": [.az: "Bu kateqoriyada xəbər yoxdur", .en: "No news in this category", .ru: "Нет новостей в этой категории"],
+        "news_read_time": [.az: "dəq", .en: "min", .ru: "мин"],
+
+        // MARK: - Statistics
+        "stats_weekly_food": [.az: "Həftəlik Qida", .en: "Weekly Food", .ru: "Еда за неделю"],
+        "stats_weekly_workouts": [.az: "Həftəlik Məşqlər", .en: "Weekly Workouts", .ru: "Тренировки за неделю"],
+        "stats_completed_plans": [.az: "Tamamlanmış Planlar", .en: "Completed Plans", .ru: "Завершённые планы"],
+        "stats_general_info": [.az: "Ümumi Məlumat", .en: "General Info", .ru: "Общая информация"],
+        "stats_overall_title": [.az: "Ümumi Statistika", .en: "Overall Statistics", .ru: "Общая статистика"],
+
+        // MARK: - Jailbreak
+        "jailbreak_title": [.az: "Təhlükəsizlik Xəbərdarlığı", .en: "Security Warning", .ru: "Предупреждение безопасности"],
+        "jailbreak_message": [.az: "Bu cihaz jailbreak edilib. Məlumat təhlükəsizliyiniz risk altında ola bilər.", .en: "This device appears to be jailbroken. Your data security may be compromised.", .ru: "Это устройство взломано. Безопасность ваших данных может быть нарушена."],
+        "jailbreak_understood": [.az: "Anladım", .en: "I Understand", .ru: "Понятно"],
+
+        // MARK: - Students
+        "students_no_students": [.az: "Hələ tələbəniz yoxdur", .en: "No students yet", .ru: "Пока нет учеников"],
+        "students_will_appear": [.az: "Tələbələr sizə üzv olduqda burada görünəcək", .en: "Students will appear here when they subscribe", .ru: "Ученики появятся здесь после подписки"],
+        "students_for_student": [.az: "Tələbəyə", .en: "For student", .ru: "Для ученика"],
+
+        // MARK: - Live Sessions extras
+        "live_create_session": [.az: "Sessiya Yarat", .en: "Create Session", .ru: "Создать сессию"],
+        "live_session_details": [.az: "Sessiya Detalları", .en: "Session Details", .ru: "Детали сессии"],
+        "live_no_session": [.az: "Sessiya məlumatı yoxdur", .en: "No session data", .ru: "Нет данных сессии"],
+        "live_session_deleted": [.az: "Sessiya tapılmadı və ya silinib", .en: "Session not found or deleted", .ru: "Сессия не найдена или удалена"],
+        "live_free": [.az: "Pulsuz", .en: "Free", .ru: "Бесплатно"],
+        "live_delete_confirm": [.az: "Sessiyanı silmək istəyirsiniz?", .en: "Delete this session?", .ru: "Удалить эту сессию?"],
+
+        // MARK: - Trainer Hub extras
+        "trainer_delete_product": [.az: "Məhsulu silmək istəyirsiniz?", .en: "Delete this product?", .ru: "Удалить этот продукт?"],
+        "trainer_min_chars": [.az: "Min 3 simvol", .en: "Min 3 characters", .ru: "Мин 3 символа"],
+        "trainer_min_desc": [.az: "Min 10 simvol", .en: "Min 10 characters", .ru: "Мин 10 символов"],
+        "trainer_price_positive": [.az: "0-dan böyük olmalı", .en: "Must be greater than 0", .ru: "Должно быть больше 0"],
+
+        // MARK: - Teachers
+        "teacher_leave_confirm": [.az: "Bu müəllimdən ayrılmaq istədiyinizdən əminsiniz?", .en: "Are you sure you want to leave this teacher?", .ru: "Вы уверены, что хотите покинуть этого учителя?"],
+        "teacher_sub_coming": [.az: "Müəllim abunəliyi tezliklə aktiv olacaq", .en: "Teacher subscription will be active soon", .ru: "Подписка на учителя скоро будет активна"],
+
+        // MARK: - Location
+        "location_permission_title": [.az: "Lokasiya icazəsi lazımdır", .en: "Location permission required", .ru: "Требуется доступ к геолокации"],
+        "location_permission_desc": [.az: "Marşrut izləmək üçün lokasiya icazəsi verin.", .en: "Grant location permission to track your route.", .ru: "Предоставьте доступ к геолокации для отслеживания маршрута."],
+
+        // MARK: - Workout extras
+        "workout_example_name": [.az: "məs: Biceps Training", .en: "e.g: Biceps Training", .ru: "напр: Бицепс"],
+        "workout_example_cal": [.az: "məs: 250", .en: "e.g: 250", .ru: "напр: 250"],
+        "workout_gps_tracking": [.az: "GPS ilə Qaçış/Gəzinti", .en: "GPS Run/Walk", .ru: "GPS бег/ходьба"],
+        "workout_weekly_workout": [.az: "Məşq", .en: "Workout", .ru: "Тренир."],
+        "workout_weekly_done": [.az: "Bitdi", .en: "Done", .ru: "Готово"],
+        "workout_weekly_min": [.az: "Dəq", .en: "Min", .ru: "Мин"],
+        "workout_weekly_kcal": [.az: "Kcal", .en: "Kcal", .ru: "Ккал"],
+
+        // MARK: - Validation Errors
+        "validation_email_empty": [.az: "Email boşdur", .en: "Email is empty", .ru: "Email пустой"],
+        "validation_password_empty": [.az: "Şifrə boşdur", .en: "Password is empty", .ru: "Пароль пустой"],
+        "validation_email_invalid": [.az: "Email düzgün deyil", .en: "Invalid email", .ru: "Неверный email"],
+        "validation_password_min": [.az: "Şifrə minimum 6 simvol olmalıdır", .en: "Password must be at least 6 characters", .ru: "Пароль должен быть не менее 6 символов"],
+        "validation_fill_all": [.az: "Bütün sahələri düzgün doldurun", .en: "Please fill all fields correctly", .ru: "Заполните все поля правильно"],
+        "validation_login_failed": [.az: "Email və ya şifrə səhvdir", .en: "Invalid email or password", .ru: "Неверный email или пароль"],
+        "validation_otp_invalid": [.az: "OTP səhvdir", .en: "Invalid OTP code", .ru: "Неверный OTP код"],
+        "validation_register_failed": [.az: "Qeydiyyat uğursuz oldu", .en: "Registration failed", .ru: "Регистрация не удалась"],
+        "validation_otp_send_failed": [.az: "OTP göndərilmədi", .en: "OTP not sent", .ru: "OTP не отправлен"],
+        "validation_error_occurred": [.az: "Xəta baş verdi", .en: "An error occurred", .ru: "Произошла ошибка"],
+
+        // MARK: - Password Strength
+        "password_weak": [.az: "Zəif", .en: "Weak", .ru: "Слабый"],
+        "password_medium": [.az: "Orta", .en: "Medium", .ru: "Средний"],
+        "password_good": [.az: "Yaxşı", .en: "Good", .ru: "Хороший"],
+        "password_strong": [.az: "Güclü", .en: "Strong", .ru: "Сильный"],
+
+        // MARK: - Register buttons
+        "register_send_otp": [.az: "OTP Göndər", .en: "Send OTP", .ru: "Отправить OTP"],
+        "register_success_login": [.az: "Giriş et", .en: "Log in", .ru: "Войти"],
+
+        // MARK: - Forgot Password steps
+        "forgot_enter_code": [.az: "Kodu Daxil Et", .en: "Enter Code", .ru: "Введите код"],
+        "forgot_step_email_desc": [.az: "Email adresinizə OTP kodu göndərəcəyik", .en: "We'll send an OTP code to your email", .ru: "Мы отправим OTP код на ваш email"],
+        "forgot_step_otp_desc": [.az: "Email-ə göndərilən 6 rəqəmli kodu daxil edin", .en: "Enter the 6-digit code sent to your email", .ru: "Введите 6-значный код, отправленный на email"],
+        "forgot_step_password_desc": [.az: "Yeni şifrənizi daxil edin", .en: "Enter your new password", .ru: "Введите новый пароль"],
+        "forgot_password_error": [.az: "Şifrə yenilənərkən xəta", .en: "Error updating password", .ru: "Ошибка обновления пароля"],
+        "forgot_6digit": [.az: "6 rəqəmli kod", .en: "6-digit code", .ru: "6-значный код"],
+
+        // MARK: - Statistics details
+        "stats_total_calories": [.az: "Ümumi Kalori", .en: "Total Calories", .ru: "Всего калорий"],
+        "stats_avg_daily": [.az: "Orta Gündəlik", .en: "Daily Average", .ru: "Среднесуточные"],
+        "stats_cal_per_day": [.az: "kcal/gün", .en: "kcal/day", .ru: "kcal/день"],
+        "stats_meal_count": [.az: "Yemək Sayı", .en: "Meal Count", .ru: "Количество приёмов"],
+        "stats_meals_unit": [.az: "yemək", .en: "meals", .ru: "приёмов"],
+        "stats_completed_workouts": [.az: "Tamamlananlar", .en: "Completed", .ru: "Завершённые"],
+        "stats_total_time": [.az: "Ümumi Vaxt", .en: "Total Time", .ru: "Общее время"],
+        "stats_minutes_unit": [.az: "dəqiqə", .en: "minutes", .ru: "минут"],
+        "stats_calories_burned": [.az: "Yandırılan Kalori", .en: "Calories Burned", .ru: "Сожжённые калории"],
+        "stats_completed_workout_plans": [.az: "Tamamlanmış Məşq Planları", .en: "Completed Workout Plans", .ru: "Завершённые планы тренировок"],
+        "stats_completed_meal_plans": [.az: "Tamamlanmış Qida Planları", .en: "Completed Meal Plans", .ru: "Завершённые планы питания"],
+        "stats_assigned_plans": [.az: "Ümumi Assign Planlar", .en: "Total Assigned Plans", .ru: "Всего назначенных планов"],
+        "stats_active_days": [.az: "Aktiv Günlər", .en: "Active Days", .ru: "Активных дней"],
+        "stats_completion_rate": [.az: "Tamamlanma Faizi", .en: "Completion Rate", .ru: "Процент выполнения"],
+        "stats_total_workouts": [.az: "Ümumi Məşqlər", .en: "Total Workouts", .ru: "Всего тренировок"],
+
+        // MARK: - Food extras (additional)
+        "food_analyzed_food": [.az: "Analiz edilmiş qida", .en: "Analyzed food", .ru: "Проанализированная еда"],
+
+        // MARK: - Student selector
+        "student_select_food": [.az: "Tələbə Seçin (Qida)", .en: "Select Student (Food)", .ru: "Выберите ученика (Еда)"],
+        "student_select_workout": [.az: "Tələbə Seçin (Hərəkət)", .en: "Select Student (Workout)", .ru: "Выберите ученика (Тренировка)"],
+        "student_no_students": [.az: "Hələ tələbəniz yoxdur", .en: "No students yet", .ru: "У вас пока нет учеников"],
+        "student_no_students_desc": [.az: "Tələbələr sizə üzv olduqda burada görünəcək", .en: "Students will appear here when they subscribe to you", .ru: "Ученики появятся здесь, когда подпишутся на вас"],
+
+        // MARK: - Trainer Verification extras
+        "verification_photo_title": [.az: "Fitness Şəkiliniz", .en: "Your Fitness Photo", .ru: "Ваше фитнес-фото"],
+        "verification_instagram_placeholder": [.az: "istifadəçi_adı", .en: "username", .ru: "имя_пользователя"],
+        "verification_specialization": [.az: "İxtisas", .en: "Specialization", .ru: "Специализация"],
+        "verification_experience": [.az: "Təcrübə", .en: "Experience", .ru: "Опыт"],
+        "verification_about": [.az: "Haqqınızda", .en: "About You", .ru: "О вас"],
+        "verification_approved": [.az: "Doğrulandınız!", .en: "Verified!", .ru: "Подтверждено!"],
+        "verification_pending_status": [.az: "Gözdən Keçirilir", .en: "Under Review", .ru: "На рассмотрении"],
+        "verification_rejected": [.az: "Rədd Edildi", .en: "Rejected", .ru: "Отклонено"],
+        "common_error_occurred": [.az: "Xəta baş verdi", .en: "An error occurred", .ru: "Произошла ошибка"],
+
+        // MARK: - Premium extras
+        "premium_verification_failed": [.az: "Server tərəfindən alış təsdiqlənilmədi. Dəstək ilə əlaqə saxlayın.", .en: "Purchase not verified by server. Please contact support.", .ru: "Покупка не подтверждена сервером. Обратитесь в поддержку."],
+
+        // MARK: - News extras
+        "news_all": [.az: "Hamısı", .en: "All", .ru: "Все"],
+        "news_auth_required": [.az: "Giriş tələb olunur. Zəhmət olmasa yenidən daxil olun.", .en: "Login required. Please sign in again.", .ru: "Требуется вход. Пожалуйста, войдите снова."],
+        "news_server_error": [.az: "Server xətası. Zəhmət olmasa bir az sonra cəhd edin.", .en: "Server error. Please try again later.", .ru: "Ошибка сервера. Попробуйте позже."],
+        "news_network_error": [.az: "İnternet bağlantınızı yoxlayın və yenidən cəhd edin.", .en: "Check your internet connection and try again.", .ru: "Проверьте подключение к интернету и попробуйте снова."],
+
+        // MARK: - Statistics extras
+        "stats_protein": [.az: "Protein", .en: "Protein", .ru: "Белок"],
+        "stats_carbs": [.az: "Karbohidrat", .en: "Carbs", .ru: "Углеводы"],
+        "stats_fat": [.az: "Yağ", .en: "Fat", .ru: "Жиры"],
+        "stats_workout_unit": [.az: "məşq", .en: "workouts", .ru: "тренировок"],
+        "stats_day_unit": [.az: "gün", .en: "days", .ru: "дней"],
+        "stats_plan_unit": [.az: "plan", .en: "plans", .ru: "планов"],
+
+        // MARK: - Live Session Detail extras
+        "live_session_description": [.az: "Təsvir", .en: "Description", .ru: "Описание"],
+        "live_session_no_info": [.az: "Sessiya məlumatı yoxdur", .en: "No session info", .ru: "Нет данных о сессии"],
+        "live_session_date": [.az: "Tarix", .en: "Date", .ru: "Дата"],
+        "live_session_time": [.az: "Vaxt", .en: "Time", .ru: "Время"],
+        "live_session_duration": [.az: "Müddət", .en: "Duration", .ru: "Длительность"],
+        "live_session_capacity": [.az: "Tutum", .en: "Capacity", .ru: "Вместимость"],
+        "live_session_joined": [.az: "qoşulub", .en: "joined", .ru: "присоединились"],
+        "live_session_start_workout": [.az: "Məşqə Başla", .en: "Start Workout", .ru: "Начать тренировку"],
+        "live_session_payment_failed": [.az: "Ödəniş doğrulama uğursuz", .en: "Payment verification failed", .ru: "Ошибка проверки оплаты"],
+        "live_session_payment_pending": [.az: "Ödəniş gözləyir.", .en: "Payment pending.", .ru: "Платёж в обработке."],
+        "live_session_payment_unknown": [.az: "Bilinməyən ödəniş nəticəsi.", .en: "Unknown payment result.", .ru: "Неизвестный результат оплаты."],
+        "live_session_free": [.az: "Pulsuz", .en: "Free", .ru: "Бесплатно"],
+
+        // MARK: - Create Session
+        "create_session_basic_info": [.az: "Əsas Məlumat", .en: "Basic Info", .ru: "Основная информация"],
+        "create_session_type": [.az: "Sessiya Növü", .en: "Session Type", .ru: "Тип сессии"],
+        "create_session_type_label": [.az: "Növ", .en: "Type", .ru: "Тип"],
+        "create_session_difficulty": [.az: "Çətinlik", .en: "Difficulty", .ru: "Сложность"],
+        "create_session_capacity": [.az: "Tutum və Müddət", .en: "Capacity & Duration", .ru: "Вместимость и длительность"],
+        "create_session_schedule": [.az: "Cədvəl", .en: "Schedule", .ru: "Расписание"],
+        "create_session_start_time": [.az: "Başlama Vaxtı", .en: "Start Time", .ru: "Время начала"],
+        "create_session_pricing": [.az: "Qiymətləndirmə", .en: "Pricing", .ru: "Ценообразование"],
+        "create_session_paid": [.az: "Ödənişli Sessiya", .en: "Paid Session", .ru: "Платная сессия"],
+        "create_session_price": [.az: "Qiymət", .en: "Price", .ru: "Цена"],
+        "create_session_visibility": [.az: "Görünürlük", .en: "Visibility", .ru: "Видимость"],
+        "create_session_public": [.az: "İctimai Sessiya", .en: "Public Session", .ru: "Публичная сессия"],
+        "create_session_title": [.az: "Sessiya Yarat", .en: "Create Session", .ru: "Создать сессию"],
+        "create_session_max_participants": [.az: "Maks. iştirakçı", .en: "Max Participants", .ru: "Макс. участников"],
+        "create_session_duration_label": [.az: "Müddət", .en: "Duration", .ru: "Длительность"],
+        "common_create": [.az: "Yarat", .en: "Create", .ru: "Создать"],
+        "common_error_retry": [.az: "Xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.", .en: "An error occurred. Please try again.", .ru: "Произошла ошибка. Попробуйте снова."],
+
+        // MARK: - Trainer Sessions extras
+        "trainer_session_delete_confirm": [.az: "Sessiyanı silmək istəyirsiniz?", .en: "Delete this session?", .ru: "Удалить эту сессию?"],
+
+        // MARK: - Marketplace extras
+        "marketplace_published": [.az: "Yayımda", .en: "Published", .ru: "Опубликовано"],
+        "marketplace_hidden": [.az: "Gizli", .en: "Hidden", .ru: "Скрыто"],
+        "marketplace_delete_confirm": [.az: "Məhsulu silmək istəyirsiniz?", .en: "Delete this product?", .ru: "Удалить этот продукт?"],
 
     ]
 }

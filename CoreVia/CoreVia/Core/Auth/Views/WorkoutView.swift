@@ -94,10 +94,10 @@ struct WorkoutView: View {
     // MARK: - Weekly Summary (Kompakt — 1 sira, 4 stat)
     private var weeklySummaryCompact: some View {
         HStack(spacing: 6) {
-            MiniStatItem(value: "\(manager.weekWorkoutCount)", label: "Məşq", icon: "figure.strengthtraining.traditional", color: AppTheme.Colors.accent)
-            MiniStatItem(value: "\(manager.completedWorkouts.count)", label: "Bitdi", icon: "checkmark.circle.fill", color: .green)
-            MiniStatItem(value: "\(calculateWeeklyMinutes())", label: "Dəq", icon: "clock.fill", color: AppTheme.Colors.accent)
-            MiniStatItem(value: "\(calculateWeeklyCalories())", label: "Kcal", icon: "flame.fill", color: .orange)
+            MiniStatItem(value: "\(manager.weekWorkoutCount)", label: loc.localized("workout_weekly_workout"), icon: "figure.strengthtraining.traditional", color: AppTheme.Colors.accent)
+            MiniStatItem(value: "\(manager.completedWorkouts.count)", label: loc.localized("workout_weekly_done"), icon: "checkmark.circle.fill", color: .green)
+            MiniStatItem(value: "\(calculateWeeklyMinutes())", label: loc.localized("workout_weekly_min"), icon: "clock.fill", color: AppTheme.Colors.accent)
+            MiniStatItem(value: "\(calculateWeeklyCalories())", label: loc.localized("workout_weekly_kcal"), icon: "flame.fill", color: .orange)
         }
         .padding(10)
         .background(AppTheme.Colors.secondaryBackground)
@@ -161,10 +161,10 @@ struct WorkoutView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Məşq Kitabxanası")
+                    Text(loc.localized("exercise_library_title"))
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(AppTheme.Colors.primaryText)
-                    Text("870+ məşq təlimatı ilə")
+                    Text(loc.localized("exercise_library_desc"))
                         .font(.system(size: 11))
                         .foregroundColor(AppTheme.Colors.secondaryText)
                 }
@@ -191,7 +191,7 @@ struct WorkoutView: View {
                     HStack(spacing: 6) {
                         Image(systemName: "location.fill")
                             .font(.system(size: 13))
-                        Text("GPS ilə Qaçış/Gəzinti")
+                        Text(loc.localized("workout_gps_tracking"))
                             .font(.system(size: 14, weight: .bold))
                     }
                     .foregroundColor(.white)
@@ -282,6 +282,7 @@ private struct MiniStatItem: View {
                 .font(.system(size: 9))
                 .foregroundColor(AppTheme.Colors.secondaryText)
                 .lineLimit(1)
+                .minimumScaleFactor(0.7)
         }
         .frame(maxWidth: .infinity)
     }

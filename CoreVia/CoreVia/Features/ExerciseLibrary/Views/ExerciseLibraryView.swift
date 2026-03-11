@@ -26,7 +26,7 @@ struct ExerciseLibraryView: View {
                 exerciseList
             }
         }
-        .navigationTitle("Məşq Kitabxanası")
+        .navigationTitle(loc.localized("exercise_library_title"))
         .navigationBarTitleDisplayMode(.inline)
     }
 
@@ -68,7 +68,7 @@ struct ExerciseLibraryView: View {
                 .foregroundColor(AppTheme.Colors.tertiaryText)
                 .font(.system(size: 14))
 
-            TextField("Məşq axtar...", text: $viewModel.searchText)
+            TextField(loc.localized("exercise_search"), text: $viewModel.searchText)
                 .font(.system(size: 15))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
@@ -98,7 +98,7 @@ struct ExerciseLibraryView: View {
                     Spacer()
                     ProgressView()
                         .controlSize(.large)
-                    Text("Yüklənir...")
+                    Text(loc.localized("exercise_loading"))
                         .font(.system(size: 14))
                         .foregroundColor(AppTheme.Colors.secondaryText)
                     Spacer()
@@ -110,7 +110,7 @@ struct ExerciseLibraryView: View {
                         .font(.system(size: 44))
                         .foregroundColor(AppTheme.Colors.tertiaryText)
 
-                    Text("Yükləmə xətası")
+                    Text(loc.localized("exercise_loading_error"))
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(AppTheme.Colors.primaryText)
 
@@ -123,7 +123,7 @@ struct ExerciseLibraryView: View {
                     Button {
                         Task { await viewModel.loadExercises() }
                     } label: {
-                        Text("Yenidən cəhd et")
+                        Text(loc.localized("exercise_retry"))
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(.white)
                             .padding(.horizontal, 24)
@@ -139,7 +139,7 @@ struct ExerciseLibraryView: View {
                     Image(systemName: "magnifyingglass")
                         .font(.system(size: 40))
                         .foregroundColor(AppTheme.Colors.tertiaryText)
-                    Text("Nəticə tapılmadı")
+                    Text(loc.localized("exercise_no_results"))
                         .font(.system(size: 15, weight: .medium))
                         .foregroundColor(AppTheme.Colors.secondaryText)
                     Spacer()
@@ -148,7 +148,7 @@ struct ExerciseLibraryView: View {
                 ScrollView(showsIndicators: false) {
                     // Nəticə sayı
                     HStack {
-                        Text("\(viewModel.filteredExercises.count) məşq tapıldı")
+                        Text("\(viewModel.filteredExercises.count) \(loc.localized("exercise_found_count"))")
                             .font(.system(size: 12))
                             .foregroundColor(AppTheme.Colors.tertiaryText)
                         Spacer()
@@ -191,6 +191,7 @@ struct ExerciseRowView: View {
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(AppTheme.Colors.primaryText)
                     .lineLimit(1)
+                    .minimumScaleFactor(0.8)
 
                 HStack(spacing: 6) {
                     HStack(spacing: 3) {
@@ -201,6 +202,7 @@ struct ExerciseRowView: View {
                     }
                     .foregroundColor(AppTheme.Colors.accent)
                     .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                 }
 
                 HStack(spacing: 8) {
@@ -212,6 +214,7 @@ struct ExerciseRowView: View {
                     }
                     .foregroundColor(AppTheme.Colors.secondaryText)
                     .lineLimit(1)
+                    .minimumScaleFactor(0.8)
 
                     if let level = exercise.level {
                         Text(exercise.levelText)

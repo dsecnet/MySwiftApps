@@ -365,22 +365,22 @@ struct LoginView: View {
     // MARK: - Actions
     private func loginAction() {
         guard !email.trimmingCharacters(in: .whitespaces).isEmpty else {
-            showErrorMessage("Email boşdur")
+            showErrorMessage(loc.localized("validation_email_empty"))
             return
         }
 
         guard !password.isEmpty else {
-            showErrorMessage("Şifrə boşdur")
+            showErrorMessage(loc.localized("validation_password_empty"))
             return
         }
 
         guard email.contains("@") else {
-            showErrorMessage("Email düzgün deyil")
+            showErrorMessage(loc.localized("validation_email_invalid"))
             return
         }
 
         guard password.count >= 6 else {
-            showErrorMessage("Şifrə minimum 6 simvol olmalıdır")
+            showErrorMessage(loc.localized("validation_password_min"))
             return
         }
 
@@ -404,7 +404,7 @@ struct LoginView: View {
                         currentStep = 2 // Go to OTP step
                     }
                 } else {
-                    showErrorMessage(AuthManager.shared.errorMessage ?? "Email və ya şifrə səhvdir")
+                    showErrorMessage(AuthManager.shared.errorMessage ?? loc.localized("validation_login_failed"))
                 }
             }
         }
@@ -427,11 +427,11 @@ struct LoginView: View {
     private var otpVerificationSection: some View {
         VStack(spacing: 24) {
             VStack(spacing: 12) {
-                Text("OTP Təsdiqi")
+                Text(loc.localized("otp_title"))
                     .font(.system(size: 24, weight: .bold))
                     .foregroundColor(AppTheme.Colors.primaryText)
 
-                Text("\(email) ünvanına göndərilən 6 rəqəmli kodu daxil edin")
+                Text("\(loc.localized("otp_instruction")) \(email)")
                     .font(.system(size: 14))
                     .foregroundColor(AppTheme.Colors.secondaryText)
                     .multilineTextAlignment(.center)
@@ -476,7 +476,7 @@ struct LoginView: View {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                     } else {
-                        Text("Təsdiq Et və Daxil Ol")
+                        Text(loc.localized("otp_verify_login"))
                             .font(.system(size: 16, weight: .bold))
                     }
                 }
@@ -501,7 +501,7 @@ struct LoginView: View {
                 currentStep = 1
                 otpCode = ""
             } label: {
-                Text("Geri qayıt")
+                Text(loc.localized("otp_go_back"))
                     .font(.system(size: 14))
                     .foregroundColor(AppTheme.Colors.accent)
             }
@@ -528,7 +528,7 @@ struct LoginView: View {
                         isLoggedIn = true
                     }
                 } else {
-                    showErrorMessage(AuthManager.shared.errorMessage ?? "OTP səhvdir")
+                    showErrorMessage(AuthManager.shared.errorMessage ?? loc.localized("validation_otp_invalid"))
                 }
             }
         }

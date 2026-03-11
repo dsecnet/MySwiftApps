@@ -8,8 +8,7 @@ from app.models.user import UserRole
 
 class UserResponse(BaseModel):
     id: uuid.UUID
-    phone: str
-    email: str | None = None
+    email: str
     full_name: str
     avatar_url: str | None = None
     role: UserRole

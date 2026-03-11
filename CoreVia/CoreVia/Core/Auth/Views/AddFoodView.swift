@@ -107,20 +107,20 @@ struct AddFoodView: View {
                 } message: {
                     Text(loc.localized("food_added"))
                 }
-                .alert("Xəta", isPresented: $showError) {
+                .alert(loc.localized("validation_error_occurred"), isPresented: $showError) {
                     Button("OK", role: .cancel) {}
                 } message: {
                     Text(errorMessage)
                 }
-                .alert("Kamera İcazəsi", isPresented: $showCameraPermissionAlert) {
-                    Button("Ayarlara Keç") {
+                .alert(loc.localized("camera_permission_title"), isPresented: $showCameraPermissionAlert) {
+                    Button(loc.localized("camera_go_settings")) {
                         if let url = URL(string: UIApplication.openSettingsURLString) {
                             UIApplication.shared.open(url)
                         }
                     }
-                    Button("Ləğv et", role: .cancel) {}
+                    Button(loc.localized("common_cancel"), role: .cancel) {}
                 } message: {
-                    Text("Kamera istifadəsi üçün icazə lazımdır. Ayarlardan aktiv edin.")
+                    Text(loc.localized("camera_permission_desc"))
                 }
                 .sheet(isPresented: $showCamera) {
                     CameraPicker(image: $capturedImage)
@@ -259,7 +259,7 @@ struct AddFoodView: View {
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(AppTheme.Colors.secondaryText)
 
-                            Text("AI qidanı analiz edir...")
+                            Text(loc.localized("food_ai_analyzing"))
                                 .font(.system(size: 12))
                                 .foregroundColor(AppTheme.Colors.tertiaryText)
                         }
@@ -295,7 +295,7 @@ struct AddFoodView: View {
                                             Image(systemName: "chart.bar.fill")
                                                 .font(.system(size: 12))
                                                 .foregroundColor(confidenceColor)
-                                            Text("Dəqiqlik: \(Int(analysisConfidence * 100))%")
+                                            Text("\(loc.localized("food_accuracy")) \(Int(analysisConfidence * 100))%")
                                                 .font(.system(size: 12, weight: .medium))
                                                 .foregroundColor(confidenceColor)
                                         }
@@ -782,7 +782,7 @@ struct AddFoodView: View {
                     if !result.foods.isEmpty {
                         self.foodName = result.foods.map { $0.name }.joined(separator: ", ")
                     } else {
-                        self.foodName = "Analiz edilmiş qida"
+                        self.foodName = loc.localized("food_analyzed_food")
                     }
 
                     // Kalori və makro dəyərləri
@@ -877,7 +877,8 @@ struct QuickAddButton: View {
                     .foregroundColor(AppTheme.Colors.primaryText)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
-                    .frame(height: 30)
+                    .minimumScaleFactor(0.8)
+                    .frame(minHeight: 30)
 
                 Text("\(item.calories) kcal")
                     .font(.system(size: 10, weight: .semibold))

@@ -4,6 +4,7 @@ import os.log
 struct FitnessNewsView: View {
     @StateObject private var viewModel = NewsViewModel()
     @State private var selectedCategory: String = "All"
+    @ObservedObject private var loc = LocalizationManager.shared
 
     var filteredNews: [NewsArticle] {
         if selectedCategory == "All" {
@@ -19,7 +20,7 @@ struct FitnessNewsView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
                         NewsCategoryChip(
-                            title: "Hamısı",
+                            title: loc.localized("news_all"),
                             isSelected: selectedCategory == "All"
                         ) {
                             selectedCategory = "All"
@@ -44,7 +45,7 @@ struct FitnessNewsView: View {
                     VStack(spacing: 16) {
                         ProgressView()
                             .scaleEffect(1.5)
-                        Text("Xəbərlər yüklənir...")
+                        Text(loc.localized("news_loading"))
                             .foregroundColor(.secondary)
                             .font(.subheadline)
                     }
@@ -55,7 +56,7 @@ struct FitnessNewsView: View {
                             .font(.system(size: 60))
                             .foregroundColor(.orange)
 
-                        Text("Xəta baş verdi")
+                        Text(loc.localized("news_error"))
                             .font(.title3)
                             .fontWeight(.semibold)
                             .foregroundColor(.primary)
@@ -72,7 +73,7 @@ struct FitnessNewsView: View {
                         } label: {
                             HStack {
                                 Image(systemName: "arrow.clockwise")
-                                Text("Yenidən Cəhd Et")
+                                Text(loc.localized("news_retry"))
                             }
                             .fontWeight(.semibold)
                             .foregroundColor(.white)
@@ -90,12 +91,12 @@ struct FitnessNewsView: View {
                             .font(.system(size: 60))
                             .foregroundColor(.secondary)
 
-                        Text("Xəbər tapılmadı")
+                        Text(loc.localized("news_not_found"))
                             .font(.title3)
                             .fontWeight(.semibold)
                             .foregroundColor(.primary)
 
-                        Text("Bu kateqoriyada xəbər yoxdur")
+                        Text(loc.localized("news_no_category"))
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -114,7 +115,7 @@ struct FitnessNewsView: View {
                     }
                 }
             }
-            .navigationTitle("Fitness Xəbərləri")
+            .navigationTitle(loc.localized("news_title"))
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -186,7 +187,7 @@ struct NewsCard: View {
                 HStack(spacing: 4) {
                     Image(systemName: "clock")
                         .font(.caption)
-                    Text("\(article.readingTime) dəq")
+                    Text("\(article.readingTime) \(LocalizationManager.shared.localized("news_read_time"))")
                         .font(.caption)
                 }
                 .foregroundColor(.secondary)
@@ -198,6 +199,7 @@ struct NewsCard: View {
                 .fontWeight(.bold)
                 .foregroundColor(.primary)
                 .lineLimit(2)
+                .minimumScaleFactor(0.85)
 
             // Summary
             Text(article.summary)
@@ -281,11 +283,11 @@ class NewsViewModel: ObservableObject {
             }
 
         } catch NewsAPIError.unauthorized {
-            errorMessage = "Giriş tələb olunur. Zəhmət olmasa yenidən daxil olun."
-        } catch NewsAPIError.serverError(let code) {
-            errorMessage = "Server xətası (\(code)). Zəhmət olmasa bir az sonra cəhd edin."
+            errorMessage = LocalizationManager.shared.localized("news_auth_required")
+        } catch NewsAPIError.serverError(_) {
+            errorMessage = LocalizationManager.shared.localized("news_server_error")
         } catch {
-            errorMessage = "İnternet bağlantınızı yoxlayın və yenidən cəhd edin."
+            errorMessage = LocalizationManager.shared.localized("news_network_error")
             AppLogger.network.error("News loading error: \(error.localizedDescription)")
         }
 

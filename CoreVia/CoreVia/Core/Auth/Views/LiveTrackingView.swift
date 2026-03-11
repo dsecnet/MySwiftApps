@@ -9,15 +9,15 @@ import SwiftUI
 import MapKit
 import CoreLocation
 import CoreMotion
+import ActivityKit
 
 struct LiveTrackingView: View {
 
-    @StateObject private var locationManager = LiveTrackingManager()
+    @ObservedObject private var locationManager = LiveTrackingManager.shared
     @StateObject private var workoutManager = WorkoutManager.shared
     @ObservedObject private var loc = LocalizationManager.shared
     @Environment(\.dismiss) private var dismiss
 
-    @State private var isPaused = false
     @State private var showSaveDialog = false
 
     var body: some View {
@@ -176,17 +176,16 @@ struct LiveTrackingView: View {
                     } else {
                         // Pause/Resume button
                         Button {
-                            if isPaused {
+                            if locationManager.isPaused {
                                 locationManager.resumeTracking()
                             } else {
                                 locationManager.pauseTracking()
                             }
-                            isPaused.toggle()
                         } label: {
                             VStack(spacing: 4) {
-                                Image(systemName: isPaused ? "play.fill" : "pause.fill")
+                                Image(systemName: locationManager.isPaused ? "play.fill" : "pause.fill")
                                     .font(.system(size: 24))
-                                Text(isPaused ? loc.localized("tracking_resume") : loc.localized("tracking_pause"))
+                                Text(locationManager.isPaused ? loc.localized("tracking_resume") : loc.localized("tracking_pause"))
                                     .font(.system(size: 12, weight: .semibold))
                             }
                             .foregroundColor(.white)
@@ -353,6 +352,8 @@ struct StatBox: View {
 // MARK: - Location Manager
 class LiveTrackingManager: NSObject, ObservableObject, CLLocationManagerDelegate {
 
+    static let shared = LiveTrackingManager()
+
     // MARK: - Config Defaults
     private enum Defaults {
         static let weight: Double = 70.0          // kg - fallback if profile not loaded
@@ -385,7 +386,11 @@ class LiveTrackingManager: NSObject, ObservableObject, CLLocationManagerDelegate
     private let pedometer = CMPedometer()
     private var lastLocation: CLLocation?
     private var timer: Timer?
-    private var isPaused = false
+    @Published var isPaused = false
+    private var liveActivityUpdateCounter = 0
+    private var trackingStartDate: Date?
+    private var totalPausedDuration: TimeInterval = 0
+    private var pauseStartDate: Date?
 
     override init() {
         super.init()
@@ -393,7 +398,24 @@ class LiveTrackingManager: NSObject, ObservableObject, CLLocationManagerDelegate
         manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.distanceFilter = Defaults.distanceFilter
         manager.activityType = .fitness
+        manager.allowsBackgroundLocationUpdates = true
+        manager.showsBackgroundLocationIndicator = true
         manager.requestWhenInUseAuthorization()
+
+        // Recover duration when app returns to foreground
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appWillEnterForeground),
+            name: UIApplication.willEnterForegroundNotification,
+            object: nil
+        )
+    }
+
+    @objc private func appWillEnterForeground() {
+        guard isTracking, !isPaused, let startDate = trackingStartDate else { return }
+        // Recalculate duration from actual elapsed time minus paused time
+        let elapsed = Date().timeIntervalSince(startDate) - totalPausedDuration
+        duration = max(duration, Int(elapsed))
     }
 
     func startTracking() {
@@ -405,6 +427,9 @@ class LiveTrackingManager: NSObject, ObservableObject, CLLocationManagerDelegate
         steps = 0
         routePoints = []
         lastLocation = nil
+        trackingStartDate = Date()
+        totalPausedDuration = 0
+        pauseStartDate = nil
 
         // Load user weight from AuthManager if available
         if let weight = AuthManager.shared.currentUser?.weight, weight > 0 {
@@ -423,20 +448,59 @@ class LiveTrackingManager: NSObject, ObservableObject, CLLocationManagerDelegate
             }
         }
 
-        // Timer for duration
+        // Start Live Activity
+        if #available(iOS 16.2, *) {
+            LiveActivityManager.shared.startLiveActivity(activityType: "walking")
+        }
+
+        // Timer for duration + Live Activity update
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             guard let self = self, !self.isPaused else { return }
             self.duration += 1
+
+            // Update Live Activity every 3 seconds
+            self.liveActivityUpdateCounter += 1
+            if self.liveActivityUpdateCounter >= 3 {
+                self.liveActivityUpdateCounter = 0
+                if #available(iOS 16.2, *) {
+                    LiveActivityManager.shared.updateLiveActivity(
+                        distance: self.distance,
+                        duration: self.duration,
+                        calories: self.calories,
+                        speed: self.speed,
+                        steps: self.steps,
+                        isPaused: false
+                    )
+                }
+            }
         }
     }
 
     func pauseTracking() {
         isPaused = true
+        pauseStartDate = Date()
         manager.stopUpdatingLocation()
         pedometer.stopUpdates()
+
+        // Update Live Activity to show paused state
+        if #available(iOS 16.2, *) {
+            LiveActivityManager.shared.updateLiveActivity(
+                distance: distance,
+                duration: duration,
+                calories: calories,
+                speed: speed,
+                steps: steps,
+                isPaused: true
+            )
+        }
     }
 
     func resumeTracking() {
+        // Accumulate paused time
+        if let pauseStart = pauseStartDate {
+            totalPausedDuration += Date().timeIntervalSince(pauseStart)
+            pauseStartDate = nil
+        }
         isPaused = false
         manager.startUpdatingLocation()
 
@@ -459,6 +523,14 @@ class LiveTrackingManager: NSObject, ObservableObject, CLLocationManagerDelegate
         pedometer.stopUpdates()
         timer?.invalidate()
         timer = nil
+        trackingStartDate = nil
+        totalPausedDuration = 0
+        pauseStartDate = nil
+
+        // End Live Activity
+        if #available(iOS 16.2, *) {
+            LiveActivityManager.shared.endLiveActivity()
+        }
     }
 
     // CLLocationManagerDelegate

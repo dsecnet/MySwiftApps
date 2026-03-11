@@ -1,4 +1,5 @@
 import SwiftUI
+import MapKit
 
 // MARK: - Listing Detail View
 struct ListingDetailView: View {
@@ -495,51 +496,127 @@ struct ListingDetailView: View {
         }
     }
 
-    // MARK: - Map Section
+    // MARK: - Location Section
+    private var fullAddress: String {
+        var parts: [String] = []
+        if !listing.address.isEmpty { parts.append(listing.address) }
+        if !listing.district.isEmpty { parts.append(listing.district) }
+        if !listing.city.isEmpty { parts.append(listing.city) }
+        return parts.joined(separator: ", ")
+    }
+
+    @State private var resolvedCoordinate: CLLocationCoordinate2D? = nil
+    @State private var mapRegion = MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: 40.4093, longitude: 49.8671),
+        span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+    )
+
+    private var mapAnnotations: [PinAnnotation] {
+        if let coord = resolvedCoordinate {
+            return [PinAnnotation(coordinate: coord)]
+        }
+        return []
+    }
+
     private var mapSection: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             Text("location".localized)
                 .font(AppTheme.Fonts.heading3())
                 .foregroundColor(AppTheme.Colors.textPrimary)
 
-            // Map placeholder
-            ZStack {
-                RoundedRectangle(cornerRadius: AppTheme.CornerRadius.large)
-                    .fill(AppTheme.Colors.cardBackground)
-                    .frame(height: 200)
-
-                VStack(spacing: AppTheme.Spacing.md) {
-                    Image(systemName: "map.fill")
-                        .font(.system(size: 40))
-                        .foregroundColor(AppTheme.Colors.accent.opacity(0.5))
-
-                    Text("\(listing.district), \(listing.city)")
-                        .font(AppTheme.Fonts.captionBold())
-                        .foregroundColor(AppTheme.Colors.textSecondary)
-
-                    if listing.latitude != nil && listing.longitude != nil {
-                        Button {
-                            // Open in Maps
-                        } label: {
-                            HStack(spacing: AppTheme.Spacing.xs) {
-                                Image(systemName: "arrow.up.right.square")
-                                    .font(.system(size: 12))
-                                Text("map_view".localized)
-                                    .font(AppTheme.Fonts.captionBold())
-                            }
+            // Map with geocoded pin
+            Map(coordinateRegion: .constant(mapRegion), annotationItems: mapAnnotations) { item in
+                MapAnnotation(coordinate: item.coordinate) {
+                    VStack(spacing: 0) {
+                        Image(systemName: "mappin.circle.fill")
+                            .font(.system(size: 32))
                             .foregroundColor(AppTheme.Colors.accent)
-                            .padding(.horizontal, AppTheme.Spacing.md)
-                            .padding(.vertical, AppTheme.Spacing.sm)
-                            .background(AppTheme.Colors.accent.opacity(0.12))
-                            .cornerRadius(AppTheme.CornerRadius.small)
-                        }
+                            .shadow(color: Color.black.opacity(0.3), radius: 3, y: 2)
+
+                        Image(systemName: "arrowtriangle.down.fill")
+                            .font(.system(size: 8))
+                            .foregroundColor(AppTheme.Colors.accent)
+                            .offset(y: -3)
                     }
                 }
             }
+            .frame(height: 180)
+            .cornerRadius(AppTheme.CornerRadius.large)
             .overlay(
                 RoundedRectangle(cornerRadius: AppTheme.CornerRadius.large)
                     .stroke(AppTheme.Colors.inputBorder, lineWidth: 1)
             )
+            .allowsHitTesting(false)
+            .onAppear {
+                geocodeAddress()
+            }
+
+            // Address info + open in maps
+            HStack {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("\(listing.district), \(listing.city)")
+                        .font(AppTheme.Fonts.captionBold())
+                        .foregroundColor(AppTheme.Colors.textPrimary)
+
+                    if !listing.address.isEmpty {
+                        Text(listing.address)
+                            .font(AppTheme.Fonts.small())
+                            .foregroundColor(AppTheme.Colors.textSecondary)
+                            .lineLimit(2)
+                    }
+                }
+
+                Spacer()
+
+                Button {
+                    openInMaps()
+                } label: {
+                    HStack(spacing: AppTheme.Spacing.xs) {
+                        Image(systemName: "arrow.up.right.square")
+                            .font(.system(size: 12))
+                        Text("show_on_map".localized)
+                            .font(AppTheme.Fonts.captionBold())
+                    }
+                    .foregroundColor(AppTheme.Colors.accent)
+                    .padding(.horizontal, AppTheme.Spacing.md)
+                    .padding(.vertical, AppTheme.Spacing.sm)
+                    .background(AppTheme.Colors.accent.opacity(0.12))
+                    .cornerRadius(AppTheme.CornerRadius.small)
+                }
+            }
+        }
+    }
+
+    private func geocodeAddress() {
+        let geocoder = CLGeocoder()
+        let searchAddress = fullAddress
+
+        geocoder.geocodeAddressString(searchAddress) { placemarks, error in
+            if let coordinate = placemarks?.first?.location?.coordinate {
+                resolvedCoordinate = coordinate
+                mapRegion = MKCoordinateRegion(
+                    center: coordinate,
+                    span: MKCoordinateSpan(latitudeDelta: 0.008, longitudeDelta: 0.008)
+                )
+            } else {
+                // Fallback: use city coordinate from LocationData
+                let city = LocationData.cities.first { $0.name == listing.city }
+                if let cityCoord = city?.coordinate {
+                    resolvedCoordinate = cityCoord
+                    mapRegion = MKCoordinateRegion(
+                        center: cityCoord,
+                        span: MKCoordinateSpan(latitudeDelta: city?.span ?? 0.05, longitudeDelta: city?.span ?? 0.05)
+                    )
+                }
+            }
+        }
+    }
+
+    private func openInMaps() {
+        let address = fullAddress
+        let encoded = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        if let url = URL(string: "http://maps.apple.com/?q=\(encoded)") {
+            UIApplication.shared.open(url)
         }
     }
 

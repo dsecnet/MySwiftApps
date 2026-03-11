@@ -2,6 +2,7 @@ import SwiftUI
 
 // MARK: - Settings View
 struct SettingsView: View {
+    @EnvironmentObject private var authManager: AuthManager
     @StateObject private var viewModel = SettingsViewModel()
 
     var body: some View {
@@ -141,17 +142,30 @@ struct SettingsView: View {
                     .stroke(AppTheme.Colors.accent, lineWidth: 2)
             )
 
-            // Name and email
+            // Name, email and role badge
             VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                 Text(viewModel.currentUser.fullName)
                     .font(AppTheme.Fonts.bodyBold())
                     .foregroundColor(AppTheme.Colors.textPrimary)
 
-                if let email = viewModel.currentUser.email {
-                    Text(email)
-                        .font(AppTheme.Fonts.small())
-                        .foregroundColor(AppTheme.Colors.textSecondary)
+                Text(viewModel.currentUser.email)
+                    .font(AppTheme.Fonts.small())
+                    .foregroundColor(AppTheme.Colors.textSecondary)
+
+                HStack(spacing: 4) {
+                    Image(systemName: viewModel.currentUser.role == .agent ? "person.badge.key.fill" : "house.fill")
+                        .font(.system(size: 9))
+                    Text(viewModel.currentUser.role.displayKey.localized)
+                        .font(.system(size: 10, weight: .semibold))
                 }
+                .foregroundColor(viewModel.currentUser.role == .agent ? AppTheme.Colors.premiumBadge : AppTheme.Colors.accent)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(
+                    Capsule().fill(
+                        (viewModel.currentUser.role == .agent ? AppTheme.Colors.premiumBadge : AppTheme.Colors.accent).opacity(0.12)
+                    )
+                )
             }
 
             Spacer()
@@ -339,4 +353,5 @@ enum SettingsTrailing {
 // MARK: - Preview
 #Preview {
     SettingsView()
+        .environmentObject(AuthManager.shared)
 }

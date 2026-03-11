@@ -36,58 +36,15 @@ class AuthManager: ObservableObject {
         }
     }
 
-    // MARK: - Send OTP
-    func sendOTP(phone: String) async throws {
-        isLoading = true
-        error = nil
-        defer { isLoading = false }
-
-        let body = OTPRequest(phone: phone)
-        let _: [String: String] = try await api.request(
-            endpoint: "/auth/send-otp",
-            method: .POST,
-            body: body,
-            authenticated: false
-        )
-    }
-
-    // MARK: - Verify OTP
-    func verifyOTP(phone: String, code: String) async throws -> Bool {
-        isLoading = true
-        error = nil
-        defer { isLoading = false }
-
-        let body = OTPVerifyRequest(phone: phone, code: code)
-
-        struct VerifyResponse: Codable {
-            let verified: Bool
-            let isNewUser: Bool
-
-            enum CodingKeys: String, CodingKey {
-                case verified
-                case isNewUser = "is_new_user"
-            }
-        }
-
-        let response: VerifyResponse = try await api.request(
-            endpoint: "/auth/verify-otp",
-            method: .POST,
-            body: body,
-            authenticated: false
-        )
-
-        return response.isNewUser
-    }
-
     // MARK: - Register
-    func register(phone: String, code: String, fullName: String, role: UserRole) async throws {
+    func register(email: String, password: String, fullName: String, role: UserRole) async throws {
         isLoading = true
         error = nil
         defer { isLoading = false }
 
         let body = RegisterRequest(
-            phone: phone,
-            code: code,
+            email: email,
+            password: password,
             fullName: fullName,
             role: role.rawValue
         )
@@ -103,12 +60,12 @@ class AuthManager: ObservableObject {
     }
 
     // MARK: - Login
-    func login(phone: String, code: String) async throws {
+    func login(email: String, password: String) async throws {
         isLoading = true
         error = nil
         defer { isLoading = false }
 
-        let body = LoginRequest(phone: phone, code: code)
+        let body = LoginRequest(email: email, password: password)
         let response: AuthResponse = try await api.request(
             endpoint: "/auth/login",
             method: .POST,

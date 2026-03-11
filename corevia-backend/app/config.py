@@ -38,6 +38,15 @@ class Settings(BaseSettings):
     apple_shared_secret: str = ""  # App Store Connect-den al
     apple_use_production: bool = False  # Production-da True et
 
+    # Kapital Bank Payment Gateway
+    kapital_base_url: str = "https://txpgtst.kapitalbank.az/api"  # Test mühiti
+    kapital_username: str = "TerminalSys/kapital"
+    kapital_password: str = "kapital123"
+    kapital_callback_url: str = "https://api.corevia.life/api/v1/payment/callback"
+    kapital_currency: str = "AZN"
+    kapital_language: str = "az"
+    kapital_use_production: bool = False  # Production-da True et
+
     # Email SMTP (Gmail)
     smtp_host: str = "smtp.gmail.com"
     smtp_port: int = 587

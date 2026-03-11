@@ -25,35 +25,35 @@ enum ListingType: String, Codable, CaseIterable {
 
 // MARK: - Property Type
 enum PropertyType: String, Codable, CaseIterable {
-    case apartment
+    case oldBuilding = "old_building"
+    case newBuilding = "new_building"
     case house
-    case villa
     case office
+    case garage
     case land
     case commercial
-    case garage
 
     var displayKey: String {
         switch self {
-        case .apartment: return "apartment"
+        case .oldBuilding: return "old_building"
+        case .newBuilding: return "new_building"
         case .house: return "house"
-        case .villa: return "villa"
         case .office: return "office"
+        case .garage: return "garage"
         case .land: return "land"
         case .commercial: return "commercial"
-        case .garage: return "garage"
         }
     }
 
     var icon: String {
         switch self {
-        case .apartment: return "building.2.fill"
-        case .house: return "house.fill"
-        case .villa: return "house.lodge.fill"
-        case .office: return "building.fill"
+        case .oldBuilding: return "building.2.fill"
+        case .newBuilding: return "building.fill"
+        case .house: return "house.lodge.fill"
+        case .office: return "building.columns.fill"
+        case .garage: return "car.fill"
         case .land: return "globe.europe.africa.fill"
         case .commercial: return "storefront.fill"
-        case .garage: return "car.fill"
         }
     }
 }

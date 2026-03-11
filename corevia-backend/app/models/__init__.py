@@ -21,6 +21,7 @@ from app.models.live_session import (
 from app.models.marketplace import MarketplaceProduct, ProductPurchase, ProductReview, ProductType
 from app.models.analytics import DailyStats, WeeklyStats, BodyMeasurement
 from app.models.daily_survey import DailySurvey
+from app.models.payment import Payment
 
 __all__ = [
     "User", "UserType", "VerificationStatus",
@@ -44,4 +45,5 @@ __all__ = [
     "MarketplaceProduct", "ProductPurchase", "ProductReview", "ProductType",
     "DailyStats", "WeeklyStats", "BodyMeasurement",
     "DailySurvey",
+    "Payment",
 ]

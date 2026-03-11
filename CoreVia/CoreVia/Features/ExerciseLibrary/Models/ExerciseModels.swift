@@ -2,7 +2,7 @@
 //  ExerciseModels.swift
 //  CoreVia
 //
-//  Məşq kitabxanası data modelləri — free-exercise-db (GitHub)
+//  Exercise Library data models — free-exercise-db (GitHub)
 //
 
 import SwiftUI
@@ -21,55 +21,55 @@ struct Exercise: Identifiable, Codable {
     let category: String?
     let images: [String]?
 
-    /// İlk şəklin tam URL-i (GitHub CDN)
+    /// First image URL (GitHub CDN)
     var imageUrl: String? {
         guard let firstImage = images?.first, !firstImage.isEmpty else { return nil }
         return "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/\(firstImage)"
     }
 
-    /// İkinci şəklin tam URL-i (son pozisiya)
+    /// Second image URL (end position)
     var imageUrl2: String? {
         guard let imgs = images, imgs.count > 1 else { return nil }
         return "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/\(imgs[1])"
     }
 
-    /// Əsas əzələlər tekst olaraq (Azərbaycanca)
+    /// Primary muscles text (localized)
     var primaryMusclesText: String {
         primaryMuscles.map { MuscleTranslator.translate($0) }.joined(separator: ", ")
     }
 
-    /// Əsas bədən hissəsi
+    /// Primary body part
     var bodyPart: String {
         primaryMuscles.first ?? ""
     }
 
-    /// Hədəf əzələlər
+    /// Target muscles
     var target: String {
         primaryMusclesText
     }
 
-    /// Avadanlıq tekst olaraq (Azərbaycanca)
+    /// Equipment text (localized)
     var equipmentText: String {
         EquipmentTranslator.translate(equipment ?? "body only")
     }
 
-    /// Səviyyə (Azərbaycanca)
+    /// Level text (localized)
     var levelText: String {
         LevelTranslator.translate(level ?? "")
     }
 
-    /// Kateqoriya (Azərbaycanca)
+    /// Category text (localized)
     var categoryText: String {
         CategoryTranslator.translate(category ?? "strength")
     }
 
-    /// Qüvvə (Azərbaycanca)
+    /// Force text (localized)
     var forceText: String? {
         guard let f = force else { return nil }
         return ForceTranslator.translate(f)
     }
 
-    /// İkinci əzələlər (Azərbaycanca)
+    /// Secondary muscles (localized)
     var secondaryMusclesTranslated: [String]? {
         guard let muscles = secondaryMuscles else { return nil }
         let filtered = muscles.filter { !$0.isEmpty }
@@ -99,24 +99,25 @@ enum MuscleGroup: String, CaseIterable {
     case adductors
 
     var displayName: String {
+        let loc = LocalizationManager.shared
         switch self {
-        case .chest:      return "Sinə"
-        case .abdominals: return "Qarın"
-        case .shoulders:  return "Çiyin"
-        case .biceps:     return "Biseps"
-        case .triceps:    return "Triseps"
-        case .lats:       return "Kürək"
-        case .middleBack: return "Orta Bel"
-        case .lowerBack:  return "Alt Bel"
-        case .quadriceps: return "Ön Ayaq"
-        case .hamstrings: return "Arxa Ayaq"
-        case .glutes:     return "Kalça"
-        case .calves:     return "Baldır"
-        case .forearms:   return "Bilək"
-        case .traps:      return "Trapez"
-        case .neck:       return "Boyun"
-        case .abductors:  return "Abduktor"
-        case .adductors:  return "Adduktor"
+        case .chest:      return loc.localized("muscle_chest")
+        case .abdominals: return loc.localized("muscle_abdominals")
+        case .shoulders:  return loc.localized("muscle_shoulders")
+        case .biceps:     return loc.localized("muscle_biceps")
+        case .triceps:    return loc.localized("muscle_triceps")
+        case .lats:       return loc.localized("muscle_lats")
+        case .middleBack: return loc.localized("muscle_middle_back")
+        case .lowerBack:  return loc.localized("muscle_lower_back")
+        case .quadriceps: return loc.localized("muscle_quadriceps")
+        case .hamstrings: return loc.localized("muscle_hamstrings")
+        case .glutes:     return loc.localized("muscle_glutes")
+        case .calves:     return loc.localized("muscle_calves")
+        case .forearms:   return loc.localized("muscle_forearms")
+        case .traps:      return loc.localized("muscle_traps")
+        case .neck:       return loc.localized("muscle_neck")
+        case .abductors:  return loc.localized("muscle_abductors")
+        case .adductors:  return loc.localized("muscle_adductors")
         }
     }
 
@@ -165,63 +166,68 @@ enum MuscleGroup: String, CaseIterable {
     }
 }
 
-// MARK: - Translators (EN → AZ)
+// MARK: - Translators (EN → Localized)
 enum MuscleTranslator {
-    private static let map: [String: String] = [
-        "chest": "Sinə", "abdominals": "Qarın", "shoulders": "Çiyin",
-        "biceps": "Biseps", "triceps": "Triseps", "lats": "Kürək",
-        "middle back": "Orta Bel", "lower back": "Alt Bel",
-        "quadriceps": "Ön Ayaq", "hamstrings": "Arxa Ayaq",
-        "glutes": "Kalça", "calves": "Baldır", "forearms": "Bilək",
-        "traps": "Trapez", "neck": "Boyun",
-        "abductors": "Abduktor", "adductors": "Adduktor"
+    private static let keyMap: [String: String] = [
+        "chest": "muscle_chest", "abdominals": "muscle_abdominals", "shoulders": "muscle_shoulders",
+        "biceps": "muscle_biceps", "triceps": "muscle_triceps", "lats": "muscle_lats",
+        "middle back": "muscle_middle_back", "lower back": "muscle_lower_back",
+        "quadriceps": "muscle_quadriceps", "hamstrings": "muscle_hamstrings",
+        "glutes": "muscle_glutes", "calves": "muscle_calves", "forearms": "muscle_forearms",
+        "traps": "muscle_traps", "neck": "muscle_neck",
+        "abductors": "muscle_abductors", "adductors": "muscle_adductors"
     ]
     static func translate(_ muscle: String) -> String {
-        map[muscle.lowercased()] ?? muscle.capitalized
+        guard let key = keyMap[muscle.lowercased()] else { return muscle.capitalized }
+        return LocalizationManager.shared.localized(key)
     }
 }
 
 enum EquipmentTranslator {
-    private static let map: [String: String] = [
-        "barbell": "Ştanq", "dumbbell": "Gantel", "cable": "Kabel",
-        "machine": "Maşın", "body only": "Bədən çəkisi",
-        "bands": "Rezin lent", "kettlebells": "Girya",
-        "medicine ball": "Tibb topu", "exercise ball": "Fitbol",
-        "foam roll": "Foam roller", "e-z curl bar": "EZ Bar",
-        "other": "Digər"
+    private static let keyMap: [String: String] = [
+        "barbell": "equip_barbell", "dumbbell": "equip_dumbbell", "cable": "equip_cable",
+        "machine": "equip_machine", "body only": "equip_body_only",
+        "bands": "equip_bands", "kettlebells": "equip_kettlebells",
+        "medicine ball": "equip_medicine_ball", "exercise ball": "equip_exercise_ball",
+        "foam roll": "equip_foam_roll", "e-z curl bar": "equip_ez_bar",
+        "other": "equip_other"
     ]
     static func translate(_ equipment: String) -> String {
-        map[equipment.lowercased()] ?? equipment.capitalized
+        guard let key = keyMap[equipment.lowercased()] else { return equipment.capitalized }
+        return LocalizationManager.shared.localized(key)
     }
 }
 
 enum LevelTranslator {
-    private static let map: [String: String] = [
-        "beginner": "Başlanğıc", "intermediate": "Orta", "expert": "Peşəkar"
+    private static let keyMap: [String: String] = [
+        "beginner": "level_beginner", "intermediate": "level_intermediate", "expert": "level_expert"
     ]
     static func translate(_ level: String) -> String {
-        map[level.lowercased()] ?? level.capitalized
+        guard let key = keyMap[level.lowercased()] else { return level.capitalized }
+        return LocalizationManager.shared.localized(key)
     }
 }
 
 enum CategoryTranslator {
-    private static let map: [String: String] = [
-        "strength": "Güc", "stretching": "Gərmə",
-        "plyometrics": "Pliometrika", "strongman": "Strongman",
-        "powerlifting": "Pauerliftinq", "cardio": "Kardio",
-        "olympic weightlifting": "Olimpik Ağırlıq",
-        "crossfit": "CrossFit"
+    private static let keyMap: [String: String] = [
+        "strength": "cat_strength", "stretching": "cat_stretching",
+        "plyometrics": "cat_plyometrics", "strongman": "cat_strongman",
+        "powerlifting": "cat_powerlifting", "cardio": "cat_cardio",
+        "olympic weightlifting": "cat_olympic",
+        "crossfit": "cat_crossfit"
     ]
     static func translate(_ category: String) -> String {
-        map[category.lowercased()] ?? category.capitalized
+        guard let key = keyMap[category.lowercased()] else { return category.capitalized }
+        return LocalizationManager.shared.localized(key)
     }
 }
 
 enum ForceTranslator {
-    private static let map: [String: String] = [
-        "push": "İtələmə", "pull": "Çəkmə", "static": "Statik"
+    private static let keyMap: [String: String] = [
+        "push": "force_push", "pull": "force_pull", "static": "force_static"
     ]
     static func translate(_ force: String) -> String {
-        map[force.lowercased()] ?? force.capitalized
+        guard let key = keyMap[force.lowercased()] else { return force.capitalized }
+        return LocalizationManager.shared.localized(key)
     }
 }

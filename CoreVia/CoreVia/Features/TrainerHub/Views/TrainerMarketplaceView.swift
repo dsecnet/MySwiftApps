@@ -70,8 +70,8 @@ struct TrainerMarketplaceView: View {
                     Task { await viewModel.loadMyProducts(refresh: true) }
                 }
         }
-        .alert("Xeta", isPresented: .constant(viewModel.errorMessage != nil)) {
-            Button("OK") { viewModel.errorMessage = nil }
+        .alert(loc.localized("common_error"), isPresented: .constant(viewModel.errorMessage != nil)) {
+            Button(loc.localized("common_ok")) { viewModel.errorMessage = nil }
         } message: {
             if let error = viewModel.errorMessage {
                 Text(error)
@@ -210,7 +210,7 @@ struct TrainerProductCard: View {
                     Spacer()
 
                     // Active/Inactive Badge
-                    Text(product.isPublished ? "Yay\u{0131}mda" : "Gizli")
+                    Text(product.isPublished ? loc.localized("marketplace_published") : loc.localized("marketplace_hidden"))
                         .font(.caption2)
                         .fontWeight(.semibold)
                         .foregroundColor(product.isPublished ? AppTheme.Colors.success : AppTheme.Colors.secondaryText)
@@ -266,9 +266,9 @@ struct TrainerProductCard: View {
         .background(AppTheme.Colors.secondaryBackground)
         .cornerRadius(AppTheme.CornerRadius.lg)
         .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 2)
-        .alert("Mehsulu silmek isteyirsiniz?", isPresented: $showDeleteAlert) {
-            Button("Sil", role: .destructive) { onDelete() }
-            Button("Legv et", role: .cancel) {}
+        .alert(loc.localized("marketplace_delete_confirm"), isPresented: $showDeleteAlert) {
+            Button(loc.localized("common_delete"), role: .destructive) { onDelete() }
+            Button(loc.localized("common_cancel"), role: .cancel) {}
         }
     }
 

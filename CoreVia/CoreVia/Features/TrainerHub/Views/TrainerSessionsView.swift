@@ -67,8 +67,8 @@ struct TrainerSessionsView: View {
                     Task { await viewModel.loadSessions(refresh: true) }
                 }
         }
-        .alert("Xeta", isPresented: .constant(viewModel.errorMessage != nil)) {
-            Button("OK") { viewModel.errorMessage = nil }
+        .alert(loc.localized("common_error"), isPresented: .constant(viewModel.errorMessage != nil)) {
+            Button(loc.localized("common_ok")) { viewModel.errorMessage = nil }
         } message: {
             if let error = viewModel.errorMessage {
                 Text(error)
@@ -187,6 +187,7 @@ struct TrainerSessionCard: View {
     let session: LiveSession
     let onDelete: () -> Void
     @State private var showDeleteAlert = false
+    let loc = LocalizationManager.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -257,7 +258,7 @@ struct TrainerSessionCard: View {
                         .fontWeight(.bold)
                         .foregroundColor(AppTheme.Colors.accent)
                 } else {
-                    Text("Pulsuz")
+                    Text(loc.localized("live_session_free"))
                         .font(.subheadline)
                         .fontWeight(.bold)
                         .foregroundColor(AppTheme.Colors.success)
@@ -268,9 +269,9 @@ struct TrainerSessionCard: View {
         .background(AppTheme.Colors.secondaryBackground)
         .cornerRadius(AppTheme.CornerRadius.lg)
         .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 2)
-        .alert("Sessiyani silmek isteyirsiniz?", isPresented: $showDeleteAlert) {
-            Button("Sil", role: .destructive) { onDelete() }
-            Button("Legv et", role: .cancel) {}
+        .alert(loc.localized("trainer_session_delete_confirm"), isPresented: $showDeleteAlert) {
+            Button(loc.localized("common_delete"), role: .destructive) { onDelete() }
+            Button(loc.localized("common_cancel"), role: .cancel) {}
         }
     }
 

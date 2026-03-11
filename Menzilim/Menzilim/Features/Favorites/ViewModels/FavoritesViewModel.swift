@@ -4,15 +4,17 @@ import Combine
 // MARK: - Favorites Filter
 enum FavoritesFilter: String, CaseIterable {
     case all
-    case apartments
-    case villas
+    case oldBuilding
+    case newBuilding
+    case house
     case land
 
     var displayKey: String {
         switch self {
         case .all: return "all"
-        case .apartments: return "apartment"
-        case .villas: return "villa"
+        case .oldBuilding: return "old_building"
+        case .newBuilding: return "new_building"
+        case .house: return "house"
         case .land: return "land"
         }
     }
@@ -20,8 +22,9 @@ enum FavoritesFilter: String, CaseIterable {
     var propertyType: PropertyType? {
         switch self {
         case .all: return nil
-        case .apartments: return .apartment
-        case .villas: return .villa
+        case .oldBuilding: return .oldBuilding
+        case .newBuilding: return .newBuilding
+        case .house: return .house
         case .land: return .land
         }
     }
@@ -93,7 +96,7 @@ class FavoritesViewModel: ObservableObject {
                 id: "fav1", userId: "user_001", agentId: "agent_001",
                 title: "Dəniz mənzərəli 3 otaqlı mənzil",
                 description: "Port Baku Residence-da lüks mənzil",
-                listingType: .sale, propertyType: .apartment,
+                listingType: .sale, propertyType: .newBuilding,
                 price: 450000, currency: .AZN,
                 city: "Bakı", district: "Nəsimi", address: "Port Baku Towers",
                 latitude: 40.3725, longitude: 49.8431,
@@ -107,7 +110,7 @@ class FavoritesViewModel: ObservableObject {
                 id: "fav2", userId: "user_002", agentId: "agent_002",
                 title: "Villa Bilgəh",
                 description: "Bilgəhdə dənizə yaxın villa",
-                listingType: .sale, propertyType: .villa,
+                listingType: .sale, propertyType: .house,
                 price: 650000, currency: .AZN,
                 city: "Bakı", district: "Bilgəh", address: "Sahil yolu, 22",
                 latitude: 40.5512, longitude: 50.0734,
@@ -121,7 +124,7 @@ class FavoritesViewModel: ObservableObject {
                 id: "fav3", userId: "user_003", agentId: "agent_001",
                 title: "Yeni tikili 2 otaqlı",
                 description: "Xətai rayonunda yeni tikili mənzil",
-                listingType: .sale, propertyType: .apartment,
+                listingType: .sale, propertyType: .newBuilding,
                 price: 135000, currency: .AZN,
                 city: "Bakı", district: "Xətai", address: "Babək pr., 78",
                 latitude: 40.3880, longitude: 49.8692,
@@ -149,7 +152,7 @@ class FavoritesViewModel: ObservableObject {
                 id: "fav5", userId: "user_002", agentId: "agent_002",
                 title: "Penthouse White City",
                 description: "Ağ Şəhər layihəsində penthouse",
-                listingType: .sale, propertyType: .apartment,
+                listingType: .sale, propertyType: .newBuilding,
                 price: 980000, currency: .AZN,
                 city: "Bakı", district: "Nəsimi", address: "Ağ Şəhər, Blok A",
                 latitude: 40.3745, longitude: 49.8510,

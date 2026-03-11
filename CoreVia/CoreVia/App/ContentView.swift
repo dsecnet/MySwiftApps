@@ -143,9 +143,7 @@ struct BiometricLockView: View {
                         .font(.system(size: 28, weight: .bold))
                         .foregroundColor(AppTheme.Colors.primaryText)
 
-                    Text(loc.localized("biometric_unlock_desc") == "biometric_unlock_desc"
-                         ? "Davam etmək üçün şəxsiyyətinizi təsdiqləyin"
-                         : loc.localized("biometric_unlock_desc"))
+                    Text(loc.localized("biometric_unlock_desc"))
                         .font(.system(size: 15))
                         .foregroundColor(AppTheme.Colors.secondaryText)
                         .multilineTextAlignment(.center)
@@ -165,9 +163,7 @@ struct BiometricLockView: View {
                         } else {
                             Image(systemName: "faceid")
                                 .font(.system(size: 22))
-                            Text(loc.localized("biometric_unlock") == "biometric_unlock"
-                                 ? "Kilidi aç"
-                                 : loc.localized("biometric_unlock"))
+                            Text(loc.localized("biometric_unlock"))
                                 .font(.system(size: 17, weight: .semibold))
                         }
                     }

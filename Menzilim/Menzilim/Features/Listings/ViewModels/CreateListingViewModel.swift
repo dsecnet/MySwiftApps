@@ -31,11 +31,13 @@ class CreateListingViewModel: ObservableObject {
 
     // MARK: - Step 1: Basic Details
     @Published var isResidential: Bool = true
-    @Published var selectedPropertyType: PropertyType = .apartment
+    @Published var selectedPropertyType: PropertyType = .oldBuilding
     @Published var selectedListingType: ListingType = .sale
     @Published var locationText: String = ""
-    @Published var city: String = "Baki"
+    @Published var selectedCity: AzerbaijanCity? = LocationData.cities.first
+    @Published var city: String = "Bakı"
     @Published var district: String = ""
+    @Published var microdistrict: String = ""
 
     // Photos
     @Published var selectedImages: [UIImage] = []
@@ -44,9 +46,11 @@ class CreateListingViewModel: ObservableObject {
     // MARK: - Step 2: Property Details
     @Published var rooms: Int = 2
     @Published var totalArea: String = ""
+    @Published var landAreaSot: String = ""
     @Published var currentFloor: Int = 5
     @Published var totalFloors: Int = 16
     @Published var hasElevator: Bool = false
+    @Published var selectedRenovation: Renovation = .none
     @Published var price: String = ""
     @Published var selectedCurrency: Currency = .AZN
 
@@ -63,6 +67,42 @@ class CreateListingViewModel: ObservableObject {
 
     // MARK: - Validation
     @Published var validationErrors: [String: String] = [:]
+
+    // MARK: - Location Picker
+    @Published var showLocationPicker: Bool = false
+
+    // MARK: - Location Selection
+    func selectCity(_ city: AzerbaijanCity) {
+        selectedCity = city
+        self.city = city.name
+        district = ""
+        microdistrict = ""
+    }
+
+    func selectDistrict(_ districtName: String) {
+        district = districtName
+        microdistrict = ""
+    }
+
+    func selectMicrodistrict(_ name: String) {
+        microdistrict = name
+    }
+
+    var selectedCityDistricts: [CityDistrict] {
+        selectedCity?.districts ?? []
+    }
+
+    var selectedDistrictMicrodistricts: [String] {
+        selectedCity?.districts.first { $0.name == district }?.microdistricts ?? []
+    }
+
+    var locationSummary: String {
+        var parts: [String] = []
+        if !city.isEmpty { parts.append(city) }
+        if !district.isEmpty { parts.append(district) }
+        if !microdistrict.isEmpty { parts.append(microdistrict) }
+        return parts.joined(separator: ", ")
+    }
 
     // MARK: - Dependencies
     private let apiService = APIService.shared
@@ -182,8 +222,13 @@ class CreateListingViewModel: ObservableObject {
                     newImages.append(image)
                 }
             }
-            selectedImages.append(contentsOf: newImages)
+            let remaining = 10 - selectedImages.count
+            selectedImages.append(contentsOf: newImages.prefix(remaining))
         }
+    }
+
+    var canAddMorePhotos: Bool {
+        selectedImages.count < 10
     }
 
     func removeImage(at index: Int) {
@@ -252,13 +297,15 @@ class CreateListingViewModel: ObservableObject {
                 city: city,
                 district: district,
                 address: locationText,
-                latitude: nil,
-                longitude: nil,
+                latitude: selectedCity?.coordinate.latitude,
+                longitude: selectedCity?.coordinate.longitude,
                 rooms: rooms,
-                areaSqm: Double(totalArea) ?? 0,
+                areaSqm: selectedPropertyType == .land
+                    ? (Double(landAreaSot) ?? 0) * 100  // Convert sot to sqm
+                    : Double(totalArea) ?? 0,
                 floor: currentFloor,
                 totalFloors: totalFloors,
-                renovation: Renovation.none.rawValue,
+                renovation: selectedRenovation.rawValue,
                 images: imageUrls,
                 videoUrl: videoUrl.isEmpty ? nil : videoUrl
             )
@@ -296,15 +343,18 @@ class CreateListingViewModel: ObservableObject {
     func reset() {
         currentStep = .basicDetails
         isResidential = true
-        selectedPropertyType = .apartment
+        selectedPropertyType = .oldBuilding
         selectedListingType = .sale
         locationText = ""
-        city = "Baki"
+        selectedCity = LocationData.cities.first
+        city = "Bakı"
         district = ""
+        microdistrict = ""
         selectedImages = []
         photoPickerItems = []
         rooms = 2
         totalArea = ""
+        landAreaSot = ""
         currentFloor = 5
         totalFloors = 16
         hasElevator = false

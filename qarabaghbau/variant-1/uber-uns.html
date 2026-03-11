@@ -13,13 +13,13 @@ html{scroll-behavior:smooth;overflow-x:hidden}body{font-family:var(--font);backg
 
 /* NAVBAR */
 .nav{position:fixed;top:0;left:0;width:100%;height:64px;background:rgba(11,11,11,.92);backdrop-filter:blur(12px);z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border)}.nav-logo{display:flex;align-items:center;gap:10px}.nav-logo-img{width:60px;height:60px;object-fit:contain;border-radius:8px}.nav-logo-text{font-family:'Russo One',sans-serif;font-weight:400;font-size:15px;letter-spacing:2px;line-height:1.2;text-transform:uppercase}.nav-logo-text span{display:block}
-.hamburger{width:28px;height:20px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;z-index:200}.hamburger span{width:100%;height:2px;background:var(--white);transition:.3s}.hamburger.open span:nth-child(1){transform:rotate(45deg) translate(6px,6px)}.hamburger.open span:nth-child(2){opacity:0}.hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(6px,-6px)}
+.hamburger{width:28px;height:20px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;cursor:pointer;z-index:200}.hamburger span{height:2px;background:var(--white);transition:.4s cubic-bezier(.77,0,.18,1)}.hamburger span:nth-child(1){width:100%}.hamburger span:nth-child(2){width:100%}.hamburger span:nth-child(3){width:100%}.hamburger.open span:nth-child(1){width:60%;transform:translateX(-12px)}.hamburger.open span:nth-child(2){width:75%;transform:translateX(-6px)}.hamburger.open span:nth-child(3){width:90%;transform:translateX(0)}
 
 /* DARK MOBILE MENU */
-.mobile-menu{position:fixed;top:0;right:0;bottom:0;width:50%;background:var(--bg);z-index:150;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .45s cubic-bezier(.77,0,.18,1);overflow-y:auto;border-radius:var(--radius) 0 0 var(--radius);box-shadow:-8px 0 40px rgba(0,0,0,.6)}.mobile-menu.open{transform:translateX(0)}
+.mobile-menu{position:fixed;top:0;right:0;bottom:0;width:25%;background:var(--bg);z-index:150;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .45s cubic-bezier(.77,0,.18,1);overflow-y:auto;border-radius:var(--radius) 0 0 var(--radius);box-shadow:-8px 0 40px rgba(0,0,0,.6)}.mobile-menu.open{transform:translateX(0)}
 .mm-header{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border)}.mm-close{font-size:32px;color:var(--white);cursor:pointer;background:none;border:none}
-.mm-body{flex:1;padding:16px 24px}.mm-body a{display:block;font-size:20px;font-weight:700;color:var(--white);padding:14px 0;border-bottom:1px solid var(--border);transition:.2s}.mm-body a:hover{color:var(--accent);padding-left:8px}
-.mm-cta{margin:12px 24px;background:var(--accent);color:#fff;text-align:center;padding:14px;border-radius:50px;font-weight:700;font-size:14px;display:block;transition:.3s}.mm-cta:hover{background:var(--accent2)}
+.mm-body{flex:1;padding:16px 24px}.mm-body a{display:block;font-size:16px;font-weight:700;color:var(--white);padding:14px 0;border-bottom:1px solid var(--border);transition:color .2s,transform .5s cubic-bezier(.77,0,.18,1),opacity .5s ease;transform:translateX(100px);opacity:0}.mm-body a:nth-child(1){padding-left:12px;transition-delay:0s,.15s,.15s}.mm-body a:nth-child(2){padding-left:22px;transition-delay:0s,.25s,.25s}.mm-body a:nth-child(3){padding-left:32px;transition-delay:0s,.35s,.35s}.mm-body a:nth-child(4){padding-left:42px;transition-delay:0s,.45s,.45s}.mm-body a:nth-child(5){padding-left:52px;transition-delay:0s,.55s,.55s}.mobile-menu.open .mm-body a{transform:translateX(0);opacity:1}.mm-body a:hover{color:var(--accent)}
+.mm-cta{margin:12px 24px;background:var(--accent);color:#fff;text-align:center;padding:14px;border-radius:50px;font-weight:700;font-size:14px;display:block;transition:background .3s,transform .5s cubic-bezier(.77,0,.18,1) .65s,opacity .5s ease .65s;transform:translateX(80px);opacity:0}.mobile-menu.open .mm-cta{transform:translateX(0);opacity:1}.mm-cta:hover{background:var(--accent2)}
 .mm-footer{padding:10px 24px 16px;border-top:1px solid var(--border)}.mm-footer p{font-size:13px;color:var(--gray);line-height:2}
 
 /* HERO WITH FLOATING WORDS */
@@ -38,7 +38,7 @@ html{scroll-behavior:smooth;overflow-x:hidden}body{font-family:var(--font);backg
 @keyframes drift3{0%,100%{transform:translate(0,0)}25%{transform:translate(15px,18px)}50%{transform:translate(-20px,-12px)}75%{transform:translate(8px,22px)}}
 .hero-content{position:relative;z-index:2;text-align:center;padding:0 24px}
 .hero-content .s-label{font-size:11px;color:var(--accent);letter-spacing:4px;text-transform:uppercase;margin-bottom:12px;animation:fadeUp .8s ease .2s both}
-.hero-content h1{font-size:clamp(32px,7vw,64px);font-weight:900;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;animation:fadeUp .8s ease .4s both}
+.hero-content h1{font-size:clamp(32px,7vw,64px);font-weight:900;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;animation:fadeUp .8s ease .4s both;color:var(--accent)}
 .hero-content p{font-size:clamp(13px,1.5vw,16px);color:var(--gray);max-width:500px;margin:0 auto;animation:fadeUp .8s ease .6s both}
 .hero-scroll{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:8px}
 .hero-scroll span{font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase}
@@ -48,7 +48,7 @@ html{scroll-behavior:smooth;overflow-x:hidden}body{font-family:var(--font);backg
 
 /* ABOUT SECTION */
 .s-label{font-size:11px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px}
-.s-title{font-size:clamp(28px,5vw,48px);font-weight:900;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}
+.s-title{font-size:clamp(32px,6vw,56px);font-weight:900;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}
 .about{padding:80px 24px;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}@media(max-width:768px){.about{grid-template-columns:1fr}}
 .about-text p{font-size:14px;color:var(--gray);line-height:1.8;margin-bottom:16px}.about-text strong{color:var(--white)}
 .about-img{border-radius:var(--radius);overflow:hidden;position:relative}
@@ -57,7 +57,7 @@ html{scroll-behavior:smooth;overflow-x:hidden}body{font-family:var(--font);backg
 .about-img-ghost{position:absolute;bottom:20px;right:20px;font-size:clamp(40px,8vw,80px);font-weight:900;color:rgba(255,255,255,.04);pointer-events:none;z-index:1}
 
 /* ANIMATED COUNTER STATS */
-.stats{padding:60px 24px;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:24px;text-align:center}@media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stats{padding:60px 24px;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:24px;text-align:center}@media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}}
 .stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:32px 16px;transition:.4s}
 .stat:hover{transform:translateY(-4px);border-color:rgba(233,55,40,.2);box-shadow:0 12px 30px rgba(0,0,0,.4)}
 .stat-num{font-size:clamp(36px,6vw,56px);font-weight:900;color:var(--accent);line-height:1}
@@ -155,17 +155,16 @@ html{scroll-behavior:smooth;overflow-x:hidden}body{font-family:var(--font);backg
     <p>Qualität, Struktur und technische Exzellenz bilden die Grundlage unseres Handelns.</p>
   </div>
   <div class="about-img reveal">
-    <img src="../images/project_7.webp" alt="Team">
+    <img src="../images/istockphoto-610560702-612x612.jpg" alt="Bauingenieur">
     <div class="about-img-ghost">BAU</div>
   </div>
 </section>
 
 <!-- ANIMATED STATS -->
 <section class="stats">
-  <div class="stat reveal stagger" style="--i:0"><div class="stat-num" data-target="7">0</div><div class="stat-label">Fachkräfte</div></div>
-  <div class="stat reveal stagger" style="--i:1"><div class="stat-num" data-target="50" data-suffix="+">0</div><div class="stat-label">Projekte</div></div>
-  <div class="stat reveal stagger" style="--i:2"><div class="stat-num" data-target="10" data-suffix="+">0</div><div class="stat-label">Jahre Erfahrung</div></div>
-  <div class="stat reveal stagger" style="--i:3"><div class="stat-num" data-target="100" data-suffix="%">0</div><div class="stat-label">Kundenzufriedenheit</div></div>
+  <div class="stat reveal stagger" style="--i:0"><div class="stat-num" data-target="50" data-suffix="+">0</div><div class="stat-label">Projekte</div></div>
+  <div class="stat reveal stagger" style="--i:1"><div class="stat-num" data-target="10" data-suffix="+">0</div><div class="stat-label">Jahre Erfahrung</div></div>
+  <div class="stat reveal stagger" style="--i:2"><div class="stat-num" data-target="100" data-suffix="%">0</div><div class="stat-label">Kundenzufriedenheit</div></div>
 </section>
 
 <!-- TIMELINE HORIZONTAL -->
@@ -176,9 +175,9 @@ html{scroll-behavior:smooth;overflow-x:hidden}body{font-family:var(--font);backg
   </div>
   <div class="tl-track" id="tlTrack">
     <div class="tl-card"><div class="tl-card-ghost">START</div><div class="tl-year">2015</div><h3>GRÜNDUNG</h3><p>Gründung von Grid Works in Münster. Start mit Rohbau- und Betonarbeiten für Einfamilienhäuser.</p><div class="tl-card-bar"></div></div>
-    <div class="tl-card"><div class="tl-card-ghost">WACHSTUM</div><div class="tl-year">2018</div><h3>EXPANSION</h3><p>Erweiterung des Teams auf 5 Fachkräfte. Aufnahme von Altbausanierung und Abbrucharbeiten ins Leistungsspektrum.</p><div class="tl-card-bar"></div></div>
-    <div class="tl-card"><div class="tl-card-ghost">STÄRKE</div><div class="tl-year">2021</div><h3>50 PROJEKTE</h3><p>Meilenstein von über 50 erfolgreich abgeschlossenen Projekten im Münsterland.</p><div class="tl-card-bar"></div></div>
-    <div class="tl-card"><div class="tl-card-ghost">HEUTE</div><div class="tl-year">2025</div><h3>HEUTE</h3><p>7 Fachkräfte, umfassendes Leistungsspektrum und 100% Kundenzufriedenheit. Ihr Partner für anspruchsvolle Bauprojekte.</p><div class="tl-card-bar"></div></div>
+    <div class="tl-card"><div class="tl-card-ghost">WACHSTUM</div><div class="tl-year">2018</div><h3>EXPANSION</h3><p>Erweiterung des Teams auf 50 Fachkräfte. Aufnahme von Altbausanierung und Abbrucharbeiten ins Leistungsspektrum.</p><div class="tl-card-bar"></div></div>
+    <div class="tl-card"><div class="tl-card-ghost">STÄRKE</div><div class="tl-year">2021</div><h3>50 PROJEKTE</h3><p>Meilenstein von über 50 erfolgreich abgeschlossenen Projekten in North Rhine-Westphalia.</p><div class="tl-card-bar"></div></div>
+    <div class="tl-card"><div class="tl-card-ghost">HEUTE</div><div class="tl-year">2025</div><h3>HEUTE</h3><p>40+ Fachkräfte, umfassendes Leistungsspektrum und 100% Kundenzufriedenheit. Ihr Partner für anspruchsvolle Bauprojekte.</p><div class="tl-card-bar"></div></div>
   </div>
   <div class="scroll-bar">
     <span class="lbl">SCROLL &rarr;</span>
@@ -212,7 +211,7 @@ html{scroll-behavior:smooth;overflow-x:hidden}body{font-family:var(--font);backg
     <div class="team-info">
       <h3>Vugar Azizov</h3>
       <div class="role">Geschäftsführer / Inhaber</div>
-      <p>Mit über 10 Jahren Erfahrung im Rohbau führt Vugar Azizov sein Team aus 7 Fachkräften mit Leidenschaft und Präzision. Qualität und Kundenzufriedenheit stehen bei jedem Projekt an erster Stelle.</p>
+      <p>Mit über 10 Jahren Erfahrung im Rohbau führt Vugar Azizov sein Team aus 40 Fachkräften mit Leidenschaft und Präzision. Qualität und Kundenzufriedenheit stehen bei jedem Projekt an erster Stelle.</p>
     </div>
     <div class="team-ghost">CHEF</div>
   </div>

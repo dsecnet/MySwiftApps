@@ -35,7 +35,7 @@ struct LiveSessionDetailView: View {
                         // Description
                         if let description = session.description {
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("Description")
+                                Text(loc.localized("live_session_description"))
                                     .font(.headline)
 
                                 Text(description)
@@ -60,7 +60,7 @@ struct LiveSessionDetailView: View {
                 VStack(spacing: 12) {
                     ProgressView()
                         .scaleEffect(1.2)
-                    Text("Yüklənir...")
+                    Text(loc.localized("common_loading"))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -70,10 +70,10 @@ struct LiveSessionDetailView: View {
                     Image(systemName: "figure.run")
                         .font(.system(size: 50))
                         .foregroundColor(.gray)
-                    Text("Sessiya məlumatı yoxdur")
+                    Text(loc.localized("live_session_no_info"))
                         .font(.headline)
                         .foregroundColor(.gray)
-                    Text("Sessiya tapılmadı və ya silinib")
+                    Text(loc.localized("live_session_deleted"))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -81,7 +81,7 @@ struct LiveSessionDetailView: View {
                 .padding()
             }
         }
-        .navigationTitle("Session Details")
+        .navigationTitle(loc.localized("live_session_details"))
         .navigationBarTitleDisplayMode(.inline)
         .task {
             await loadSession()
@@ -149,25 +149,25 @@ struct LiveSessionDetailView: View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
             InfoCell(
                 icon: "calendar",
-                title: "Date",
+                title: loc.localized("live_session_date"),
                 value: session.scheduledStart.formatted(date: .abbreviated, time: .omitted)
             )
 
             InfoCell(
                 icon: "clock",
-                title: "Time",
+                title: loc.localized("live_session_time"),
                 value: session.scheduledStart.formatted(date: .omitted, time: .shortened)
             )
 
             InfoCell(
                 icon: "hourglass",
-                title: "Duration",
+                title: loc.localized("live_session_duration"),
                 value: "\(session.durationMinutes) min"
             )
 
             InfoCell(
                 icon: "person.2",
-                title: "Capacity",
+                title: loc.localized("live_session_capacity"),
                 value: "\(session.registeredCount ?? 0)/\(session.maxParticipants)"
             )
         }
@@ -183,7 +183,7 @@ struct LiveSessionDetailView: View {
 
                 Spacer()
 
-                Text("\(session.registeredCount ?? 0) joined")
+                Text("\(session.registeredCount ?? 0) \(loc.localized("live_session_joined"))")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -275,7 +275,7 @@ struct LiveSessionDetailView: View {
                 NavigationLink {
                     LiveWorkoutView(sessionId: sessionId)
                 } label: {
-                    Text("Start Workout")
+                    Text(loc.localized("live_session_start_workout"))
                         .font(.headline)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
@@ -369,17 +369,17 @@ struct LiveSessionDetailView: View {
                         hasJoined = true
 
                     case .unverified(_, let error):
-                        errorMessage = "Odenis dogrulama ugursuz: \(error.localizedDescription)"
+                        errorMessage = "\(loc.localized("live_session_payment_failed")): \(error.localizedDescription)"
                     }
 
                 case .userCancelled:
                     break // User legv etdi, xeta gosterme
 
                 case .pending:
-                    errorMessage = "Odenis gozleyir."
+                    errorMessage = loc.localized("live_session_payment_pending")
 
                 @unknown default:
-                    errorMessage = "Bilinmeyen odenis netices."
+                    errorMessage = loc.localized("live_session_payment_unknown")
                 }
             } else {
                 // StoreKit product tapilmadisa, backend-den birbaşa join et (test mode)

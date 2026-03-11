@@ -28,13 +28,13 @@ class ListingType(str, enum.Enum):
 
 
 class PropertyType(str, enum.Enum):
-    APARTMENT = "apartment"
+    OLD_BUILDING = "old_building"
+    NEW_BUILDING = "new_building"
     HOUSE = "house"
-    VILLA = "villa"
     OFFICE = "office"
+    GARAGE = "garage"
     LAND = "land"
     COMMERCIAL = "commercial"
-    GARAGE = "garage"
 
 
 class Currency(str, enum.Enum):

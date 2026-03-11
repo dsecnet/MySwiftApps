@@ -10,6 +10,7 @@ import SwiftUI
 struct ExerciseDetailView: View {
     let exercise: Exercise
     @State private var showSecondImage = false
+    @ObservedObject private var loc = LocalizationManager.shared
 
     var body: some View {
         ZStack {
@@ -74,7 +75,7 @@ struct ExerciseDetailView: View {
                             showSecondImage = false
                         }
                     } label: {
-                        Text("Başlanğıc")
+                        Text(loc.localized("exercise_start_position"))
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundColor(!showSecondImage ? .white : AppTheme.Colors.secondaryText)
                             .frame(maxWidth: .infinity)
@@ -87,7 +88,7 @@ struct ExerciseDetailView: View {
                             showSecondImage = true
                         }
                     } label: {
-                        Text("Son pozisiya")
+                        Text(loc.localized("exercise_end_position"))
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundColor(showSecondImage ? .white : AppTheme.Colors.secondaryText)
                             .frame(maxWidth: .infinity)
@@ -109,7 +110,7 @@ struct ExerciseDetailView: View {
         VStack(spacing: 0) {
             detailRow(
                 icon: "target",
-                title: "Hədəf əzələ",
+                title: loc.localized("exercise_target_muscle"),
                 value: exercise.primaryMusclesText,
                 color: AppTheme.Colors.accent
             )
@@ -118,7 +119,7 @@ struct ExerciseDetailView: View {
 
             detailRow(
                 icon: "dumbbell.fill",
-                title: "Avadanlıq",
+                title: loc.localized("exercise_equipment"),
                 value: exercise.equipmentText,
                 color: .orange
             )
@@ -127,7 +128,7 @@ struct ExerciseDetailView: View {
 
             detailRow(
                 icon: "flame.fill",
-                title: "Kateqoriya",
+                title: loc.localized("exercise_category"),
                 value: exercise.categoryText,
                 color: .blue
             )
@@ -137,7 +138,7 @@ struct ExerciseDetailView: View {
 
                 detailRow(
                     icon: "chart.bar.fill",
-                    title: "Səviyyə",
+                    title: loc.localized("exercise_level"),
                     value: exercise.levelText,
                     color: levelColor(exercise.level ?? "")
                 )
@@ -148,7 +149,7 @@ struct ExerciseDetailView: View {
 
                 detailRow(
                     icon: "arrow.left.arrow.right",
-                    title: "Hərəkət növü",
+                    title: loc.localized("exercise_force_type"),
                     value: forceText,
                     color: .purple
                 )
@@ -191,7 +192,7 @@ struct ExerciseDetailView: View {
                 Image(systemName: "list.number")
                     .font(.system(size: 14))
                     .foregroundColor(AppTheme.Colors.accent)
-                Text("Təlimatlar")
+                Text(loc.localized("exercise_instructions"))
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(AppTheme.Colors.primaryText)
             }
@@ -227,7 +228,7 @@ struct ExerciseDetailView: View {
                 Image(systemName: "figure.flexibility")
                     .font(.system(size: 14))
                     .foregroundColor(AppTheme.Colors.accent)
-                Text("İkinci əzələlər")
+                Text(loc.localized("exercise_secondary_muscles"))
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(AppTheme.Colors.primaryText)
             }

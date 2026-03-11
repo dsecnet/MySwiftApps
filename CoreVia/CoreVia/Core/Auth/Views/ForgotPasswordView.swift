@@ -60,22 +60,22 @@ struct ForgotPasswordView: View {
             }
             .scrollDismissesKeyboard(.interactively)
         }
-        .navigationTitle("Şifrəni Bərpa Et")
+        .navigationTitle(loc.localized("forgot_title"))
         .onTapGesture {
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         }
         .navigationBarTitleDisplayMode(.inline)
-        .alert("Xəta", isPresented: $showError) {
+        .alert(loc.localized("validation_error_occurred"), isPresented: $showError) {
             Button("OK", role: .cancel) {}
         } message: {
             Text(errorMessage)
         }
-        .alert("Uğurlu!", isPresented: $showSuccess) {
-            Button("Giriş et") {
+        .alert(loc.localized("common_success"), isPresented: $showSuccess) {
+            Button(loc.localized("register_success_login")) {
                 dismiss()
             }
         } message: {
-            Text("Şifrəniz uğurla yeniləndi")
+            Text(loc.localized("forgot_success"))
         }
     }
 
@@ -143,7 +143,7 @@ struct ForgotPasswordView: View {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                     } else {
-                        Text("Email-ə OTP Göndər")
+                        Text(loc.localized("forgot_send_otp"))
                             .font(.system(size: 16, weight: .semibold))
                     }
                 }
@@ -170,7 +170,7 @@ struct ForgotPasswordView: View {
         VStack(spacing: 20) {
             // OTP Code Input
             VStack(alignment: .leading, spacing: 8) {
-                Text("Təsdiq Kodu")
+                Text(loc.localized("forgot_verify_code"))
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(AppTheme.Colors.secondaryText)
 
@@ -179,7 +179,7 @@ struct ForgotPasswordView: View {
                         .foregroundColor(AppTheme.Colors.accent)
                         .frame(width: 20)
 
-                    TextField("6 rəqəmli kod", text: $otpCode)
+                    TextField(loc.localized("forgot_6digit"), text: $otpCode)
                         .keyboardType(.numberPad)
                         .onChange(of: otpCode) { newValue in
                             // Limit to 6 digits
@@ -199,14 +199,14 @@ struct ForgotPasswordView: View {
 
             // Resend OTP
             if otpCountdown > 0 {
-                Text("Yenidən göndər: \(otpCountdown)s")
+                Text("\(loc.localized("forgot_resend_timer")) \(otpCountdown)s")
                     .font(.system(size: 13))
                     .foregroundColor(AppTheme.Colors.tertiaryText)
             } else {
                 Button {
                     sendOTP()
                 } label: {
-                    Text("Kodu yenidən göndər")
+                    Text(loc.localized("forgot_resend"))
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(AppTheme.Colors.accent)
                 }
@@ -221,7 +221,7 @@ struct ForgotPasswordView: View {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                     } else {
-                        Text("Təsdiq Et")
+                        Text(loc.localized("forgot_verify"))
                             .font(.system(size: 16, weight: .semibold))
                     }
                 }
@@ -248,7 +248,7 @@ struct ForgotPasswordView: View {
         VStack(spacing: 20) {
             // New Password
             VStack(alignment: .leading, spacing: 8) {
-                Text("Yeni Şifrə")
+                Text(loc.localized("forgot_new_password"))
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(AppTheme.Colors.secondaryText)
 
@@ -281,7 +281,7 @@ struct ForgotPasswordView: View {
 
             // Confirm Password
             VStack(alignment: .leading, spacing: 8) {
-                Text("Şifrəni Təsdiq Et")
+                Text(loc.localized("forgot_confirm_password"))
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(AppTheme.Colors.secondaryText)
 
@@ -325,7 +325,7 @@ struct ForgotPasswordView: View {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                     } else {
-                        Text("Şifrəni Yenilə")
+                        Text(loc.localized("forgot_update_password"))
                             .font(.system(size: 16, weight: .semibold))
                     }
                 }
@@ -351,22 +351,22 @@ struct ForgotPasswordView: View {
     private var stepTitle: String {
         switch currentStep {
         case .enterEmail:
-            return "Şifrəni Bərpa Et"
+            return loc.localized("forgot_title")
         case .enterOTP:
-            return "Kodu Daxil Et"
+            return loc.localized("forgot_enter_code")
         case .enterNewPassword:
-            return "Yeni Şifrə"
+            return loc.localized("forgot_new_password")
         }
     }
 
     private var stepDescription: String {
         switch currentStep {
         case .enterEmail:
-            return "Email adresinize OTP kodu göndərəcəyik"
+            return loc.localized("forgot_step_email_desc")
         case .enterOTP:
-            return "Email -ə göndərilən 6 rəqəmli kodu daxil edin"
+            return loc.localized("forgot_step_otp_desc")
         case .enterNewPassword:
-            return "Yeni şifrənizi daxil edin"
+            return loc.localized("forgot_step_password_desc")
         }
     }
 
@@ -393,10 +393,10 @@ struct ForgotPasswordView: View {
 
     private var strengthText: String {
         switch passwordStrength {
-        case 0...1: return "Zəif"
-        case 2: return "Orta"
-        case 3: return "Yaxşı"
-        default: return "Güclü"
+        case 0...1: return loc.localized("password_weak")
+        case 2: return loc.localized("password_medium")
+        case 3: return loc.localized("password_good")
+        default: return loc.localized("password_strong")
         }
     }
 
@@ -441,7 +441,7 @@ struct ForgotPasswordView: View {
             } catch {
                 await MainActor.run {
                     isLoading = false
-                    errorMessage = "Xəta baş verdi"
+                    errorMessage = loc.localized("validation_error_occurred")
                     showError = true
                 }
             }
@@ -484,7 +484,7 @@ struct ForgotPasswordView: View {
             } catch {
                 await MainActor.run {
                     isLoading = false
-                    errorMessage = "Şifrə yenilənərkən xəta"
+                    errorMessage = loc.localized("forgot_password_error")
                     showError = true
                 }
             }

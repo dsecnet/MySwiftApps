@@ -73,40 +73,12 @@ struct SplashView: View {
                         .opacity(glowOpacity)
 
                     // Icon container with gradient background
-                    ZStack {
-                        // Inner circle background
-                        Circle()
-                            .fill(
-                                RadialGradient(
-                                    colors: [
-                                        AppTheme.Colors.accent.opacity(0.15),
-                                        AppTheme.Colors.accent.opacity(0.05),
-                                        Color.clear
-                                    ],
-                                    center: .center,
-                                    startRadius: 15,
-                                    endRadius: 70
-                                )
-                            )
-                            .frame(width: 140, height: 140)
-
-                        // Building icon
-                        Image(systemName: "building.2.fill")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 72, height: 72)
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [
-                                        AppTheme.Colors.accent,
-                                        Color(hex: "0099CC")
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .shadow(color: AppTheme.Colors.accent.opacity(0.4), radius: 12, x: 0, y: 4)
-                    }
+                    Image("app_logo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 120, height: 120)
+                        .clipShape(RoundedRectangle(cornerRadius: 28))
+                        .shadow(color: AppTheme.Colors.accent.opacity(0.4), radius: 12, x: 0, y: 4)
                 }
                 .scaleEffect(iconScale)
                 .opacity(iconOpacity)

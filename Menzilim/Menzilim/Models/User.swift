@@ -2,16 +2,16 @@ import Foundation
 
 // MARK: - User Role
 enum UserRole: String, Codable, CaseIterable {
-    case user
-    case agent
     case owner
+    case agent
+    case user
     case admin
 
     var displayKey: String {
         switch self {
-        case .user: return "role_user"
-        case .agent: return "role_agent"
         case .owner: return "role_owner"
+        case .agent: return "role_agent"
+        case .user: return "role_owner"
         case .admin: return "Admin"
         }
     }
@@ -20,8 +20,7 @@ enum UserRole: String, Codable, CaseIterable {
 // MARK: - User Model
 struct User: Codable, Identifiable {
     let id: String
-    var phone: String
-    var email: String?
+    var email: String
     var fullName: String
     var avatarUrl: String?
     var role: UserRole
@@ -30,7 +29,7 @@ struct User: Codable, Identifiable {
     var updatedAt: Date?
 
     enum CodingKeys: String, CodingKey {
-        case id, phone, email, role
+        case id, email, role
         case fullName = "full_name"
         case avatarUrl = "avatar_url"
         case isVerified = "is_verified"
@@ -52,30 +51,21 @@ struct AuthResponse: Codable {
     }
 }
 
-struct OTPRequest: Codable {
-    let phone: String
-}
-
-struct OTPVerifyRequest: Codable {
-    let phone: String
-    let code: String
-}
-
 struct RegisterRequest: Codable {
-    let phone: String
-    let code: String
+    let email: String
+    let password: String
     let fullName: String
     let role: String
 
     enum CodingKeys: String, CodingKey {
-        case phone, code, role
+        case email, password, role
         case fullName = "full_name"
     }
 }
 
 struct LoginRequest: Codable {
-    let phone: String
-    let code: String
+    let email: String
+    let password: String
 }
 
 struct TokenRefreshRequest: Codable {

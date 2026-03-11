@@ -7,6 +7,7 @@
 
 import SwiftUI
 import StoreKit
+import SafariServices
 import os.log
 
 struct PremiumView: View {
@@ -14,6 +15,7 @@ struct PremiumView: View {
     @ObservedObject private var settingsManager = SettingsManager.shared
     @ObservedObject private var authManager = AuthManager.shared
     @ObservedObject private var storeKit = StoreKitManager.shared
+    @ObservedObject private var kapitalPayment = KapitalPaymentManager.shared
     @ObservedObject private var loc = LocalizationManager.shared
 
     @State private var isLoading = false
@@ -21,6 +23,9 @@ struct PremiumView: View {
     @State private var errorMessage: String?
     @State private var showError = false
     @State private var selectedProduct: Product?
+    @State private var showPaymentWeb = false
+    @State private var paymentURL: URL?
+    @State private var selectedPlanId: String = "com.corevia.monthly"
 
     // isPremium: hemise backend-den gelen currentUser.isPremium istifade olunur (iOS-04 fix)
     private var isPremium: Bool {
@@ -129,7 +134,7 @@ struct PremiumView: View {
         }
     }
 
-    // MARK: - Premium Offer Section (StoreKit 2 ile - iOS-02, iOS-05 fix)
+    // MARK: - Premium Offer Section
     private var premiumOfferSection: some View {
         VStack(spacing: 20) {
             ZStack {
@@ -147,54 +152,105 @@ struct PremiumView: View {
             }
             .padding(.top, 20)
 
-            Text("Premium")
+            Text(loc.localized("premium_title"))
                 .font(.system(size: 32, weight: .bold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
-            // StoreKit-den gelen real qiymetler
-            if storeKit.isLoading {
-                ProgressView().padding()
-            } else if storeKit.products.isEmpty {
-                Text(loc.localized("premium_coming_soon"))
-                    .font(.system(size: 14))
-                    .foregroundColor(AppTheme.Colors.tertiaryText)
-                    .multilineTextAlignment(.center)
-            } else {
-                // Mehsul siyahisi
-                VStack(spacing: 12) {
-                    ForEach(storeKit.products, id: \.id) { product in
-                        productCard(product)
-                    }
-                }
+            // Plan seçimi
+            VStack(spacing: 12) {
+                planSelectionCard(
+                    planId: "com.corevia.monthly",
+                    title: loc.localized("premium_monthly"),
+                    price: "9.99 ₼",
+                    period: loc.localized("premium_month")
+                )
+                planSelectionCard(
+                    planId: "com.corevia.yearly",
+                    title: loc.localized("premium_yearly"),
+                    price: "79.99 ₼",
+                    period: loc.localized("premium_year"),
+                    badge: "20% endirim"
+                )
+            }
 
-                // Satin al duymmesi
-                Button {
-                    guard let product = selectedProduct ?? storeKit.products.first else { return }
-                    purchaseProduct(product)
-                } label: {
-                    HStack(spacing: 10) {
-                        Image(systemName: "crown.fill").font(.system(size: 18))
-                        Text(loc.localized("premium_activate")).font(.system(size: 17, weight: .semibold))
-                    }
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 18)
-                    .background(LinearGradient(
-                        colors: [AppTheme.Colors.premiumGradientStart, AppTheme.Colors.premiumGradientEnd],
-                        startPoint: .leading, endPoint: .trailing))
-                    .cornerRadius(20)
-                    .shadow(color: AppTheme.Colors.premiumGradientStart.opacity(0.4), radius: 12, x: 0, y: 6)
+            // Kapital Bank ile odenis
+            Button {
+                startKapitalPayment()
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: "crown.fill").font(.system(size: 18))
+                    Text(loc.localized("premium_activate")).font(.system(size: 17, weight: .semibold))
                 }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 18)
+                .background(LinearGradient(
+                    colors: [AppTheme.Colors.premiumGradientStart, AppTheme.Colors.premiumGradientEnd],
+                    startPoint: .leading, endPoint: .trailing))
+                .cornerRadius(20)
+                .shadow(color: AppTheme.Colors.premiumGradientStart.opacity(0.4), radius: 12, x: 0, y: 6)
+            }
 
-                // Restore Purchases
-                Button {
-                    Task { await storeKit.restorePurchases() }
-                } label: {
-                    Text(loc.localized("premium_restore") == "premium_restore" ? "Alisları bərpa et" : loc.localized("premium_restore"))
-                        .font(.system(size: 14))
-                        .foregroundColor(AppTheme.Colors.accent)
+            // Kapital Bank payment success
+            if kapitalPayment.paymentSuccess {
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                    Text("Ödəniş uğurla tamamlandı!")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.green)
+                }
+                .padding(.top, 4)
+            }
+        }
+        .sheet(isPresented: $showPaymentWeb) {
+            if let url = paymentURL {
+                PaymentWebView(url: url) {
+                    showPaymentWeb = false
+                    // Safari bağlandıqda status yoxla
+                    checkPaymentAfterReturn()
                 }
             }
+        }
+    }
+
+    private func planSelectionCard(planId: String, title: String, price: String, period: String, badge: String? = nil) -> some View {
+        let isSelected = selectedPlanId == planId
+
+        return Button {
+            selectedPlanId = planId
+        } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 6) {
+                        Text(title)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(AppTheme.Colors.primaryText)
+                        if let badge = badge {
+                            Text(badge)
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(AppTheme.Colors.premiumGradientStart)
+                                .cornerRadius(6)
+                        }
+                    }
+                    Text("1 \(period)")
+                        .font(.system(size: 12))
+                        .foregroundColor(AppTheme.Colors.secondaryText)
+                }
+                Spacer()
+                Text(price)
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(isSelected ? AppTheme.Colors.premiumGradientStart : AppTheme.Colors.primaryText)
+            }
+            .padding(16)
+            .background(AppTheme.Colors.secondaryBackground)
+            .cornerRadius(16)
+            .overlay(RoundedRectangle(cornerRadius: 16)
+                .stroke(isSelected ? AppTheme.Colors.premiumGradientStart : AppTheme.Colors.separator,
+                        lineWidth: isSelected ? 2 : 1))
         }
     }
 
@@ -258,7 +314,55 @@ struct PremiumView: View {
         }
     }
 
-    // MARK: - Purchase Action (iOS-02 fix: StoreKit 2 + backend verify)
+    // MARK: - Kapital Bank Payment
+    private func startKapitalPayment() {
+        isLoading = true
+        kapitalPayment.reset()
+
+        Task {
+            do {
+                let response = try await kapitalPayment.createOrder(productId: selectedPlanId)
+
+                await MainActor.run {
+                    isLoading = false
+                    if let url = URL(string: response.redirectUrl) {
+                        paymentURL = url
+                        showPaymentWeb = true
+                    } else {
+                        errorMessage = "Ödəniş linki yaradıla bilmədi"
+                        showError = true
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    isLoading = false
+                    errorMessage = error.localizedDescription
+                    showError = true
+                }
+            }
+        }
+    }
+
+    private func checkPaymentAfterReturn() {
+        guard let paymentId = kapitalPayment.currentPaymentId else { return }
+        isLoading = true
+
+        Task {
+            let success = await kapitalPayment.waitForPaymentCompletion(paymentId: paymentId)
+
+            await MainActor.run {
+                isLoading = false
+                if success {
+                    // Premium aktivdir - user data yenilenib
+                } else if let error = kapitalPayment.paymentError {
+                    errorMessage = error
+                    showError = true
+                }
+            }
+        }
+    }
+
+    // MARK: - StoreKit Purchase (saxlanılıb - Apple IAP lazım olsa)
     private func purchaseProduct(_ product: Product) {
         isLoading = true
         Task {
@@ -267,20 +371,18 @@ struct PremiumView: View {
                 await MainActor.run {
                     isLoading = false
                     if transaction != nil {
-                        // fetchCurrentUser isPremium-u backend-den alir (iOS-04 fix)
                         Task { await authManager.fetchCurrentUser() }
                     }
                 }
             } catch StoreError.backendVerificationFailed {
                 await MainActor.run {
                     isLoading = false
-                    errorMessage = "Server terefdinden alis tesdiqlenilmedi. Destek ile elaqe saxlayin."
+                    errorMessage = loc.localized("premium_verification_failed")
                     showError = true
                 }
             } catch {
                 await MainActor.run {
                     isLoading = false
-                    // User cancel - error gosterme
                     if (error as? StoreKit.Product.PurchaseError) != nil { return }
                     errorMessage = error.localizedDescription
                     showError = true

@@ -143,7 +143,7 @@ struct TrainerVerificationView: View {
     // MARK: - Photo Section
     private var photoSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("Fitness Sekiliniz", systemImage: "camera.fill")
+            Label(loc.localized("verification_photo_title"), systemImage: "camera.fill")
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
@@ -215,7 +215,7 @@ struct TrainerVerificationView: View {
                     .foregroundColor(AppTheme.Colors.accent)
                     .font(.system(size: 16, weight: .bold))
 
-                TextField("instagram_username", text: $instagram)
+                TextField(loc.localized("verification_instagram_placeholder"), text: $instagram)
                     .foregroundColor(AppTheme.Colors.primaryText)
                     .autocapitalization(.none)
                     .font(.system(size: 14))
@@ -234,7 +234,7 @@ struct TrainerVerificationView: View {
     // MARK: - Specialization Section
     private var specializationSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label("Ixtisas", systemImage: "star.fill")
+            Label(loc.localized("verification_specialization"), systemImage: "star.fill")
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
@@ -266,15 +266,17 @@ struct TrainerVerificationView: View {
     // MARK: - Experience Section
     private var experienceSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label("Tecrube", systemImage: "clock.fill")
+            Label(loc.localized("verification_experience"), systemImage: "clock.fill")
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
             HStack {
-                Text("\(experience) il")
+                Text("\(experience) \(loc.localized("common_year"))")
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(AppTheme.Colors.primaryText)
-                    .frame(width: 60)
+                    .frame(minWidth: 60)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
 
                 Slider(value: Binding(
                     get: { Double(experience) },
@@ -292,7 +294,7 @@ struct TrainerVerificationView: View {
     // MARK: - Bio Section
     private var bioSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label("Haqqinizda", systemImage: "text.alignleft")
+            Label(loc.localized("verification_about"), systemImage: "text.alignleft")
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(AppTheme.Colors.primaryText)
 
@@ -512,9 +514,9 @@ struct TrainerVerificationView: View {
 
     private var statusTitle: String {
         switch resultStatus {
-        case "verified": return "Dogrulandiniz!"
-        case "pending": return "Gozden Kecirilir"
-        default: return "Redd Edildi"
+        case "verified": return loc.localized("verification_approved")
+        case "pending": return loc.localized("verification_pending_status")
+        default: return loc.localized("verification_rejected")
         }
     }
 
@@ -563,7 +565,7 @@ struct TrainerVerificationView: View {
             } catch let error as APIError {
                 await MainActor.run {
                     isLoading = false
-                    showErrorMsg(error.errorDescription ?? "Xeta bas verdi")
+                    showErrorMsg(error.errorDescription ?? loc.localized("common_error_occurred"))
                 }
             } catch {
                 AppLogger.auth.error("Trainer verification xetasi: \(error.localizedDescription)")

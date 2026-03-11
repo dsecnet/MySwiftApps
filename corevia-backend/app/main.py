@@ -8,7 +8,7 @@ from app.routers import (
     auth, users, workouts, food, plans, uploads, admin, ai,
     location, notifications, premium, trainer, reviews, chat,
     content, onboarding, social, marketplace, analytics, news,
-    live_sessions, daily_survey,
+    live_sessions, daily_survey, payment,
 )
 from app.routers import settings as settings_router
 
@@ -99,6 +99,7 @@ app.include_router(news.router)
 app.include_router(live_sessions.router)
 app.include_router(settings_router.router)
 app.include_router(daily_survey.router)
+app.include_router(payment.router)
 
 # ── Static files ──────────────────────────────────────────────────────────
 uploads_dir = Path(__file__).parent.parent / "uploads"

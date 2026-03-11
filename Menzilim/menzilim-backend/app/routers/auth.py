@@ -6,21 +6,19 @@ from app.database import get_db
 from app.models.user import User, UserRole
 from app.models.agent import Agent
 from app.schemas.auth import (
-    SendOTPRequest,
-    SendOTPResponse,
-    VerifyOTPRequest,
-    VerifyOTPResponse,
     RegisterRequest,
     LoginRequest,
+    AuthResponse,
+    UserInResponse,
     TokenResponse,
     RefreshTokenRequest,
-    MessageResponse,
 )
-from app.services.sms_service import sms_service
 from app.utils.security import (
     create_access_token,
     create_refresh_token,
     verify_refresh_token,
+    hash_password,
+    verify_password,
 )
 from app.config import get_settings
 
@@ -28,78 +26,30 @@ settings = get_settings()
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-@router.post("/send-otp", response_model=SendOTPResponse)
-async def send_otp(request: SendOTPRequest):
-    """Send an OTP code to the provided phone number."""
-    result = await sms_service.send_otp(request.phone)
-    if not result["success"]:
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=result["message"],
-        )
-    return SendOTPResponse(
-        message=result["message"],
-        expires_in=settings.OTP_EXPIRE_MINUTES * 60,
-    )
-
-
-@router.post("/verify-otp", response_model=VerifyOTPResponse)
-async def verify_otp(
-    request: VerifyOTPRequest,
-    db: AsyncSession = Depends(get_db),
-):
-    """Verify an OTP code. Returns whether the phone is already registered."""
-    is_valid = sms_service.verify_otp(request.phone, request.code)
-    if not is_valid:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired OTP code",
-        )
-
-    # Check if user exists
-    result = await db.execute(
-        select(User).where(User.phone == request.phone)
-    )
-    user = result.scalar_one_or_none()
-
-    return VerifyOTPResponse(
-        is_valid=True,
-        is_registered=user is not None,
-        message="OTP verified successfully",
-    )
-
-
-@router.post("/register", response_model=TokenResponse)
+@router.post("/register", response_model=AuthResponse)
 async def register(
     request: RegisterRequest,
     db: AsyncSession = Depends(get_db),
 ):
-    """Register a new user after OTP verification."""
-    # Verify OTP
-    is_valid = sms_service.verify_otp(request.phone, request.code)
-    if not is_valid:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired OTP code",
-        )
-
+    """Register a new user with email and password."""
     # Check if user already exists
     result = await db.execute(
-        select(User).where(User.phone == request.phone)
+        select(User).where(User.email == request.email)
     )
     existing_user = result.scalar_one_or_none()
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="User with this phone number already exists",
+            detail="User with this email already exists",
         )
 
     # Create user
     user = User(
-        phone=request.phone,
+        email=request.email,
+        password_hash=hash_password(request.password),
         full_name=request.full_name,
         role=request.role,
-        is_verified=True,
+        is_verified=False,
     )
     db.add(user)
     await db.flush()
@@ -117,50 +67,51 @@ async def register(
         db.add(agent)
         await db.flush()
 
+    await db.refresh(user)
+
     # Generate tokens
     access_token = create_access_token(str(user.id), user.role.value)
     refresh_token = create_refresh_token(str(user.id))
 
-    return TokenResponse(
+    return AuthResponse(
         access_token=access_token,
         refresh_token=refresh_token,
-        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        user=UserInResponse.model_validate(user),
     )
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login", response_model=AuthResponse)
 async def login(
     request: LoginRequest,
     db: AsyncSession = Depends(get_db),
 ):
-    """Login with phone and OTP code."""
-    # Verify OTP
-    is_valid = sms_service.verify_otp(request.phone, request.code)
-    if not is_valid:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired OTP code",
-        )
-
+    """Login with email and password."""
     # Find user
     result = await db.execute(
-        select(User).where(User.phone == request.phone)
+        select(User).where(User.email == request.email)
     )
     user = result.scalar_one_or_none()
     if user is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found. Please register first.",
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+        )
+
+    # Verify password
+    if not verify_password(request.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
         )
 
     # Generate tokens
     access_token = create_access_token(str(user.id), user.role.value)
     refresh_token = create_refresh_token(str(user.id))
 
-    return TokenResponse(
+    return AuthResponse(
         access_token=access_token,
         refresh_token=refresh_token,
-        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        user=UserInResponse.model_validate(user),
     )
 
 

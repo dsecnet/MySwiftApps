@@ -63,7 +63,6 @@ class AgentProfileViewModel: ObservableObject {
         premiumExpiresAt: nil,
         user: User(
             id: "user_001",
-            phone: "+994501234567",
             email: "elvin.mammadov@bakurealty.az",
             fullName: "Elvin Məmmədov",
             avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
@@ -80,7 +79,7 @@ class AgentProfileViewModel: ObservableObject {
             id: "l1", userId: "user_001", agentId: "agent_001",
             title: "Dəniz mənzərəli lüks mənzil",
             description: "Port Baku Residence-da 3 otaqlı mənzil",
-            listingType: .sale, propertyType: .apartment,
+            listingType: .sale, propertyType: .newBuilding,
             price: 450000, currency: .AZN,
             city: "Bakı", district: "Nəsimi", address: "Port Baku, 14-cü mərtəbə",
             latitude: 40.3725, longitude: 49.8431,
@@ -94,7 +93,7 @@ class AgentProfileViewModel: ObservableObject {
             id: "l2", userId: "user_001", agentId: "agent_001",
             title: "Yeni tikili studio mənzil",
             description: "Xətai rayonunda yeni tikili studio",
-            listingType: .sale, propertyType: .apartment,
+            listingType: .sale, propertyType: .newBuilding,
             price: 85000, currency: .AZN,
             city: "Bakı", district: "Xətai", address: "Babək pr., 42",
             latitude: 40.3880, longitude: 49.8692,
@@ -136,7 +135,7 @@ class AgentProfileViewModel: ObservableObject {
             id: "l5", userId: "user_001", agentId: "agent_001",
             title: "Villa Şüvəlan",
             description: "Şüvəlanda dənizə yaxın villa",
-            listingType: .sale, propertyType: .villa,
+            listingType: .sale, propertyType: .house,
             price: 780000, currency: .AZN,
             city: "Bakı", district: "Şüvəlan", address: "Sahil küçəsi, 3",
             latitude: 40.5241, longitude: 50.1821,
@@ -150,7 +149,7 @@ class AgentProfileViewModel: ObservableObject {
             id: "l6", userId: "user_001", agentId: "agent_001",
             title: "2 otaqlı mənzil Yasamal",
             description: "Yasamal rayonunda 2 otaqlı mənzil",
-            listingType: .sale, propertyType: .apartment,
+            listingType: .sale, propertyType: .oldBuilding,
             price: 135000, currency: .AZN,
             city: "Bakı", district: "Yasamal", address: "Ş.Bədəlbəyli küç., 20",
             latitude: 40.3925, longitude: 49.8380,
@@ -164,7 +163,7 @@ class AgentProfileViewModel: ObservableObject {
             id: "l7", userId: "user_001", agentId: "agent_001",
             title: "Penthouse Flame Towers",
             description: "Alov Qüllələrində penthouse",
-            listingType: .sale, propertyType: .apartment,
+            listingType: .sale, propertyType: .newBuilding,
             price: 1200000, currency: .AZN,
             city: "Bakı", district: "Səbail", address: "Alov Qüllələri",
             latitude: 40.3592, longitude: 49.8317,
@@ -178,7 +177,7 @@ class AgentProfileViewModel: ObservableObject {
             id: "l8", userId: "user_001", agentId: "agent_001",
             title: "Günlük kirayə İçərişəhər",
             description: "İçərişəhərdə günlük kirayə mənzil",
-            listingType: .dailyRent, propertyType: .apartment,
+            listingType: .dailyRent, propertyType: .oldBuilding,
             price: 80, currency: .AZN,
             city: "Bakı", district: "Səbail", address: "İçərişəhər, Kicik Qala",
             latitude: 40.3663, longitude: 49.8372,
@@ -212,7 +211,7 @@ class AgentProfileViewModel: ObservableObject {
             comment: "Elvin bəy çox peşəkar yanaşdı. Evin bütün sənədlərini çox tez hazırladı. Tövsiyə edirəm!",
             agentReply: "Təşəkkür edirəm, sizinlə işləmək mənim üçün xoş oldu!",
             createdAt: Calendar.current.date(byAdding: .day, value: -2, to: Date()),
-            user: User(id: "user_101", phone: "+994551112233", email: nil, fullName: "Aynur Həsənova", avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100", role: .user, isVerified: true, createdAt: nil, updatedAt: nil)
+            user: User(id: "user_101", email: "aynur@mail.az", fullName: "Aynur Həsənova", avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100", role: .user, isVerified: true, createdAt: nil, updatedAt: nil)
         ),
         Review(
             id: "r2", agentId: "agent_001", userId: "user_102",
@@ -220,7 +219,7 @@ class AgentProfileViewModel: ObservableObject {
             comment: "Çox yaxşı agent, hər şeyi ətraflı izah etdi. Mənzilimizi çox tez tapdıq.",
             agentReply: nil,
             createdAt: Calendar.current.date(byAdding: .day, value: -5, to: Date()),
-            user: User(id: "user_102", phone: "+994552223344", email: nil, fullName: "Rəşad Əliyev", avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100", role: .user, isVerified: true, createdAt: nil, updatedAt: nil)
+            user: User(id: "user_102", email: "rashad.aliyev@mail.az", fullName: "Rəşad Əliyev", avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100", role: .user, isVerified: true, createdAt: nil, updatedAt: nil)
         ),
         Review(
             id: "r3", agentId: "agent_001", userId: "user_103",
@@ -228,7 +227,7 @@ class AgentProfileViewModel: ObservableObject {
             comment: "Ümumiyyətlə razıyam, amma bəzən cavab vermək bir az uzun çəkdi.",
             agentReply: "Rəyinizə görə təşəkkür. Xidmətimizi yaxşılaşdırmaq üçün nəzərə alacağıq.",
             createdAt: Calendar.current.date(byAdding: .day, value: -12, to: Date()),
-            user: User(id: "user_103", phone: "+994553334455", email: nil, fullName: "Nigar Quliyeva", avatarUrl: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100", role: .user, isVerified: false, createdAt: nil, updatedAt: nil)
+            user: User(id: "user_103", email: "nigar@mail.az", fullName: "Nigar Quliyeva", avatarUrl: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100", role: .user, isVerified: false, createdAt: nil, updatedAt: nil)
         ),
         Review(
             id: "r4", agentId: "agent_001", userId: "user_104",
@@ -236,7 +235,7 @@ class AgentProfileViewModel: ObservableObject {
             comment: "Mükəmməl xidmət! 3 gün ərzində mənzilimi satdı. Bazar qiymətindən yuxarı satdı!",
             agentReply: nil,
             createdAt: Calendar.current.date(byAdding: .day, value: -20, to: Date()),
-            user: User(id: "user_104", phone: "+994554445566", email: nil, fullName: "Tural Mahmudov", avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100", role: .user, isVerified: true, createdAt: nil, updatedAt: nil)
+            user: User(id: "user_104", email: "tural.m@mail.az", fullName: "Tural Mahmudov", avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100", role: .user, isVerified: true, createdAt: nil, updatedAt: nil)
         ),
         Review(
             id: "r5", agentId: "agent_001", userId: "user_105",
@@ -244,7 +243,7 @@ class AgentProfileViewModel: ObservableObject {
             comment: "Normal idi, amma qiymət barədə razılaşma çətin oldu.",
             agentReply: "Təəssüf edirəm ki tam razı qalmamısınız. Gələcək əməkdaşlıqda daha yaxşı olacağıq.",
             createdAt: Calendar.current.date(byAdding: .month, value: -1, to: Date()),
-            user: User(id: "user_105", phone: "+994555556677", email: nil, fullName: "Leyla İsmayılova", avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100", role: .user, isVerified: false, createdAt: nil, updatedAt: nil)
+            user: User(id: "user_105", email: "leyla.i@mail.az", fullName: "Leyla İsmayılova", avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100", role: .user, isVerified: false, createdAt: nil, updatedAt: nil)
         ),
         Review(
             id: "r6", agentId: "agent_001", userId: "user_106",
@@ -252,7 +251,7 @@ class AgentProfileViewModel: ObservableObject {
             comment: "Professional agent. Bildiklərim arasında ən yaxşılarından biri. Sənədləşmə prosesi çox rahat keçdi.",
             agentReply: nil,
             createdAt: Calendar.current.date(byAdding: .month, value: -2, to: Date()),
-            user: User(id: "user_106", phone: "+994556667788", email: nil, fullName: "Fuad Babayev", avatarUrl: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100", role: .user, isVerified: true, createdAt: nil, updatedAt: nil)
+            user: User(id: "user_106", email: "fuad.b@mail.az", fullName: "Fuad Babayev", avatarUrl: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100", role: .user, isVerified: true, createdAt: nil, updatedAt: nil)
         )
     ]
 }

@@ -5,7 +5,6 @@ struct OnboardingView: View {
     @Binding var hasCompletedOnboarding: Bool
 
     @State private var currentPage = 0
-    @State private var navigateToLogin = false
 
     private let totalPages = 3
 
@@ -113,9 +112,6 @@ struct OnboardingView: View {
                     .padding(.bottom, AppTheme.Spacing.xxxl + 10)
                 }
             }
-            .navigationDestination(isPresented: $navigateToLogin) {
-                LoginView(viewModel: AuthViewModel())
-            }
         }
     }
 
@@ -142,7 +138,6 @@ struct OnboardingView: View {
     // MARK: - Complete Onboarding
     private func completeOnboarding() {
         hasCompletedOnboarding = true
-        navigateToLogin = true
     }
 }
 

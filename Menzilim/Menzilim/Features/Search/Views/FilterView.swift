@@ -7,6 +7,7 @@ struct FilterView: View {
 
     // MARK: - Local Filter State
     @State private var selectedListingType: ListingType? = nil
+    @State private var selectedPropertyType: PropertyType? = nil
     @State private var minPriceText: String = ""
     @State private var maxPriceText: String = ""
     @State private var selectedRooms: Int? = nil
@@ -36,6 +37,9 @@ struct FilterView: View {
                     VStack(spacing: AppTheme.Spacing.xxl) {
                         // Type: Sale / Rent
                         listingTypeSection
+
+                        // Property Type
+                        propertyTypeSection
 
                         // Price Range
                         priceRangeSection
@@ -133,6 +137,69 @@ struct FilterView: View {
                 .cornerRadius(AppTheme.CornerRadius.medium)
         }
         .padding(2)
+    }
+
+    // MARK: - Property Type Section
+    private var propertyTypeSection: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+            sectionTitle("property_type")
+
+            let columns = [
+                GridItem(.flexible(), spacing: AppTheme.Spacing.sm),
+                GridItem(.flexible(), spacing: AppTheme.Spacing.sm),
+                GridItem(.flexible(), spacing: AppTheme.Spacing.sm)
+            ]
+
+            LazyVGrid(columns: columns, spacing: AppTheme.Spacing.sm) {
+                // "Any" option
+                propertyTypeChip(title: "any".localized, type: nil)
+
+                ForEach(PropertyType.allCases, id: \.self) { type in
+                    propertyTypeChip(
+                        title: type.displayKey.localized,
+                        type: type
+                    )
+                }
+            }
+        }
+    }
+
+    private func propertyTypeChip(title: String, type: PropertyType?) -> some View {
+        let isSelected = selectedPropertyType == type
+
+        return Button {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                selectedPropertyType = type
+            }
+        } label: {
+            HStack(spacing: 4) {
+                if let type = type {
+                    Image(systemName: type.icon)
+                        .font(.system(size: 11))
+                }
+
+                Text(title)
+                    .font(AppTheme.Fonts.small())
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+            .foregroundColor(isSelected ? .white : AppTheme.Colors.textSecondary)
+            .frame(maxWidth: .infinity)
+            .frame(height: 36)
+            .background(
+                isSelected
+                    ? AppTheme.Colors.accent
+                    : AppTheme.Colors.inputBackground
+            )
+            .cornerRadius(AppTheme.CornerRadius.small)
+            .overlay(
+                RoundedRectangle(cornerRadius: AppTheme.CornerRadius.small)
+                    .stroke(
+                        isSelected ? AppTheme.Colors.accent : AppTheme.Colors.inputBorder,
+                        lineWidth: 1
+                    )
+            )
+        }
     }
 
     // MARK: - Price Range Section
@@ -451,6 +518,7 @@ struct FilterView: View {
     // MARK: - Load / Save Filters
     private func loadCurrentFilters() {
         selectedListingType = viewModel.filter.listingType
+        selectedPropertyType = viewModel.filter.propertyType
         selectedRooms = viewModel.filter.rooms
         selectedRenovation = viewModel.filter.renovation
 
@@ -472,6 +540,7 @@ struct FilterView: View {
 
     private func commitFilters() {
         viewModel.filter.listingType = selectedListingType
+        viewModel.filter.propertyType = selectedPropertyType
         viewModel.filter.rooms = selectedRooms
         viewModel.filter.renovation = selectedRenovation
 
@@ -485,6 +554,7 @@ struct FilterView: View {
 
     private func resetLocalFilters() {
         selectedListingType = nil
+        selectedPropertyType = nil
         minPriceText = ""
         maxPriceText = ""
         priceSliderLow = priceMin

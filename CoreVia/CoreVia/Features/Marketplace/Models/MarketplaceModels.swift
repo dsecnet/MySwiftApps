@@ -1,11 +1,10 @@
 import Foundation
 
-// MARK: - Marketplace Product
 
 struct MarketplaceProduct: Identifiable, Codable {
     let id: String
     let sellerId: String
-    let productType: String  // workout_plan, meal_plan, training_program, ebook, video_course
+    let productType: String
     let title: String
     let description: String
     let price: Double

@@ -27,7 +27,7 @@ struct RegisterView: View {
     @State private var experience: Int = 1
     @State private var bio: String = ""
 
-    let specializations = ["Fitness", "Yoga", "Kardio", "Güc", "Qidalanma"]
+    var specializations: [String] { ["Fitness", "Yoga", loc.localized("cat_cardio"), loc.localized("cat_strength"), loc.localized("food_tracking")] }
 
     @ObservedObject private var loc = LocalizationManager.shared
 
@@ -245,7 +245,7 @@ struct RegisterView: View {
         VStack(spacing: 14) {
             // Instagram
             VStack(alignment: .leading, spacing: 6) {
-                Label("Instagram", systemImage: "camera.circle")
+                Label(loc.localized("trainer_instagram"), systemImage: "camera.circle")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(AppTheme.Colors.primaryText)
                     .padding(.horizontal, 20)
@@ -272,7 +272,7 @@ struct RegisterView: View {
 
             // İxtisas
             VStack(alignment: .leading, spacing: 6) {
-                Label("İxtisas", systemImage: "star.fill")
+                Label(loc.localized("trainer_specialization"), systemImage: "star.fill")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(AppTheme.Colors.primaryText)
                     .padding(.horizontal, 20)
@@ -303,16 +303,18 @@ struct RegisterView: View {
 
             // Təcrübə
             VStack(alignment: .leading, spacing: 6) {
-                Label("Təcrübə", systemImage: "clock.fill")
+                Label(loc.localized("trainer_experience"), systemImage: "clock.fill")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(AppTheme.Colors.primaryText)
                     .padding(.horizontal, 20)
 
                 HStack {
-                    Text("\(experience) il")
+                    Text("\(experience) \(loc.localized("trainer_experience_years"))")
                         .font(.system(size: 14, weight: .bold))
                         .foregroundColor(AppTheme.Colors.primaryText)
-                        .frame(width: 50)
+                        .frame(minWidth: 50)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
 
                     Slider(value: Binding(
                         get: { Double(experience) },
@@ -328,7 +330,7 @@ struct RegisterView: View {
 
             // Bio
             VStack(alignment: .leading, spacing: 6) {
-                Label("Haqqınızda", systemImage: "text.alignleft")
+                Label(loc.localized("trainer_about"), systemImage: "text.alignleft")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(AppTheme.Colors.primaryText)
                     .padding(.horizontal, 20)
@@ -346,7 +348,7 @@ struct RegisterView: View {
                     )
                     .overlay(alignment: .topLeading) {
                         if bio.isEmpty {
-                            Text("Özünüz haqqında qısa məlumat yazın...")
+                            Text(loc.localized("trainer_about_placeholder"))
                                 .foregroundColor(AppTheme.Colors.secondaryText.opacity(0.5))
                                 .font(.system(size: 14))
                                 .padding(.horizontal, 12)
@@ -524,7 +526,7 @@ struct RegisterView: View {
     // MARK: - Actions
     private func registerAction() {
         guard isFormValid else {
-            showErrorMessage("Bütün sahələri düzgün doldurun")
+            showErrorMessage(loc.localized("validation_fill_all"))
             return
         }
 
@@ -548,7 +550,7 @@ struct RegisterView: View {
                         showRegister = false
                     }
                 } else {
-                    showErrorMessage(AuthManager.shared.errorMessage ?? "Qeydiyyat uğursuz oldu")
+                    showErrorMessage(AuthManager.shared.errorMessage ?? loc.localized("validation_register_failed"))
                 }
             }
         }
@@ -582,7 +584,7 @@ struct RegisterView: View {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
                 } else {
-                    Text(userType == .trainer ? "Qeydiyyat" : "OTP Göndər")
+                    Text(userType == .trainer ? loc.localized("register_button") : loc.localized("register_send_otp"))
                         .font(.system(size: 16, weight: .bold))
 
                     Image(systemName: "arrow.right")
@@ -611,11 +613,11 @@ struct RegisterView: View {
     private var otpVerificationSection: some View {
         VStack(spacing: 24) {
             VStack(spacing: 12) {
-                Text("OTP Kodu")
+                Text(loc.localized("otp_title"))
                     .font(.system(size: 24, weight: .bold))
                     .foregroundColor(AppTheme.Colors.primaryText)
 
-                Text("\(email) ünvanına göndərilən 6 rəqəmli kodu daxil edin")
+                Text("\(loc.localized("otp_instruction")) \(email)")
                     .font(.system(size: 14))
                     .foregroundColor(AppTheme.Colors.secondaryText)
                     .multilineTextAlignment(.center)
@@ -649,7 +651,7 @@ struct RegisterView: View {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                     } else {
-                        Text("Təsdiq Et və Qeydiyyatdan Keç")
+                        Text(loc.localized("otp_verify_register"))
                             .font(.system(size: 16, weight: .bold))
                     }
                 }
@@ -673,7 +675,7 @@ struct RegisterView: View {
             Button {
                 sendOTPAction()
             } label: {
-                Text("OTP-ni yenidən göndər")
+                Text(loc.localized("otp_resend"))
                     .font(.system(size: 14))
                     .foregroundColor(AppTheme.Colors.accent)
             }
@@ -684,7 +686,7 @@ struct RegisterView: View {
 
     private func sendOTPAction() {
         guard isFormValid else {
-            showErrorMessage("Bütün sahələri düzgün doldurun")
+            showErrorMessage(loc.localized("validation_fill_all"))
             return
         }
 
@@ -723,7 +725,7 @@ struct RegisterView: View {
                     }
                 } else {
                     let errorResponse = try? JSONDecoder().decode([String: String].self, from: data)
-                    throw NSError(domain: errorResponse?["detail"] ?? "OTP göndərilmədi", code: httpResponse.statusCode)
+                    throw NSError(domain: errorResponse?["detail"] ?? loc.localized("validation_otp_send_failed"), code: httpResponse.statusCode)
                 }
             } catch {
                 await MainActor.run {
@@ -769,7 +771,7 @@ struct RegisterView: View {
                     await loginTrainerAutomatically()
                 } else {
                     let errorResponse = try? JSONDecoder().decode([String: String].self, from: data)
-                    throw NSError(domain: errorResponse?["detail"] ?? "Qeydiyyat uğursuz oldu", code: httpResponse.statusCode)
+                    throw NSError(domain: errorResponse?["detail"] ?? loc.localized("validation_register_failed"), code: httpResponse.statusCode)
                 }
             } catch {
                 await MainActor.run {
@@ -817,7 +819,7 @@ struct RegisterView: View {
                     }
                 } else {
                     let errorResponse = try? JSONDecoder().decode([String: String].self, from: data)
-                    throw NSError(domain: errorResponse?["detail"] ?? "Qeydiyyat uğursuz oldu", code: httpResponse.statusCode)
+                    throw NSError(domain: errorResponse?["detail"] ?? loc.localized("validation_register_failed"), code: httpResponse.statusCode)
                 }
             } catch {
                 await MainActor.run {

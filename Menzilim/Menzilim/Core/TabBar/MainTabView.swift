@@ -46,7 +46,7 @@ struct MainTabView: View {
         }
         .ignoresSafeArea(.keyboard)
         .sheet(isPresented: $isShowingCreateListing) {
-            createListingPlaceholder
+            CreateListingView()
         }
     }
 
@@ -55,13 +55,9 @@ struct MainTabView: View {
     private var tabContent: some View {
         switch selectedTab {
         case .home:
-            NavigationStack {
-                homeContentPlaceholder
-            }
+            HomeView()
         case .search:
-            NavigationStack {
-                searchContentPlaceholder
-            }
+            SearchView()
         case .create:
             // Handled via sheet
             Color.clear
@@ -180,128 +176,6 @@ struct MainTabView: View {
         return (keyWindow?.safeAreaInsets.bottom ?? 0) > 0 ? 20 : 12
     }
 
-    // MARK: - Home Content Placeholder
-    private var homeContentPlaceholder: some View {
-        ScrollView {
-            VStack(spacing: AppTheme.Spacing.xl) {
-                // Header
-                HStack {
-                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                        Text("app_name".localized)
-                            .font(AppTheme.Fonts.heading1())
-                            .foregroundColor(AppTheme.Colors.textPrimary)
-                        Text("Ev axtarışını asanlaşdırırıq")
-                            .font(AppTheme.Fonts.caption())
-                            .foregroundColor(AppTheme.Colors.textSecondary)
-                    }
-                    Spacer()
-
-                    NavigationLink {
-                        NotificationsView()
-                    } label: {
-                        ZStack(alignment: .topTrailing) {
-                            Image(systemName: "bell.fill")
-                                .font(.system(size: 22))
-                                .foregroundColor(AppTheme.Colors.textPrimary)
-
-                            if notificationsViewModel.unreadCount > 0 {
-                                Circle()
-                                    .fill(AppTheme.Colors.error)
-                                    .frame(width: 10, height: 10)
-                                    .offset(x: 2, y: -2)
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal, AppTheme.Spacing.lg)
-                .padding(.top, AppTheme.Spacing.md)
-
-                // Search bar placeholder
-                HStack(spacing: AppTheme.Spacing.md) {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(AppTheme.Colors.textTertiary)
-                    Text("search".localized)
-                        .font(AppTheme.Fonts.body())
-                        .foregroundColor(AppTheme.Colors.textTertiary)
-                    Spacer()
-                    Image(systemName: "slider.horizontal.3")
-                        .foregroundColor(AppTheme.Colors.accent)
-                }
-                .padding(AppTheme.Spacing.md)
-                .background(AppTheme.Colors.inputBackground)
-                .cornerRadius(AppTheme.CornerRadius.medium)
-                .padding(.horizontal, AppTheme.Spacing.lg)
-
-                // Placeholder content
-                VStack(spacing: AppTheme.Spacing.lg) {
-                    Text("featured_listings".localized)
-                        .font(AppTheme.Fonts.heading3())
-                        .foregroundColor(AppTheme.Colors.textPrimary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, AppTheme.Spacing.lg)
-
-                    Text("Elanlar yüklənir...")
-                        .font(AppTheme.Fonts.body())
-                        .foregroundColor(AppTheme.Colors.textSecondary)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, AppTheme.Spacing.xxxl)
-                }
-            }
-        }
-        .background(AppTheme.Colors.background)
-        .navigationBarHidden(true)
-    }
-
-    // MARK: - Search Content Placeholder
-    private var searchContentPlaceholder: some View {
-        VStack {
-            Text("search".localized)
-                .font(AppTheme.Fonts.heading2())
-                .foregroundColor(AppTheme.Colors.textPrimary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(AppTheme.Colors.background)
-    }
-
-    // MARK: - Create Listing Placeholder
-    private var createListingPlaceholder: some View {
-        NavigationStack {
-            VStack(spacing: AppTheme.Spacing.xl) {
-                Spacer()
-
-                Image(systemName: "plus.rectangle.on.rectangle")
-                    .font(.system(size: 64))
-                    .foregroundColor(AppTheme.Colors.accent)
-
-                Text("post_property".localized)
-                    .font(AppTheme.Fonts.heading2())
-                    .foregroundColor(AppTheme.Colors.textPrimary)
-
-                Text("Yeni elan yerləşdirmək üçün bütün məlumatları doldurun")
-                    .font(AppTheme.Fonts.body())
-                    .foregroundColor(AppTheme.Colors.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, AppTheme.Spacing.xxxl)
-
-                Spacer()
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(AppTheme.Colors.background)
-            .navigationTitle("post_property".localized)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarColorScheme(.dark, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        isShowingCreateListing = false
-                    } label: {
-                        Image(systemName: "xmark")
-                            .foregroundColor(AppTheme.Colors.textPrimary)
-                    }
-                }
-            }
-        }
-    }
 }
 
 // MARK: - Preview

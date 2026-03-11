@@ -7,7 +7,7 @@ struct HomeView: View {
     @State private var showSearch: Bool = false
 
     // Property type pills for filtering
-    private let propertyTypes: [PropertyType] = [.apartment, .house, .villa, .commercial]
+    private let propertyTypes: [PropertyType] = [.oldBuilding, .newBuilding, .house, .office, .garage, .land, .commercial]
 
     var body: some View {
         NavigationView {
@@ -68,9 +68,13 @@ struct HomeView: View {
     private var topBar: some View {
         HStack(spacing: AppTheme.Spacing.md) {
             // App Icon
-            Image(systemName: "building.2.fill")
-                .font(.system(size: 24))
-                .foregroundColor(AppTheme.Colors.accent)
+            Image("app_logo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 36, height: 36)
+                .brightness(0.15)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .shadow(color: AppTheme.Colors.accent.opacity(0.5), radius: 6, x: 0, y: 2)
 
             // App Title
             Text("app_name".localized)

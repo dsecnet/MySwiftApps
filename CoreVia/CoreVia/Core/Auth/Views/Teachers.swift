@@ -463,7 +463,7 @@ struct TrainerDetailView: View {
                     }
                 }
             } message: {
-                Text("Bu müəllimdən ayrılmaq istədiyinizdən əminsiniz?")
+                Text(loc.localized("teacher_leave_confirm"))
             }
             .alert(loc.localized("common_success"), isPresented: $showMessageSuccess) {
                 Button(loc.localized("teacher_ok"), role: .cancel) {}
@@ -784,7 +784,7 @@ struct TrainerDetailView: View {
                         }
                         .foregroundColor(.white)
 
-                        Text("Müəllim abunəliyi tezliklə aktiv olacaq")
+                        Text(loc.localized("teacher_sub_coming"))
                             .font(.system(size: 12))
                             .foregroundColor(.white.opacity(0.7))
                     }

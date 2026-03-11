@@ -39,51 +39,51 @@ struct CreateLiveSessionView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Basic Info") {
+                Section(loc.localized("create_session_basic_info")) {
                     TextField(loc.localized("live_sessions_title"), text: $title)
 
-                    TextField("Description", text: $description, axis: .vertical)
+                    TextField(loc.localized("live_session_description"), text: $description, axis: .vertical)
                         .lineLimit(3...6)
                 }
 
-                Section("Session Type") {
-                    Picker("Type", selection: $sessionType) {
+                Section(loc.localized("create_session_type")) {
+                    Picker(loc.localized("create_session_type_label"), selection: $sessionType) {
                         ForEach(sessionTypes, id: \.self) { type in
                             Text(type.capitalized).tag(type)
                         }
                     }
 
-                    Picker("Difficulty", selection: $difficultyLevel) {
+                    Picker(loc.localized("create_session_difficulty"), selection: $difficultyLevel) {
                         ForEach(difficultyLevels, id: \.self) { level in
                             Text(level.capitalized).tag(level)
                         }
                     }
                 }
 
-                Section("Capacity & Duration") {
-                    Stepper("Max Participants: \(maxParticipants)", value: $maxParticipants, in: 1...100)
+                Section(loc.localized("create_session_capacity")) {
+                    Stepper("\(loc.localized("create_session_max_participants")): \(maxParticipants)", value: $maxParticipants, in: 1...100)
 
-                    Stepper("Duration: \(durationMinutes) min", value: $durationMinutes, in: 15...180, step: 15)
+                    Stepper("\(loc.localized("create_session_duration_label")): \(durationMinutes) \(loc.localized("common_min"))", value: $durationMinutes, in: 15...180, step: 15)
                 }
 
-                Section("Schedule") {
-                    DatePicker("Start Time", selection: $scheduledStart, in: Date()...)
+                Section(loc.localized("create_session_schedule")) {
+                    DatePicker(loc.localized("create_session_start_time"), selection: $scheduledStart, in: Date()...)
                 }
 
-                Section("Pricing") {
-                    Toggle("Paid Session", isOn: $isPaid)
+                Section(loc.localized("create_session_pricing")) {
+                    Toggle(loc.localized("create_session_paid"), isOn: $isPaid)
 
                     if isPaid {
                         HStack {
                             Text("$")
-                            TextField("Price", value: $price, format: .number)
+                            TextField(loc.localized("create_session_price"), value: $price, format: .number)
                                 .keyboardType(.decimalPad)
                         }
                     }
                 }
 
-                Section("Visibility") {
-                    Toggle("Public Session", isOn: $isPublic)
+                Section(loc.localized("create_session_visibility")) {
+                    Toggle(loc.localized("create_session_public"), isOn: $isPublic)
                 }
 
                 if let error = errorMessage {
@@ -94,17 +94,17 @@ struct CreateLiveSessionView: View {
                     }
                 }
             }
-            .navigationTitle("Create Session")
+            .navigationTitle(loc.localized("create_session_title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button(loc.localized("common_cancel")) {
                         dismiss()
                     }
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Create") {
+                    Button(loc.localized("common_create")) {
                         Task {
                             await createSession()
                         }
@@ -160,13 +160,13 @@ struct CreateLiveSessionView: View {
             // FIX 9: Handle API errors with Azerbaijani message
             await MainActor.run {
                 isCreating = false
-                errorMessage = error.errorDescription ?? "Xəta baş verdi. Zəhmət olmasa yenidən cəhd edin"
+                errorMessage = error.errorDescription ?? loc.localized("common_error_retry")
             }
         } catch {
             // FIX 9: Handle other errors with Azerbaijani message
             await MainActor.run {
                 isCreating = false
-                errorMessage = "Xəta baş verdi. Zəhmət olmasa yenidən cəhd edin"
+                errorMessage = loc.localized("common_error_retry")
             }
         }
     }

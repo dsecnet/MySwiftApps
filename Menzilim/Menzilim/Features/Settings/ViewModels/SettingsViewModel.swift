@@ -6,7 +6,6 @@ import Combine
 class SettingsViewModel: ObservableObject {
 
     // MARK: - Published Properties
-    @Published var currentUser: User
     @Published var isDarkMode: Bool = true
     @Published var selectedCurrency: Currency = .AZN
     @Published var notificationsEnabled: Bool = true
@@ -21,19 +20,22 @@ class SettingsViewModel: ObservableObject {
     let appVersion = "1.0.0"
     let buildNumber = "24"
 
-    // MARK: - Init
-    init() {
-        self.currentUser = User(
-            id: "user_001",
-            phone: "+994 50 123 45 67",
-            email: "elvin.mammadov@gmail.com",
-            fullName: "Elvin Məmmədov",
-            avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
-            role: .user,
-            isVerified: true,
+    // MARK: - Current User (from AuthManager)
+    var currentUser: User {
+        AuthManager.shared.currentUser ?? User(
+            id: "",
+            email: "",
+            fullName: "",
+            avatarUrl: nil,
+            role: .owner,
+            isVerified: false,
             createdAt: nil,
             updatedAt: nil
         )
+    }
+
+    // MARK: - Init
+    init() {
         self.currentLanguage = LocalizationManager.shared.currentLanguage
     }
 
@@ -52,20 +54,13 @@ class SettingsViewModel: ObservableObject {
     }
 
     func logout() {
-        // Handle logout logic
+        AuthManager.shared.logout()
     }
 
-    func updateProfile(fullName: String, email: String?) {
-        currentUser = User(
-            id: currentUser.id,
-            phone: currentUser.phone,
-            email: email,
-            fullName: fullName,
-            avatarUrl: currentUser.avatarUrl,
-            role: currentUser.role,
-            isVerified: currentUser.isVerified,
-            createdAt: currentUser.createdAt,
-            updatedAt: Date()
-        )
+    func updateProfile(fullName: String, email: String) {
+        Task {
+            let request = ProfileUpdateRequest(fullName: fullName, email: email)
+            try? await AuthManager.shared.updateProfile(request)
+        }
     }
 }

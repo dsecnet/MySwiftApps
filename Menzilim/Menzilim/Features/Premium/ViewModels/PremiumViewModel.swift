@@ -125,7 +125,7 @@ class PremiumViewModel: ObservableObject {
                     title: "3 otaqli menzil Nesimi",
                     description: "Premium boost preview",
                     listingType: .sale,
-                    propertyType: .apartment,
+                    propertyType: .newBuilding,
                     price: 185000,
                     currency: .AZN,
                     city: "Baki",

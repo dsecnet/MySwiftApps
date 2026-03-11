@@ -1,44 +1,40 @@
-from pydantic import BaseModel, Field
+import uuid
+from datetime import datetime
+
+from pydantic import BaseModel, Field, EmailStr
 
 from app.models.user import UserRole
 
 
-class SendOTPRequest(BaseModel):
-    phone: str = Field(
-        ...,
-        min_length=10,
-        max_length=20,
-        examples=["+994501234567"],
-        description="Phone number in international format",
-    )
-
-
-class SendOTPResponse(BaseModel):
-    message: str = "OTP sent successfully"
-    expires_in: int = Field(default=300, description="OTP expiration in seconds")
-
-
-class VerifyOTPRequest(BaseModel):
-    phone: str = Field(..., min_length=10, max_length=20)
-    code: str = Field(..., min_length=4, max_length=8)
-
-
-class VerifyOTPResponse(BaseModel):
-    is_valid: bool
-    is_registered: bool
-    message: str
-
-
 class RegisterRequest(BaseModel):
-    phone: str = Field(..., min_length=10, max_length=20)
-    code: str = Field(..., min_length=4, max_length=8)
+    email: EmailStr = Field(..., description="User email address")
+    password: str = Field(..., min_length=6, max_length=128)
     full_name: str = Field(..., min_length=2, max_length=255)
-    role: UserRole = Field(default=UserRole.USER)
+    role: UserRole = Field(default=UserRole.OWNER)
 
 
 class LoginRequest(BaseModel):
-    phone: str = Field(..., min_length=10, max_length=20)
-    code: str = Field(..., min_length=4, max_length=8)
+    email: EmailStr = Field(..., description="User email address")
+    password: str = Field(..., min_length=1, max_length=128)
+
+
+class UserInResponse(BaseModel):
+    id: uuid.UUID
+    email: str
+    full_name: str
+    avatar_url: str | None = None
+    role: UserRole
+    is_verified: bool
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class AuthResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    user: UserInResponse
 
 
 class TokenResponse(BaseModel):

@@ -14,6 +14,7 @@ struct OverallStatisticsView: View {
     @StateObject private var trainingPlanManager = TrainingPlanManager.shared
     @StateObject private var mealPlanManager = MealPlanManager.shared
     @Environment(\.dismiss) private var dismiss
+    @ObservedObject private var loc = LocalizationManager.shared
 
     var body: some View {
         NavigationStack {
@@ -22,7 +23,7 @@ struct OverallStatisticsView: View {
 
                     // MARK: - Weekly Nutrition Section
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Həftəlik Qida")
+                        Text(loc.localized("stats_weekly_food"))
                             .font(.system(size: 22, weight: .bold))
                             .foregroundColor(AppTheme.Colors.primaryText)
 
@@ -30,7 +31,7 @@ struct OverallStatisticsView: View {
                             // Total calories
                             OverallStatRow(
                                 icon: "flame.fill",
-                                label: "Ümumi Kalori",
+                                label: loc.localized("stats_total_calories"),
                                 value: "\(calculateWeeklyCalories())",
                                 unit: "kcal",
                                 color: .orange
@@ -39,18 +40,18 @@ struct OverallStatisticsView: View {
                             // Average daily calories
                             OverallStatRow(
                                 icon: "chart.line.uptrend.xyaxis",
-                                label: "Orta Gündəlik",
+                                label: loc.localized("stats_avg_daily"),
                                 value: "\(calculateWeeklyCalories() / 7)",
-                                unit: "kcal/gün",
+                                unit: loc.localized("stats_cal_per_day"),
                                 color: .blue
                             )
 
                             // Meal count
                             OverallStatRow(
                                 icon: "fork.knife",
-                                label: "Yemək Sayı",
+                                label: loc.localized("stats_meal_count"),
                                 value: "\(calculateWeeklyMealCount())",
-                                unit: "yemək",
+                                unit: loc.localized("stats_meals_unit"),
                                 color: .green
                             )
                         }
@@ -61,19 +62,19 @@ struct OverallStatisticsView: View {
                         // Macros breakdown
                         HStack(spacing: 12) {
                             WeeklyMacroCard(
-                                label: "Protein",
+                                label: loc.localized("stats_protein"),
                                 value: calculateWeeklyProtein(),
                                 color: .red
                             )
 
                             WeeklyMacroCard(
-                                label: "Karbohidrat",
+                                label: loc.localized("stats_carbs"),
                                 value: calculateWeeklyCarbs(),
                                 color: .orange
                             )
 
                             WeeklyMacroCard(
-                                label: "Yağ",
+                                label: loc.localized("stats_fat"),
                                 value: calculateWeeklyFats(),
                                 color: .yellow
                             )
@@ -82,7 +83,7 @@ struct OverallStatisticsView: View {
 
                     // MARK: - Weekly Workouts Section
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Həftəlik Məşqlər")
+                        Text(loc.localized("stats_weekly_workouts"))
                             .font(.system(size: 22, weight: .bold))
                             .foregroundColor(AppTheme.Colors.primaryText)
 
@@ -90,34 +91,34 @@ struct OverallStatisticsView: View {
                             // Total workouts
                             OverallStatRow(
                                 icon: "figure.run",
-                                label: "Ümumi Məşqlər",
+                                label: loc.localized("stats_total_workouts"),
                                 value: "\(workoutManager.weekWorkoutCount)",
-                                unit: "məşq",
+                                unit: loc.localized("stats_workout_unit"),
                                 color: .blue
                             )
 
                             // Completed workouts
                             OverallStatRow(
                                 icon: "checkmark.circle.fill",
-                                label: "Tamamlananlar",
+                                label: loc.localized("stats_completed_workouts"),
                                 value: "\(workoutManager.completedWorkouts.count)",
-                                unit: "məşq",
+                                unit: loc.localized("stats_workout_unit"),
                                 color: .green
                             )
 
                             // Total minutes
                             OverallStatRow(
                                 icon: "clock.fill",
-                                label: "Ümumi Vaxt",
+                                label: loc.localized("stats_total_time"),
                                 value: "\(calculateWeeklyMinutes())",
-                                unit: "dəqiqə",
+                                unit: loc.localized("stats_minutes_unit"),
                                 color: .purple
                             )
 
                             // Calories burned
                             OverallStatRow(
                                 icon: "flame.fill",
-                                label: "Yandırılan Kalori",
+                                label: loc.localized("stats_calories_burned"),
                                 value: "\(calculateWeeklyCaloriesBurned())",
                                 unit: "kcal",
                                 color: .orange
@@ -130,32 +131,32 @@ struct OverallStatisticsView: View {
 
                     // MARK: - Completed Plans Section
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Tamamlanmış Planlar")
+                        Text(loc.localized("stats_completed_plans"))
                             .font(.system(size: 22, weight: .bold))
                             .foregroundColor(AppTheme.Colors.primaryText)
 
                         VStack(spacing: 12) {
                             OverallStatRow(
                                 icon: "dumbbell.fill",
-                                label: "Tamamlanmış Məşq Planları",
+                                label: loc.localized("stats_completed_workout_plans"),
                                 value: "\(trainingPlanManager.plans.filter { $0.isCompleted }.count)",
-                                unit: "plan",
+                                unit: loc.localized("stats_plan_unit"),
                                 color: .blue
                             )
 
                             OverallStatRow(
                                 icon: "fork.knife",
-                                label: "Tamamlanmış Qida Planları",
+                                label: loc.localized("stats_completed_meal_plans"),
                                 value: "\(mealPlanManager.plans.filter { $0.isCompleted }.count)",
-                                unit: "plan",
+                                unit: loc.localized("stats_plan_unit"),
                                 color: .green
                             )
 
                             OverallStatRow(
                                 icon: "chart.bar.fill",
-                                label: "Ümumi Assign Planlar",
+                                label: loc.localized("stats_assigned_plans"),
                                 value: "\(trainingPlanManager.plans.filter { $0.assignedStudentId != nil }.count + mealPlanManager.plans.filter { $0.assignedStudentId != nil }.count)",
-                                unit: "plan",
+                                unit: loc.localized("stats_plan_unit"),
                                 color: .purple
                             )
                         }
@@ -166,7 +167,7 @@ struct OverallStatisticsView: View {
 
                     // MARK: - Overall Info Section
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Ümumi Məlumat")
+                        Text(loc.localized("stats_general_info"))
                             .font(.system(size: 22, weight: .bold))
                             .foregroundColor(AppTheme.Colors.primaryText)
 
@@ -174,16 +175,16 @@ struct OverallStatisticsView: View {
                             // Active days
                             OverallStatRow(
                                 icon: "calendar.badge.checkmark",
-                                label: "Aktiv Günlər",
+                                label: loc.localized("stats_active_days"),
                                 value: "\(calculateActiveDays())",
-                                unit: "gün",
+                                unit: loc.localized("stats_day_unit"),
                                 color: .green
                             )
 
                             // Completion rate
                             OverallStatRow(
                                 icon: "percent",
-                                label: "Tamamlanma Faizi",
+                                label: loc.localized("stats_completion_rate"),
                                 value: "\(calculateCompletionRate())",
                                 unit: "%",
                                 color: .blue
@@ -197,7 +198,7 @@ struct OverallStatisticsView: View {
                 .padding()
             }
             .background(AppTheme.Colors.background)
-            .navigationTitle("Ümumi Statistika")
+            .navigationTitle(loc.localized("stats_overall_title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -328,6 +329,8 @@ struct OverallStatRow: View {
                 Text(label)
                     .font(.system(size: 14))
                     .foregroundColor(AppTheme.Colors.secondaryText)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
 
                 HStack(alignment: .bottom, spacing: 4) {
                     Text(value)
@@ -360,8 +363,10 @@ struct WeeklyMacroCard: View {
             Text(label)
                 .font(.system(size: 12))
                 .foregroundColor(AppTheme.Colors.secondaryText)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
 
-            Text("gram")
+            Text(LocalizationManager.shared.localized("common_gram"))
                 .font(.system(size: 10))
                 .foregroundColor(AppTheme.Colors.tertiaryText)
         }

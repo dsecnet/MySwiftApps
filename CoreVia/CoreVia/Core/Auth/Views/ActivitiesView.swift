@@ -167,15 +167,15 @@ struct ActivitiesView: View {
             )
             .presentationDetents([.medium])
         }
-        .alert("Lokasiya icazesi lazimdir", isPresented: $showLocationDenied) {
-            Button("Ayarlar") {
+        .alert(loc.localized("location_permission_title"), isPresented: $showLocationDenied) {
+            Button(loc.localized("camera_go_settings")) {
                 if let url = URL(string: UIApplication.openSettingsURLString) {
                     UIApplication.shared.open(url)
                 }
             }
-            Button("Bagla", role: .cancel) {}
+            Button(loc.localized("common_close"), role: .cancel) {}
         } message: {
-            Text("Marsrut izlemek ucun lokasiya icazesi verin.")
+            Text(loc.localized("location_permission_desc"))
         }
         .onChange(of: locationManager.authorizationStatus) { newStatus in
             if let pending = pendingActivityType,

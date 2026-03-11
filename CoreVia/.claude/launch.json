@@ -4,7 +4,7 @@
     {
       "name": "qarabaghbau",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8081", "--directory", "/Users/vusaldadashov/Desktop/ConsoleApp/qarabaghbau/variant-1"],
+      "runtimeArgs": ["-m", "http.server", "8081", "--directory", "/Users/vusaldadashov/Desktop/ConsoleApp/qarabaghbau"],
       "port": 8081
     },
     {

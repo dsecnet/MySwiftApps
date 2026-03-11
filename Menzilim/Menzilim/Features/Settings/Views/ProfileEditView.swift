@@ -38,11 +38,11 @@ struct ProfileEditView: View {
                             keyboardType: .emailAddress
                         )
 
-                        // Phone (read-only)
+                        // Email (read-only)
                         readOnlyField(
-                            label: "phone_number".localized,
-                            icon: "phone.fill",
-                            value: viewModel.currentUser.phone
+                            label: "email".localized,
+                            icon: "envelope.fill",
+                            value: viewModel.currentUser.email
                         )
                     }
 
@@ -70,7 +70,7 @@ struct ProfileEditView: View {
             }
             .onAppear {
                 fullName = viewModel.currentUser.fullName
-                email = viewModel.currentUser.email ?? ""
+                email = viewModel.currentUser.email
             }
         }
     }
@@ -201,7 +201,7 @@ struct ProfileEditView: View {
             isSaving = true
             viewModel.updateProfile(
                 fullName: fullName,
-                email: email.isEmpty ? nil : email
+                email: email
             )
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 isSaving = false

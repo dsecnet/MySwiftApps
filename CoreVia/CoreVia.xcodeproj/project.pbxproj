@@ -6,20 +6,74 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		AA00010A2F30A0010000000E /* CoreViaWidgetExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = AA00010A2F30A00100000001 /* CoreViaWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		AA00010A2F30A00100000008 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7900422F2F29E56600AA158A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AA00010A2F30A00100000006;
+			remoteInfo = CoreViaWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		AA00010A2F30A0010000000C /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				AA00010A2F30A0010000000E /* CoreViaWidgetExtension.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		790042372F29E56600AA158A /* CoreVia.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CoreVia.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA00010A2F30A00100000001 /* CoreViaWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CoreViaWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		AA00010A2F30A0010000000D /* Exceptions for "CoreVia" folder in "CoreViaWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Models/LiveActivityAttributes.swift,
+			);
+			target = AA00010A2F30A00100000006 /* CoreViaWidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		790042392F29E56600AA158A /* CoreVia */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				AA00010A2F30A0010000000D /* Exceptions for "CoreVia" folder in "CoreViaWidgetExtension" target */,
+			);
 			path = CoreVia;
+			sourceTree = "<group>";
+		};
+		AA00010A2F30A00100000002 /* CoreViaWidgetExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = CoreViaWidgetExtension;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		790042342F29E56600AA158A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA00010A2F30A00100000004 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -33,6 +87,7 @@
 			isa = PBXGroup;
 			children = (
 				790042392F29E56600AA158A /* CoreVia */,
+				AA00010A2F30A00100000002 /* CoreViaWidgetExtension */,
 				790042382F29E56600AA158A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +96,7 @@
 			isa = PBXGroup;
 			children = (
 				790042372F29E56600AA158A /* CoreVia.app */,
+				AA00010A2F30A00100000001 /* CoreViaWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -55,10 +111,12 @@
 				790042332F29E56600AA158A /* Sources */,
 				790042342F29E56600AA158A /* Frameworks */,
 				790042352F29E56600AA158A /* Resources */,
+				AA00010A2F30A0010000000C /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				AA00010A2F30A00100000007 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				790042392F29E56600AA158A /* CoreVia */,
@@ -69,6 +127,28 @@
 			productName = CoreVia;
 			productReference = 790042372F29E56600AA158A /* CoreVia.app */;
 			productType = "com.apple.product-type.application";
+		};
+		AA00010A2F30A00100000006 /* CoreViaWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA00010A2F30A0010000000B /* Build configuration list for PBXNativeTarget "CoreViaWidgetExtension" */;
+			buildPhases = (
+				AA00010A2F30A00100000003 /* Sources */,
+				AA00010A2F30A00100000004 /* Frameworks */,
+				AA00010A2F30A00100000005 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				AA00010A2F30A00100000002 /* CoreViaWidgetExtension */,
+			);
+			name = CoreViaWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = CoreViaWidgetExtension;
+			productReference = AA00010A2F30A00100000001 /* CoreViaWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -81,6 +161,9 @@
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					790042362F29E56600AA158A = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					AA00010A2F30A00100000006 = {
 						CreatedOnToolsVersion = 16.4;
 					};
 				};
@@ -102,12 +185,20 @@
 			projectRoot = "";
 			targets = (
 				790042362F29E56600AA158A /* CoreVia */,
+				AA00010A2F30A00100000006 /* CoreViaWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		790042352F29E56600AA158A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA00010A2F30A00100000005 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -124,7 +215,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AA00010A2F30A00100000003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AA00010A2F30A00100000007 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AA00010A2F30A00100000006 /* CoreViaWidgetExtension */;
+			targetProxy = AA00010A2F30A00100000008 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		790042402F29E56700AA158A /* Debug */ = {
@@ -260,6 +366,7 @@
 				DEVELOPMENT_TEAM = 4M4PDQ57K4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "CoreVia-Info.plist";
 				INFOPLIST_KEY_NSCameraUsageDescription = "CoreVia qida sekilleri cekmek ve AI analizi ucun kamera icazesi teleb edir.";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "CoreVia hesabiniza suretli ve tehlukesiz giris ucun Face ID istifade edir.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "CoreVia marsrutlarinizi izlemek ucun lokasiya icazesi teleb edir.";
@@ -293,6 +400,7 @@
 				DEVELOPMENT_TEAM = 4M4PDQ57K4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "CoreVia-Info.plist";
 				INFOPLIST_KEY_NSCameraUsageDescription = "CoreVia qida sekilleri cekmek ve AI analizi ucun kamera icazesi teleb edir.";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "CoreVia hesabiniza suretli ve tehlukesiz giris ucun Face ID istifade edir.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "CoreVia marsrutlarinizi izlemek ucun lokasiya icazesi teleb edir.";
@@ -316,6 +424,62 @@
 			};
 			name = Release;
 		};
+		AA00010A2F30A00100000009 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4M4PDQ57K4;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "CoreViaWidgetExtension-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "CoreVia Tracking";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = az.fitness.CoreVia.WidgetExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AA00010A2F30A0010000000A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4M4PDQ57K4;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "CoreViaWidgetExtension-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "CoreVia Tracking";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = az.fitness.CoreVia.WidgetExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -333,6 +497,15 @@
 			buildConfigurations = (
 				790042432F29E56700AA158A /* Debug */,
 				790042442F29E56700AA158A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA00010A2F30A0010000000B /* Build configuration list for PBXNativeTarget "CoreViaWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA00010A2F30A00100000009 /* Debug */,
+				AA00010A2F30A0010000000A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

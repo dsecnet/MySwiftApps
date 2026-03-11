@@ -1,6 +1,4 @@
 import uuid
-import random
-import string
 from datetime import datetime, timedelta, timezone
 
 from jose import jwt, JWTError
@@ -11,11 +9,6 @@ from app.config import get_settings
 settings = get_settings()
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
-def generate_otp(length: int = 6) -> str:
-    """Generate a numeric OTP code."""
-    return "".join(random.choices(string.digits, k=length))
 
 
 def create_access_token(

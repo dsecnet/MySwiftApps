@@ -39,9 +39,7 @@ struct MenzilimApp: App {
 
         case .unauthenticated:
             if hasCompletedOnboarding {
-                NavigationStack {
-                    LoginView(viewModel: AuthViewModel())
-                }
+                WelcomeView()
             } else {
                 OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
             }

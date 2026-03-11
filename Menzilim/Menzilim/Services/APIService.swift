@@ -31,13 +31,27 @@ class APIService {
     static let shared = APIService()
 
     // Change this to your actual backend URL
-    private let baseURL = "http://localhost:8000/api/v1"
+    private let baseURL = "http://localhost:8001/api/v1"
 
     private let decoder: JSONDecoder = {
         let decoder = JSONDecoder()
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-        decoder.dateDecodingStrategy = .formatted(formatter)
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            let dateStr = try container.decode(String.self)
+
+            let iso = ISO8601DateFormatter()
+            iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let date = iso.date(from: dateStr) { return date }
+
+            iso.formatOptions = [.withInternetDateTime]
+            if let date = iso.date(from: dateStr) { return date }
+
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+            if let date = formatter.date(from: dateStr) { return date }
+
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Cannot decode date: \(dateStr)")
+        }
         return decoder
     }()
 

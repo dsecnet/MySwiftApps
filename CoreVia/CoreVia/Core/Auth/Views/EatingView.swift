@@ -39,10 +39,10 @@ struct FoodView: View {
                             Image(systemName: "fork.knife")
                                 .font(.system(size: 50))
                                 .foregroundColor(.gray)
-                            Text("Qida məlumatı yoxdur")
+                            Text(loc.localized("food_no_data"))
                                 .font(.headline)
                                 .foregroundColor(.gray)
-                            Text("Yeni qida əlavə edin")
+                            Text(loc.localized("food_add_new"))
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
@@ -380,7 +380,7 @@ struct FoodView: View {
                         Image(systemName: "person.2.fill")
                             .font(.system(size: 16))
 
-                        Text("Tələbəyə Qida Əlavə Et")
+                        Text(loc.localized("food_add_for_student"))
                             .font(.system(size: 14, weight: .semibold))
                     }
                     .foregroundColor(.white)

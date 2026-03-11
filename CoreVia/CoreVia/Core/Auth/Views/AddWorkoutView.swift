@@ -45,7 +45,7 @@ struct AddWorkoutView: View {
                                 .foregroundColor(AppTheme.Colors.secondaryText)
                                 .font(.subheadline)
 
-                            TextField("", text: $title, prompt: Text("məs: Biceps Training").foregroundColor(AppTheme.Colors.tertiaryText))
+                            TextField("", text: $title, prompt: Text(loc.localized("workout_example_name")).foregroundColor(AppTheme.Colors.tertiaryText))
                                 .foregroundColor(AppTheme.Colors.primaryText)
                                 .padding()
                                 .background(AppTheme.Colors.secondaryBackground)
@@ -123,7 +123,7 @@ struct AddWorkoutView: View {
                                 .foregroundColor(AppTheme.Colors.secondaryText)
                                 .font(.subheadline)
 
-                            TextField("", text: $caloriesBurned, prompt: Text("məs: 250").foregroundColor(AppTheme.Colors.tertiaryText))
+                            TextField("", text: $caloriesBurned, prompt: Text(loc.localized("workout_example_cal")).foregroundColor(AppTheme.Colors.tertiaryText))
                                 .foregroundColor(AppTheme.Colors.primaryText)
                                 .keyboardType(.numberPad)
                                 .padding()
