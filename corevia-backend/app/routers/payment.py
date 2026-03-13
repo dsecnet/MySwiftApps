@@ -14,6 +14,7 @@ from app.config import get_settings
 from app.models.user import User
 from app.models.payment import Payment
 from app.models.subscription import Subscription
+from app.models.marketplace import MarketplaceProduct, ProductPurchase
 from app.schemas.payment import (
     PaymentCreateRequest,
     PaymentCreateResponse,
@@ -37,18 +38,66 @@ async def create_payment_order(
     """
     Kapital Bank-da yeni ödəniş sifarişi yaradır.
     iOS app bu URL-i alıb browser-də açmalıdır.
+
+    product_id formatları:
+    - "com.corevia.monthly" / "com.corevia.yearly" → Premium plan
+    - "marketplace_<uuid>" → Marketplace məhsul alışı
     """
-    plan = get_plan_info(data.product_id)
-    if not plan:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Yanlış product_id. Mövcud planlar: com.corevia.monthly, com.corevia.yearly"
+    amount = 0.0
+    plan_type = ""
+    currency = "AZN"
+    description = ""
+
+    if data.product_id.startswith("marketplace_"):
+        # Marketplace məhsul alışı
+        marketplace_product_id = data.product_id.replace("marketplace_", "")
+        result_q = await db.execute(
+            select(MarketplaceProduct).where(
+                MarketplaceProduct.id == marketplace_product_id,
+                MarketplaceProduct.is_published == True,
+            )
         )
+        mp_product = result_q.scalar_one_or_none()
+        if not mp_product:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Məhsul tapılmadı və ya dərc olunmayıb"
+            )
+
+        # Artıq alınıb yoxla
+        existing_purchase = await db.execute(
+            select(ProductPurchase).where(
+                ProductPurchase.product_id == marketplace_product_id,
+                ProductPurchase.buyer_id == current_user.id,
+            )
+        )
+        if existing_purchase.scalar_one_or_none():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Bu məhsul artıq alınıb"
+            )
+
+        amount = mp_product.price
+        currency = mp_product.currency or "AZN"
+        plan_type = "marketplace"
+        description = f"CoreVia Market - {mp_product.title}"
+    else:
+        # Premium plan
+        plan = get_plan_info(data.product_id)
+        if not plan:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Yanlış product_id. Mövcud planlar: com.corevia.monthly, com.corevia.yearly"
+            )
+        amount = plan["price"]
+        currency = plan.get("currency", "AZN")
+        plan_type = plan["plan_type"]
+        description = f"CoreVia Premium - {plan_type.capitalize()}"
 
     # Kapital Bank-da sifariş yarat
     result = await create_order(
-        amount=str(plan["price"]),
-        description=f"CoreVia Premium - {plan['plan_type'].capitalize()}",
+        amount=str(amount),
+        description=description,
     )
 
     if result.get("error"):
@@ -64,9 +113,9 @@ async def create_payment_order(
         kapital_order_id=result["order_id"],
         kapital_password=result.get("password"),
         product_id=data.product_id,
-        plan_type=plan["plan_type"],
-        amount=plan["price"],
-        currency=plan.get("currency", "AZN"),
+        plan_type=plan_type,
+        amount=amount,
+        currency=currency,
         status="Preparing",
     )
     db.add(payment)
@@ -76,8 +125,8 @@ async def create_payment_order(
         payment_id=payment.id,
         kapital_order_id=result["order_id"],
         redirect_url=result["redirect_url"],
-        amount=plan["price"],
-        currency=plan.get("currency", "AZN"),
+        amount=amount,
+        currency=currency,
         status="Preparing",
     )
 
@@ -123,10 +172,14 @@ async def payment_callback(
         payment.is_paid = True
         payment.paid_at = datetime.utcnow()
 
-        # Premium-u aktivləşdir
-        await _activate_premium(payment, db)
+        if payment.plan_type == "marketplace":
+            # Marketplace məhsul alışını tamamla
+            await _complete_marketplace_purchase(payment, db)
+        else:
+            # Premium-u aktivləşdir
+            await _activate_premium(payment, db)
 
-        logger.info(f"Payment successful: order_id={order_id}, user_id={payment.user_id}")
+        logger.info(f"Payment successful: order_id={order_id}, user_id={payment.user_id}, type={payment.plan_type}")
         return RedirectResponse(url=f"corevia://payment?status=success&payment_id={payment.id}")
     else:
         logger.warning(f"Payment not completed: order_id={order_id}, status={actual_status}")
@@ -163,7 +216,10 @@ async def get_payment_status(
             if actual_status == "FullyPaid" and not payment.is_paid:
                 payment.is_paid = True
                 payment.paid_at = datetime.utcnow()
-                await _activate_premium(payment, db)
+                if payment.plan_type == "marketplace":
+                    await _complete_marketplace_purchase(payment, db)
+                else:
+                    await _activate_premium(payment, db)
 
             await db.flush()
 
@@ -273,3 +329,44 @@ async def _activate_premium(payment: Payment, db: AsyncSession):
     await db.flush()
 
     logger.info(f"Premium activated for user {payment.user_id}: {payment.plan_type} until {expires_at}")
+
+
+async def _complete_marketplace_purchase(payment: Payment, db: AsyncSession):
+    """Marketplace ödənişi uğurlu olduqda alışı tamamlayır."""
+    marketplace_product_id = payment.product_id.replace("marketplace_", "")
+
+    # Məhsulu tap
+    product_result = await db.execute(
+        select(MarketplaceProduct).where(MarketplaceProduct.id == marketplace_product_id)
+    )
+    mp_product = product_result.scalar_one_or_none()
+    if not mp_product:
+        logger.error(f"Marketplace product not found: {marketplace_product_id}")
+        return
+
+    # Artıq alınıb yoxla (təkrar alışın qarşısını al)
+    existing = await db.execute(
+        select(ProductPurchase).where(
+            ProductPurchase.product_id == marketplace_product_id,
+            ProductPurchase.buyer_id == payment.user_id,
+        )
+    )
+    if existing.scalar_one_or_none():
+        logger.warning(f"Product already purchased: {marketplace_product_id} by user {payment.user_id}")
+        return
+
+    # Alış qeydini yarat
+    purchase = ProductPurchase(
+        product_id=marketplace_product_id,
+        buyer_id=payment.user_id,
+        amount_paid=payment.amount,
+        currency=payment.currency,
+        transaction_id=f"kapital_{payment.kapital_order_id}",
+    )
+    db.add(purchase)
+
+    # Satış sayını artır
+    mp_product.sales_count = (mp_product.sales_count or 0) + 1
+    await db.flush()
+
+    logger.info(f"Marketplace purchase completed: product={marketplace_product_id}, buyer={payment.user_id}")

@@ -17,45 +17,33 @@ struct TrainerMarketplaceView: View {
     let productTypes = ["all", "workout_plan", "meal_plan", "training_program", "ebook", "video_course"]
 
     var body: some View {
-        ZStack {
-            // Content
-            VStack(spacing: 0) {
-                // Filter Chips
-                filterSection
-
-                // List
-                if viewModel.isLoading && viewModel.products.isEmpty {
-                    Spacer()
-                    ProgressView()
-                    Spacer()
-                } else if viewModel.products.isEmpty {
-                    emptyState
-                } else {
-                    productsListView
+        VStack(spacing: 0) {
+            // Sağ yuxarıda kiçik + düymə
+            HStack {
+                Spacer()
+                Button {
+                    showCreateProduct = true
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 28))
+                        .foregroundColor(AppTheme.Colors.accent)
                 }
+                .padding(.trailing, 16)
+                .padding(.vertical, 4)
             }
 
-            // FAB button
-            VStack {
+            // Filter Chips
+            filterSection
+
+            // List
+            if viewModel.isLoading && viewModel.products.isEmpty {
                 Spacer()
-                HStack {
-                    Spacer()
-                    Button {
-                        showCreateProduct = true
-                    } label: {
-                        Image(systemName: "plus")
-                            .font(.system(size: 22, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(width: 56, height: 56)
-                            .background(
-                                Circle()
-                                    .fill(AppTheme.Colors.accent)
-                                    .shadow(color: AppTheme.Colors.accent.opacity(0.4), radius: 8, x: 0, y: 4)
-                            )
-                    }
-                    .padding(.trailing, 20)
-                    .padding(.bottom, 24)
-                }
+                ProgressView()
+                Spacer()
+            } else if viewModel.products.isEmpty {
+                emptyState
+            } else {
+                productsListView
             }
         }
         .task {
@@ -123,7 +111,7 @@ struct TrainerMarketplaceView: View {
                 }
             }
             .padding()
-            .padding(.bottom, 80) // FAB ucun yer
+            .padding(.bottom, 16)
         }
     }
 

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PhotosUI
 
 struct CreateProductView: View {
     @Environment(\.dismiss) var dismiss
@@ -18,12 +19,40 @@ struct CreateProductView: View {
     @State private var currency = "AZN"
     @State private var isPublished = true
 
+    // Image picker
+    @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var selectedImage: UIImage?
+    @State private var isUploadingImage = false
+
     @State private var isCreating = false
     @State private var showSuccess = false
     @State private var errorMessage: String?
 
     let productTypes = ["workout_plan", "meal_plan", "training_program", "ebook", "video_course"]
     let currencies = ["AZN", "USD", "EUR", "TRY"]
+
+    // Məhsul tipi adları və ikonları
+    private func productTypeIcon(_ type: String) -> String {
+        switch type {
+        case "workout_plan": return "figure.strengthtraining.traditional"
+        case "meal_plan": return "fork.knife"
+        case "training_program": return "figure.run"
+        case "ebook": return "book.closed"
+        case "video_course": return "play.rectangle"
+        default: return "bag"
+        }
+    }
+
+    private func productTypeName(_ type: String) -> String {
+        switch type {
+        case "workout_plan": return "Məşq Planı"
+        case "meal_plan": return "Qidalanma Planı"
+        case "training_program": return "Məşq Proqramı"
+        case "ebook": return "E-Kitab"
+        case "video_course": return "Video Kurs"
+        default: return type
+        }
+    }
 
     /// Form validation — backend tələbləri: title>=3, description>=10, price>0
     private var isFormValid: Bool {
@@ -37,6 +66,50 @@ struct CreateProductView: View {
 
                 ScrollView {
                     VStack(spacing: 20) {
+                        // Cover Image
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Örtük şəkli")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(AppTheme.Colors.secondaryText)
+
+                            PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                                if let selectedImage = selectedImage {
+                                    Image(uiImage: selectedImage)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(maxWidth: .infinity)
+                                        .frame(height: 180)
+                                        .cornerRadius(AppTheme.CornerRadius.md)
+                                        .clipped()
+                                } else {
+                                    VStack(spacing: 12) {
+                                        Image(systemName: "photo.badge.plus")
+                                            .font(.system(size: 36))
+                                            .foregroundColor(AppTheme.Colors.accent)
+                                        Text("Şəkil seç")
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundColor(AppTheme.Colors.secondaryText)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 180)
+                                    .background(AppTheme.Colors.secondaryBackground)
+                                    .cornerRadius(AppTheme.CornerRadius.md)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: AppTheme.CornerRadius.md)
+                                            .stroke(AppTheme.Colors.separator, style: StrokeStyle(lineWidth: 1, dash: [6]))
+                                    )
+                                }
+                            }
+                            .onChange(of: selectedPhotoItem) { newItem in
+                                Task {
+                                    if let data = try? await newItem?.loadTransferable(type: Data.self),
+                                       let image = UIImage(data: data) {
+                                        selectedImage = image
+                                    }
+                                }
+                            }
+                        }
+
                         // Product Type
                         VStack(alignment: .leading, spacing: 8) {
                             Text(loc.localized("product_type"))
@@ -46,11 +119,24 @@ struct CreateProductView: View {
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 10) {
                                     ForEach(productTypes, id: \.self) { type in
-                                        FilterChip(
-                                            title: loc.localized("marketplace_\(type)"),
-                                            isSelected: productType == type
-                                        ) {
+                                        Button {
                                             productType = type
+                                        } label: {
+                                            HStack(spacing: 6) {
+                                                Image(systemName: productTypeIcon(type))
+                                                    .font(.system(size: 13))
+                                                Text(productTypeName(type))
+                                                    .font(.system(size: 13, weight: .medium))
+                                            }
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 8)
+                                            .background(productType == type ? AppTheme.Colors.accent : AppTheme.Colors.secondaryBackground)
+                                            .foregroundColor(productType == type ? .white : AppTheme.Colors.primaryText)
+                                            .cornerRadius(20)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 20)
+                                                    .stroke(productType == type ? AppTheme.Colors.accent : AppTheme.Colors.separator, lineWidth: 1)
+                                            )
                                         }
                                     }
                                 }
@@ -220,11 +306,18 @@ struct CreateProductView: View {
                 isPublished: isPublished
             )
 
-            let _: MarketplaceProduct = try await APIService.shared.request(
+            let product: MarketplaceProduct = try await APIService.shared.request(
                 endpoint: "/api/v1/marketplace/products",
                 method: "POST",
                 body: request
             )
+
+            // Şəkil seçilibsə, upload et
+            if let image = selectedImage {
+                isUploadingImage = true
+                await uploadCoverImage(productId: product.id, image: image)
+                isUploadingImage = false
+            }
 
             isCreating = false
             showSuccess = true
@@ -232,6 +325,22 @@ struct CreateProductView: View {
         } catch {
             isCreating = false
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func uploadCoverImage(productId: String, image: UIImage) async {
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else { return }
+
+        do {
+            let _ = try await APIService.shared.uploadImage(
+                endpoint: "/api/v1/marketplace/products/\(productId)/cover-image",
+                imageData: imageData,
+                fieldName: "file",
+                fileName: "cover.jpg"
+            )
+        } catch {
+            // Şəkil upload uğursuz olsa da, məhsul artıq yaranıb
+            errorMessage = "Məhsul yaradıldı, amma şəkil yüklənə bilmədi"
         }
     }
 }

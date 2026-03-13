@@ -13,6 +13,10 @@ class ProductDetailViewModel: ObservableObject {
     @Published var isPurchasing = false
     @Published var errorMessage: String?
 
+    // Kapital Bank payment
+    @Published var showPaymentWeb = false
+    @Published var paymentURL: URL?
+
     init(productId: String) {
         self.productId = productId
     }
@@ -81,7 +85,7 @@ class ProductDetailViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Purchase Product
+    // MARK: - Kapital Bank Purchase
 
     func purchaseProduct() async {
         guard let product = product else { return }
@@ -90,10 +94,51 @@ class ProductDetailViewModel: ObservableObject {
         errorMessage = nil
 
         do {
-            // 1. Initiate Apple IAP
+            let kapitalManager = KapitalPaymentManager.shared
+            kapitalManager.reset()
+
+            let response = try await kapitalManager.createOrder(productId: "marketplace_\(product.id)")
+
+            if let url = URL(string: response.redirectUrl) {
+                paymentURL = url
+                showPaymentWeb = true
+            } else {
+                errorMessage = "Ödəniş linki yaradıla bilmədi"
+            }
+        } catch {
+            AppLogger.network.error("Purchase product xetasi: \(error.localizedDescription)")
+            errorMessage = error.localizedDescription
+        }
+
+        isPurchasing = false
+    }
+
+    /// Safari bağlandıqdan sonra ödəniş statusunu yoxla
+    func checkPaymentAfterReturn() async {
+        guard let paymentId = KapitalPaymentManager.shared.currentPaymentId else { return }
+
+        isPurchasing = true
+        let success = await KapitalPaymentManager.shared.waitForPaymentCompletion(paymentId: paymentId)
+
+        if success {
+            hasPurchased = true
+        } else if let error = KapitalPaymentManager.shared.paymentError {
+            errorMessage = error
+        }
+        isPurchasing = false
+    }
+
+    // MARK: - Apple IAP (StoreKit 2 — saxlanılıb, Apple tələb etsə)
+
+    func purchaseProductWithApple() async {
+        guard let product = product else { return }
+
+        isPurchasing = true
+        errorMessage = nil
+
+        do {
             let receiptData = try await initiateApplePurchase(productIdentifier: "corevia_\(product.id)")
 
-            // 2. Validate with backend
             let request = PurchaseRequest(
                 productId: product.id,
                 receiptData: receiptData
@@ -105,7 +150,6 @@ class ProductDetailViewModel: ObservableObject {
                 body: request
             )
 
-            // Success
             hasPurchased = true
 
         } catch {
@@ -116,10 +160,7 @@ class ProductDetailViewModel: ObservableObject {
         isPurchasing = false
     }
 
-    // MARK: - Apple IAP (StoreKit 2)
-
     private func initiateApplePurchase(productIdentifier: String) async throws -> String {
-        // StoreKit 2 — iOS 15+
         let products = try await Product.products(for: [productIdentifier])
 
         guard let storeProduct = products.first else {
@@ -134,13 +175,9 @@ class ProductDetailViewModel: ObservableObject {
 
         switch result {
         case .success(let verification):
-            // Transaction verification
             switch verification {
             case .verified(let transaction):
-                // Apple serverin imzasini yoxlayib — etibarlidi
                 await transaction.finish()
-
-                // Transaction ID-ni backend-e gonder
                 let transactionId = String(transaction.id)
                 return transactionId
 

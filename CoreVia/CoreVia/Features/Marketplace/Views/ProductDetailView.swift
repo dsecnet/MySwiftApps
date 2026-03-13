@@ -1,5 +1,6 @@
 import SwiftUI
 import StoreKit
+import SafariServices
 
 /// Product Detail View with Purchase Flow
 struct ProductDetailView: View {
@@ -74,6 +75,16 @@ struct ProductDetailView: View {
                 WriteReviewView(productId: product.id) {
                     Task {
                         await viewModel.loadReviews()
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $viewModel.showPaymentWeb) {
+            if let url = viewModel.paymentURL {
+                PaymentWebView(url: url) {
+                    viewModel.showPaymentWeb = false
+                    Task {
+                        await viewModel.checkPaymentAfterReturn()
                     }
                 }
             }
