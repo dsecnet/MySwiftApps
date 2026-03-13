@@ -9,6 +9,7 @@ import enum
 class ProductType(str, enum.Enum):
     workout_plan = "workout_plan"
     meal_plan = "meal_plan"
+    nutrition = "nutrition"
     training_program = "training_program"
     ebook = "ebook"
     video_course = "video_course"

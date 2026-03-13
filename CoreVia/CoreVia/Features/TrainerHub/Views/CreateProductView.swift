@@ -28,7 +28,7 @@ struct CreateProductView: View {
     @State private var showSuccess = false
     @State private var errorMessage: String?
 
-    let productTypes = ["workout_plan", "meal_plan", "training_program", "ebook", "video_course"]
+    let productTypes = ["workout_plan", "meal_plan", "nutrition", "training_program", "ebook", "video_course"]
     let currencies = ["AZN", "USD", "EUR", "TRY"]
 
     // Məhsul tipi adları və ikonları
@@ -36,6 +36,7 @@ struct CreateProductView: View {
         switch type {
         case "workout_plan": return "figure.strengthtraining.traditional"
         case "meal_plan": return "fork.knife"
+        case "nutrition": return "leaf.fill"
         case "training_program": return "figure.run"
         case "ebook": return "book.closed"
         case "video_course": return "play.rectangle"
@@ -44,14 +45,7 @@ struct CreateProductView: View {
     }
 
     private func productTypeName(_ type: String) -> String {
-        switch type {
-        case "workout_plan": return "Məşq Planı"
-        case "meal_plan": return "Qidalanma Planı"
-        case "training_program": return "Məşq Proqramı"
-        case "ebook": return "E-Kitab"
-        case "video_course": return "Video Kurs"
-        default: return type
-        }
+        return loc.localized("marketplace_\(type)")
     }
 
     /// Form validation — backend tələbləri: title>=3, description>=10, price>0
@@ -314,9 +308,12 @@ struct CreateProductView: View {
 
             // Şəkil seçilibsə, upload et
             if let image = selectedImage {
+                print("📸 Şəkil upload başlayır, productId: \(product.id)")
                 isUploadingImage = true
                 await uploadCoverImage(productId: product.id, image: image)
                 isUploadingImage = false
+            } else {
+                print("📸 Şəkil seçilməyib, upload yoxdur")
             }
 
             isCreating = false
@@ -338,8 +335,9 @@ struct CreateProductView: View {
                 fieldName: "file",
                 fileName: "cover.jpg"
             )
+            print("📸 Şəkil upload uğurlu!")
         } catch {
-            // Şəkil upload uğursuz olsa da, məhsul artıq yaranıb
+            print("📸 Şəkil upload XƏTASI: \(error.localizedDescription)")
             errorMessage = "Məhsul yaradıldı, amma şəkil yüklənə bilmədi"
         }
     }

@@ -1,5 +1,4 @@
 import SwiftUI
-import StoreKit
 import SafariServices
 
 /// Product Detail View with Purchase Flow
@@ -8,8 +7,6 @@ struct ProductDetailView: View {
     @StateObject private var viewModel: ProductDetailViewModel
     @ObservedObject private var loc = LocalizationManager.shared
     @Environment(\.dismiss) var dismiss
-    @State private var showPurchaseConfirmation = false
-    @State private var showReviewSheet = false
 
     init(productId: String) {
         self.productId = productId
@@ -37,10 +34,22 @@ struct ProductDetailView: View {
                         // Seller Info
                         sellerSection(product: product)
 
-                        Divider()
-
-                        // Reviews
-                        reviewsSection
+                        // Buy Button
+                        Button {
+                            Task {
+                                await viewModel.purchaseProduct()
+                            }
+                        } label: {
+                            Text(viewModel.hasPurchased ? loc.localized("marketplace_purchased") : loc.localized("marketplace_buy_now"))
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                                .background(viewModel.hasPurchased ? Color.gray : Color.red)
+                                .cornerRadius(14)
+                        }
+                        .disabled(viewModel.hasPurchased || viewModel.isPurchasing)
+                        .padding(.top, 8)
                     }
                     .padding()
                 } else if viewModel.isLoading {
@@ -53,11 +62,6 @@ struct ProductDetailView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
-        .overlay(alignment: .bottom) {
-            if let product = viewModel.product {
-                purchaseButton(product: product)
-            }
-        }
         .task {
             await viewModel.loadProduct()
         }
@@ -68,15 +72,6 @@ struct ProductDetailView: View {
         } message: {
             if let error = viewModel.errorMessage {
                 Text(error)
-            }
-        }
-        .sheet(isPresented: $showReviewSheet) {
-            if let product = viewModel.product {
-                WriteReviewView(productId: product.id) {
-                    Task {
-                        await viewModel.loadReviews()
-                    }
-                }
             }
         }
         .sheet(isPresented: $viewModel.showPaymentWeb) {
@@ -95,24 +90,26 @@ struct ProductDetailView: View {
 
     private func coverImageSection(product: MarketplaceProduct) -> some View {
         Group {
-            if let imageUrl = product.coverImageUrl, let url = URL(string: imageUrl) {
-                AsyncImage(url: url) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                } placeholder: {
-                    Color(.systemGray5)
+            if let url = product.fullCoverImageUrl {
+                AuthenticatedImage(url: url) {
+                    Rectangle()
+                        .fill(Color(.systemGray5))
                 }
-                .frame(height: 250)
+                .frame(maxWidth: .infinity)
+                .frame(height: 220)
                 .clipped()
+                .cornerRadius(16)
+                .padding(.horizontal)
             } else {
                 ZStack {
-                    Color("PrimaryColor").opacity(0.1)
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.red.opacity(0.1))
                     Image(systemName: productIcon(product.productType))
-                        .font(.system(size: 80))
-                        .foregroundColor(Color("PrimaryColor"))
+                        .font(.system(size: 60))
+                        .foregroundColor(Color.red)
                 }
-                .frame(height: 250)
+                .frame(height: 220)
+                .padding(.horizontal)
             }
         }
     }
@@ -125,10 +122,10 @@ struct ProductDetailView: View {
             Text(loc.localized("marketplace_\(product.productType)"))
                 .font(.subheadline)
                 .fontWeight(.semibold)
-                .foregroundColor(Color("PrimaryColor"))
+                .foregroundColor(Color.red)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(Color("PrimaryColor").opacity(0.1))
+                .background(Color.red.opacity(0.1))
                 .cornerRadius(8)
 
             // Title
@@ -136,30 +133,11 @@ struct ProductDetailView: View {
                 .font(.title2)
                 .fontWeight(.bold)
 
-            // Rating
-            if let rating = product.averageRating, let count = product.reviewCount {
-                HStack(spacing: 8) {
-                    HStack(spacing: 4) {
-                        ForEach(0..<5) { index in
-                            Image(systemName: index < Int(rating.rounded()) ? "star.fill" : "star")
-                                .font(.caption)
-                                .foregroundColor(.yellow)
-                        }
-                    }
-                    Text(String(format: "%.1f", rating))
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                    Text("(\(count) \(loc.localized("marketplace_reviews")))")
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                }
-            }
-
             // Price
             Text("\(String(format: "%.2f", product.price)) \(product.currency)")
                 .font(.title)
                 .fontWeight(.bold)
-                .foregroundColor(Color("PrimaryColor"))
+                .foregroundColor(Color.red)
         }
     }
 
@@ -184,11 +162,7 @@ struct ProductDetailView: View {
                 HStack(spacing: 12) {
                     // Seller Image
                     if let imageUrl = seller.profileImageUrl, let url = URL(string: imageUrl) {
-                        AsyncImage(url: url) { image in
-                            image
-                                .resizable()
-                                .scaledToFill()
-                        } placeholder: {
+                        AuthenticatedImage(url: url) {
                             Circle()
                                 .fill(Color(.systemGray5))
                         }
@@ -196,13 +170,13 @@ struct ProductDetailView: View {
                         .clipShape(Circle())
                     } else {
                         Circle()
-                            .fill(Color("PrimaryColor").opacity(0.2))
+                            .fill(Color.red.opacity(0.2))
                             .frame(width: 50, height: 50)
                             .overlay {
                                 Text(seller.name.prefix(1).uppercased())
                                     .font(.title3)
                                     .fontWeight(.bold)
-                                    .foregroundColor(Color("PrimaryColor"))
+                                    .foregroundColor(Color.red)
                             }
                     }
 
@@ -220,100 +194,6 @@ struct ProductDetailView: View {
         }
     }
 
-    // MARK: - Reviews
-
-    private var reviewsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text(loc.localized("marketplace_reviews"))
-                    .font(.headline)
-
-                Spacer()
-
-                if viewModel.hasPurchased {
-                    Button {
-                        showReviewSheet = true
-                    } label: {
-                        Text(loc.localized("marketplace_write_review"))
-                            .font(.subheadline)
-                            .foregroundColor(Color("PrimaryColor"))
-                    }
-                }
-            }
-
-            if viewModel.reviews.isEmpty {
-                Text(loc.localized("marketplace_no_reviews"))
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-            } else {
-                ForEach(viewModel.reviews.prefix(3)) { review in
-                    ReviewRow(review: review)
-                }
-
-                if viewModel.reviews.count > 3 {
-                    Button {
-                        // Show all reviews
-                    } label: {
-                        Text(loc.localized("marketplace_see_all_reviews"))
-                            .font(.subheadline)
-                            .foregroundColor(Color("PrimaryColor"))
-                    }
-                }
-            }
-        }
-    }
-
-    // MARK: - Purchase Button
-
-    private func purchaseButton(product: MarketplaceProduct) -> some View {
-        VStack(spacing: 0) {
-            Divider()
-
-            HStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(loc.localized("marketplace_price"))
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                    Text("\(String(format: "%.2f", product.price)) \(product.currency)")
-                        .font(.title3)
-                        .fontWeight(.bold)
-                }
-
-                Spacer()
-
-                Button {
-                    showPurchaseConfirmation = true
-                } label: {
-                    Text(viewModel.hasPurchased ? loc.localized("marketplace_purchased") : loc.localized("marketplace_buy_now"))
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(viewModel.hasPurchased ? Color.gray : Color("PrimaryColor"))
-                        .cornerRadius(12)
-                }
-                .disabled(viewModel.hasPurchased || viewModel.isPurchasing)
-                .frame(width: 180)
-            }
-            .padding()
-            .background(Color(.systemBackground))
-        }
-        .confirmationDialog(
-            loc.localized("marketplace_confirm_purchase"),
-            isPresented: $showPurchaseConfirmation,
-            titleVisibility: .visible
-        ) {
-            Button(loc.localized("marketplace_buy_now")) {
-                Task {
-                    await viewModel.purchaseProduct()
-                }
-            }
-            Button(loc.localized("common_cancel"), role: .cancel) {}
-        } message: {
-            Text("\(loc.localized("marketplace_total")): \(String(format: "%.2f", product.price)) \(product.currency)")
-        }
-    }
-
     // MARK: - Helpers
 
     private func productIcon(_ type: String) -> String {
@@ -325,56 +205,6 @@ struct ProductDetailView: View {
         case "video_course": return "play.rectangle"
         default: return "bag"
         }
-    }
-}
-
-// MARK: - Review Row
-
-struct ReviewRow: View {
-    let review: ProductReview
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                // Reviewer Name
-                if let reviewer = review.reviewer {
-                    Text(reviewer.name)
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                } else {
-                    Text("Anonymous")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.gray)
-                }
-
-                Spacer()
-
-                // Rating Stars
-                HStack(spacing: 2) {
-                    ForEach(0..<5) { index in
-                        Image(systemName: index < review.rating ? "star.fill" : "star")
-                            .font(.caption)
-                            .foregroundColor(.yellow)
-                    }
-                }
-            }
-
-            // Comment
-            if let comment = review.comment {
-                Text(comment)
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-            }
-
-            // Date
-            Text(review.createdAt.timeAgo())
-                .font(.caption)
-                .foregroundColor(.gray)
-        }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
     }
 }
 

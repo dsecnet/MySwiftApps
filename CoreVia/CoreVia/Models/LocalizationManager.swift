@@ -952,6 +952,7 @@ class LocalizationManager: ObservableObject {
         "marketplace_ebook": [.az: "E-Kitab", .en: "E-Book", .ru: "Электронная книга"],
         "marketplace_training_program": [.az: "Məşq Proqramı", .en: "Training Program", .ru: "Программа тренировок"],
         "marketplace_video_course": [.az: "Video Kurs", .en: "Video Course", .ru: "Видеокурс"],
+        "marketplace_nutrition": [.az: "Qida", .en: "Nutrition", .ru: "Питание"],
         "marketplace_no_products": [.az: "Məhsul tapılmadı", .en: "No products found", .ru: "Товары не найдены"],
         "marketplace_no_products_desc": [.az: "Bu kateqoriyada hələ məhsul yoxdur", .en: "No products in this category yet", .ru: "В этой категории пока нет товаров"],
         "marketplace_description": [.az: "Təsvir", .en: "Description", .ru: "Описание"],

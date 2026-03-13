@@ -9,6 +9,12 @@ from app.config import get_settings
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
+# Cloudflare WAF browser User-Agent tələb edir
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Accept": "application/json",
+}
+
 # Production və Test URL-ləri
 KAPITAL_PROD_URL = "https://e-commerce.kapitalbank.az/api"
 KAPITAL_TEST_URL = "https://txpgtst.kapitalbank.az/api"
@@ -47,7 +53,7 @@ async def create_order(
         }
     }
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=30.0, headers=HEADERS) as client:
         response = await client.post(
             f"{base_url}/order",
             json=payload,
@@ -83,7 +89,7 @@ async def get_order_details(order_id: int | str) -> dict:
     """
     base_url = _get_base_url()
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=30.0, headers=HEADERS) as client:
         response = await client.get(
             f"{base_url}/order/{order_id}?tranDetailLevel=2&tokenDetailLevel=2&orderDetailLevel=2",
             auth=_get_auth(),
@@ -111,7 +117,7 @@ async def refund_order(order_id: int | str, amount: str | None = None) -> dict:
     if amount:
         payload["tran"]["amount"] = str(amount)
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=30.0, headers=HEADERS) as client:
         response = await client.post(
             f"{base_url}/order/{order_id}/exec-tran",
             json=payload,
@@ -141,7 +147,7 @@ async def reverse_order(order_id: int | str, void_kind: str = "Full", amount: st
     if void_kind == "Partial" and amount:
         payload["tran"]["amount"] = str(amount)
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=30.0, headers=HEADERS) as client:
         response = await client.post(
             f"{base_url}/order/{order_id}/exec-tran",
             json=payload,

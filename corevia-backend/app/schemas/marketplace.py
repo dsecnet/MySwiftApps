@@ -21,7 +21,7 @@ class ProductCreate(BaseModel):
     @classmethod
     def validate_product_type(cls, v: str) -> str:
         """Whitelist validation - OWASP A03:2021"""
-        allowed_types = ["workout_plan", "meal_plan", "training_program", "ebook", "video_course"]
+        allowed_types = ["workout_plan", "meal_plan", "nutrition", "training_program", "ebook", "video_course"]
         if v not in allowed_types:
             raise ValueError(f"Invalid product_type. Allowed: {allowed_types}")
         return v

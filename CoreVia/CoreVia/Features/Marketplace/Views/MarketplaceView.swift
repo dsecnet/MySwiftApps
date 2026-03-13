@@ -134,22 +134,19 @@ struct ProductCard: View {
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             // Cover Image
-            if let imageUrl = product.coverImageUrl, let url = URL(string: imageUrl) {
-                AsyncImage(url: url) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                } placeholder: {
+            if let url = product.fullCoverImageUrl {
+                AuthenticatedImage(url: url) {
                     Color(.systemGray5)
                 }
                 .frame(width: 100, height: 100)
+                .clipped()
                 .cornerRadius(12)
             } else {
                 ZStack {
-                    Color("PrimaryColor").opacity(0.1)
+                    Color.red.opacity(0.1)
                     Image(systemName: productIcon)
                         .font(.title)
-                        .foregroundColor(Color("PrimaryColor"))
+                        .foregroundColor(Color.red)
                 }
                 .frame(width: 100, height: 100)
                 .cornerRadius(12)
@@ -161,10 +158,10 @@ struct ProductCard: View {
                 Text(loc.localized("marketplace_\(product.productType)"))
                     .font(.caption)
                     .fontWeight(.semibold)
-                    .foregroundColor(Color("PrimaryColor"))
+                    .foregroundColor(Color.red)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(Color("PrimaryColor").opacity(0.1))
+                    .background(Color.red.opacity(0.1))
                     .cornerRadius(6)
 
                 // Title
@@ -190,7 +187,7 @@ struct ProductCard: View {
                 HStack {
                     Text("\(String(format: "%.2f", product.price)) \(product.currency)")
                         .font(.headline)
-                        .foregroundColor(Color("PrimaryColor"))
+                        .foregroundColor(Color.red)
 
                     Spacer()
 

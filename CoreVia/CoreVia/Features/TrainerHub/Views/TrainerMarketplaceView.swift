@@ -14,7 +14,7 @@ struct TrainerMarketplaceView: View {
     @State private var showCreateProduct = false
     @State private var selectedProductType: String = "all"
 
-    let productTypes = ["all", "workout_plan", "meal_plan", "training_program", "ebook", "video_course"]
+    let productTypes = ["all", "workout_plan", "meal_plan", "nutrition", "training_program", "ebook", "video_course"]
 
     var body: some View {
         VStack(spacing: 0) {
@@ -133,17 +133,6 @@ struct TrainerMarketplaceView: View {
                 .foregroundColor(AppTheme.Colors.tertiaryText)
                 .multilineTextAlignment(.center)
 
-            Button {
-                showCreateProduct = true
-            } label: {
-                Text(loc.localized("trainer_hub_create_product"))
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 12)
-                    .background(AppTheme.Colors.accent)
-                    .cornerRadius(AppTheme.CornerRadius.md)
-            }
             Spacer()
         }
         .padding()
@@ -161,26 +150,17 @@ struct TrainerProductCard: View {
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             // Cover Image
-            if let imageUrl = product.coverImageUrl, let url = URL(string: imageUrl) {
-                AsyncImage(url: url) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                } placeholder: {
-                    Color(.systemGray5)
-                }
-                .frame(width: 100, height: 100)
-                .cornerRadius(AppTheme.CornerRadius.md)
-            } else {
+            AuthenticatedImage(url: product.fullCoverImageUrl) {
                 ZStack {
                     AppTheme.Colors.accent.opacity(0.1)
                     Image(systemName: productIcon)
                         .font(.title)
                         .foregroundColor(AppTheme.Colors.accent)
                 }
-                .frame(width: 100, height: 100)
-                .cornerRadius(AppTheme.CornerRadius.md)
             }
+            .frame(width: 100, height: 100)
+            .cornerRadius(AppTheme.CornerRadius.md)
+            .clipped()
 
             // Content
             VStack(alignment: .leading, spacing: 8) {
@@ -264,6 +244,7 @@ struct TrainerProductCard: View {
         switch product.productType {
         case "workout_plan": return "figure.strengthtraining.traditional"
         case "meal_plan": return "fork.knife"
+        case "nutrition": return "leaf.fill"
         case "ebook": return "book.closed"
         case "training_program": return "figure.run"
         case "video_course": return "play.rectangle"

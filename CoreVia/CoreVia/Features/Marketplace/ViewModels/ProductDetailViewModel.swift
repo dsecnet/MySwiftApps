@@ -71,6 +71,12 @@ class ProductDetailViewModel: ObservableObject {
         do {
             struct PurchasesResponse: Codable {
                 let purchases: [ProductPurchase]
+                let totalSpent: Double?
+
+                enum CodingKeys: String, CodingKey {
+                    case purchases
+                    case totalSpent = "total_spent"
+                }
             }
 
             let response: PurchasesResponse = try await APIService.shared.request(

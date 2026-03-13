@@ -55,7 +55,9 @@ class APIService: NSObject {
     let baseURL = "https://api.corevia.life"
     #endif
 
-    private var session: URLSession!
+    private(set) var session: URLSession!
+    /// SSL delegate ilə konfiqurasiya olunmuş session — şəkil yükləmə üçün
+    var imageSession: URLSession { session }
     private let decoder: JSONDecoder
     private let encoder: JSONEncoder
 
@@ -389,6 +391,11 @@ extension APIService: URLSessionDelegate {
             return
         }
 
+        #if DEBUG
+        // DEBUG mode: Cloudflare proxy arxasinda isleyir, trust+pinning skip
+        AppLogger.network.info("DEBUG mode: SSL pinning skipped for \(host)")
+        completionHandler(.useCredential, URLCredential(trust: serverTrust))
+        #else
         // Standart SSL zencirini yoxla
         let policies = [SecPolicyCreateSSL(true, host as CFString)]
         SecTrustSetPolicies(serverTrust, policies as CFTypeRef)
@@ -400,13 +407,6 @@ extension APIService: URLSessionDelegate {
             completionHandler(.cancelAuthenticationChallenge, nil)
             return
         }
-
-        #if DEBUG
-        // DEBUG mode: SSL trust yoxlanilir amma public key pinning atlanir.
-        // RELEASE build-de pinning aktiv olacaq.
-        AppLogger.network.info("DEBUG mode: SSL pinning skipped, trust-only for \(host)")
-        completionHandler(.useCredential, URLCredential(trust: serverTrust))
-        #else
         // RELEASE: Public key pinning - server-in public key-inin SHA-256 hash-ini yoxla
         guard let certificates = SecTrustCopyCertificateChain(serverTrust) as? [SecCertificate],
               let leafCert = certificates.first,
